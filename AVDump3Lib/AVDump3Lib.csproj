@@ -1,0 +1,178 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{5C1326C8-42CB-4F18-8886-F7CDEF2D4A9D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>AVDump3Lib</RootNamespace>
+    <AssemblyName>AVDump3Lib</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="CSEBML">
+      <HintPath>..\Libs\CSEBML.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AVD3LibException.cs" />
+    <Compile Include="Information\AVD3InformationModule.cs" />
+    <Compile Include="Modules\AVD3ModuleManagement.cs" />
+    <Compile Include="Modules\IAVD3Module.cs" />
+    <Compile Include="Information\FormatHeaders\BitmapInfoHeader.cs" />
+    <Compile Include="Information\FormatHeaders\VMpeg4IsoAvcHeader.cs" />
+    <Compile Include="Information\FormatHeaders\WaveFormatEx.cs" />
+    <Compile Include="Information\InfoProvider\CompositeMediaProvider.cs" />
+    <Compile Include="Information\InfoProvider\FormatInfoProvider.cs" />
+    <Compile Include="Information\InfoProvider\HashProvider.cs" />
+    <Compile Include="Information\InfoProvider\MatroskaProvider.cs" />
+    <Compile Include="Information\InfoProvider\MediaInfoLibProvider.cs" />
+    <Compile Include="Information\InfoProvider\OggProvider.cs" />
+    <Compile Include="Information\MetaInfo\FileMetaInfo.cs" />
+    <Compile Include="Information\MetaInfo\Hash\HashProvider.cs" />
+    <Compile Include="Information\MetaInfo\Media\Attachment.cs" />
+    <Compile Include="Information\MetaInfo\Media\AudioStream.cs" />
+    <Compile Include="Information\MetaInfo\Media\Chapters.cs" />
+    <Compile Include="Information\MetaInfo\Media\MediaProvider.cs" />
+    <Compile Include="Information\MetaInfo\Media\MediaStream.cs" />
+    <Compile Include="Information\MetaInfo\Media\SubtitleStream.cs" />
+    <Compile Include="Information\MetaInfo\Media\Tags.cs" />
+    <Compile Include="Information\MetaInfo\Media\VideoStream.cs" />
+    <Compile Include="Information\MetaInfo\MetaDataProvider.cs" />
+    <Compile Include="Information\MetaInfo\MetaInfoContainer.cs" />
+    <Compile Include="Information\MetaInfo\MetaInfoItem.cs" />
+    <Compile Include="Information\MetaInfo\MetaInfoItemType.cs" />
+    <Compile Include="Misc\ExtensionMethods.cs" />
+    <Compile Include="Misc\Linq\MaxBy.cs" />
+    <Compile Include="Misc\NtfsAlternateStreams.cs" />
+    <Compile Include="Misc\Linq\ThrowHelper.cs" />
+    <Compile Include="Processing\AVD3ProcessingModule.cs" />
+    <Compile Include="Processing\BlockConsumers\BlockConsumerFactory.cs" />
+    <Compile Include="Processing\BlockConsumers\Ogg\BitStreams\AudioOGGBitStream.cs" />
+    <Compile Include="Processing\BlockConsumers\Ogg\BitStreams\CeltOGGBitStream.cs" />
+    <Compile Include="Processing\BlockConsumers\Ogg\BitStreams\FlacOGGBitStream.cs" />
+    <Compile Include="Processing\BlockConsumers\Ogg\BitStreams\IOGMStream.cs" />
+    <Compile Include="Processing\BlockConsumers\Ogg\BitStreams\OGGBitStream.cs" />
+    <Compile Include="Processing\BlockConsumers\Ogg\BitStreams\OGMAudioOGGBitStream.cs" />
+    <Compile Include="Processing\BlockConsumers\Ogg\BitStreams\OGMTextOGGBitStream.cs" />
+    <Compile Include="Processing\BlockConsumers\Ogg\BitStreams\OGMVideoOGGBitStream.cs" />
+    <Compile Include="Processing\BlockConsumers\Ogg\BitStreams\SubtitleOGGBitStream.cs" />
+    <Compile Include="Processing\BlockConsumers\Ogg\BitStreams\TheoraOGGBitStream.cs" />
+    <Compile Include="Processing\BlockConsumers\Ogg\BitStreams\UnknownOGGBitStream.cs" />
+    <Compile Include="Processing\BlockConsumers\Ogg\BitStreams\VideoOGGBitStream.cs" />
+    <Compile Include="Processing\BlockConsumers\Ogg\BitStreams\VorbisOGGBitStream.cs" />
+    <Compile Include="Processing\BlockConsumers\Ogg\OggFile.cs" />
+    <Compile Include="Processing\BlockConsumers\Ogg\OggParser.cs" />
+    <Compile Include="Processing\BlockConsumers\Ogg\Page.cs" />
+    <Compile Include="Processing\BlockConsumers\Ogg\VorbisCommentParser.cs" />
+    <Compile Include="Misc\FileTraversal.cs" />
+    <Compile Include="Processing\StreamProvider\IStreamProvider.cs" />
+    <Compile Include="Processing\StreamProvider\StreamFromPathsProvider.cs" />
+    <Compile Include="Reporting\AVD3ReportingModule.cs" />
+    <Compile Include="Settings\AVD3SettingsModule.cs" />
+    <Compile Include="Settings\CLArguments\ArgGroup.cs" />
+    <Compile Include="Settings\CLArguments\ArgStructure.cs" />
+    <Compile Include="Processing\BlockBuffers\BlockPool.cs" />
+    <Compile Include="Processing\BlockBuffers\BlockStream.cs" />
+    <Compile Include="Processing\BlockBuffers\BlockStreamReader.cs" />
+    <Compile Include="Processing\BlockBuffers\CircularBlockBuffer.cs" />
+    <Compile Include="Processing\BlockBuffers\Sources\IBlockSource.cs" />
+    <Compile Include="Processing\BlockBuffers\Sources\StreamBlockSource.cs" />
+    <Compile Include="Processing\BlockConsumers\BlockConsumer.cs" />
+    <Compile Include="Processing\BlockConsumers\BlockConsumerSelector.cs" />
+    <Compile Include="Processing\BlockConsumers\HashCalculator.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\EBMLBlockDataSource.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\EbmlHeader\EbmlHeaderSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\EbmlList.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\MatroskaFile.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\MatroskaParser.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Section.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Attachments\AttachedFileSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Attachments\AttachmentsSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Chapters\ChapterAtomSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Chapters\ChapterDisplaySection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Chapters\ChapterProcessCommandSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Chapters\ChapterProcessSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Chapters\ChaptersSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Chapters\ChapterTrackSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Chapters\EditionEntrySection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Cluster\ClusterSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Cues\CuePointSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Cues\CueReferenceSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Cues\CuesSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Cues\CueTrackPositionsSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\SeekHead\SeekHeadSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\SeekHead\SeekSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\SegmentInfo\ChapterTranslateSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\SegmentInfo\SegmentInfoSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\SegmentSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Tags\SimpleTagSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Tags\TagSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Tags\TagsSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Tags\TargetsSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Tracks\AudioSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Tracks\ContentCompressionSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Tracks\ContentEncodingSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Tracks\ContentEncryptionSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Tracks\TrackEntrySection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Tracks\TracksSection.cs" />
+    <Compile Include="Processing\BlockConsumers\Matroska\Segment\Tracks\VideoSection.cs" />
+    <Compile Include="Processing\HashAlgorithms\BlockHashAlgorithm.cs" />
+    <Compile Include="Processing\HashAlgorithms\Crc32.cs" />
+    <Compile Include="Processing\HashAlgorithms\Ed2k.cs" />
+    <Compile Include="Processing\HashAlgorithms\Md4.cs" />
+    <Compile Include="Processing\HashAlgorithms\Md5.cs" />
+    <Compile Include="Processing\HashAlgorithms\Sha1.cs" />
+    <Compile Include="Processing\HashAlgorithms\Tiger.cs" />
+    <Compile Include="Processing\HashAlgorithms\TigerTreeHash.cs" />
+    <Compile Include="Processing\StreamConsumer\StreamConsumerFactory.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Processing\StreamConsumer\StreamConsumer.cs" />
+    <Compile Include="Processing\StreamConsumer\StreamConsumerCollection.cs" />
+    <Compile Include="Settings\CLArguments\CLManagement.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Settings\ConfigFile\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

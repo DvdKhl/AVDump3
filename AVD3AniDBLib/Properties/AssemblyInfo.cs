@@ -4,11 +4,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("AVDump3CL")]
+[assembly: AssemblyTitle("AVD3AniDBLib")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("AVDump3CL")]
+[assembly: AssemblyProduct("AVD3AniDBLib")]
 [assembly: AssemblyCopyright("Copyright ©  2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -19,7 +19,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("fd6199f4-efee-4337-ad6a-f42e43c5cef6")]
+[assembly: Guid("cf44a271-5d43-4e4c-b733-412b705e1557")]
 
 // Version information for an assembly consists of the following four values:
 //
