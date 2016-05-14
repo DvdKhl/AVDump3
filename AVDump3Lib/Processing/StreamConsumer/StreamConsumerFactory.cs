@@ -2,6 +2,7 @@
 using AVDump3Lib.BlockBuffers.Sources;
 using AVDump3Lib.Processing.BlockConsumers;
 using System.IO;
+using System.Linq;
 
 namespace AVDump3Lib.Processing.StreamConsumer {
     public interface IStreamConsumerFactory {
@@ -18,9 +19,12 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 
 		public IStreamConsumer Create(Stream stream) {
 			var blockSource = new StreamBlockSource(stream);
-			var buffer = new CircularBlockBuffer(blockPool.Take(), 0/*consumerCount*/);
+			var buffer = new CircularBlockBuffer(blockPool.Take());
 			var blockStream = new BlockStream(blockSource, buffer);
-			var streamConsumer =  new StreamConsumer(blockStream, blockConsumerSelector.Select(blockStream));
+			var blockConsumers = blockConsumerSelector.Select(blockStream).ToArray();
+			buffer.SetConsumerCount(blockConsumers.Length);
+
+			var streamConsumer =  new StreamConsumer(blockStream, blockConsumers);
 			streamConsumer.Finished += (s, e) => blockPool.Release(buffer.Blocks);
 
 			return streamConsumer;

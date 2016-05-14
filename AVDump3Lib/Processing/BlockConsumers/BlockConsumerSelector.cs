@@ -6,7 +6,6 @@ using System.Linq;
 
 namespace AVDump3Lib.Processing.BlockConsumers {
 	public interface IBlockConsumerSelector {
-		int Count { get; }
 		IEnumerable<IBlockConsumer> Select(IBlockStream blockStream);
 	}
 
@@ -28,8 +27,6 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 		public BlockConsumerSelector(IEnumerable<IBlockConsumerFactory> blockConsumerFactories) {
 			this.blockConsumerFactories = blockConsumerFactories.ToArray();
 		}
-
-		public int Count => blockConsumerFactories.Length;
 
 		public IEnumerable<IBlockConsumer> Select(IBlockStream blockStream) {
 			int i = 0;

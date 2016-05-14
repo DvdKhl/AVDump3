@@ -8,59 +8,72 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace AVDump3Lib.Processing.StreamConsumer {
-    public interface IStreamConsumer {
-		event EventHandler Finished;
-        IReadOnlyCollection<IBlockConsumer> BlockConsumers { get; }
-        void ConsumeStream(IProgress<int> progress, CancellationToken ct);
-    }
-    public class StreamConsumer : IStreamConsumer {
-        private IBlockStream blockStream;
-        private IBlockConsumer[] blockConsumers;
+	public delegate void StreamConsumerEventHandler(StreamConsumer streamConsumer);
+	public interface IStreamConsumer {
+		event StreamConsumerEventHandler Finished;
+		bool RanToCompletion { get; }
 
-		public event EventHandler Finished;
+		IReadOnlyCollection<IBlockConsumer> BlockConsumers { get; }
+		IBlockStream BlockStream { get; }
+		void ConsumeStream(IProgress<BlockStreamProgress> progress, CancellationToken ct);
+	}
 
+
+
+	public class StreamConsumer : IStreamConsumer {
+		private IBlockConsumer[] blockConsumers;
+
+		public event StreamConsumerEventHandler Finished;
+
+		public IBlockStream BlockStream { get; }
 		public IReadOnlyCollection<IBlockConsumer> BlockConsumers { get; }
 
-        public StreamConsumer(IBlockStream blockStream, IEnumerable<IBlockConsumer> blockConsumers) {
-            this.blockConsumers = blockConsumers.ToArray();
-            BlockConsumers = Array.AsReadOnly(this.blockConsumers);
+		public bool RanToCompletion { get; private set; }
 
-            this.blockStream = blockStream;
-        }
+		public StreamConsumer(IBlockStream blockStream, IEnumerable<IBlockConsumer> blockConsumers) {
+			this.blockConsumers = blockConsumers.ToArray();
+			BlockConsumers = Array.AsReadOnly(this.blockConsumers);
 
-        public void ConsumeStream(IProgress<int> progress, CancellationToken ct) {
-            if(blockConsumers.Any()) {
-                Task[] tasks = new Task[blockConsumers.Length + 1];
-                tasks[tasks.Length - 1] = blockStream.Produce(progress, ct);
+			BlockStream = blockStream;
+		}
 
-                for(int i = 0; i < blockConsumers.Length; i++) {
-                    int consumerIndex = i;
+		public void ConsumeStream(IProgress<BlockStreamProgress> progress, CancellationToken ct) {
+			if(blockConsumers.Any()) {
+				Task[] tasks = new Task[blockConsumers.Length + 1];
+				tasks[tasks.Length - 1] = BlockStream.Produce(progress, ct);
 
-                    tasks[consumerIndex] = Task.Factory.StartNew(
-                        () => blockConsumers[consumerIndex].ProcessBlocks(ct),
-                        ct, TaskCreationOptions.LongRunning, TaskScheduler.Default
-                    );
-                }
+				for(int i = 0; i < blockConsumers.Length; i++) {
+					int consumerIndex = i;
 
-                Task.WaitAll(tasks, ct);
-            }
+					tasks[consumerIndex] = Task.Factory.StartNew(
+						() => blockConsumers[consumerIndex].ProcessBlocks(ct),
+						ct, TaskCreationOptions.LongRunning, TaskScheduler.Default
+					);
+				}
+
+				Task.WaitAll(tasks, ct);
+			}
+
+			var exceptions = (
+				from b in blockConsumers
+				where b.Exception != null
+				select b.Exception
+			).ToArray();
+
+			RanToCompletion = exceptions.Length == 0;
 			Finished?.Invoke(this, EventArgs.Empty);
+			if(exceptions.Length > 0) throw new AggregateException(exceptions);
+		}
+
+	}
 
 
-			if(blockConsumers.Any(ldBlockConsumer => ldBlockConsumer.Exception != null)) {
-                throw new AggregateException(from b in blockConsumers where b.Exception != null select b.Exception);
-            }
-        }
-
-    }
-
-
-    public class StreamConsumerException : AVD3LibException {
-        public StreamConsumerException(string message, Exception innerException) : base("StreamConsumer threw an Exception: " + message, innerException) { }
-        public StreamConsumerException(Exception innerException) : base("StreamConsumer threw an Exception", innerException) { }
-        protected StreamConsumerException(SerializationInfo info, StreamingContext context) : base(info, context) { }
-        public override void GetObjectData(SerializationInfo info, StreamingContext context) { base.GetObjectData(info, context); }
-        //public override System.Xml.Linq.XElement ToXElement() { var exRoot = base.ToXElement(); return exRoot; }
-    }
+	public class StreamConsumerException : AVD3LibException {
+		public StreamConsumerException(string message, Exception innerException) : base("StreamConsumer threw an Exception: " + message, innerException) { }
+		public StreamConsumerException(Exception innerException) : base("StreamConsumer threw an Exception", innerException) { }
+		protected StreamConsumerException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+		public override void GetObjectData(SerializationInfo info, StreamingContext context) { base.GetObjectData(info, context); }
+		//public override System.Xml.Linq.XElement ToXElement() { var exRoot = base.ToXElement(); return exRoot; }
+	}
 
 }

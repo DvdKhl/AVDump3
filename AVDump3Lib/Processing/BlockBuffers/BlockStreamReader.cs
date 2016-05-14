@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 
 namespace AVDump3Lib.BlockBuffers {
     public interface IBlockStreamReader {
@@ -6,7 +7,7 @@ namespace AVDump3Lib.BlockBuffers {
 		byte[] GetBlock(out int blockLength);
 		long Length { get; }
 		long ReadBytes { get; }
-        void DropOut();
+		void DropOut();
 	}
 
 	public class BlockStreamReader : IBlockStreamReader {
@@ -19,23 +20,20 @@ namespace AVDump3Lib.BlockBuffers {
 		public long ReadBytes { get; private set; }
 
 		public long Length { get; } //Faster Access. Needed?
-
 		public BlockStreamReader(IBlockStream blockStream, int readerIndex) {
 			this.blockStream = blockStream;
 			this.readerIndex = readerIndex;
 			Length = blockStream.Length;
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public byte[] GetBlock(out int blockLength) {
-			var block = blockStream.GetBlock(readerIndex);
-
-			curBlockLength = (int)Math.Min(block.Length, Length - ReadBytes);
-			blockLength = curBlockLength;
-
+			var block = blockStream.GetBlock(readerIndex, out blockLength);
+			ReadBytes += blockLength;
 			return block;
 		}
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool Advance() {
-			ReadBytes += curBlockLength;
 			return blockStream.Advance(readerIndex);
 		}
 

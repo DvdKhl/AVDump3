@@ -1,4 +1,5 @@
-﻿using AVDump3Lib.BlockConsumers;
+﻿using AVDump3Lib.BlockBuffers;
+using AVDump3Lib.BlockConsumers;
 using AVDump3Lib.Processing.StreamProvider;
 using System;
 using System.Collections.Generic;
@@ -8,134 +9,133 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace AVDump3Lib.Processing.StreamConsumer {
-    public interface IStreamConsumerCollection {
-    }
-    public class StreamConsumerCollection : IStreamConsumerCollection {
-        //public event EventHandler<StreamConsumerExceptionEventArgs> ExceptionThrown;
-        public event EventHandler<ConsumingStreamEventArgs> ConsumingStream;
+	public interface IStreamConsumerCollection {
+	}
 
-        private IStreamConsumerFactory streamConsumerFactory;
-        private IStreamProvider streamProvider;
-        private object isRunningSyncRoot = new object();
+	public interface  IBytesReadProgress : IProgress<BlockStreamProgress> {
+		void Register(ProvidedStream providedStream, IStreamConsumer streamConsumer);
+	}
 
 
-        public StreamConsumerCollection(IStreamConsumerFactory streamConsumerFactory, IStreamProvider streamProvider) {
-            this.streamConsumerFactory = streamConsumerFactory;
-            this.streamProvider = streamProvider;
-        }
+	public class StreamConsumerCollection : IStreamConsumerCollection {
+		//public event EventHandler<StreamConsumerExceptionEventArgs> ExceptionThrown;
+		public event EventHandler<ConsumingStreamEventArgs> ConsumingStream;
 
-        public bool IsRunning { get; private set; }
+		private IStreamConsumerFactory streamConsumerFactory;
+		private IStreamProvider streamProvider;
+		private object isRunningSyncRoot = new object();
 
-        public long ReadBytes { get { return readBytes; } }
-        private long readBytes;
 
-        public void ConsumeStreams(CancellationToken ct) {
-            lock(isRunningSyncRoot) {
-                if(IsRunning) throw new InvalidOperationException();
-                IsRunning = true;
-            }
+		public StreamConsumerCollection(IStreamConsumerFactory streamConsumerFactory, IStreamProvider streamProvider) {
+			this.streamConsumerFactory = streamConsumerFactory;
+			this.streamProvider = streamProvider;
+		}
 
-            using(var cts = new CancellationTokenSource())
-            using(var counter = new CountdownEvent(1))
-            using(ct.Register(() => cts.Cancel())) {
-                var progress = new BytesReadProgress(this);
-                Exception firstChanceException = null;
-                foreach(var providedStream in streamProvider.GetConsumingEnumerable(ct)) {
-                    ct.ThrowIfCancellationRequested();
+		public bool IsRunning { get; private set; }
 
-                    counter.AddCount();
-                    Task.Factory.StartNew(() => {
-                        ConsumeStream(providedStream, progress, cts.Token);
-                    }, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current).ContinueWith(t => {
-                        providedStream.Dispose();
-                        counter.Signal();
-                        if(t.IsFaulted) {
-                            if(firstChanceException == null) firstChanceException = t.Exception.Flatten();
-                            cts.Cancel();
-                        }
-                    });
-                    if(firstChanceException != null) break;
-                }
+		private long readBytes;
+		public long ReadBytes => readBytes;
 
-                counter.Signal();
-                counter.Wait(ct);
+		public void ConsumeStreams(CancellationToken ct, IBytesReadProgress progress) {
+			lock(isRunningSyncRoot) {
+				if(IsRunning) throw new InvalidOperationException();
+				IsRunning = true;
+			}
 
-                if(firstChanceException != null) {
-                    throw firstChanceException;
-                }
-            }
+			using(var cts = new CancellationTokenSource())
+			using(var counter = new CountdownEvent(1))
+			using(ct.Register(() => cts.Cancel())) {
+				Exception firstChanceException = null;
+				foreach(var providedStream in streamProvider.GetConsumingEnumerable(ct)) {
+					ct.ThrowIfCancellationRequested();
 
-            lock(isRunningSyncRoot) IsRunning = false;
-        }
-        private void ConsumeStream(ProvidedStream providedStream, BytesReadProgress progress, CancellationToken ct) {
-            var tcs = new TaskCompletionSource<IReadOnlyCollection<IBlockConsumer>>();
-            var eventArgs = new ConsumingStreamEventArgs(providedStream.Tag, tcs.Task);
-            ConsumingStream?.Invoke(this, eventArgs);
+					counter.AddCount();
+					Task.Factory.StartNew(() => {
+						ConsumeStream(providedStream, progress, cts.Token);
+					}, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current).ContinueWith(t => {
+						providedStream.Dispose();
+						counter.Signal();
+						if(t.IsFaulted) {
+							if(firstChanceException == null) firstChanceException = t.Exception.Flatten();
+							cts.Cancel();
+						}
+					});
+					if(firstChanceException != null) break;
+				}
 
-            var retry = false;
-            int retryCount = 0;
-            do {
-                try {
-                    var streamConsumer = streamConsumerFactory.Create(providedStream.Stream);
+				counter.Signal();
+				counter.Wait(ct);
 
-                    streamConsumer.ConsumeStream(progress, ct);
-                    tcs.SetResult(streamConsumer.BlockConsumers);
+				if(firstChanceException != null) {
+					throw firstChanceException;
+				}
+			}
 
-                } catch(StreamConsumerException ex) {
-                    var e = new StreamConsumerExceptionEventArgs(ex, retryCount++);
-                    eventArgs.RaiseOnException(this, e);
-                    if(!e.IsHandled) {
-                        throw new StreamConsumerCollectionException("Unhandled exception in StreamConsumerException", ex);
-                    } else {
-                        retry = e.Retry;
-                    }
+			lock(isRunningSyncRoot) IsRunning = false;
+		}
+		private void ConsumeStream(ProvidedStream providedStream, IBytesReadProgress progress, CancellationToken ct) {
+			var tcs = new TaskCompletionSource<IReadOnlyCollection<IBlockConsumer>>();
+			var eventArgs = new ConsumingStreamEventArgs(providedStream.Tag, tcs.Task);
+			ConsumingStream?.Invoke(this, eventArgs);
 
-                } catch(Exception ex) {
-                    throw new StreamConsumerCollectionException("Unhandled exception in StreamConsumerCollectionException", ex);
-                }
-            } while(retry);
-        }
+			var retry = false;
+			int retryCount = 0;
+			do {
+				try {
+					var streamConsumer = streamConsumerFactory.Create(providedStream.Stream);
+					progress?.Register(providedStream, streamConsumer);
 
-        private class BytesReadProgress : IProgress<int> {
-            private StreamConsumerCollection owner;
+					streamConsumer.ConsumeStream(progress, ct);
+					tcs.SetResult(streamConsumer.BlockConsumers);
 
-            public BytesReadProgress(StreamConsumerCollection owner) { this.owner = owner; }
-            public void Report(int value) { Interlocked.Add(ref owner.readBytes, value); }
-        }
-    }
+				} catch(StreamConsumerException ex) {
+					var e = new StreamConsumerExceptionEventArgs(ex, retryCount++);
+					eventArgs.RaiseOnException(this, e);
+					if(!e.IsHandled) {
+						throw new StreamConsumerCollectionException("Unhandled exception in StreamConsumerException", ex);
+					} else {
+						retry = e.Retry;
+					}
 
-    public class StreamConsumerExceptionEventArgs : EventArgs {
-        public bool IsHandled { get; set; }
-        public bool Retry { get; set; }
-        public int RetryCount { get; private set; }
-        public Exception Cause { get; private set; }
+				} catch(Exception ex) {
+					throw new StreamConsumerCollectionException("Unhandled exception in StreamConsumerCollectionException", ex);
+				}
+			} while(retry);
+		}
+	}
 
-        public StreamConsumerExceptionEventArgs(Exception cause, int retryCount) { Cause = cause; RetryCount = retryCount; }
-    }
+	public class StreamConsumerExceptionEventArgs : EventArgs {
+		public bool IsHandled { get; set; }
+		public bool Retry { get; set; }
+		public int RetryCount { get; private set; }
+		public Exception Cause { get; private set; }
 
-    public class ConsumingStreamEventArgs : EventArgs {
-        public object Tag { get; private set; }
+		public StreamConsumerExceptionEventArgs(Exception cause, int retryCount) { Cause = cause; RetryCount = retryCount; }
+	}
 
-        public event EventHandler<StreamConsumerExceptionEventArgs> OnException;
-        public Task<IReadOnlyCollection<IBlockConsumer>> FinishedProcessing { get; private set; }
+	public class ConsumingStreamEventArgs : EventArgs {
+		public object Tag { get; private set; }
 
-        internal void RaiseOnException(object sender, StreamConsumerExceptionEventArgs ex) {
+		public event EventHandler<StreamConsumerExceptionEventArgs> OnException;
+		public Task<IReadOnlyCollection<IBlockConsumer>> FinishedProcessing { get; private set; }
 
-            OnException?.Invoke(sender, ex);
-        }
+		internal void RaiseOnException(object sender, StreamConsumerExceptionEventArgs ex) {
 
-        public ConsumingStreamEventArgs(object tag, Task<IReadOnlyCollection<IBlockConsumer>> finishedProcessing) {
-            Tag = tag;
-            FinishedProcessing = finishedProcessing;
-        }
-    }
+			OnException?.Invoke(sender, ex);
+		}
 
-    public class StreamConsumerCollectionException : AVD3LibException {
-        public StreamConsumerCollectionException(string message) : base("FileConsumerCollection threw an Exception: " + message) { }
-        public StreamConsumerCollectionException(string message, Exception innerException) : base("FileConsumerCollection threw an Exception: " + message, innerException) { }
-        protected StreamConsumerCollectionException(SerializationInfo info, StreamingContext context) : base(info, context) { }
-        public override void GetObjectData(SerializationInfo info, StreamingContext context) { base.GetObjectData(info, context); }
-        //public override System.Xml.Linq.XElement ToXElement() { var exRoot = base.ToXElement(); return exRoot; }
-    }
+		public ConsumingStreamEventArgs(object tag, Task<IReadOnlyCollection<IBlockConsumer>> finishedProcessing) {
+			Tag = tag;
+			FinishedProcessing = finishedProcessing;
+		}
+	}
+
+	public class StreamConsumerCollectionException : AVD3LibException {
+		public StreamConsumerCollectionException(string message) : base("FileConsumerCollection threw an Exception: " + message) { }
+		public StreamConsumerCollectionException(string message, Exception innerException) : base("FileConsumerCollection threw an Exception: " + message, innerException) { }
+		protected StreamConsumerCollectionException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+		public override void GetObjectData(SerializationInfo info, StreamingContext context) { base.GetObjectData(info, context); }
+		//public override System.Xml.Linq.XElement ToXElement() { var exRoot = base.ToXElement(); return exRoot; }
+	}
 
 }

@@ -1,11 +1,15 @@
-﻿using AVDump3Lib.Modules;
+﻿using AVDump3Lib.BlockBuffers;
+using AVDump3Lib.Modules;
 using AVDump3Lib.Processing;
+using AVDump3Lib.Processing.BlockConsumers;
+using AVDump3Lib.Processing.StreamConsumer;
 using AVDump3Lib.Processing.StreamProvider;
 using AVDump3Lib.Reporting;
 using AVDump3Lib.Settings;
 using AVDump3Lib.Settings.CLArguments;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,6 +20,14 @@ namespace AVDump3CL {
 		private IAVD3ReportingModule reportingModule;
 
 
+		public int BlockCount { get; private set; }
+		public int BlockLength { get; private set; }
+		public int GlobalConcurrentCount { get; private set; }
+		public IReadOnlyCollection<PathPartition> PathPartitions { get; private set; }
+		public IReadOnlyCollection<string> UsedBlockConsumerNames { get; private set; }
+
+		public bool UseNtfsAlternateStreams { get; private set; }
+
 		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) {
 			var settingsgModule = modules.OfType<IAVD3SettingsModule>().Single();
 			settingsgModule.RegisterCommandlineArgs += CreateCommandlineArguments;
@@ -24,7 +36,19 @@ namespace AVDump3CL {
 			reportingModule = modules.OfType<IAVD3ReportingModule>().Single();
 		}
 
-		public void Process() {
+		public void Process(string[] paths) {
+			var bcf = new BlockConsumerSelector(processingModule.BlockConsumerFactories);
+			var bp = new BlockPool(BlockCount, BlockLength);
+
+			var scf = new StreamConsumerFactory(bcf, bp);
+			var sp = new StreamFromPathsProvider(GlobalConcurrentCount,
+				PathPartitions, paths, true,
+				path => path.EndsWith("mkv"), ex => { }
+			);
+
+			var streamConsumerCollection = new StreamConsumerCollection(scf, sp);
+
+			streamConsumerCollection.ConsumeStreams();
 
 		}
 
@@ -37,7 +61,13 @@ namespace AVDump3CL {
 
 			yield return new ArgGroup("Processing",
 				"",
-				() => { },
+				() => {
+					BlockCount = blockCount;
+					BlockLength = blockLength;
+					GlobalConcurrentCount = globalConcurrentCount;
+					PathPartitions = Array.AsReadOnly(partitions.ToArray());
+					UsedBlockConsumerNames = Array.AsReadOnly(usedBlockConsumers);
+				},
 				ArgStructure.Create(
 					arg => {
 						var raw = arg.Split(':').Select(ldArg => int.Parse(ldArg));
@@ -67,7 +97,8 @@ namespace AVDump3CL {
 						partitions = arg.PerPath.Select(x => new PathPartition(x.Path, x.MaxCount));
 					},
 					"--Concurrent=<max>[:<path1>,<max1>;<path2>,<max2>;...]",
-					"Sets the maximal number of files which will be processed concurrently.\nFirst param (max) sets a global limit. (path,max) pairs sets limits per path.",
+					"Sets the maximal number of files which will be processed concurrently.\n" +
+					"First param (max) sets a global limit. (path,max) pairs sets limits per path.",
 					"Concurrent", "Conc"
 				),
 				ArgStructure.Create(
@@ -85,6 +116,9 @@ namespace AVDump3CL {
 			bool useNtfsAlternateStreams = false;
 			yield return new ArgGroup("Internal",
 				"",
+				() => {
+					UseNtfsAlternateStreams = useNtfsAlternateStreams;
+				},
 				ArgStructure.Create(
 					arg => useNtfsAlternateStreams = true,
 					"--UseNtfsAlternateStreams",

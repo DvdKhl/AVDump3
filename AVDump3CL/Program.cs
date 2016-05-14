@@ -33,12 +33,11 @@ namespace AVDump3CL {
 					"H:/Anime"
 				};
 			}
-
 			var moduleManagemant = IniModules();
 			var pathsToProcess = ProcessCommandlineArguments(moduleManagemant.GetModule<AVD3SettingsModule>(), args);
 
-			var avd3CL = CreateAVD3CL(args);
-			avd3CL?.Process();
+			var clModule = moduleManagemant.GetModule<AVD3CLModule>();
+			clModule.Process(pathsToProcess);
 		}
 		private static AVD3ModuleManagement IniModules() {
 			var moduleManagament = new AVD3ModuleManagement();
@@ -47,6 +46,7 @@ namespace AVDump3CL {
 			moduleManagament.LoadModuleFromType(typeof(AVD3ProcessingModule));
 			moduleManagament.LoadModuleFromType(typeof(AVD3ReportingModule));
 			moduleManagament.LoadModuleFromType(typeof(AVD3SettingsModule));
+			moduleManagament.LoadModuleFromType(typeof(AVD3CLModule));
 			moduleManagament.InitializeModules();
 			return moduleManagament;
 		}
@@ -64,40 +64,6 @@ namespace AVDump3CL {
 			return unnamedArgs.ToArray();
 		}
 
-		private static AVD3CL CreateAVD3CL(string[] arguments) {
-			//var msg = new RegisterCLArgGroupMessage(argGroup => clManagement.RegisterArgGroup(argGroup));
-			//foreach(var ext in extensionManagement.Items) extensionManagement.SendMessage(ext.Key, new RecievedMessageEventArgs(null, msg));
 
-			var bMap = new Dictionary<string, Func<IBlockStreamReader, IBlockConsumer>> {
-				{"SHA1", r => new HashCalculator(r, SHA1.Create(), HashProvider.SHA1Type) },
-				{"SHA256", r => new HashCalculator(r, SHA256.Create(), HashProvider.SHA256Type) },
-				{"SHA384", r => new HashCalculator(r, SHA384.Create(), HashProvider.SHA384Type) },
-				{"SHA512", r => new HashCalculator(r, SHA512.Create(), HashProvider.SHA512Type) },
-				{"MD4", r => new HashCalculator(r, new Md4(), HashProvider.MD4Type) },
-				{"MD5", r => new HashCalculator(r, MD5.Create(), HashProvider.MD5Type) },
-				{"ED2K", r => new HashCalculator(r, new Ed2k(), HashProvider.ED2KType) },
-				{"TIGER", r => new HashCalculator(r, new Tiger(), HashProvider.TigerType) },
-				{"TTH", r => new HashCalculator(r, new TTH(Environment.ProcessorCount), HashProvider.TTHType) },
-				{"CRC32", r => new HashCalculator(r, new Crc32(), HashProvider.CRC32Type) },
-				{"MKV", r => new MatroskaParser(r) }
-			};
-
-			//ts.TraceInformation("Parsing commandline arguments");
-			if(!clManagement.ParseArgs(arguments)) return null;
-
-			var bcf = new BlockConsumerSelector(usedBlockConsumers.Select(x => bMap[x]).ToArray());
-			var bp = new BlockPool(blockCount, blockLength);
-
-			var scf = new StreamConsumerFactory(bcf, bp);
-			var sp = new StreamFromPathsProvider(globalConcurrentCount,
-				partitions, unnamedArgs, true,
-				path => path.EndsWith("mkv"), ex => { }
-			);
-
-			return new AVD3CL(new StreamConsumerCollection(scf, sp)) {
-				UseNtfsAlternateStreams = useNtfsAlternateStreams
-			};
-
-		}
 	}
 }

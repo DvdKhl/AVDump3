@@ -61,7 +61,7 @@
     <Compile Include="Information\InfoProvider\MatroskaProvider.cs" />
     <Compile Include="Information\InfoProvider\MediaInfoLibProvider.cs" />
     <Compile Include="Information\InfoProvider\OggProvider.cs" />
-    <Compile Include="Information\MetaInfo\FileMetaInfo.cs" />
+    <Compile Include="Information\MetaInfo\Core\FileMetaInfo.cs" />
     <Compile Include="Information\MetaInfo\Hash\HashProvider.cs" />
     <Compile Include="Information\MetaInfo\Media\Attachment.cs" />
     <Compile Include="Information\MetaInfo\Media\AudioStream.cs" />
@@ -71,10 +71,10 @@
     <Compile Include="Information\MetaInfo\Media\SubtitleStream.cs" />
     <Compile Include="Information\MetaInfo\Media\Tags.cs" />
     <Compile Include="Information\MetaInfo\Media\VideoStream.cs" />
-    <Compile Include="Information\MetaInfo\MetaDataProvider.cs" />
-    <Compile Include="Information\MetaInfo\MetaInfoContainer.cs" />
-    <Compile Include="Information\MetaInfo\MetaInfoItem.cs" />
-    <Compile Include="Information\MetaInfo\MetaInfoItemType.cs" />
+    <Compile Include="Information\MetaInfo\Core\MetaDataProvider.cs" />
+    <Compile Include="Information\MetaInfo\Core\MetaInfoContainer.cs" />
+    <Compile Include="Information\MetaInfo\Core\MetaInfoItem.cs" />
+    <Compile Include="Information\MetaInfo\Core\MetaInfoItemType.cs" />
     <Compile Include="Misc\ExtensionMethods.cs" />
     <Compile Include="Misc\Linq\MaxBy.cs" />
     <Compile Include="Misc\NtfsAlternateStreams.cs" />

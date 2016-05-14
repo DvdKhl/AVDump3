@@ -15,8 +15,69 @@ using System.IO;
 using AVDump2Lib.InfoProvider.Tools;
 using AVDump3Lib.Misc;
 using System.Reflection;
+using AVDump3Lib.BlockBuffers;
+using System.Collections.Generic;
+using AVDump3Lib.Processing.StreamProvider;
 
 namespace AVDump3CL {
+	public class BytesReadProgress : IBytesReadProgress {
+		private long bytesProcessed;
+		private Dictionary<IBlockStream, StreamConsumerProgressPair> blockStreamProgress;
+
+		private class StreamConsumerProgressPair {
+			public ProvidedStream ProvidedStream;
+			public IStreamConsumer StreamConsumer;
+			public long[] BytesRead;
+
+			public StreamConsumerProgressPair(ProvidedStream providedStream, IStreamConsumer streamConsumer) {
+				ProvidedStream = providedStream;
+				StreamConsumer = streamConsumer;
+				BytesRead = new long[streamConsumer.BlockConsumers.Count + 1];
+			}
+		}
+
+		public class FileProgress {
+			public string FilePath { get; private set; }
+			public long FileLength { get; private set; }
+			public long BytesProcessed { get; private set; }
+			public SortedDictionary<string, long> BytesProcessedPerBlockConsumer { get; private set; }
+		}
+
+		public class Progress {
+			public long TotalBytesProcessed { get; private set; }
+			public IReadOnlyCollection<FileProgress> FileProgressCollection { get; private set; }
+		}
+
+		public BytesReadProgress() {
+			blockStreamProgress = new Dictionary<IBlockStream, StreamConsumerProgressPair>();
+		}
+
+		public void Report(BlockStreamProgress value) {
+			StreamConsumerProgressPair streamConsumerProgressPair;
+			lock(blockStreamProgress) {
+				streamConsumerProgressPair = blockStreamProgress[value.Sender];
+			}
+
+			Interlocked.Add(ref streamConsumerProgressPair.BytesRead[value.Index + 1], value.BytesRead);
+		}
+
+		public void Register(ProvidedStream providedStream, IStreamConsumer streamConsumer) {
+			lock(blockStreamProgress) {
+				blockStreamProgress.Add(streamConsumer.BlockStream, new StreamConsumerProgressPair(providedStream, streamConsumer));
+			}
+
+			streamConsumer.Finished += s => {
+				lock(blockStreamProgress) {
+					blockStreamProgress.Remove(streamConsumer.BlockStream);
+				}
+
+				if(s.RanToCompletion) {
+					Interlocked.Add(ref bytesProcessed, s.BlockStream.Length);
+				}
+			};
+		}
+	}
+
 	public class AVD3CL {
 		private StreamConsumerCollection streamConsumerCollection;
 
