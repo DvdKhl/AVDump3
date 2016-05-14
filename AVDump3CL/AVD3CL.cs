@@ -1,28 +1,31 @@
-﻿using System;
-using System.Linq;
-using AVDump3Lib.Processing.StreamConsumer;
-using System.Threading.Tasks;
-using System.Threading;
-using AVDump3Lib.BlockConsumers;
+﻿using AVDump2Lib.InfoGathering.InfoProvider;
 using AVDump2Lib.InfoProvider;
-using AVDump2Lib.InfoGathering.InfoProvider;
+using AVDump2Lib.InfoProvider.Tools;
+using AVDump3Lib.BlockBuffers;
+using AVDump3Lib.BlockConsumers;
 using AVDump3Lib.BlockConsumers.Matroska;
-using System.Xml.Linq;
-using AVDump3Lib.Information.MetaInfo.Media;
 using AVDump3Lib.Information.MetaInfo;
+using AVDump3Lib.Information.MetaInfo.Media;
+using AVDump3Lib.Misc;
+using AVDump3Lib.Processing.StreamConsumer;
+using AVDump3Lib.Processing.StreamProvider;
+using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using AVDump2Lib.InfoProvider.Tools;
-using AVDump3Lib.Misc;
+using System.Linq;
 using System.Reflection;
-using AVDump3Lib.BlockBuffers;
-using System.Collections.Generic;
-using AVDump3Lib.Processing.StreamProvider;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace AVDump3CL {
 	public class BytesReadProgress : IBytesReadProgress {
+		private int filesProcessed;
 		private long bytesProcessed;
 		private Dictionary<IBlockStream, StreamConsumerProgressPair> blockStreamProgress;
+
+		private ReaderWriterLockSlim rwLock = new ReaderWriterLockSlim();
 
 		private class StreamConsumerProgressPair {
 			public ProvidedStream ProvidedStream;
@@ -47,14 +50,27 @@ namespace AVDump3CL {
 			public string FilePath { get; private set; }
 			public long FileLength { get; private set; }
 			public long BytesProcessed { get; private set; }
-			public SortedDictionary<string, long> BytesProcessedPerBlockConsumer { get; private set; }
-		}
+			public IReadOnlyList<KeyValuePair<string, long>> BytesProcessedPerBlockConsumer { get; private set; }
 
+			public FileProgress(string FilePath, long FileLength, long BytesProcessed,
+				IReadOnlyList<KeyValuePair<string, long>> BytesProcessedPerBlockConsumer
+			) {
+
+			}
+		}
 		public class Progress {
 			public int FilesProcessed { get; private set; }
 			public long BytesProcessed { get; private set; }
-			public IReadOnlyCollection<FileProgress> FileProgressCollection { get; private set; }
-			public IReadOnlyCollection<BlockConsumerProgress> BlockConsumerProgressCollection { get; private set; }
+			public IReadOnlyList<FileProgress> FileProgressCollection { get; private set; }
+			public IReadOnlyList<BlockConsumerProgress> BlockConsumerProgressCollection { get; private set; }
+
+			public Progress(int filesProcessed, long bytesProcessed,
+				IReadOnlyList<FileProgress> fileProgressCollection,
+				IReadOnlyList<BlockConsumerProgress> blockConsumerProgressCollection
+			) {
+
+
+			}
 		}
 
 		public BytesReadProgress() {
@@ -63,25 +79,55 @@ namespace AVDump3CL {
 
 		public void Report(BlockStreamProgress value) {
 			StreamConsumerProgressPair streamConsumerProgressPair;
-			lock(blockStreamProgress) {
-				streamConsumerProgressPair = blockStreamProgress[value.Sender];
-			}
+
+			rwLock.EnterReadLock();
+			streamConsumerProgressPair = blockStreamProgress[value.Sender];
+			rwLock.ExitReadLock();
+
 
 			Interlocked.Add(ref streamConsumerProgressPair.BytesRead[value.Index + 1], value.BytesRead);
 		}
 
-		public void Register(ProvidedStream providedStream, IStreamConsumer streamConsumer) {
-			lock(blockStreamProgress) {
-				blockStreamProgress.Add(streamConsumer.BlockStream, new StreamConsumerProgressPair(providedStream, streamConsumer));
+		public Progress GetProgress() {
+			rwLock.EnterReadLock();
+			
+			var fileProgressCollection = new List<FileProgress>(blockStreamProgress.Count);
+			var blockConsumerProgress = new List<BlockConsumerProgress>(10);
+			foreach(var blockStreamProgressEntry in blockStreamProgress) {
+				var pair = blockStreamProgressEntry.Value;
+				var bcProgress = new List<KeyValuePair<string, long>>(pair.BytesRead.Length - 1);
+				for(int i = 0; i < bcProgress.Count; i++) {
+					bcProgress[i] = new KeyValuePair<string, long>(
+						pair.StreamConsumer.BlockConsumers[i].Name,
+						pair.BytesRead[i + 1]
+					);
+				}
+
+				fileProgressCollection.Add(new FileProgress(
+					(string)pair.ProvidedStream.Tag,
+					pair.ProvidedStream.Stream.Length,
+					pair.BytesRead[0], bcProgress
+				));
 			}
 
+			var progress = new Progress(filesProcessed, bytesProcessed, fileProgressCollection, blockConsumerProgress);
+			rwLock.ExitReadLock();
+			return progress;
+		}
+
+		public void Register(ProvidedStream providedStream, IStreamConsumer streamConsumer) {
+			rwLock.EnterWriteLock();
+			blockStreamProgress.Add(streamConsumer.BlockStream, new StreamConsumerProgressPair(providedStream, streamConsumer));
+			rwLock.ExitWriteLock();
+
 			streamConsumer.Finished += s => {
-				lock(blockStreamProgress) {
-					blockStreamProgress.Remove(streamConsumer.BlockStream);
-				}
+				rwLock.EnterWriteLock();
+				blockStreamProgress.Remove(streamConsumer.BlockStream);
+				rwLock.ExitWriteLock();
 
 				if(s.RanToCompletion) {
 					Interlocked.Add(ref bytesProcessed, s.BlockStream.Length);
+					Interlocked.Increment(ref filesProcessed);
 				}
 			};
 		}
@@ -105,7 +151,7 @@ namespace AVDump3CL {
 
 			var startedOn = DateTime.UtcNow.AddSeconds(-1);
 			while(!consumeTask.IsCompleted) {
-				lock(streamConsumerCollection) {
+				lock (streamConsumerCollection) {
 					Console.CursorLeft = 0;
 					Console.Write("{0}GB {1}s {2}MB/s  ",
 						streamConsumerCollection.ReadBytes >> 30,
@@ -162,7 +208,7 @@ namespace AVDump3CL {
 			GenerateAVDump3Report(infoProvider).Save("Dumps\\" + Path.GetFileName((string)e.Tag) + ".xml");
 
 
-			lock(sender) {
+			lock (sender) {
 				Console.CursorLeft = 0;
 
 				Console.WriteLine(e.Tag);

@@ -13,7 +13,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 		event StreamConsumerEventHandler Finished;
 		bool RanToCompletion { get; }
 
-		IReadOnlyCollection<IBlockConsumer> BlockConsumers { get; }
+		IReadOnlyList<IBlockConsumer> BlockConsumers { get; }
 		IBlockStream BlockStream { get; }
 		void ConsumeStream(IProgress<BlockStreamProgress> progress, CancellationToken ct);
 	}
@@ -26,7 +26,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 		public event StreamConsumerEventHandler Finished;
 
 		public IBlockStream BlockStream { get; }
-		public IReadOnlyCollection<IBlockConsumer> BlockConsumers { get; }
+		public IReadOnlyList<IBlockConsumer> BlockConsumers { get; }
 
 		public bool RanToCompletion { get; private set; }
 
@@ -61,7 +61,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 			).ToArray();
 
 			RanToCompletion = exceptions.Length == 0;
-			Finished?.Invoke(this, EventArgs.Empty);
+			Finished?.Invoke(this);
 			if(exceptions.Length > 0) throw new AggregateException(exceptions);
 		}
 
