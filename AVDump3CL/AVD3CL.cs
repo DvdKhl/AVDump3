@@ -36,6 +36,13 @@ namespace AVDump3CL {
 			}
 		}
 
+		public class BlockConsumerProgress {
+			public string Name { get; private set; }
+			public int FilesProcessed { get; private set; }
+			public long BytesProcessed { get; private set; }
+			public double BufferFill { get; private set; }
+			public int ActiveCount { get; private set; }
+		}
 		public class FileProgress {
 			public string FilePath { get; private set; }
 			public long FileLength { get; private set; }
@@ -44,8 +51,10 @@ namespace AVDump3CL {
 		}
 
 		public class Progress {
-			public long TotalBytesProcessed { get; private set; }
+			public int FilesProcessed { get; private set; }
+			public long BytesProcessed { get; private set; }
 			public IReadOnlyCollection<FileProgress> FileProgressCollection { get; private set; }
+			public IReadOnlyCollection<BlockConsumerProgress> BlockConsumerProgressCollection { get; private set; }
 		}
 
 		public BytesReadProgress() {
