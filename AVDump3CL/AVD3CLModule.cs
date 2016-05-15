@@ -189,9 +189,9 @@ namespace AVDump3CL {
 					arg => {
 						var raw = arg.Split(new char[] { ':' }, 2);
 						return new {
-							MaxCount = int.Parse(raw.ElementAt(0)),
+							MaxCount = int.Parse(raw[0]),
 							PerPath =
-							  from item in raw.ElementAt(1).Split(';')
+							  from item in (raw.Length > 1 ? raw[1].Split(';') : new string[0])
 							  let parts = item.Split(',')
 							  select new { Path = parts[0], MaxCount = int.Parse(parts[1]) }
 						};
