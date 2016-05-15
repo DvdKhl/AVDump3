@@ -7,6 +7,7 @@ namespace AVDump3Lib.BlockConsumers {
 		string Name { get; }
 		Exception Exception { get; }
 		void ProcessBlocks(CancellationToken ct);
+		bool IsConsuming { get; }
 	}
 
 
@@ -17,7 +18,10 @@ namespace AVDump3Lib.BlockConsumers {
 
 		public string Name { get; } //TODO
 
-		public BlockConsumer(IBlockStreamReader reader) {
+		public bool IsConsuming { get { return !Reader.DroppedOut; } }
+
+		public BlockConsumer(string name, IBlockStreamReader reader) {
+			Name = name;
 			Reader = reader;
 		}
 
@@ -27,7 +31,7 @@ namespace AVDump3Lib.BlockConsumers {
 			} catch(Exception ex) {
 				Exception = ex;
 			} finally {
-				Reader.DropOut(); ;
+				Reader.DropOut();
 			}
 		}
 

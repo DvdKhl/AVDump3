@@ -11,7 +11,6 @@ namespace AVDump3Lib.Information {
 	}
 	public class AVD3InformationModule : IAVD3InformationModule {
 		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) {
-			throw new NotImplementedException();
 		}
 	}
 }

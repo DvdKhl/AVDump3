@@ -6,7 +6,7 @@ using AVDump3Lib.Information.MetaInfo;
 namespace AVDump3Lib.BlockConsumers {
     public class HashCalculator : BlockConsumer {
         public HashAlgorithm HashAlgorithm { get; }
-        public HashCalculator(IBlockStreamReader reader, HashAlgorithm hashAlgorithm) : base(reader) {
+        public HashCalculator(string name, IBlockStreamReader reader, HashAlgorithm hashAlgorithm) : base(name, reader) {
             HashAlgorithm = hashAlgorithm;
         }
 

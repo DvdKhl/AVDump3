@@ -8,6 +8,7 @@ namespace AVDump3Lib.BlockBuffers {
 		void DropOut(int consumerIndex);
 		bool Advance(int consumerIndex);
 		byte[] GetBlock(int consumerIndex, out int readBytes);
+		CircularBlockBuffer Buffer { get; }
 		Task Produce(IProgress<BlockStreamProgress> progress, CancellationToken ct);
 		long Length { get; }
 	}
@@ -27,7 +28,7 @@ namespace AVDump3Lib.BlockBuffers {
 		private bool hasStarted;
 		private bool isEndOfStream;
 		private readonly IBlockSource blockSource;
-		private readonly CircularBlockBuffer buffer;
+		public CircularBlockBuffer Buffer { get; }
 
 		private CancellationToken ct;
 		private IProgress<BlockStreamProgress> progress;
@@ -37,11 +38,11 @@ namespace AVDump3Lib.BlockBuffers {
 			if(blockSource == null) throw new ArgumentNullException(nameof(blockSource));
 			this.blockSource = blockSource;
 
-			this.buffer = buffer;
+			Buffer = buffer;
 		}
 
 		private bool IsEndOfStream(int consumerIndex) {
-			return !buffer.ConsumerCanRead(consumerIndex) && isEndOfStream;
+			return !Buffer.ConsumerCanRead(consumerIndex) && isEndOfStream;
 		}
 
 		public Task Produce(IProgress<BlockStreamProgress> progress, CancellationToken ct) {
@@ -58,46 +59,46 @@ namespace AVDump3Lib.BlockBuffers {
 		private void Produce() {
 			while(!isEndOfStream) {
 				lock(producerLock) {
-					while(!buffer.ProducerCanWrite()) {
+					while(!Buffer.ProducerCanWrite()) {
 						Monitor.Wait(producerLock, 1000);
 						ct.ThrowIfCancellationRequested();
 					}
 				}
 
-				var readBytes = blockSource.Read(buffer.ProducerBlock());
+				var readBytes = blockSource.Read(Buffer.ProducerBlock());
 				progress?.Report(new BlockStreamProgress(this, -1, readBytes));
 
-				isEndOfStream = readBytes != buffer.BlockLength;
-				buffer.ProducerAdvance();
+				isEndOfStream = readBytes != Buffer.BlockLength;
+				Buffer.ProducerAdvance();
 				lock(consumerLock) Monitor.PulseAll(consumerLock);
 			}
 		}
 
 
-		public void DropOut(int consumerIndex) { buffer.ConsumerDropOut(consumerIndex); }
+		public void DropOut(int consumerIndex) { Buffer.ConsumerDropOut(consumerIndex); }
 
 		public byte[] GetBlock(int consumerIndex, out int readBytes) {
-			if(!buffer.ConsumerCanRead(consumerIndex)) {
+			if(!Buffer.ConsumerCanRead(consumerIndex)) {
 				if(IsEndOfStream(consumerIndex)) throw new InvalidOperationException("Cannot read block when EOS is reached");
 				lock(consumerLock) {
-					while(!buffer.ConsumerCanRead(consumerIndex)) {
+					while(!Buffer.ConsumerCanRead(consumerIndex)) {
 						Monitor.Wait(consumerLock, 1000);
 						ct.ThrowIfCancellationRequested();
 					}
 				}
 			}
 
-			readBytes = (int)Math.Min(buffer.BlockLength, Length - buffer.ConsumerBlocksRead(consumerIndex) * buffer.BlockLength);
+			readBytes = (int)Math.Min(Buffer.BlockLength, Length - Buffer.ConsumerBlocksRead(consumerIndex) * Buffer.BlockLength);
 
-			return buffer.ConsumerBlock(consumerIndex);
+			return Buffer.ConsumerBlock(consumerIndex);
 		}
 
 		public bool Advance(int consumerIndex) {
 			//TODO move out param from GetBlock to this method to avoid calculating readBytes twice
-			var readBytes = (int)Math.Min(buffer.BlockLength, Length - buffer.ConsumerBlocksRead(consumerIndex) * buffer.BlockLength);
+			var readBytes = (int)Math.Min(Buffer.BlockLength, Length - Buffer.ConsumerBlocksRead(consumerIndex) * Buffer.BlockLength);
 			progress?.Report(new BlockStreamProgress(this, consumerIndex, readBytes));
 
-			buffer.ConsumerAdvance(consumerIndex);
+			Buffer.ConsumerAdvance(consumerIndex);
 			lock(producerLock) Monitor.Pulse(producerLock);
 			return !IsEndOfStream(consumerIndex);
 

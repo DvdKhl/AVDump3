@@ -2,11 +2,13 @@
 using System.Runtime.CompilerServices;
 
 namespace AVDump3Lib.BlockBuffers {
-    public interface IBlockStreamReader {
+	public interface IBlockStreamReader {
 		bool Advance();
 		byte[] GetBlock(out int blockLength);
 		long Length { get; }
 		long ReadBytes { get; }
+		bool DroppedOut { get; }
+
 		void DropOut();
 	}
 
@@ -14,12 +16,12 @@ namespace AVDump3Lib.BlockBuffers {
 		private int readerIndex;
 		private IBlockStream blockStream;
 
-		
-		private int curBlockLength;
-
 		public long ReadBytes { get; private set; }
 
 		public long Length { get; } //Faster Access. Needed?
+
+		public bool DroppedOut { get; private set; }
+
 		public BlockStreamReader(IBlockStream blockStream, int readerIndex) {
 			this.blockStream = blockStream;
 			this.readerIndex = readerIndex;
@@ -37,6 +39,6 @@ namespace AVDump3Lib.BlockBuffers {
 			return blockStream.Advance(readerIndex);
 		}
 
-        public void DropOut() { blockStream.DropOut(readerIndex); }
-    }
+		public void DropOut() { blockStream.DropOut(readerIndex); DroppedOut = true; }
+	}
 }

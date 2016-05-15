@@ -29,13 +29,13 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 		}
 
 		public IEnumerable<IBlockConsumer> Select(IBlockStream blockStream) {
-			int i = 0;
-			foreach(var blockConsumerFactory in blockConsumerFactories) {
-				var args = new BlockConsumerSelectorEventArgs(blockConsumerFactory.Name);
+			int readerIndex = 0;
+			for(int i = 0; i < blockConsumerFactories.Length; i++) {
+				var args = new BlockConsumerSelectorEventArgs(blockConsumerFactories[i].Name);
 				Filter?.Invoke(this, args);
 				if(!args.Select) continue;
 
-				var blockReader = new BlockStreamReader(blockStream, i++);
+				var blockReader = new BlockStreamReader(blockStream, readerIndex++);
 				yield return blockConsumerFactories[i].Create(blockReader);
 			}
 		}

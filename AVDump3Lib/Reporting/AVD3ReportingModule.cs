@@ -15,8 +15,6 @@ namespace AVDump3Lib.Reporting {
 
 		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) {
 			informationModule = modules.OfType<IAVD3InformationModule>().Single();
-
-			throw new NotImplementedException();
 		}
 	}
 }

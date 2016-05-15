@@ -11,7 +11,7 @@ namespace AVDump2Lib.BlockConsumers.Ogg {
     public class OggParser : BlockConsumer {
         private OggFile result;
 
-        public OggParser(IBlockStreamReader reader) : base(reader) {
+        public OggParser(string name, IBlockStreamReader reader) : base(name, reader) {
         }
 
         //public OggParser(string name) : base(name) { }

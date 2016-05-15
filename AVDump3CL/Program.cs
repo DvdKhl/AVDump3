@@ -23,14 +23,12 @@ namespace AVDump3CL {
 		static void Main(string[] args) {
 			if(args.Length == 0) {
 				args = new string[] {
-					"--Conc=6:G:/,2;H:/,2;I:/,2",
+					//"--Conc=6:G:/,2;H:/,2;I:/,2",
 					"--BSize=8:8",
                     //"--Consumers=CRC32, ED2K, MD4, MD5, SHA1, SHA384, SHA512, TTH, TIGER",
-                    "--Consumers=CRC32, SHA1, ED2K, MKV",
+                    "--Consumers=MD5, SHA1, MD4",
                     //@"G:\Software\en_visual_studio_enterprise_2015_with_update_2_x86_x64_dvd_8510142.iso",
-                    "G:/Anime",
-					"I:/Anime",
-					"H:/Anime"
+                    "G:/Video",
 				};
 			}
 			var moduleManagemant = IniModules();

@@ -25,7 +25,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 			buffer.SetConsumerCount(blockConsumers.Length);
 
 			var streamConsumer =  new StreamConsumer(blockStream, blockConsumers);
-			streamConsumer.Finished += (s, e) => blockPool.Release(buffer.Blocks);
+			streamConsumer.Finished += s => blockPool.Release(buffer.Blocks);
 
 			return streamConsumer;
 		}

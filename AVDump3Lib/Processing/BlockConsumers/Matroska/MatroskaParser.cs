@@ -28,7 +28,7 @@ namespace AVDump3Lib.BlockConsumers.Matroska {
     public class MatroskaParser : BlockConsumer {
 		public MatroskaFile Info { get; private set; }
 
-		public MatroskaParser(IBlockStreamReader reader) : base(reader) { }
+		public MatroskaParser(string name, IBlockStreamReader reader) : base(name, reader) { }
 
 
 		protected override void DoWork(CancellationToken ct) {

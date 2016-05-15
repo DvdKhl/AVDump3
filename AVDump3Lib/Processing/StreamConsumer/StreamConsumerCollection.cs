@@ -33,8 +33,8 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 
 		public bool IsRunning { get; private set; }
 
-		private long readBytes;
-		public long ReadBytes => readBytes;
+		//private long readBytes;
+		//public long ReadBytes => readBytes;
 
 		public void ConsumeStreams(CancellationToken ct, IBytesReadProgress progress) {
 			lock(isRunningSyncRoot) {
