@@ -1,21 +1,12 @@
-﻿using AVDump2Lib.InfoProvider.Tools;
-using AVDump3Lib.BlockBuffers;
-using AVDump3Lib.BlockConsumers;
-using AVDump3Lib.BlockConsumers.Matroska;
-using AVDump3Lib.HashAlgorithms;
-using AVDump3Lib.Information;
+﻿using AVDump3Lib.Information;
 using AVDump3Lib.Modules;
 using AVDump3Lib.Processing;
-using AVDump3Lib.Processing.BlockConsumers;
-using AVDump3Lib.Processing.StreamConsumer;
-using AVDump3Lib.Processing.StreamProvider;
 using AVDump3Lib.Reporting;
 using AVDump3Lib.Settings;
 using AVDump3Lib.Settings.CLArguments;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 
 namespace AVDump3CL {
 	class Program {

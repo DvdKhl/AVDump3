@@ -1,12 +1,7 @@
-﻿using AVDump2Lib.InfoGathering.InfoProvider;
-using AVDump2Lib.InfoProvider;
-using AVDump2Lib.InfoProvider.Tools;
+﻿using AVDump2Lib.InfoProvider.Tools;
 using AVDump3Lib.BlockBuffers;
-using AVDump3Lib.BlockConsumers;
-using AVDump3Lib.BlockConsumers.Matroska;
 using AVDump3Lib.Information.MetaInfo;
 using AVDump3Lib.Information.MetaInfo.Media;
-using AVDump3Lib.Misc;
 using AVDump3Lib.Modules;
 using AVDump3Lib.Processing;
 using AVDump3Lib.Processing.BlockConsumers;
@@ -17,12 +12,8 @@ using AVDump3Lib.Settings;
 using AVDump3Lib.Settings.CLArguments;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -50,19 +41,16 @@ namespace AVDump3CL {
 		}
 
 		public void Process(string[] paths) {
-			var bcf = new BlockConsumerSelector(processingModule.BlockConsumerFactories);
-
-			bcf.Filter += BlockConsumerFilter;
-
+			var bcs = new BlockConsumerSelector(processingModule.BlockConsumerFactories);
+			bcs.Filter += BlockConsumerFilter;
 
 			var bp = new BlockPool(BlockCount, BlockLength);
 
-			var scf = new StreamConsumerFactory(bcf, bp);
+			var scf = new StreamConsumerFactory(bcs, bp);
 			var sp = new StreamFromPathsProvider(GlobalConcurrentCount,
 				PathPartitions, paths, true,
 				path => path.EndsWith("mkv"), ex => { }
 			);
-
 
 			var streamConsumerCollection = new StreamConsumerCollection(scf, sp);
 
@@ -72,7 +60,7 @@ namespace AVDump3CL {
 			cl.TotalFiles = sp.TotalFileCount;
 			cl.TotalBytes = sp.TotalBytes;
 
-			Task.Run(() => cl.Process());
+			Task.Run(() => cl.Display());
 
 			streamConsumerCollection.ConsumingStream += ConsumingStream;
 			streamConsumerCollection.ConsumeStreams(CancellationToken.None, bytesReadProgress);
