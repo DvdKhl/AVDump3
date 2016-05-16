@@ -49,8 +49,11 @@ namespace AVDump3CL {
 			var scf = new StreamConsumerFactory(bcs, bp);
 			var sp = new StreamFromPathsProvider(GlobalConcurrentCount,
 				PathPartitions, paths, true,
-				path => path.EndsWith("mkv"), ex => { }
+				//path => path.EndsWith("mkv"), ex => { }
+				path => true, ex => { }
 			);
+
+			//sp = new NullStreamProvider();
 
 			var streamConsumerCollection = new StreamConsumerCollection(scf, sp);
 
@@ -59,10 +62,13 @@ namespace AVDump3CL {
 			var cl = new AVD3CL(bytesReadProgress.GetProgress);
 			cl.TotalFiles = sp.TotalFileCount;
 			cl.TotalBytes = sp.TotalBytes;
+			//cl.TotalFiles = 1;
+			//cl.TotalBytes = 1L << 40;
 
 			Task.Run(() => cl.Display());
 
 			streamConsumerCollection.ConsumingStream += ConsumingStream;
+			//streamConsumerCollection.ConsumeStreams(CancellationToken.None, null);
 			streamConsumerCollection.ConsumeStreams(CancellationToken.None, bytesReadProgress);
 		}
 

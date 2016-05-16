@@ -13,7 +13,7 @@ namespace AVDump3CL {
 	public class BytesReadProgress : IBytesReadProgress {
 		private int filesProcessed;
 		private int[] bcFilesProcessed;
-
+		private DateTimeOffset startedOn;
 		private long bytesProcessed;
 		private long[] bcBytesProcessed;
 		private Dictionary<string, int> bcNameIndexMap;
@@ -46,28 +46,35 @@ namespace AVDump3CL {
 			public DateTimeOffset StartedOn { get; private set; }
 			public long FileLength { get; private set; }
 			public long BytesProcessed { get; private set; }
+			public int ReaderLockCount { get; private set; }
+			public int WriterLockCount { get; private set; }
 			public IReadOnlyList<KeyValuePair<string, long>> BytesProcessedPerBlockConsumer { get; private set; }
 
 			public FileProgress(string filePath, DateTimeOffset startedOn, long fileLength, long bytesProcessed,
+				int readerLockCount, int writerLockCount,
 				IReadOnlyList<KeyValuePair<string, long>> bytesProcessedPerBlockConsumer
 			) {
 				FilePath = filePath;
 				StartedOn = startedOn;
 				FileLength = fileLength;
 				BytesProcessed = bytesProcessed;
+				ReaderLockCount = readerLockCount;
+				WriterLockCount = writerLockCount;
 				BytesProcessedPerBlockConsumer = bytesProcessedPerBlockConsumer;
 			}
 		}
 		public class Progress {
+			public DateTimeOffset StartedOn { get; private set; }
 			public int FilesProcessed { get; private set; }
 			public long BytesProcessed { get; private set; }
 			public IReadOnlyList<FileProgress> FileProgressCollection { get; private set; }
 			public IReadOnlyList<BlockConsumerProgress> BlockConsumerProgressCollection { get; private set; }
 
-			public Progress(int filesProcessed, long bytesProcessed,
+			public Progress(DateTimeOffset startedOn, int filesProcessed, long bytesProcessed,
 				IReadOnlyList<FileProgress> fileProgressCollection,
 				IReadOnlyList<BlockConsumerProgress> blockConsumerProgressCollection
 			) {
+				StartedOn = startedOn;
 				FilesProcessed = filesProcessed;
 				BytesProcessed = bytesProcessed;
 				FileProgressCollection = fileProgressCollection;
@@ -99,6 +106,7 @@ namespace AVDump3CL {
 				item.Name = pair.Key;
 				item.BytesProcessed = bcBytesProcessed[pair.Value];
 				item.FilesProcessed = bcFilesProcessed[pair.Value];
+				//item.BufferFill = 1;
 				blockConsumerProgress[pair.Value] = item;
 			}
 
@@ -125,12 +133,15 @@ namespace AVDump3CL {
 					if(info.StreamConsumer.BlockConsumers[i].IsConsuming) bcProgress.ActiveCount++;
 					bcProgress.BytesProcessed += bytesRead[i + 1];
 					bcProgress.BufferFill += (bytesRead[0] - bytesRead[i + 1]) / (double)bufferLength;
+					//bcProgress.BufferFill = Math.Min(bcProgress.BufferFill,(bytesRead[0] - bytesRead[i + 1]) / (double)bufferLength);
 
 				}
 
 				fileProgressCollection.Add(new FileProgress(
 					info.Filename, info.StartedOn,
 					info.Length, bytesRead[0],
+					info.StreamConsumer.BlockStream.ReaderBlockCount, 
+					info.StreamConsumer.BlockStream.WriterBlockCount,
 					bcfProgress
 				));
 			}
@@ -142,10 +153,14 @@ namespace AVDump3CL {
 				blockConsumerProgressEntry.BufferFill = Math.Min(1, Math.Max(0, blockConsumerProgressEntry.BufferFill));
 			}
 
-			return new Progress(filesProcessed, bytesProcessed, fileProgressCollection, blockConsumerProgress);
+			return new Progress(startedOn, filesProcessed, bytesProcessed, fileProgressCollection, blockConsumerProgress);
 		}
 
 		public void Register(ProvidedStream providedStream, IStreamConsumer streamConsumer) {
+			if(startedOn == DateTimeOffset.MinValue) {
+				startedOn = DateTimeOffset.UtcNow;
+			}
+
 			blockStreamProgress.TryAdd(streamConsumer.BlockStream, new StreamConsumerProgressInfo(providedStream, streamConsumer));
 			streamConsumer.Finished += BlockConsumerFinished;
 		}
@@ -170,114 +185,162 @@ namespace AVDump3CL {
 	public class AVD3CL {
 		private Func<BytesReadProgress.Progress> getProgress;
 
-		public AVD3CL(Func<BytesReadProgress.Progress> getProgress) {
-			this.getProgress = getProgress;
-		}
 
 		public long TotalBytes { get; set; }
 		public int TotalFiles { get; set; }
 
+		private string output;
+		private int maxBCCount;
+		private int maxFCount;
+		private Timer timer;
+		private int TicksInPeriod = 5;
+		private int state;
+		private StringBuilder sb;
+		private BytesReadProgress.Progress curP, prevP;
+
+		public AVD3CL(Func<BytesReadProgress.Progress> getProgress) {
+			this.getProgress = getProgress;
+			sb = new StringBuilder();
+		}
+
+
 		public void Display() {
+			curP = getProgress();
+			timer = new Timer(TimerCallback, null, 500, 100);
+		}
+
+		private void TimerCallback(object sender) {
+			var cursorTop = Console.CursorTop;
+			Console.Write(output);
+			Console.SetCursorPosition(0, cursorTop);
+
+			if(state == 0) {
+				prevP = curP;
+				curP = getProgress();
+			}
+			sb.Length = 0;
+
+			Display(sb, state / (double)TicksInPeriod);
+			output = sb.ToString();
+
+			state++;
+			state %= TicksInPeriod;
+		}
+
+		private void Display(StringBuilder sb, double relPos) {
 			Console.CursorVisible = false;
 
-			var sb = new StringBuilder();
 			var sbLength = 0;
-			var startedOn = DateTimeOffset.UtcNow.AddMilliseconds(-1);
-			var maxBCCount = 0;
-			var maxFCount = 0;
-			while(true) {
-				var consoleWidth = Console.BufferWidth - 1;
-				var barWidth = consoleWidth - 8 - 1 - 2 - 2;
-				var outputOn = DateTimeOffset.UtcNow;
-				var p = getProgress();
-				var progressSpan = DateTimeOffset.UtcNow - outputOn;
+			var consoleWidth = Console.BufferWidth - 1;
+			var barWidth = consoleWidth - 8 - 1 - 2 - 2;
+			var outputOn = DateTimeOffset.UtcNow;
+			var progressSpan = DateTimeOffset.UtcNow - outputOn;
+			var now = DateTimeOffset.UtcNow;
 
-				sb.Length = 0;
-				int barPosition, curBCCount = 0;
-				foreach(var blockConsumerProgress in p.BlockConsumerProgressCollection) {
-					if(blockConsumerProgress.ActiveCount == 0) continue;
-					curBCCount++;
+			sb.Length = 0;
+			double prevBarPosition, curBarPosition;
+			int barPosition, curBCCount = 0;
+			for(int i = 0; i < curP.BlockConsumerProgressCollection.Count; i++) {
+				var cur = curP.BlockConsumerProgressCollection[i];
+				var prev = prevP.BlockConsumerProgressCollection[i];
 
-					barPosition = (int)(barWidth * blockConsumerProgress.BufferFill);
+				if(cur.ActiveCount == 0 && prev.ActiveCount == 0) continue;
+				curBCCount++;
 
-					sbLength = sb.Length;
-					sb.Append(blockConsumerProgress.Name);
-					sb.Append(' ', 8 - (sb.Length - sbLength));
-
-					sb.Append('[').Append('*', barPosition).Append(' ', barWidth - barPosition).Append("] ");
-
-					sb.Append(blockConsumerProgress.ActiveCount);
-
-					sb.Append(' ', consoleWidth - (sb.Length - sbLength)).AppendLine();
-				}
-
-				if(maxBCCount < curBCCount) maxBCCount = curBCCount;
-				for(int i = curBCCount; i < maxBCCount + 1; i++) {
-					sb.Append(' ', consoleWidth).AppendLine();
-				}
-
-				int speed;
-				barWidth = consoleWidth - 21;
-				foreach(var fileProgress in p.FileProgressCollection.OrderBy(x => x.StartedOn)) {
-					var fileName = Path.GetFileName(fileProgress.FilePath);
-					if(fileName.Length > barWidth) fileName = fileName.Substring(0, barWidth);
-
-					barPosition = (int)(10 * fileProgress.BytesProcessed / fileProgress.FileLength);
-					speed = (int)((fileProgress.BytesProcessed >> 20) / (DateTimeOffset.UtcNow - fileProgress.StartedOn).TotalSeconds);
-
-					sbLength = sb.Length;
-					sb.Append(fileName);
-					sb.Append(' ', barWidth - (sb.Length - sbLength));
-
-					sb.Append('[').Append('*', barPosition).Append(' ', 10 - barPosition).Append("] ");
-
-					sb.Append(speed).Append("MiB/s");
-
-					sb.Append(' ', consoleWidth - (sb.Length - sbLength)).AppendLine();
-				}
-
-				if(maxFCount < p.FileProgressCollection.Count) maxFCount = p.FileProgressCollection.Count;
-				for(int i = p.FileProgressCollection.Count; i < maxFCount; i++) {
-					sb.Append(' ', consoleWidth).AppendLine();
-				}
-
-				barWidth = consoleWidth - 17;
-				speed = (int)((p.BytesProcessed >> 20) / (DateTimeOffset.UtcNow - startedOn).TotalSeconds);
-				barPosition = (int)(barWidth * p.BytesProcessed / TotalBytes);
+				prevBarPosition = barWidth * prev.BufferFill;
+				curBarPosition = barWidth * cur.BufferFill;
+				barPosition = (int)(prevBarPosition + relPos * (curBarPosition - prevBarPosition));
 
 				sbLength = sb.Length;
-				sb.Append("Total [").Append('*', barPosition).Append(' ', barWidth - barPosition).Append("] ");
+				sb.Append(cur.Name);
+				sb.Append(' ', 8 - (sb.Length - sbLength));
+
+				sb.Append('[').Append('*', barPosition).Append(' ', barWidth - barPosition).Append("] ");
+				sb.Append(cur.ActiveCount);
+
+				sb.Append(' ', consoleWidth - (sb.Length - sbLength)).AppendLine();
+			}
+
+			if(maxBCCount < curBCCount) maxBCCount = curBCCount;
+			for(int i = curBCCount; i < maxBCCount + 1; i++) {
+				sb.Append(' ', consoleWidth).AppendLine();
+			}
+
+
+			double prevSpeed, curSpeed;
+			int speed, curFCount=0;
+			barWidth = consoleWidth - 21;
+			foreach(var item in from cur in curP.FileProgressCollection
+								join prev in prevP.FileProgressCollection on cur.FilePath equals prev.FilePath
+								orderby cur.StartedOn
+								select new { cur, prev }
+								
+			) {
+				var fileName = Path.GetFileName(item.cur.FilePath);
+				curFCount++;
+
+				//prevBarPosition = (int)(10 * item.prev.BytesProcessed / item.prev.FileLength);
+				//curBarPosition = (int)(10 * item.cur.BytesProcessed / item.cur.FileLength);
+				//barPosition = (int)(prevBarPosition + relPos * (curBarPosition - prevBarPosition));
+				barPosition = (int)(10 * item.cur.BytesProcessed / item.cur.FileLength);
+
+				prevSpeed = (int)((item.prev.BytesProcessed >> 20) / (now - item.prev.StartedOn).TotalSeconds);
+				curSpeed = (int)((item.cur.BytesProcessed >> 20) / (now - item.cur.StartedOn).TotalSeconds);
+				speed = (int)(prevSpeed + relPos * (curSpeed - prevSpeed));
+
+				sbLength = sb.Length;
+				//sb.Append(fileName, 0, Math.Min(barWidth, fileName.Length));
+				sb.Append("RL=").Append(item.cur.ReaderLockCount).Append(" WL=").Append(item.cur.WriterLockCount);
+				sb.Append(' ', barWidth - (sb.Length - sbLength));
+
+				sb.Append('[').Append('*', barPosition).Append(' ', 10 - barPosition).Append("] ");
+
 				sb.Append(speed).Append("MiB/s");
 
 				sb.Append(' ', consoleWidth - (sb.Length - sbLength)).AppendLine();
 
-				var etaStr = "-.--:--:--";
-				if(speed != 0) {
-					var eta = TimeSpan.FromSeconds(((TotalBytes - p.BytesProcessed) >> 20) / speed);
 
-					if(eta.TotalDays <= 9) {
-						etaStr = eta.ToString(@"d\.hh\:mm\:ss");
-					}
-				}
-
-				sbLength = sb.Length;
-				sb.Append(p.FilesProcessed).Append('/').Append(TotalFiles).Append(" Files | ");
-				sb.Append(p.BytesProcessed >> 30).Append('/').Append(TotalBytes >> 30).Append(" GiB | ");
-				sb.Append(DateTimeOffset.UtcNow - startedOn).Append(" Elapsed | ");
-				sb.Append(etaStr).Append(" Remaining");
-				sb.Append(' ', consoleWidth - (sb.Length - sbLength)).AppendLine();
-
-				sb.Append(' ', consoleWidth).AppendLine();
-				sb.Append(' ', consoleWidth).AppendLine();
-				sb.Append(' ', consoleWidth).AppendLine();
-
-				var cursorPos = Console.CursorTop;
-				Console.Write(sb.ToString());
-
-				Thread.Sleep(Math.Max(0, 200 - (int)(DateTimeOffset.UtcNow - outputOn).TotalMilliseconds));
-				Console.WriteLine((DateTimeOffset.UtcNow - outputOn).ToString(@"d\.hh\:mm\:ss\.fff"));
-				Console.SetCursorPosition(0, cursorPos);
 			}
+
+			if(maxFCount < curFCount) maxFCount = curFCount;
+			for(int i = curFCount; i < maxFCount; i++) {
+				sb.Append(' ', consoleWidth).AppendLine();
+			}
+
+			barWidth = consoleWidth - 17;
+			prevSpeed = (prevP.BytesProcessed >> 20) / (now - prevP.StartedOn).TotalSeconds;
+			curSpeed = (curP.BytesProcessed >> 20) / (now - curP.StartedOn).TotalSeconds;
+			speed = (int)(prevSpeed + relPos * (curSpeed - prevSpeed));
+
+			prevBarPosition = (int)(barWidth * prevP.BytesProcessed / TotalBytes);
+			curBarPosition = (int)(barWidth * curP.BytesProcessed / TotalBytes);
+			barPosition = (int)(prevBarPosition + relPos * (curBarPosition - prevBarPosition));
+
+			sbLength = sb.Length;
+			sb.Append("Total [").Append('*', barPosition).Append(' ', barWidth - barPosition).Append("] ");
+			sb.Append(speed).Append("MiB/s");
+
+			sb.Append(' ', consoleWidth - (sb.Length - sbLength)).AppendLine();
+
+			var etaStr = "-.--:--:--";
+			if(speed != 0) {
+				var eta = TimeSpan.FromSeconds(((TotalBytes - curP.BytesProcessed) >> 20) / speed);
+
+				if(eta.TotalDays <= 9) {
+					etaStr = eta.ToString(@"d\.hh\:mm\:ss");
+				}
+			}
+
+			sbLength = sb.Length;
+			sb.Append(curP.FilesProcessed).Append('/').Append(TotalFiles).Append(" Files | ");
+			sb.Append(curP.BytesProcessed >> 30).Append('/').Append(TotalBytes >> 30).Append(" GiB | ");
+			sb.Append(now - curP.StartedOn).Append(" Elapsed | ");
+			sb.Append(etaStr).Append(" Remaining");
+			sb.Append(' ', consoleWidth - (sb.Length - sbLength)).AppendLine();
+
+			sb.Append(' ', consoleWidth).AppendLine();
+			sb.Append(' ', consoleWidth).AppendLine();
+			sb.Append(' ', consoleWidth).AppendLine();
 		}
 	}
 }

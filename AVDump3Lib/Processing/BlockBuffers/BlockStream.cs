@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using AVDump3Lib.BlockBuffers.Sources;
+using System.Diagnostics;
 
 namespace AVDump3Lib.BlockBuffers {
 	public interface IBlockStream {
@@ -11,12 +12,14 @@ namespace AVDump3Lib.BlockBuffers {
 		CircularBlockBuffer Buffer { get; }
 		Task Produce(IProgress<BlockStreamProgress> progress, CancellationToken ct);
 		long Length { get; }
+		int ReaderBlockCount { get; }
+		int WriterBlockCount { get; }
 	}
 
 	public struct BlockStreamProgress {
-		public IBlockStream Sender { get;  }
-		public int Index { get;  }
-		public int BytesRead { get;  }
+		public IBlockStream Sender { get; }
+		public int Index { get; }
+		public int BytesRead { get; }
 		public BlockStreamProgress(IBlockStream sender, int index, int bytesRead) {
 			Sender = sender;
 			Index = index;
@@ -32,6 +35,9 @@ namespace AVDump3Lib.BlockBuffers {
 
 		private CancellationToken ct;
 		private IProgress<BlockStreamProgress> progress;
+
+		public int ReaderBlockCount { get; private set; }
+		public int WriterBlockCount { get; private set; }
 
 
 		public BlockStream(IBlockSource blockSource, CircularBlockBuffer buffer) {
@@ -57,11 +63,16 @@ namespace AVDump3Lib.BlockBuffers {
 
 		private object consumerLock = new object(), producerLock = new object();
 		private void Produce() {
+			//Thread.CurrentThread.Priority = ThreadPriority.Lowest;
+
 			while(!isEndOfStream) {
-				lock(producerLock) {
-					while(!Buffer.ProducerCanWrite()) {
-						Monitor.Wait(producerLock, 1000);
-						ct.ThrowIfCancellationRequested();
+				if(!Buffer.ProducerCanWrite()) {
+					lock (producerLock) {
+						while(!Buffer.ProducerCanWrite()) {
+							Monitor.Wait(producerLock, 1000);
+							ct.ThrowIfCancellationRequested();
+							WriterBlockCount++;
+						}
 					}
 				}
 
@@ -70,7 +81,7 @@ namespace AVDump3Lib.BlockBuffers {
 
 				isEndOfStream = readBytes != Buffer.BlockLength;
 				Buffer.ProducerAdvance();
-				lock(consumerLock) Monitor.PulseAll(consumerLock);
+				lock (consumerLock) Monitor.PulseAll(consumerLock);
 			}
 		}
 
@@ -80,10 +91,11 @@ namespace AVDump3Lib.BlockBuffers {
 		public byte[] GetBlock(int consumerIndex, out int readBytes) {
 			if(!Buffer.ConsumerCanRead(consumerIndex)) {
 				if(IsEndOfStream(consumerIndex)) throw new InvalidOperationException("Cannot read block when EOS is reached");
-				lock(consumerLock) {
+				lock (consumerLock) {
 					while(!Buffer.ConsumerCanRead(consumerIndex)) {
 						Monitor.Wait(consumerLock, 1000);
 						ct.ThrowIfCancellationRequested();
+						ReaderBlockCount++;
 					}
 				}
 			}
@@ -99,7 +111,7 @@ namespace AVDump3Lib.BlockBuffers {
 			progress?.Report(new BlockStreamProgress(this, consumerIndex, readBytes));
 
 			Buffer.ConsumerAdvance(consumerIndex);
-			lock(producerLock) Monitor.Pulse(producerLock);
+			lock (producerLock) Monitor.Pulse(producerLock);
 			return !IsEndOfStream(consumerIndex);
 
 		}

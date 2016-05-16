@@ -18,7 +18,6 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 
 
 	public class StreamConsumerCollection : IStreamConsumerCollection {
-		//public event EventHandler<StreamConsumerExceptionEventArgs> ExceptionThrown;
 		public event EventHandler<ConsumingStreamEventArgs> ConsumingStream;
 
 		private IStreamConsumerFactory streamConsumerFactory;
@@ -32,9 +31,6 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 		}
 
 		public bool IsRunning { get; private set; }
-
-		//private long readBytes;
-		//public long ReadBytes => readBytes;
 
 		public void ConsumeStreams(CancellationToken ct, IBytesReadProgress progress) {
 			lock(isRunningSyncRoot) {
@@ -77,6 +73,8 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 			var tcs = new TaskCompletionSource<IReadOnlyCollection<IBlockConsumer>>();
 			var eventArgs = new ConsumingStreamEventArgs(providedStream.Tag, tcs.Task);
 			ConsumingStream?.Invoke(this, eventArgs);
+
+			//Thread.CurrentThread.Priority = ThreadPriority.Highest;
 
 			var retry = false;
 			int retryCount = 0;

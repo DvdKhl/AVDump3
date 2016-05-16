@@ -99,7 +99,9 @@
     <Compile Include="Processing\BlockConsumers\Ogg\Page.cs" />
     <Compile Include="Processing\BlockConsumers\Ogg\VorbisCommentParser.cs" />
     <Compile Include="Misc\FileTraversal.cs" />
+    <Compile Include="Processing\HashAlgorithms\NullHashAlgorithm.cs" />
     <Compile Include="Processing\StreamProvider\IStreamProvider.cs" />
+    <Compile Include="Processing\StreamProvider\NullStreamProvider.cs" />
     <Compile Include="Processing\StreamProvider\StreamFromPathsProvider.cs" />
     <Compile Include="Reporting\AVD3ReportingModule.cs" />
     <Compile Include="Settings\AVD3SettingsModule.cs" />

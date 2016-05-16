@@ -14,10 +14,10 @@ namespace AVDump3CL {
 		static void Main(string[] args) {
 			if(args.Length == 0) {
 				args = new string[] {
-					"--Conc=2:G:/,2",
+					"--Conc=4:G:/,1",
 					"--BSize=8:8",
                     //"--Consumers=CRC32, ED2K, MD4, MD5, SHA1, SHA384, SHA512, TTH, TIGER",
-                    "--Consumers=MD5, SHA1, MD4, TIGER",
+                    "--Consumers=NULL",
                     //@"G:\Software\en_visual_studio_enterprise_2015_with_update_2_x86_x64_dvd_8510142.iso",
                     "G:/Video",
 				};
