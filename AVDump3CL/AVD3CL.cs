@@ -20,7 +20,7 @@ namespace AVDump3CL {
 		private ConcurrentDictionary<IBlockStream, StreamConsumerProgressInfo> blockStreamProgress;
 
 		private class StreamConsumerProgressInfo {
-			public DateTimeOffset StartedOn { get; } = DateTimeOffset.UtcNow.AddMilliseconds(-1);
+            public DateTimeOffset StartedOn { get; } = DateTimeOffset.UtcNow.AddMilliseconds(-1);
 			public string Filename { get; }
 			public IStreamConsumer StreamConsumer { get; }
 			public long[] BytesRead { get; }
@@ -205,11 +205,17 @@ namespace AVDump3CL {
 
 
 		public void Display() {
+			Console.CursorVisible = false;
+
 			curP = getProgress();
 			timer = new Timer(TimerCallback, null, 500, 100);
 		}
 
+		bool t;
 		private void TimerCallback(object sender) {
+			if(t) return;
+			t = true;
+
 			var cursorTop = Console.CursorTop;
 			Console.Write(output);
 			Console.SetCursorPosition(0, cursorTop);
@@ -225,13 +231,15 @@ namespace AVDump3CL {
 
 			state++;
 			state %= TicksInPeriod;
+			t = false;
 		}
 
 		private void Display(StringBuilder sb, double relPos) {
-			Console.CursorVisible = false;
 
 			var sbLength = 0;
 			var consoleWidth = Console.BufferWidth - 1;
+			consoleWidth = 80;
+
 			var barWidth = consoleWidth - 8 - 1 - 2 - 2;
 			var outputOn = DateTimeOffset.UtcNow;
 			var progressSpan = DateTimeOffset.UtcNow - outputOn;
@@ -255,7 +263,7 @@ namespace AVDump3CL {
 				sb.Append(cur.Name);
 				sb.Append(' ', 8 - (sb.Length - sbLength));
 
-				sb.Append('[').Append('*', barPosition).Append(' ', barWidth - barPosition).Append("] ");
+				sb.Append('[').Append('#', barPosition).Append(' ', barWidth - barPosition).Append("] ");
 				sb.Append(cur.ActiveCount);
 
 				sb.Append(' ', consoleWidth - (sb.Length - sbLength)).AppendLine();
@@ -289,11 +297,11 @@ namespace AVDump3CL {
 				speed = (int)(prevSpeed + relPos * (curSpeed - prevSpeed));
 
 				sbLength = sb.Length;
-				//sb.Append(fileName, 0, Math.Min(barWidth, fileName.Length));
-				sb.Append("RL=").Append(item.cur.ReaderLockCount).Append(" WL=").Append(item.cur.WriterLockCount);
+				sb.Append(fileName, 0, Math.Min(barWidth, fileName.Length));
+				//sb.Append("RL=").Append(item.cur.ReaderLockCount).Append(" WL=").Append(item.cur.WriterLockCount);
 				sb.Append(' ', barWidth - (sb.Length - sbLength));
 
-				sb.Append('[').Append('*', barPosition).Append(' ', 10 - barPosition).Append("] ");
+				sb.Append('[').Append('#', barPosition).Append(' ', 10 - barPosition).Append("] ");
 
 				sb.Append(speed).Append("MiB/s");
 
@@ -317,7 +325,7 @@ namespace AVDump3CL {
 			barPosition = (int)(prevBarPosition + relPos * (curBarPosition - prevBarPosition));
 
 			sbLength = sb.Length;
-			sb.Append("Total [").Append('*', barPosition).Append(' ', barWidth - barPosition).Append("] ");
+			sb.Append("Total [").Append('#', barPosition).Append(' ', barWidth - barPosition).Append("] ");
 			sb.Append(speed).Append("MiB/s");
 
 			sb.Append(' ', consoleWidth - (sb.Length - sbLength)).AppendLine();

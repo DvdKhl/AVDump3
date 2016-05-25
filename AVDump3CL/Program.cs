@@ -12,18 +12,25 @@ namespace AVDump3CL {
 	class Program {
 
 		static void Main(string[] args) {
-			if(args.Length == 0) {
+			if(args.Length == 1 && args[0].Equals("DEBUG")) {
 				args = new string[] {
-					"--Conc=4:G:/,1",
+					"--Conc=6:G:/,1;H:/,1;I:/,1",
 					"--BSize=8:8",
-                    //"--Consumers=CRC32, ED2K, MD4, MD5, SHA1, SHA384, SHA512, TTH, TIGER",
-                    "--Consumers=NULL",
-                    //@"G:\Software\en_visual_studio_enterprise_2015_with_update_2_x86_x64_dvd_8510142.iso",
-                    "G:/Video",
+					//"--Consumers=CRC32, ED2K, MD4, MD5, SHA1, SHA384, SHA512, TTH, TIGER",
+					//"--Consumers=ED2K",
+					@"G:\Software\en_visual_studio_enterprise_2015_with_update_2_x86_x64_dvd_8510142.iso",
+					"G:/Anime",
+					"H:/Anime",
+					"I:/Anime",
 				};
 			}
 			var moduleManagemant = IniModules();
 			var pathsToProcess = ProcessCommandlineArguments(moduleManagemant.GetModule<AVD3SettingsModule>(), args);
+
+			if(pathsToProcess == null) {
+				Console.Read();
+				return;
+			}
 
 			var clModule = moduleManagemant.GetModule<AVD3CLModule>();
 			clModule.Process(pathsToProcess);

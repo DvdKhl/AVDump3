@@ -18,15 +18,15 @@ namespace AVDump2Lib.InfoProvider {
 
         private void CombineProvider(MetaInfoContainer container) {
             foreach(var item in container.Items) {
-                Add(item.Type, item.Value, item.Provider);
+                //Add(item.Type, item.Value, item.Provider);
             }
         }
 
         private void AddItems(MetaInfoContainer containerA, MetaInfoContainer containerB, MetaInfoItemType type) {
-            var itemsA = containerA.Select(type).ToArray();
-            var itemsB = containerB.Select(type).ToArray();
+            //var itemsA = containerA.Select(type).ToArray();
+            //var itemsB = containerB.Select(type).ToArray();
 
-            if(!itemsA.Any() && itemsB.Any()) foreach(var item in itemsB) Add(containerB, type, item.Value, item.Provider);
+            //if(!itemsA.Any() && itemsB.Any()) foreach(var item in itemsB) Add(containerB, type, item.Value, item.Provider);
         }
     }
 }

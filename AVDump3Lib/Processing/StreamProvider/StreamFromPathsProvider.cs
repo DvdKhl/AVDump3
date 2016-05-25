@@ -39,7 +39,10 @@ namespace AVDump3Lib.Processing.StreamProvider {
 
             FileTraversal.Traverse(paths, includeSubFolders, filePath => {
                 if(!accept(filePath)) return;
-                TotalBytes += new FileInfo(filePath).Length;
+				var fileInfo = new FileInfo(filePath);
+				if(fileInfo.Length < 1 << 30) return;
+
+				TotalBytes += fileInfo.Length;
                 localConcurrencyPartitions.First(ldKey => filePath.StartsWith(ldKey.Path)).Files.Enqueue(filePath);
                 TotalFileCount++;
             }, onError);

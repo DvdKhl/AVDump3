@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace AVDump3Lib.Information.MetaInfo {
@@ -7,9 +8,9 @@ namespace AVDump3Lib.Information.MetaInfo {
 
 		public long Size { get; private set; }
 
-		public FileMetaInfo(long size , IEnumerable<MetaDataProvider> items) {
+		public FileMetaInfo(long size, IEnumerable<MetaDataProvider> items) {
 			Size = size;
-			Items = items.Where(i => i != null).ToList().AsReadOnly();
+			Items = Array.AsReadOnly(items.Where(i => i != null).ToArray());
 		}
 	}
 }

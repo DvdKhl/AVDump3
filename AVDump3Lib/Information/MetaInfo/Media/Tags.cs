@@ -4,11 +4,11 @@ using System.Linq;
 
 namespace AVDump3Lib.Information.MetaInfo.Media {
     public class Tags : MetaInfoContainer {
-        public static readonly MetaInfoItemType TargetedTagType = new MetaInfoItemType("TargetedTag", null, typeof(TargetedTag), "");
+        public static readonly MetaInfoItemType<TargetedTag> TargetedTagType = new MetaInfoItemType<TargetedTag>("TargetedTag", null);
         //public static readonly MetaInfoItemType SimpleTagType = new MetaInfoItemType("SimpleTag", null, typeof(Tag), "");
         //public static readonly MetaInfoItemType TargetedTagsType = new MetaInfoItemType("TargetedTags", null, typeof(TargetedTags), "");
 
-        public Tags() : base(MediaProvider.TagsType) { }
+        public Tags() { }
     }
 
 

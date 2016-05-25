@@ -41,6 +41,10 @@ namespace AVDump3CL {
 		}
 
 		public void Process(string[] paths) {
+			if(processingModule.BlockConsumerFactories.Count == 0) {
+				Console.WriteLine("No Blockconsumer chosen: Nothing to do");
+			}
+
 			var bcs = new BlockConsumerSelector(processingModule.BlockConsumerFactories);
 			bcs.Filter += BlockConsumerFilter;
 
@@ -151,8 +155,8 @@ namespace AVDump3CL {
 		}
 
 		private IEnumerable<ArgGroup> CreateCommandlineArguments() {
-			var blockCount = 16;
-			var blockLength = 16 << 20;
+			var blockCount = 8;
+			var blockLength = 8 << 20;
 			var globalConcurrentCount = 1;
 			var partitions = Enumerable.Empty<PathPartition>();
 			string[] usedBlockConsumers = new string[0];
@@ -205,25 +209,25 @@ namespace AVDump3CL {
 						usedBlockConsumers = hashNames.ToArray();
 					},
 					"--Consumers=<ConsumerName1>,<ConsumerName2,...>",
-					"Select consumers to use (CRC32, ED2K, MD4, MD5, SHA1, SHA384, SHA512, TTH, TIGER, MKV)",
+					"Select consumers to use (CRC32, ED2K, MD4, MD5, SHA1, SHA384, SHA512, TTH, TIGER)",
 					"Consumers"
 				)
 			);
 
 
-			bool useNtfsAlternateStreams = false;
-			yield return new ArgGroup("Internal",
-				"",
-				() => {
-					UseNtfsAlternateStreams = useNtfsAlternateStreams;
-				},
-				ArgStructure.Create(
-					arg => useNtfsAlternateStreams = true,
-					"--UseNtfsAlternateStreams",
-					"Store Hashes in Ntfs Alternate Streams to avoid unecessary rehashing",
-					"UseNtfsAlternateStreams"
-				)
-			);
+			//bool useNtfsAlternateStreams = false;
+			//yield return new ArgGroup("Internal",
+			//	"",
+			//	() => {
+			//		UseNtfsAlternateStreams = useNtfsAlternateStreams;
+			//	},
+			//	ArgStructure.Create(
+			//		arg => useNtfsAlternateStreams = true,
+			//		"--UseNtfsAlternateStreams",
+			//		"Store Hashes in Ntfs Alternate Streams to avoid unecessary rehashing",
+			//		"UseNtfsAlternateStreams"
+			//	)
+			//);
 		}
 	}
 }

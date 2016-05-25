@@ -10,6 +10,7 @@ using AVDump3Lib.BlockConsumers.Matroska.Segment.Chapters;
 using AVDump3Lib.BlockConsumers.Matroska.Segment.Tags;
 using MoreLinq;
 using AVDump2Lib.FormatHeaders;
+using AVDump3Lib.Information.MetaInfo;
 
 namespace AVDump2Lib.InfoProvider {
     public class MatroskaProvider : MediaProvider {
@@ -29,9 +30,9 @@ namespace AVDump2Lib.InfoProvider {
 		private void Populate(MatroskaFile mfi) {
 			MFI = mfi;
 
-			Add(FileSizeType, MFI.SectionSize);
-			Add(CreationDateType, MFI.Segment.SegmentInfo.ProductionDate);
-			Add(DurationType, MFI.Segment.SegmentInfo.Duration.OnNotNullReturn(v => v * MFI.Segment.SegmentInfo.TimecodeScale / 1000000000d));
+            Add(FileSizeType, MFI.SectionSize.Value);
+            Add(CreationDateType, MFI.Segment.SegmentInfo.ProductionDate);
+            Add(DurationType, MFI.Segment.SegmentInfo.Duration.OnNotNullReturn(x => x * MFI.Segment.SegmentInfo.TimecodeScale / 1000000000d));
 
 			Add(WritingAppType, MFI.Segment.SegmentInfo.WritingApp);
 			Add(MuxingAppType, MFI.Segment.SegmentInfo.MuxingApp);
@@ -58,11 +59,10 @@ namespace AVDump2Lib.InfoProvider {
 		private void PopulateChapters(EditionEntrySection edition) {
 			var chapters = new Chapters();
 
-			Add(chapters, Chapters.IdType, edition.EditionUId);
-			Add(chapters, Chapters.IsHiddenType, edition.EditionFlags.HasFlag(EditionEntrySection.Options.Hidden));
+            Add(chapters, Chapters.IdType, (int?)edition.EditionUId);
+            Add(chapters, Chapters.IsHiddenType, edition.EditionFlags.HasFlag(EditionEntrySection.Options.Hidden));
 			Add(chapters, Chapters.IsDefaultType, edition.EditionFlags.HasFlag(EditionEntrySection.Options.Default));
 			Add(chapters, Chapters.IsOrderedType, edition.EditionFlags.HasFlag(EditionEntrySection.Options.Ordered));
-
 
 			foreach(var atom in edition.ChapterAtoms) Add(chapters, Chapters.ChapterType, PopulateChaptersSub(atom));
 
@@ -71,16 +71,16 @@ namespace AVDump2Lib.InfoProvider {
 		private Chapter PopulateChaptersSub(ChapterAtomSection atom) {
 			var chapter = new Chapter();
 
-			Add(chapter, Chapter.IdType, atom.ChapterUId);
+			if(atom.ChapterUId.HasValue) Add(chapter, Chapter.IdType, (int)atom.ChapterUId.Value);
 			Add(chapter, Chapter.IdStringType, atom.ChapterStringUId);
-			Add(chapter, Chapter.TimeStartType, atom.ChapterTimeStart.OnNotNullReturn(v => v / 1000000000d));
+			if(atom.ChapterTimeStart.HasValue) Add(chapter, Chapter.TimeStartType, atom.ChapterTimeStart.Value / 1000000000d);
 			Add(chapter, Chapter.TimeEndType, atom.ChapterTimeEnd.OnNotNullReturn(v => v / 1000000000d));
 			Add(chapter, Chapter.IsHiddenType, atom.ChapterFlags.HasFlag(ChapterAtomSection.Options.Hidden));
 			Add(chapter, Chapter.IsEnabledType, atom.ChapterFlags.HasFlag(ChapterAtomSection.Options.Enabled));
 			Add(chapter, Chapter.SegmentIdType, atom.ChapterSegmentUId);
-			Add(chapter, Chapter.SegmentChaptersIdType, atom.ChapterSegmentEditionUId);
-			Add(chapter, Chapter.PhysicalEquivalentType, atom.ChapterPhysicalEquiv);
-			if(atom.ChapterTrack != null) foreach(var tid in atom.ChapterTrack.ChapterTrackNumbers) Add(chapter, Chapter.AssociatedTrackType, tid);
+			Add(chapter, Chapter.SegmentChaptersIdType, (int?)atom.ChapterSegmentEditionUId);
+			Add(chapter, Chapter.PhysicalEquivalentType, (int?)atom.ChapterPhysicalEquiv);
+			if(atom.ChapterTrack != null) foreach(var tid in atom.ChapterTrack.ChapterTrackNumbers) Add(chapter, Chapter.AssociatedTrackType, (int)tid);
 			Add(chapter, Chapter.SegmentIdType, atom.ChapterSegmentUId);
 			foreach(var chapterDisplay in atom.ChapterDisplays) Add(chapter, Chapter.TitleType, new ChapterTitle(chapterDisplay.ChapterString, chapterDisplay.ChapterLanguages, chapterDisplay.ChapterCountries));
 			foreach(var subAtom in atom.ChapterAtoms) Add(chapter, Chapter.ChapterType, PopulateChaptersSub(subAtom));
@@ -117,12 +117,13 @@ namespace AVDump2Lib.InfoProvider {
 			switch(track.TrackType) {
 				case TrackEntrySection.Types.Video:
 					stream = new VideoStream();
-					Add(VideoStreamType, stream);
+					Add(stream);
+
 					Add(stream, VideoStream.AspectRatioBehaviorType, Convert(track.Video.AspectRatioType));
-					Add(stream, VideoStream.ColorSpaceType, track.Video.ColorSpace);
+					Add(stream, VideoStream.ColorSpaceType, track.Video.ColorSpace.OnNotNullReturn(x => BitConverter.ToInt32(x, 0)));
 					Add(stream, VideoStream.DisplayDimensionsType, new Dimensions((int)track.Video.DisplayWidth, (int)track.Video.DisplayHeight));
 					Add(stream, VideoStream.DisplayUnitType, Convert(track.Video.DisplayUnit));
-					Add(stream, VideoStream.HasAlphaType, track.Video.AlphaMode);
+					Add(stream, VideoStream.HasAlphaType, track.Video.AlphaMode != 0);
 					Add(stream, VideoStream.IsInterlacedType, track.Video.Interlaced);
 					Add(stream, VideoStream.PixelCropType, new CropSides((int)track.Video.PixelCropTop, (int)track.Video.PixelCropRight, (int)track.Video.PixelCropBottom, (int)track.Video.PixelCropLeft));
 					Add(stream, VideoStream.PixelDimensionsType, new Dimensions((int)track.Video.PixelWidth, (int)track.Video.PixelHeight));
@@ -137,20 +138,20 @@ namespace AVDump2Lib.InfoProvider {
 
 				case TrackEntrySection.Types.Audio:
 					stream = new AudioStream();
-					Add(AudioStreamType, stream);
-					Add(stream, AudioStream.BitDepthType, track.Audio.BitDepth);
-					Add(stream, AudioStream.ChannelCountType, track.Audio.ChannelCount);
+					Add(stream);
+					Add(stream, AudioStream.BitDepthType, (int?)track.Audio.BitDepth);
+					Add(stream, AudioStream.ChannelCountType, (int?)track.Audio.ChannelCount);
 					Add(stream, MediaStream.OutputSampleRateType, track.Audio.OutputSamplingFrequency);
 					Add(stream, MediaStream.StatedSampleRateType, track.Audio.SamplingFrequency);
 					break;
 
 				case TrackEntrySection.Types.Subtitle:
 					stream = new SubtitleStream();
-					Add(SubtitleStreamType, stream);
+					Add(stream);
 					break;
 
 				default:
-					stream = new MediaStream(MediaProvider.MediaStreamType);
+					stream = new MediaStream();
 					Add(MediaStreamType, stream);
 					break;
 			}
@@ -165,7 +166,7 @@ namespace AVDump2Lib.InfoProvider {
 				Add(stream, MediaStream.SampleRateVarianceType, CalcDeviation(trackInfo.SampleRateHistogram));
 			}
 
-			Add(stream, MediaStream.IdType, track.TrackUId.OnNotNullReturn(v => (ulong?)v.Value));
+			Add(stream, MediaStream.IdType, track.TrackUId);
 			Add(stream, MediaStream.IsDefaultType, track.TrackFlags.HasFlag(TrackEntrySection.Options.Default));
 			Add(stream, MediaStream.IsEnabledType, track.TrackFlags.HasFlag(TrackEntrySection.Options.Enabled));
 			Add(stream, MediaStream.IsForcedType, track.TrackFlags.HasFlag(TrackEntrySection.Options.Forced));

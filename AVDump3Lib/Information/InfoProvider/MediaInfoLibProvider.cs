@@ -141,11 +141,11 @@ namespace AVDump2Lib.InfoGathering.InfoProvider {
 					switch(streamKind) {
 						case MediaInfoLib.StreamTypes.Video:
 							stream = new VideoStream(); hasVideo = true;
-							Add(stream, MediaStream.StatedSampleRateType, () => streamGet("FrameRate"));
-							Add(stream, MediaStream.SampleCountType, () => streamGet("FrameCount"));
+							Add(stream, MediaStream.StatedSampleRateType, () => streamGet("FrameRate").ToInvDouble());
+							Add(stream, MediaStream.SampleCountType, () => streamGet("FrameCount").ToInvInt64());
 							Add(stream, VideoStream.PixelDimensionsType, () => new Dimensions(streamGet("Width").ToInvInt32(), streamGet("Height").ToInvInt32()));
 							Add(stream, VideoStream.DisplayAspectRatioType, () => streamGet("DisplayAspectRatio").ToInvDouble());
-							Add(VideoStreamType, stream);
+							Add(stream);
 							break;
 
 						case MediaInfoLib.StreamTypes.Audio:
@@ -153,16 +153,16 @@ namespace AVDump2Lib.InfoGathering.InfoProvider {
 							Add(stream, MediaStream.StatedSampleRateType, () => streamGet("SamplingRate").ToInvDouble());
 							Add(stream, MediaStream.SampleCountType, () => streamGet("SamplingCount").ToInvInt32());
 							Add(stream, AudioStream.ChannelCountType, () => streamGet("Channel(s)").ToInvInt32());
-							Add(AudioStreamType, stream);
+							Add(stream);
 							break;
 
 						case MediaInfoLib.StreamTypes.Text:
 							stream = new SubtitleStream(); hasSubtitle = true;
-							Add(SubtitleStreamType, stream);
+							Add(stream);
 							break;
 
 						default:
-							stream = new MediaStream(MediaProvider.MediaStreamType);
+							stream = new MediaStream();
 							Add(MediaStreamType, stream);
 							break;
 					}
@@ -172,7 +172,7 @@ namespace AVDump2Lib.InfoGathering.InfoProvider {
 					Add(stream, MediaStream.IdType, () => streamGet("UniqueID").ToInvUInt64());
 					Add(stream, MediaStream.LanguageType, () => streamGet("Language"));
 					Add(stream, MediaStream.DurationType, () => streamGet("Duration"), s => TimeSpan.FromSeconds(s.ToInvDouble() / 1000), splitTakeFirst);
-					Add(stream, MediaStream.BitrateType, () => streamGet("BitRate"));
+					Add(stream, MediaStream.BitrateType, () => streamGet("BitRate").ToInvDouble());
 					Add(stream, MediaStream.CodecIdType, () => ((streamGet("Format").Trim() + " -- " + nonEmpty(streamGet("Format_Version"), streamGet("CodecID"))).Trim() + " -- " + streamGet("Format_Profile")).Trim());
 					Add(stream, MediaStream.EncoderSettingsType, () => streamGet("Encoded_Library_Settings"));
 					Add(stream, MediaStream.EncoderNameType, () => streamGet("Encoded_Library"));
@@ -236,36 +236,27 @@ namespace AVDump2Lib.InfoGathering.InfoProvider {
 
 
 
-		private void Add(MetaInfoItemType type, Func<string> getValue, Func<string, object> transform, params Func<string, string>[] processingChain) {
+		private void Add<T>(MetaInfoItemType<T> type, Func<string> getValue, Func<string, T> transform, params Func<string, string>[] processingChain) {
+            Add(this, type, getValue, transform, processingChain);
+		}
+		private void Add<T>(MetaInfoItemType<T> type, Func<T> getValue) {
+            Add(this, type, getValue);
+		}
+
+		private void Add<T>(MetaInfoContainer container, MetaInfoItemType<T> type, Func<string> getValue, Func<string, T> transform, params Func<string, string>[] processingChain) {
 			string value;
 			try { value = getValue(); } catch { return; }
 
 			try {
 				foreach(var processingStep in processingChain) value = processingStep(value);
 				value = value.Trim();
-				base.Add(type, transform != null ? transform(value) : value);
+				Add(container, type, transform(value));
 			} catch(Exception ex) { }
 		}
-		private void Add(MetaInfoItemType type, Func<object> getValue) {
-			object value;
+		private void Add<T>(MetaInfoContainer container, MetaInfoItemType<T> type, Func<T> getValue) {
+			T value;
 			try { value = getValue(); } catch { return; }
-			base.Add(type, value);
-		}
-
-		private void Add(MetaInfoContainer container, MetaInfoItemType type, Func<string> getValue, Func<string, object> transform, params Func<string, string>[] processingChain) {
-			string value;
-			try { value = getValue(); } catch { return; }
-
-			try {
-				foreach(var processingStep in processingChain) value = processingStep(value);
-				value = value.Trim();
-				base.Add(container, type, transform != null ? transform(value) : value);
-			} catch(Exception ex) { }
-		}
-		private void Add(MetaInfoContainer container, MetaInfoItemType type, Func<object> getValue) {
-			object value;
-			try { value = getValue(); } catch { return; }
-			base.Add(container, type, value);
+			Add(container, type, value);
 		}
 
 		//protected override void Add(MediaInfoLib.StreamTypes type, int index, EntryKey entry, string value, string unit) {

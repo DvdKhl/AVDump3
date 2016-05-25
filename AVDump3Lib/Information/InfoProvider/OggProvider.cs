@@ -6,76 +6,73 @@ using System.Linq;
 
 namespace AVDump2Lib.InfoGathering.InfoProvider {
     public class OggProvider : MediaProvider {
-		public OggFile FileInfo { get; private set; }
+        public OggFile FileInfo { get; private set; }
 
-		public OggProvider(OggFile oggFile) : base("OggProvider") { Populate(oggFile); }
+        public OggProvider(OggFile oggFile) : base("OggProvider") { Populate(oggFile); }
 
-		private void Populate(OggFile oggFile) {
-			Add(FileSizeType, oggFile.FileSize);
-			Add(OverheadType, oggFile.Overhead);
-			Add(DurationType, oggFile.Bitstreams.Where(b => !(b is UnknownOGGBitStream)).Max(b => (double)b.Duration));
-
-
-			
-			MediaStream stream = null;
-			foreach(var bitStream in oggFile.Bitstreams) {
-				if(bitStream is VideoOGGBitStream) {
-					stream = new VideoStream();
-					var vs = (VideoOGGBitStream)bitStream;
-					Add(stream, VideoStream.PixelDimensionsType, new Dimensions(vs.Width, vs.Height));
-					Add(stream, VideoStream.StatedSampleRateType, vs.FrameRate);
-					Add(stream, VideoStream.SampleCountType, vs.FrameCount);
-					Add(MediaProvider.VideoStreamType, stream);
-					
-
-				} else if(bitStream is AudioOGGBitStream) {
-					var audio = (AudioOGGBitStream)bitStream;
-					stream = new AudioStream();
-					Add(stream, AudioStream.ChannelCountType, audio.ChannelCount);
-					Add(stream, AudioStream.StatedSampleRateType, audio.SampleRate);
-					Add(stream, VideoStream.SampleCountType, audio.SampleCount);
-					Add(MediaProvider.AudioStreamType, stream);
-
-				} else if(bitStream is SubtitleOGGBitStream) {
-					stream = new SubtitleStream();
-					Add(MediaProvider.SubtitleStreamType, stream);
-				}
-				if(stream == null) {
-					stream = new MediaStream(MediaProvider.MediaStreamType);
-					Add(MediaProvider.MediaStreamType, stream);
-				}
-
-				var duration = TimeSpan.FromSeconds(bitStream.Duration);
-
-				Add(stream,MediaStream.IdType, (int)bitStream.Id);
-				Add(stream, MediaStream.SizeType, bitStream.Size);
-				Add(stream, MediaStream.DurationType, duration);
-				Add(stream, MediaStream.CodecNameType, bitStream.CodecName);
-				Add(stream, MediaStream.BitrateType, bitStream.Size / duration.TotalSeconds);
-
-				if(bitStream is IVorbisComment) {
-					var track = (IVorbisComment)bitStream;
-					if(track.Comments.Items.Contains("title")) Add(stream, MediaStream.TitleType, track.Comments.Items["title"].Value.Aggregate((acc, str) => acc + "," + str));
-					if(track.Comments.Items.Contains("language")) Add(stream, MediaStream.LanguageType, track.Comments.Items["language"].Value.Aggregate((acc, str) => acc + "," + str));
-				}
+        private void Populate(OggFile oggFile) {
+            Add(FileSizeType, oggFile.FileSize);
+            Add(OverheadType, oggFile.Overhead);
+            Add(DurationType, oggFile.Bitstreams.Where(b => !(b is UnknownOGGBitStream)).Max(b => (double)b.Duration));
 
 
 
+            MediaStream stream = null;
+            foreach(var bitStream in oggFile.Bitstreams) {
+                if(bitStream is VideoOGGBitStream) {
+                    stream = new VideoStream();
+                    var vs = (VideoOGGBitStream)bitStream;
+                    Add(stream, VideoStream.PixelDimensionsType, new Dimensions(vs.Width, vs.Height));
+                    Add(stream, VideoStream.StatedSampleRateType, vs.FrameRate);
+                    Add(stream, VideoStream.SampleCountType, vs.FrameCount);
+                    Add(stream);
 
-				if(bitStream is IOGMStream) Add(stream, MediaStream.CodecNameType, ((IOGMStream)bitStream).ActualCodecName);
-				
-			}
 
-			if(oggFile.Bitstreams.All(b => b is AudioOGGBitStream)) {
-				Add(SuggestedFileExtensionType, "ogg");
-			} else if(oggFile.Bitstreams.All(b => b.IsOfficiallySupported)) {
-				Add(SuggestedFileExtensionType, "ogv");
-			} else if(oggFile.Bitstreams.Any(b => b is OGMAudioOGGBitStream || b is OGMVideoOGGBitStream || b is OGMTextOGGBitStream)) {
-				Add(SuggestedFileExtensionType, "ogm");
-			}
+                } else if(bitStream is AudioOGGBitStream) {
+                    var audio = (AudioOGGBitStream)bitStream;
+                    stream = new AudioStream();
+                    Add(stream, AudioStream.ChannelCountType, audio.ChannelCount);
+                    Add(stream, AudioStream.StatedSampleRateType, audio.SampleRate);
+                    Add(stream, VideoStream.SampleCountType, audio.SampleCount);
+                    Add(stream);
 
-		}
-	}
+                } else if(bitStream is SubtitleOGGBitStream) {
+                    stream = new SubtitleStream();
+                    Add(stream);
+                }
+                if(stream == null) {
+                    stream = new MediaStream();
+                    Add(MediaProvider.MediaStreamType, stream);
+                }
+
+                var duration = TimeSpan.FromSeconds(bitStream.Duration);
+
+                Add(stream, MediaStream.IdType, bitStream.Id);
+                Add(stream, MediaStream.SizeType, bitStream.Size);
+                Add(stream, MediaStream.DurationType, duration);
+                Add(stream, MediaStream.CodecNameType, bitStream.CodecName);
+                Add(stream, MediaStream.BitrateType, bitStream.Size / duration.TotalSeconds);
+
+                if(bitStream is IVorbisComment) {
+                    var track = (IVorbisComment)bitStream;
+                    if(track.Comments.Items.Contains("title")) Add(stream, MediaStream.TitleType, track.Comments.Items["title"].Value.Aggregate((acc, str) => acc + "," + str));
+                    if(track.Comments.Items.Contains("language")) Add(stream, MediaStream.LanguageType, track.Comments.Items["language"].Value.Aggregate((acc, str) => acc + "," + str));
+                }
+
+                if(bitStream is IOGMStream) Add(stream, MediaStream.CodecNameType, ((IOGMStream)bitStream).ActualCodecName);
+
+            }
+
+            if(oggFile.Bitstreams.All(b => b is AudioOGGBitStream)) {
+                Add(SuggestedFileExtensionType, "ogg");
+            } else if(oggFile.Bitstreams.All(b => b.IsOfficiallySupported)) {
+                Add(SuggestedFileExtensionType, "ogv");
+            } else if(oggFile.Bitstreams.Any(b => b is OGMAudioOGGBitStream || b is OGMVideoOGGBitStream || b is OGMTextOGGBitStream)) {
+                Add(SuggestedFileExtensionType, "ogm");
+            }
+
+        }
+    }
 
 
 }

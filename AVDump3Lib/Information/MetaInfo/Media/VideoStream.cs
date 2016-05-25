@@ -2,23 +2,23 @@
 
 namespace AVDump3Lib.Information.MetaInfo.Media {
     public class VideoStream : MediaStream {
-		public static readonly MetaInfoItemType IsInterlacedType = new MetaInfoItemType("IsInterlaced", null, typeof(bool), "");
-		public static readonly MetaInfoItemType HasAlphaType = new MetaInfoItemType("HasAlpha", null, typeof(bool), "");
-		public static readonly MetaInfoItemType StereoModeType = new MetaInfoItemType("StereoMode", null, typeof(StereoModes), "");
+		public static readonly MetaInfoItemType<bool> IsInterlacedType = new MetaInfoItemType<bool>("IsInterlaced", null);
+		public static readonly MetaInfoItemType<bool> HasAlphaType = new MetaInfoItemType<bool>("HasAlpha", null);
+		public static readonly MetaInfoItemType<StereoModes> StereoModeType = new MetaInfoItemType<StereoModes>("StereoMode", null);
 
-		public static readonly MetaInfoItemType PixelDimensionsType = new MetaInfoItemType("PixelDimensions", null, typeof(Dimensions), "");
-		public static readonly MetaInfoItemType DisplayDimensionsType = new MetaInfoItemType("DisplayDimensions", null, typeof(Dimensions), "");
-		public static readonly MetaInfoItemType DisplayUnitType = new MetaInfoItemType("DisplayUnit", null, typeof(DisplayUnits), "");
-		public static readonly MetaInfoItemType AspectRatioBehaviorType = new MetaInfoItemType("AspectRatioBehavior", null, typeof(AspectRatioBehaviors), "");
+		public static readonly MetaInfoItemType<Dimensions> PixelDimensionsType = new MetaInfoItemType<Dimensions>("PixelDimensions", null);
+		public static readonly MetaInfoItemType<Dimensions> DisplayDimensionsType = new MetaInfoItemType<Dimensions>("DisplayDimensions", null);
+		public static readonly MetaInfoItemType<DisplayUnits> DisplayUnitType = new MetaInfoItemType<DisplayUnits>("DisplayUnit", null);
+		public static readonly MetaInfoItemType<AspectRatioBehaviors> AspectRatioBehaviorType = new MetaInfoItemType<AspectRatioBehaviors>("AspectRatioBehavior", null);
 
-		public static readonly MetaInfoItemType DisplayAspectRatioType = new MetaInfoItemType("DisplayAspectRatio", null, typeof(double), "");
-		public static readonly MetaInfoItemType PixelAspectRatioType = new MetaInfoItemType("PixelAspectRatio", null, typeof(double), "");
-		public static readonly MetaInfoItemType StorageAspectRatioType = new MetaInfoItemType("StorageAspectRatio", null, typeof(double), "");
+		public static readonly MetaInfoItemType<double> DisplayAspectRatioType = new MetaInfoItemType<double>("DisplayAspectRatio", null);
+		public static readonly MetaInfoItemType<double> PixelAspectRatioType = new MetaInfoItemType<double>("PixelAspectRatio", null);
+		public static readonly MetaInfoItemType<double> StorageAspectRatioType = new MetaInfoItemType<double>("StorageAspectRatio", null);
 
-		public static readonly MetaInfoItemType PixelCropType = new MetaInfoItemType("PixelCrop", null, typeof(CropSides), "");
-		public static readonly MetaInfoItemType ColorSpaceType = new MetaInfoItemType("ColorSpace", null, typeof(int), "");
+		public static readonly MetaInfoItemType<CropSides> PixelCropType = new MetaInfoItemType<CropSides>("PixelCrop", null);
+		public static readonly MetaInfoItemType<int> ColorSpaceType = new MetaInfoItemType<int>("ColorSpace", null);
 
-        public VideoStream() : base(MediaProvider.VideoStreamType) { }
+        public VideoStream()  { }
 	}
 	public enum StereoModes { Mono, LeftRight, TopBottom, Checkboard, RowInterleaved, ColumnInterleaved, FrameAlternating, Reversed = 1 << 30, Other = 1 << 31, AnaGlyph, CyanRed, GreenMagenta }
 	public enum DisplayUnits { Invalid, Pixel, Meter, AspectRatio, Unknown }

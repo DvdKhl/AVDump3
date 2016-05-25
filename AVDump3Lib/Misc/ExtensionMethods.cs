@@ -37,14 +37,15 @@ namespace AVDump3Lib.Misc {
 		public static DateTime ToInvDateTime(this string s, DateTime defVal) { DateTime val; if(DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.None, out val)) return val; else return defVal; }
 		public static DateTime? ToInvDateTime(this string s, DateTime? defVal) { DateTime val; if(DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.None, out val)) return val; else return defVal; }
 		public static string ToInvString(this DateTime v) { return v.ToString(CultureInfo.InvariantCulture); }
-		#endregion
+        #endregion
 
-		public static TResult OnNotNullReturn<TResult, TSource>(this TSource n, Func<TSource, TResult> transform) where TSource : class {
+        //public static TResult OnNotNullReturn<TResult, TSource>(this TSource? n, Func<TSource, TResult> transform) where TSource : struct {
+        //    return n.HasValue ? transform(n.Value) : default(TResult);
+        //}
+        public static TResult OnNotNullReturn<TResult, TSource>(this TSource n, Func<TSource, TResult> transform) {
 			return n != null ? transform(n) : default(TResult);
 		}
-		public static TResult? OnNotNullReturn<TResult, TSource>(this TSource n, Func<TSource, TResult?> transform) where TResult : struct {
-			return n != null ? transform(n) : null;
-		}
+
 		public static void OnNotNull<TSource>(this TSource n, Action<TSource> transform) { if(n != null) transform(n); }
 
 
