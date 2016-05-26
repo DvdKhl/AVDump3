@@ -14,14 +14,10 @@ namespace AVDump3CL {
 		static void Main(string[] args) {
 			if(args.Length == 1 && args[0].Equals("DEBUG")) {
 				args = new string[] {
-					"--Conc=6:G:/,1;H:/,1;I:/,1",
-					"--BSize=8:8",
+					//"--Conc=6:G:/,1;H:/,1;I:/,1",
+					//"--BSize=8:8",
 					//"--Consumers=CRC32, ED2K, MD4, MD5, SHA1, SHA384, SHA512, TTH, TIGER",
-					//"--Consumers=ED2K",
-					@"G:\Software\en_visual_studio_enterprise_2015_with_update_2_x86_x64_dvd_8510142.iso",
-					"G:/Anime",
-					"H:/Anime",
-					"I:/Anime",
+					"--Consumers=ED2K, CRC32",
 				};
 			}
 			var moduleManagemant = IniModules();
@@ -34,6 +30,8 @@ namespace AVDump3CL {
 
 			var clModule = moduleManagemant.GetModule<AVD3CLModule>();
 			clModule.Process(pathsToProcess);
+
+			Console.Read();
 		}
 		private static AVD3ModuleManagement IniModules() {
 			var moduleManagament = new AVD3ModuleManagement();

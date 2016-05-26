@@ -1,5 +1,6 @@
 ﻿using AVDump2Lib.InfoProvider.Tools;
 using AVDump3Lib.BlockBuffers;
+using AVDump3Lib.BlockConsumers;
 using AVDump3Lib.Information.MetaInfo;
 using AVDump3Lib.Information.MetaInfo.Media;
 using AVDump3Lib.Modules;
@@ -13,6 +14,7 @@ using AVDump3Lib.Settings.CLArguments;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +24,7 @@ namespace AVDump3CL {
 	public class AVD3CLModule : IAVD3Module {
 		private IAVD3ProcessingModule processingModule;
 		private IAVD3ReportingModule reportingModule;
-
+		private AVD3CL cl;
 
 		public int BlockCount { get; private set; }
 		public int BlockLength { get; private set; }
@@ -41,8 +43,9 @@ namespace AVDump3CL {
 		}
 
 		public void Process(string[] paths) {
-			if(processingModule.BlockConsumerFactories.Count == 0) {
+			if(UsedBlockConsumerNames.Count == 0) {
 				Console.WriteLine("No Blockconsumer chosen: Nothing to do");
+                return;
 			}
 
 			var bcs = new BlockConsumerSelector(processingModule.BlockConsumerFactories);
@@ -54,7 +57,9 @@ namespace AVDump3CL {
 			var sp = new StreamFromPathsProvider(GlobalConcurrentCount,
 				PathPartitions, paths, true,
 				//path => path.EndsWith("mkv"), ex => { }
-				path => true, ex => { }
+				path => {
+                    return true;
+                }, ex => { }
 			);
 
 			//sp = new NullStreamProvider();
@@ -63,20 +68,32 @@ namespace AVDump3CL {
 
 			var bytesReadProgress = new BytesReadProgress(processingModule.BlockConsumerFactories.Select(x => x.Name));
 
-			var cl = new AVD3CL(bytesReadProgress.GetProgress);
+			cl = new AVD3CL(bytesReadProgress.GetProgress);
 			cl.TotalFiles = sp.TotalFileCount;
 			cl.TotalBytes = sp.TotalBytes;
 			//cl.TotalFiles = 1;
 			//cl.TotalBytes = 1L << 40;
 
-			Task.Run(() => cl.Display());
+			cl.Display();
 
 			streamConsumerCollection.ConsumingStream += ConsumingStream;
-			//streamConsumerCollection.ConsumeStreams(CancellationToken.None, null);
-			streamConsumerCollection.ConsumeStreams(CancellationToken.None, bytesReadProgress);
-		}
+            //streamConsumerCollection.ConsumeStreams(CancellationToken.None, null);
 
-		private void BlockConsumerFilter(object sender, BlockConsumerSelectorEventArgs e) {
+            Console.CursorVisible = false;
+            try {
+                streamConsumerCollection.ConsumeStreams(CancellationToken.None, bytesReadProgress);
+
+				cl.Stop();
+
+
+			} catch(Exception ex) {
+                Console.WriteLine(ex);
+            } finally {
+                Console.CursorVisible = true;
+            }
+        }
+
+        private void BlockConsumerFilter(object sender, BlockConsumerSelectorEventArgs e) {
 			e.Select = UsedBlockConsumerNames.Any(x => e.Name.Equals(x, StringComparison.OrdinalIgnoreCase));
 		}
 
@@ -87,6 +104,14 @@ namespace AVDump3CL {
 			};
 
 			var blockConsumers = await e.FinishedProcessing;
+
+			var fileName = Path.GetFileName((string)e.Tag);
+			cl.Writeline(fileName.Substring(0, Math.Min(fileName.Length, Console.WindowWidth - 1)));
+			foreach(var bc in blockConsumers.OfType<HashCalculator>()) {
+				cl.Writeline(bc.Name + " => " + BitConverter.ToString(bc.HashAlgorithm.Hash).Replace("-", ""));
+			}
+			cl.Writeline("");
+
 
 			//if(UseNtfsAlternateStreams) {
 			//	using(var altStreamHandle = NtfsAlternateStreams.SafeCreateFile(

@@ -12,7 +12,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 	public interface IStreamConsumerCollection {
 	}
 
-	public interface  IBytesReadProgress : IProgress<BlockStreamProgress> {
+	public interface IBytesReadProgress : IProgress<BlockStreamProgress> {
 		void Register(ProvidedStream providedStream, IStreamConsumer streamConsumer);
 	}
 

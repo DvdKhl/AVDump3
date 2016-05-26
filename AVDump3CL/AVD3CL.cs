@@ -192,6 +192,7 @@ namespace AVDump3CL {
 		private string output;
 		private int maxBCCount;
 		private int maxFCount;
+		private int maxCursorPos;
 		private Timer timer;
 		private int TicksInPeriod = 5;
 		private int state;
@@ -205,19 +206,24 @@ namespace AVDump3CL {
 
 
 		public void Display() {
-			Console.CursorVisible = false;
-
 			curP = getProgress();
 			timer = new Timer(TimerCallback, null, 500, 100);
 		}
 
-		bool t;
-		private void TimerCallback(object sender) {
-			if(t) return;
-			t = true;
+		public void Stop() {
+			lock(timer) {
+				timer.Dispose();
+			}
 
+			Console.SetCursorPosition(0, maxCursorPos);
+			Console.WriteLine();
+		}
+
+		private void TimerCallback(object sender) {
+			if(!Monitor.TryEnter(timer)) return;
 			var cursorTop = Console.CursorTop;
 			Console.Write(output);
+			maxCursorPos = Math.Max(maxCursorPos, Console.CursorTop);
 			Console.SetCursorPosition(0, cursorTop);
 
 			if(state == 0) {
@@ -231,21 +237,30 @@ namespace AVDump3CL {
 
 			state++;
 			state %= TicksInPeriod;
-			t = false;
+
+			Monitor.Exit(timer);
+		}
+
+		public void Writeline(string line) {
+			lock(timer) {
+				Console.WriteLine(line.PadRight(Console.BufferWidth - 1));
+			}
 		}
 
 		private void Display(StringBuilder sb, double relPos) {
 
 			var sbLength = 0;
 			var consoleWidth = Console.BufferWidth - 1;
-			consoleWidth = 80;
+			consoleWidth = 79;
 
 			var barWidth = consoleWidth - 8 - 1 - 2 - 2;
 			var outputOn = DateTimeOffset.UtcNow;
 			var progressSpan = DateTimeOffset.UtcNow - outputOn;
 			var now = DateTimeOffset.UtcNow;
 
+
 			sb.Length = 0;
+			sb.Append('-', consoleWidth).AppendLine();
 			double prevBarPosition, curBarPosition;
 			int barPosition, curBCCount = 0;
 			for(int i = 0; i < curP.BlockConsumerProgressCollection.Count; i++) {
@@ -342,7 +357,7 @@ namespace AVDump3CL {
 			sbLength = sb.Length;
 			sb.Append(curP.FilesProcessed).Append('/').Append(TotalFiles).Append(" Files | ");
 			sb.Append(curP.BytesProcessed >> 30).Append('/').Append(TotalBytes >> 30).Append(" GiB | ");
-			sb.Append(now - curP.StartedOn).Append(" Elapsed | ");
+			sb.Append((now - curP.StartedOn).ToString(@"d\.hh\:mm\:ss")).Append(" Elapsed | ");
 			sb.Append(etaStr).Append(" Remaining");
 			sb.Append(' ', consoleWidth - (sb.Length - sbLength)).AppendLine();
 
