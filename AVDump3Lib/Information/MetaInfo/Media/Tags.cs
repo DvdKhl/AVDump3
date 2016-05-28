@@ -3,16 +3,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace AVDump3Lib.Information.MetaInfo.Media {
-    public class Tags : MetaInfoContainer {
-        public static readonly MetaInfoItemType<TargetedTag> TargetedTagType = new MetaInfoItemType<TargetedTag>("TargetedTag", null);
-        //public static readonly MetaInfoItemType SimpleTagType = new MetaInfoItemType("SimpleTag", null, typeof(Tag), "");
-        //public static readonly MetaInfoItemType TargetedTagsType = new MetaInfoItemType("TargetedTags", null, typeof(TargetedTags), "");
-
-        public Tags() { }
-    }
-
-
-
     public class TargetedTag {
         public string TargetTitle { get; private set; }
         public TargetedTagType TargetType { get; private set; }

@@ -11,6 +11,7 @@ using AVDump3Lib.BlockConsumers.Matroska.Segment.Tags;
 using MoreLinq;
 using AVDump2Lib.FormatHeaders;
 using AVDump3Lib.Information.MetaInfo;
+using System.Collections.Generic;
 
 namespace AVDump2Lib.InfoProvider {
     public class MatroskaProvider : MediaProvider {
@@ -57,23 +58,24 @@ namespace AVDump2Lib.InfoProvider {
 		}
 
 		private void PopulateChapters(EditionEntrySection edition) {
-			var chapters = new Chapters();
+			var chapters = new Chapters((int?)edition.EditionUId ?? Nodes.OfType<Chapters>().Count());
 
             Add(chapters, Chapters.IdType, (int?)edition.EditionUId);
             Add(chapters, Chapters.IsHiddenType, edition.EditionFlags.HasFlag(EditionEntrySection.Options.Hidden));
 			Add(chapters, Chapters.IsDefaultType, edition.EditionFlags.HasFlag(EditionEntrySection.Options.Default));
 			Add(chapters, Chapters.IsOrderedType, edition.EditionFlags.HasFlag(EditionEntrySection.Options.Ordered));
 
-			foreach(var atom in edition.ChapterAtoms) Add(chapters, Chapters.ChapterType, PopulateChaptersSub(atom));
+			foreach(var atom in edition.ChapterAtoms) PopulateChaptersSub(atom, chapters);
 
-			Add(ChaptersType, chapters);
+			AddNode(chapters);
 		}
-		private Chapter PopulateChaptersSub(ChapterAtomSection atom) {
-			var chapter = new Chapter();
+		private void PopulateChaptersSub(ChapterAtomSection atom, MetaInfoContainer chapters) {
+			var chapter = new Chapter((int?)atom.ChapterUId ?? chapters.Nodes.OfType<Chapter>().Count());
+            chapters.AddNode(chapter);
 
-			if(atom.ChapterUId.HasValue) Add(chapter, Chapter.IdType, (int)atom.ChapterUId.Value);
+            Add(chapter, Chapter.IdType, (int?)atom.ChapterUId);
 			Add(chapter, Chapter.IdStringType, atom.ChapterStringUId);
-			if(atom.ChapterTimeStart.HasValue) Add(chapter, Chapter.TimeStartType, atom.ChapterTimeStart.Value / 1000000000d);
+			Add(chapter, Chapter.TimeStartType, atom.ChapterTimeStart / 1000000000d);
 			Add(chapter, Chapter.TimeEndType, atom.ChapterTimeEnd.OnNotNullReturn(v => v / 1000000000d));
 			Add(chapter, Chapter.IsHiddenType, atom.ChapterFlags.HasFlag(ChapterAtomSection.Options.Hidden));
 			Add(chapter, Chapter.IsEnabledType, atom.ChapterFlags.HasFlag(ChapterAtomSection.Options.Enabled));
@@ -83,15 +85,13 @@ namespace AVDump2Lib.InfoProvider {
 			if(atom.ChapterTrack != null) foreach(var tid in atom.ChapterTrack.ChapterTrackNumbers) Add(chapter, Chapter.AssociatedTrackType, (int)tid);
 			Add(chapter, Chapter.SegmentIdType, atom.ChapterSegmentUId);
 			foreach(var chapterDisplay in atom.ChapterDisplays) Add(chapter, Chapter.TitleType, new ChapterTitle(chapterDisplay.ChapterString, chapterDisplay.ChapterLanguages, chapterDisplay.ChapterCountries));
-			foreach(var subAtom in atom.ChapterAtoms) Add(chapter, Chapter.ChapterType, PopulateChaptersSub(subAtom));
+			foreach(var subAtom in atom.ChapterAtoms) PopulateChaptersSub(subAtom, chapter);
 			Add(chapter, Chapter.HasOperationsType, atom.ChapterProcesses.Count != 0);
-
-			return chapter;
 		}
 
 
 		private void PopulateTags(TagsSection mkvTags) {
-			var tags = new Tags();
+			var tags = new List<TargetedTag>();
 
 			foreach(var mkvTag in mkvTags.Items) {
 
@@ -101,8 +101,7 @@ namespace AVDump2Lib.InfoProvider {
 				targets = targets.Concat(from attachmentId in mkvTag.Targets.AttachmentUIds select new Target(TagTarget.Attachment, (long)attachmentId));
 
 				var tag = new TargetedTag(targets, mkvTag.SimpleTags.Select(simpleTag => PopulateTagsSub(simpleTag)));
-
-				Add(tags, Tags.TargetedTagType, tag);
+                tags.Add(tag);
 			}
 			Add(TagsType, tags);
 		}
@@ -113,11 +112,11 @@ namespace AVDump2Lib.InfoProvider {
 		private void PopulateTrack(TrackEntrySection track) {
 			var trackInfo = MFI.Segment.Cluster.Tracks[(int)track.TrackNumber.Value].TrackInfo;
 
-			MediaStream stream;
+            MediaStream stream;
 			switch(track.TrackType) {
 				case TrackEntrySection.Types.Video:
-					stream = new VideoStream();
-					Add(stream);
+					stream = new VideoStream((int?)track.TrackUId ?? Nodes.OfType<VideoStream>().Count());
+					AddNode(stream);
 
 					Add(stream, VideoStream.AspectRatioBehaviorType, Convert(track.Video.AspectRatioType));
 					Add(stream, VideoStream.ColorSpaceType, track.Video.ColorSpace.OnNotNullReturn(x => BitConverter.ToInt32(x, 0)));
@@ -137,8 +136,8 @@ namespace AVDump2Lib.InfoProvider {
 					break;
 
 				case TrackEntrySection.Types.Audio:
-					stream = new AudioStream();
-					Add(stream);
+					stream = new AudioStream((int?)track.TrackUId ?? Nodes.OfType<AudioStream>().Count());
+					AddNode(stream);
 					Add(stream, AudioStream.BitDepthType, (int?)track.Audio.BitDepth);
 					Add(stream, AudioStream.ChannelCountType, (int?)track.Audio.ChannelCount);
 					Add(stream, MediaStream.OutputSampleRateType, track.Audio.OutputSamplingFrequency);
@@ -146,19 +145,19 @@ namespace AVDump2Lib.InfoProvider {
 					break;
 
 				case TrackEntrySection.Types.Subtitle:
-					stream = new SubtitleStream();
-					Add(stream);
+					stream = new SubtitleStream((int?)track.TrackUId ?? Nodes.OfType<SubtitleStream>().Count());
+					AddNode(stream);
 					break;
 
 				default:
-					stream = new MediaStream();
+					stream = new MediaStream((int?)track.TrackUId ?? Nodes.OfType<MediaStream>().Count());
 					Add(MediaStreamType, stream);
 					break;
 			}
 
 			if(trackInfo != null) {
 				Add(stream, MediaStream.SampleCountType, trackInfo.SampleCount);
-				Add(stream, MediaStream.SampleRateHistogramType, Convert(trackInfo.SampleRateHistogram));
+				Add(stream, MediaStream.SampleRateHistogramType, trackInfo.SampleRateHistogram.Select(x => new SampleRateCountPair(x.SampleRate, x.Count)).ToList());
 				Add(stream, MediaStream.AverageSampleRateType, trackInfo.AverageSampleRate);
 				Add(stream, MediaStream.MinSampleRateType, trackInfo.MinSampleRate);
 				Add(stream, MediaStream.MaxSampleRateType, trackInfo.MaxSampleRate);
@@ -213,11 +212,6 @@ namespace AVDump2Lib.InfoProvider {
 				case VideoSection.Unit.AspectRatio: return DisplayUnits.AspectRatio;
 				default: return DisplayUnits.Unknown;
 			}
-		}
-		private SampleRateHistogram Convert(ReadOnlyCollection<ClusterSection.SampleRateCountPair> laceRateHistogram) {
-			var histogram = new SampleRateHistogram();
-			foreach(var item in laceRateHistogram) Add(histogram, SampleRateHistogram.FrameRateCountPairType, new SampleRateCountPair(item.SampleRate, item.Count));
-			return histogram;
 		}
 		private StereoModes Convert(VideoSection.StereoModes s) {
 			switch(s) {

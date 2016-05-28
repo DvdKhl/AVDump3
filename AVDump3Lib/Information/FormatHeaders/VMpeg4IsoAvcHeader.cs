@@ -36,11 +36,11 @@ namespace AVDump2Lib.FormatHeaders {
 			return header;
 		}
 		private static IEnumerable<string> GetSet(byte[] b, byte count, ref int pos) {
-			Int16 size;
+            short size;
 
 			var sets = new string[count];
 			for(int i = 0;i < count;i++) {
-				size = (Int16)((b[pos] << 8) + b[pos + 1]); pos += 2;
+				size = (short)((b[pos] << 8) + b[pos + 1]); pos += 2;
 				sets[i] = System.Text.Encoding.ASCII.GetString(b, pos, size);
 				pos += size;
 			}

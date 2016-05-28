@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 
 namespace AVDump3Lib.Information.MetaInfo.Media {
@@ -32,20 +33,15 @@ namespace AVDump3Lib.Information.MetaInfo.Media {
 		public static readonly MetaInfoItemType<double> MinSampleRateType = new MetaInfoItemType<double>("MinSampleRate", null);
 		public static readonly MetaInfoItemType<double> AverageSampleRateType = new MetaInfoItemType<double>("AverageSampleRate", null);
 		public static readonly MetaInfoItemType<double> DominantSampleRateType = new MetaInfoItemType<double>("DominantSampleRate", null);
-		public static readonly MetaInfoItemType<SampleRateHistogram> SampleRateHistogramType = new MetaInfoItemType<SampleRateHistogram>("SampleRateHistogram", null);
+		public static readonly MetaInfoItemType<List<SampleRateCountPair>> SampleRateHistogramType = new MetaInfoItemType<List<SampleRateCountPair>>("SampleRateHistogram", null);
 		public static readonly MetaInfoItemType<double> SampleRateVarianceType = new MetaInfoItemType<double>("SampleRateVariance", null);
 
 		public static readonly MetaInfoItemType<double> OutputSampleRateType = new MetaInfoItemType<double>("OutputSampleRate", null);
 
-        public MediaStream() {}
-	}
+        public MediaStream(int id) : base(id) {
+        }
+    }
 
-	public class SampleRateHistogram : MetaInfoContainer {
-        public SampleRateHistogram() { }
-
-		public static readonly MetaInfoItemType<SampleRateCountPair> FrameRateCountPairType = new MetaInfoItemType<SampleRateCountPair>("SampleRateCountPair", null);
-
-	}
 	public class SampleRateCountPair {
 		public double Rate { get; private set; }
 		public long Count { get; private set; }

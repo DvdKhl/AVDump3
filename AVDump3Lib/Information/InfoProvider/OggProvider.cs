@@ -20,29 +20,29 @@ namespace AVDump2Lib.InfoGathering.InfoProvider {
             MediaStream stream = null;
             foreach(var bitStream in oggFile.Bitstreams) {
                 if(bitStream is VideoOGGBitStream) {
-                    stream = new VideoStream();
+                    stream = new VideoStream((int)bitStream.Id);
                     var vs = (VideoOGGBitStream)bitStream;
                     Add(stream, VideoStream.PixelDimensionsType, new Dimensions(vs.Width, vs.Height));
-                    Add(stream, VideoStream.StatedSampleRateType, vs.FrameRate);
-                    Add(stream, VideoStream.SampleCountType, vs.FrameCount);
-                    Add(stream);
+                    Add(stream, MediaStream.StatedSampleRateType, vs.FrameRate);
+                    Add(stream, MediaStream.SampleCountType, vs.FrameCount);
+                    AddNode(stream);
 
 
                 } else if(bitStream is AudioOGGBitStream) {
                     var audio = (AudioOGGBitStream)bitStream;
-                    stream = new AudioStream();
+                    stream = new AudioStream((int)bitStream.Id);
                     Add(stream, AudioStream.ChannelCountType, audio.ChannelCount);
-                    Add(stream, AudioStream.StatedSampleRateType, audio.SampleRate);
-                    Add(stream, VideoStream.SampleCountType, audio.SampleCount);
-                    Add(stream);
+                    Add(stream, MediaStream.StatedSampleRateType, audio.SampleRate);
+                    Add(stream, MediaStream.SampleCountType, audio.SampleCount);
+                    AddNode(stream);
 
                 } else if(bitStream is SubtitleOGGBitStream) {
-                    stream = new SubtitleStream();
-                    Add(stream);
+                    stream = new SubtitleStream((int)bitStream.Id);
+                    AddNode(stream);
                 }
                 if(stream == null) {
-                    stream = new MediaStream();
-                    Add(MediaProvider.MediaStreamType, stream);
+                    stream = new MediaStream((int)bitStream.Id);
+                    AddNode(stream);
                 }
 
                 var duration = TimeSpan.FromSeconds(bitStream.Duration);

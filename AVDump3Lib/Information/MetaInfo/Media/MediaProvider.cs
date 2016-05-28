@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace AVDump3Lib.Information.MetaInfo.Media {
 	public abstract class MediaProvider : MetaDataProvider {
@@ -38,24 +39,30 @@ namespace AVDump3Lib.Information.MetaInfo.Media {
 		public static readonly MetaInfoItemType<Attachment> AttachmentType = new MetaInfoItemType<Attachment>("Attachment", null);
 		public static readonly MetaInfoItemType<JoinTrackBlocks> JoinTrackBlocksType = new MetaInfoItemType<JoinTrackBlocks>("JoinTrackBlocks", null);
 		public static readonly MetaInfoItemType<CombineTrackPlanes> CombineTrackPlanesType = new MetaInfoItemType<CombineTrackPlanes>("CombineTrackPlanes", null);
-		public static readonly MetaInfoItemType<Tags> TagsType = new MetaInfoItemType<Tags>("Tags", null);
+		public static readonly MetaInfoItemType<List<TargetedTag>> TagsType = new MetaInfoItemType<List<TargetedTag>>("Tags", null);
 		public static readonly MetaInfoItemType<Chapters> ChaptersType = new MetaInfoItemType<Chapters>("Chapters", null);
 	}
 
 	public class CombineTrackPlanes : MetaInfoContainer {
 		public static readonly MetaInfoItemType<CombineTrackPlane> CombineTrackPlaneType = new MetaInfoItemType<CombineTrackPlane>("CombineTrackPlane", null);
-		public CombineTrackPlanes() { }
-	}
+
+        public CombineTrackPlanes(int id) : base(id) {
+        }
+    }
 	public class CombineTrackPlane : MetaInfoContainer {
 		public static readonly MetaInfoItemType<int> TrackIdType = new MetaInfoItemType<int>("TrackId", null);
 		public static readonly MetaInfoItemType<TrackPlaneTypes> TrackPlaneTypeType = new MetaInfoItemType<TrackPlaneTypes>("TrackPlaneTypes", null);
-		public CombineTrackPlane() { }
-	}
+
+        public CombineTrackPlane(int id) : base(id) {
+        }
+    }
 	public enum TrackPlaneTypes { Left, Right, Background }
 
 	public class JoinTrackBlocks : MetaInfoContainer {
 		public static readonly MetaInfoItemType<int> TrackIdType = new MetaInfoItemType<int>("TrackId", null);
-		public JoinTrackBlocks() { }
-	}
+
+        public JoinTrackBlocks(int id) : base(id) {
+        }
+    }
 
 }

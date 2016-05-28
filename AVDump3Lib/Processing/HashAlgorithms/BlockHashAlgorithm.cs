@@ -103,7 +103,7 @@ namespace AVDump3Lib.HashAlgorithms {
 				return (UInt16)i;
 			}
 			public static UInt32 RotLeft(UInt32 v, int b) {
-				UInt64 i = v; i <<= 32; i |= v;
+                ulong i = v; i <<= 32; i |= v;
 				b %= 32; i >>= (32 - b);
 				return (UInt32)i;
 			}
@@ -116,11 +116,11 @@ namespace AVDump3Lib.HashAlgorithms {
 				//if(sourceIndex + sourceLength > sourceArray.Length || destinationIndex + sourceLength * 4 > destinationArray.Length) throw new ArgumentException("BitTools.TypeBlindCopy: index or length boundary mismatch.");
 				for(int iCtr = 0;iCtr < sourceLength;++iCtr, ++sourceIndex, destinationIndex += 4) Array.Copy(BitConverter.GetBytes(sourceArray[sourceIndex]), 0, destinationArray, destinationIndex, 4);
 			}
-			public static void TypeBlindCopy(byte[] sourceArray, int sourceIndex, UInt64[] destinationArray, int destinationIndex, int sourceLength) {
+			public static void TypeBlindCopy(byte[] sourceArray, int sourceIndex, ulong[] destinationArray, int destinationIndex, int sourceLength) {
 				//if(sourceIndex + sourceLength > sourceArray.Length || destinationIndex + (sourceLength + 7) / 8 > destinationArray.Length || sourceLength % 8 != 0) throw new ArgumentException("BitTools.TypeBlindCopy: index or length boundary mismatch.");
 				for(int iCtr = 0;iCtr < sourceLength;iCtr += 8, sourceIndex += 8, ++destinationIndex) destinationArray[destinationIndex] = BitConverter.ToUInt64(sourceArray, sourceIndex);
 			}
-			public static void TypeBlindCopy(UInt64[] sourceArray, int sourceIndex, byte[] destinationArray, int destinationIndex, int sourceLength) {
+			public static void TypeBlindCopy(ulong[] sourceArray, int sourceIndex, byte[] destinationArray, int destinationIndex, int sourceLength) {
 				//if(sourceIndex + sourceLength > sourceArray.Length || destinationIndex + sourceLength * 8 > destinationArray.Length) throw new ArgumentException("BitTools.TypeBlindCopy: index or length boundary mismatch.");
 				for(int iCtr = 0;iCtr < sourceLength;++iCtr, ++sourceIndex, destinationIndex += 8) Array.Copy(BitConverter.GetBytes(sourceArray[sourceIndex]), 0, destinationArray, destinationIndex, 8);
 			}

@@ -3,6 +3,8 @@
         public static readonly MetaInfoItemType<int> ChannelCountType = new MetaInfoItemType<int>("ChannelCount", null);
         public static readonly MetaInfoItemType<int> BitDepthType = new MetaInfoItemType<int>("BitDepth", null);
 
-        public AudioStream() { }
+
+        public AudioStream(int id) : base(id) {
+        }
     }
 }

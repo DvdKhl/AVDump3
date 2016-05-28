@@ -20,12 +20,12 @@ namespace AVDump2Lib.BlockConsumers.Ogg.BitStreams {
 			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
 			public Char[] SubType;
 			public Int32 Size;
-			public Int64 TimeUnit;
-			public Int64 SamplesPerUnit;
+			public long TimeUnit;
+			public long SamplesPerUnit;
 			public Int32 DefaultLength;
 			public Int32 BufferSize;
-			public Int16 BitsPerSample;
-			public Int64 Unused;
+			public short BitsPerSample;
+			public long Unused;
 		}
 
 		internal override void ProcessPage(Page page) {

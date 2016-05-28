@@ -17,21 +17,21 @@ namespace AVDump3Lib.Misc {
 		public static float ToInvFloat(this string s, NumberStyles style, float defVal) { float val; if(float.TryParse(s, style, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
 		public static string ToInvString(this float s) { return s.ToString(CultureInfo.InvariantCulture); }
 
-        public static Int64 ToInvInt64(this string s) { return Int64.Parse(s, CultureInfo.InvariantCulture); }
-        public static Int64 ToInvInt64(this string s, Int64 defVal) { Int64 val; if(Int64.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
-        public static string ToInvString(this Int64 v) { return v.ToString(CultureInfo.InvariantCulture); }
+        public static long ToInvInt64(this string s) { return long.Parse(s, CultureInfo.InvariantCulture); }
+        public static long ToInvInt64(this string s, long defVal) { long val; if(long.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
+        public static string ToInvString(this long v) { return v.ToString(CultureInfo.InvariantCulture); }
 
-        public static UInt64 ToInvUInt64(this string s) { return UInt64.Parse(s, CultureInfo.InvariantCulture); }
-        public static UInt64 ToInvUInt64(this string s, UInt64 defVal) { UInt64 val; if(UInt64.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
-        public static string ToInvString(this UInt64 v) { return v.ToString(CultureInfo.InvariantCulture); }
+        public static ulong ToInvUInt64(this string s) { return ulong.Parse(s, CultureInfo.InvariantCulture); }
+        public static ulong ToInvUInt64(this string s, ulong defVal) { ulong val; if(ulong.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
+        public static string ToInvString(this ulong v) { return v.ToString(CultureInfo.InvariantCulture); }
 
-        public static Int32 ToInvInt32(this string s) { return Int32.Parse(s, CultureInfo.InvariantCulture); }
-		public static Int32 ToInvInt32(this string s, Int32 defVal) { Int32 val; if(Int32.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
-		public static string ToInvString(this Int32 v) { return v.ToString(CultureInfo.InvariantCulture); }
+        public static int ToInvInt32(this string s) { return int.Parse(s, CultureInfo.InvariantCulture); }
+		public static int ToInvInt32(this string s, int defVal) { int val; if(int.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
+		public static string ToInvString(this int v) { return v.ToString(CultureInfo.InvariantCulture); }
 
-		public static Int16 ToInvInt16(this string s) { return Int16.Parse(s, CultureInfo.InvariantCulture); }
-		public static Int16 ToInvInt16(this string s, Int16 defVal) { Int16 val; if(Int16.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
-		public static string ToInvString(this Int16 v) { return v.ToString(CultureInfo.InvariantCulture); }
+		public static short ToInvInt16(this string s) { return short.Parse(s, CultureInfo.InvariantCulture); }
+		public static short ToInvInt16(this string s, short defVal) { short val; if(short.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
+		public static string ToInvString(this short v) { return v.ToString(CultureInfo.InvariantCulture); }
 
 		public static DateTime ToInvDateTime(this string s) { return DateTime.Parse(s, CultureInfo.InvariantCulture); }
 		public static DateTime ToInvDateTime(this string s, DateTime defVal) { DateTime val; if(DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.None, out val)) return val; else return defVal; }

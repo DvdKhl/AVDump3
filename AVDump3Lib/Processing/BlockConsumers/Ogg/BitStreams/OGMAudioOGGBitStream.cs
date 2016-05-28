@@ -23,14 +23,14 @@ namespace AVDump2Lib.BlockConsumers.Ogg.BitStreams {
 			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
 			public Char[] SubType;
 			public Int32 Size;
-			public Int64 TimeUnit;
-			public Int64 SamplesPerUnit;
+			public long TimeUnit;
+			public long SamplesPerUnit;
 			public Int32 DefaultLength;
 			public Int32 BufferSize;
-			public Int16 BitsPerSample;
-			public Int16 Unknown;
-			public Int16 ChannelCount;
-			public Int16 BlockAlign;
+			public short BitsPerSample;
+			public short Unknown;
+			public short ChannelCount;
+			public short BlockAlign;
 			public Int32 Byterate;
 		}
 

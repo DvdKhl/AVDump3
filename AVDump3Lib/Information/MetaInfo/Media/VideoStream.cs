@@ -18,8 +18,10 @@ namespace AVDump3Lib.Information.MetaInfo.Media {
 		public static readonly MetaInfoItemType<CropSides> PixelCropType = new MetaInfoItemType<CropSides>("PixelCrop", null);
 		public static readonly MetaInfoItemType<int> ColorSpaceType = new MetaInfoItemType<int>("ColorSpace", null);
 
-        public VideoStream()  { }
-	}
+
+        public VideoStream(int id) : base(id) {
+        }
+    }
 	public enum StereoModes { Mono, LeftRight, TopBottom, Checkboard, RowInterleaved, ColumnInterleaved, FrameAlternating, Reversed = 1 << 30, Other = 1 << 31, AnaGlyph, CyanRed, GreenMagenta }
 	public enum DisplayUnits { Invalid, Pixel, Meter, AspectRatio, Unknown }
 	public enum AspectRatioBehaviors { Invalid, FreeResizing, KeepAR, Fixed, Unknown }

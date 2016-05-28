@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="AVD3LibException.cs" />
     <Compile Include="Information\AVD3InformationModule.cs" />
+    <Compile Include="Information\MetaInfo\Core\CompositeMetaDataProvider.cs" />
     <Compile Include="Modules\AVD3ModuleManagement.cs" />
     <Compile Include="Modules\IAVD3Module.cs" />
     <Compile Include="Information\FormatHeaders\BitmapInfoHeader.cs" />

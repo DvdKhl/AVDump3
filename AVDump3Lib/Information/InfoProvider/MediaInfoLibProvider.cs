@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using AVDump3Lib.Information.MetaInfo.Media;
 using AVDump3Lib.Misc;
 using AVDump3Lib.Information.MetaInfo;
+using System.Linq;
 
 namespace AVDump2Lib.InfoGathering.InfoProvider {
 
@@ -137,33 +138,38 @@ namespace AVDump2Lib.InfoGathering.InfoProvider {
 				for(int streamNumber = 0; streamNumber < streamCount; streamNumber++) {
 					Func<string, string> streamGet = key => mil.Get(streamKind, streamNumber, key);
 
+                    int? id = null;
+                    if(!string.IsNullOrEmpty(streamGet("UniqueID"))) {
+                        id = streamGet("UniqueID").ToInvInt32();
+                    }
+
 					MediaStream stream = null;
 					switch(streamKind) {
 						case MediaInfoLib.StreamTypes.Video:
-							stream = new VideoStream(); hasVideo = true;
+							stream = new VideoStream(id ?? Nodes.OfType<VideoStream>().Count()); hasVideo = true;
 							Add(stream, MediaStream.StatedSampleRateType, () => streamGet("FrameRate").ToInvDouble());
 							Add(stream, MediaStream.SampleCountType, () => streamGet("FrameCount").ToInvInt64());
 							Add(stream, VideoStream.PixelDimensionsType, () => new Dimensions(streamGet("Width").ToInvInt32(), streamGet("Height").ToInvInt32()));
 							Add(stream, VideoStream.DisplayAspectRatioType, () => streamGet("DisplayAspectRatio").ToInvDouble());
-							Add(stream);
+							AddNode(stream);
 							break;
 
 						case MediaInfoLib.StreamTypes.Audio:
-							stream = new AudioStream(); hasAudio = true;
+							stream = new AudioStream(id ?? Nodes.OfType<AudioStream>().Count()); hasAudio = true;
 							Add(stream, MediaStream.StatedSampleRateType, () => streamGet("SamplingRate").ToInvDouble());
 							Add(stream, MediaStream.SampleCountType, () => streamGet("SamplingCount").ToInvInt32());
 							Add(stream, AudioStream.ChannelCountType, () => streamGet("Channel(s)").ToInvInt32());
-							Add(stream);
+							AddNode(stream);
 							break;
 
 						case MediaInfoLib.StreamTypes.Text:
-							stream = new SubtitleStream(); hasSubtitle = true;
-							Add(stream);
+							stream = new SubtitleStream(id ?? Nodes.OfType<SubtitleStream>().Count()); hasSubtitle = true;
+							AddNode(stream);
 							break;
 
 						default:
-							stream = new MediaStream();
-							Add(MediaStreamType, stream);
+							stream = new MediaStream(id ?? Nodes.OfType<MediaStream>().Count());
+							AddNode(stream);
 							break;
 					}
 
@@ -258,15 +264,5 @@ namespace AVDump2Lib.InfoGathering.InfoProvider {
 			try { value = getValue(); } catch { return; }
 			Add(container, type, value);
 		}
-
-		//protected override void Add(MediaInfoLib.StreamTypes type, int index, EntryKey entry, string value, string unit) {
-		//	bool isValid = true;
-		//	foreach(var character in value) {
-		//		isValid = SafeXmlWriter.IsLegalXmlChar(character);
-		//		if(!isValid) break;
-		//	}
-		//
-		//	if(isValid) base.Add(type, index, entry, value, unit);
-		//}
 	}
 }
