@@ -1,6 +1,8 @@
 ﻿using AVDump2Lib.InfoProvider.Tools;
 using AVDump3Lib.BlockBuffers;
 using AVDump3Lib.BlockConsumers;
+using AVDump3Lib.Information;
+using AVDump3Lib.Information.InfoProvider;
 using AVDump3Lib.Information.MetaInfo;
 using AVDump3Lib.Information.MetaInfo.Media;
 using AVDump3Lib.Modules;
@@ -23,6 +25,7 @@ using System.Xml.Linq;
 namespace AVDump3CL {
 	public class AVD3CLModule : IAVD3Module {
 		private IAVD3ProcessingModule processingModule;
+		private IAVD3InformationModule informationModule;
 		private IAVD3ReportingModule reportingModule;
 		private AVD3CL cl;
 
@@ -39,6 +42,7 @@ namespace AVDump3CL {
 			settingsgModule.RegisterCommandlineArgs += CreateCommandlineArguments;
 
 			processingModule = modules.OfType<IAVD3ProcessingModule>().Single();
+			informationModule = modules.OfType<IAVD3InformationModule>().Single();
 			reportingModule = modules.OfType<IAVD3ReportingModule>().Single();
 		}
 
@@ -105,12 +109,19 @@ namespace AVDump3CL {
 
 			var blockConsumers = await e.FinishedProcessing;
 
-			var fileName = Path.GetFileName((string)e.Tag);
+			var filePath = (string)e.Tag;
+			var fileName = Path.GetFileName(filePath);
 			cl.Writeline(fileName.Substring(0, Math.Min(fileName.Length, Console.WindowWidth - 1)));
 			foreach(var bc in blockConsumers.OfType<HashCalculator>()) {
 				cl.Writeline(bc.Name + " => " + BitConverter.ToString(bc.HashAlgorithm.Hash).Replace("-", ""));
 			}
 			cl.Writeline("");
+
+			var infoSetup = new InfoProviderSetup(filePath, blockConsumers);
+			var infoProviders = informationModule.InfoProviderFactories.Select(x => x.Create(infoSetup));
+
+			var fileMetaInfo = new FileMetaInfo(new FileInfo(filePath), infoProviders);
+
 
 
 			//if(UseNtfsAlternateStreams) {
@@ -132,51 +143,6 @@ namespace AVDump3CL {
 			//}
 
 
-
-			//var infoProvider = new CompositeMediaProvider(
-			//	new HashProvider(blockConsumers.OfType<HashCalculator>().Select(b =>
-			//		new HashProvider.HashResult(b.HashAlgorithmType, b.HashAlgorithm.Hash)
-			//	)),
-			//	new MediaInfoLibProvider((string)e.Tag),
-			//	new MatroskaProvider(blockConsumers.OfType<MatroskaParser>().First().Info)
-			//);
-
-			//if(!Directory.Exists("Dumps")) Directory.CreateDirectory("Dumps");
-			//GenerateAVDump3Report(infoProvider).Save("Dumps\\" + Path.GetFileName((string)e.Tag) + ".xml");
-		}
-		public static XElement GenerateAVDump3Report(MediaProvider provider) {
-			var root = new XElement("File");
-			GenerateAVDump3ReportSub(root, provider);
-			return root;
-		}
-		public static void GenerateAVDump3ReportSub(XElement elem, MetaInfoContainer container) {
-			foreach(var item in container.Items) {
-				if(item.Value == null) continue;
-
-				var subElem = new XElement(item.Type.Key);
-				if(item.Value is MetaInfoContainer) {
-					GenerateAVDump3ReportSub(subElem, (MetaInfoContainer)item.Value);
-
-				} else if(item.Provider is HashProvider) {
-					var bVal = (byte[])item.Value;
-					subElem.Value = BitConverter.ToString(bVal).Replace("-", "");
-
-				} else if(item.Value is byte[]) {
-					var bVal = (byte[])item.Value;
-					subElem.Value = bVal.Length <= 16 ? BitConverter.ToString(bVal) : "Byte[" + bVal.Length + "]";
-
-				} else if(item.Value is IFormattable) subElem.Value = ((IFormattable)item.Value).ToString(null, CultureInfo.InvariantCulture);
-				else subElem.Value = item.Value.ToString();
-
-				subElem.Add(new XAttribute("p", item.Provider.Name));
-
-				if(item.Type.Unit != null) {
-					subElem.Add(new XAttribute("u", item.Type.Unit));
-				}
-
-
-				elem.Add(subElem);
-			}
 		}
 
 		private IEnumerable<ArgGroup> CreateCommandlineArguments() {
@@ -239,6 +205,65 @@ namespace AVDump3CL {
 				)
 			);
 
+			yield return new ArgGroup("FileDiscovery",
+				"",
+				() => {
+				},
+				ArgStructure.Create(
+					arg => { },
+					"--Recursive",
+					"",
+					"Recursive"
+				),
+				ArgStructure.Create(
+					arg => { },
+					"--WithExtensions",
+					"",
+					"WithExtensions=[-]<Extension1>[,<Extension2>,...]"
+				)
+			);
+
+			yield return new ArgGroup("Display",
+				"",
+				() => {
+				},
+				ArgStructure.Create(
+					arg => { },
+					"--HideBuffers",
+					"",
+					"HideBuffers"
+				),
+				ArgStructure.Create(
+					arg => { },
+					"--HideFileProgress",
+					"",
+					"HideFileProgress"
+				),
+				ArgStructure.Create(
+					arg => { },
+					"--HideTotalProgress",
+					"",
+					"HideTotalProgress"
+				),
+				ArgStructure.Create(
+					arg => { },
+					"--HideUI",
+					"",
+					"HideUI"
+				),
+				ArgStructure.Create(
+					arg => { },
+					"--PrintHashes",
+					"",
+					"PrintHashes"
+				),
+				ArgStructure.Create(
+					arg => { },
+					"--PrintReports",
+					"",
+					"PrintReports"
+				)
+			);
 
 			//bool useNtfsAlternateStreams = false;
 			//yield return new ArgGroup("Internal",

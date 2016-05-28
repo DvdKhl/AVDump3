@@ -32,12 +32,12 @@ namespace AVDump3Lib.Processing {
 				new BlockConsumerFactory("SHA256", r => new HashCalculator("SHA256", r, SHA256.Create())),
                 new BlockConsumerFactory("SHA384", r => new HashCalculator("SHA384", r, SHA384.Create())),
                 new BlockConsumerFactory("SHA512", r => new HashCalculator("SHA512", r, SHA512.Create())),
-                new BlockConsumerFactory("MD4", r => new HashCalculator("MD4", r, new Md4())),
+                new BlockConsumerFactory("MD4", r => new HashCalculator("MD4", r, new Md4HashAlgorithm())),
                 new BlockConsumerFactory("MD5", r => new HashCalculator("MD5", r, MD5.Create())),
-                new BlockConsumerFactory("ED2K", r => new HashCalculator("ED2K", r, new Ed2k())),
-                new BlockConsumerFactory("TIGER", r => new HashCalculator("TIGER", r, new Tiger())),
-                new BlockConsumerFactory("TTH", r => new HashCalculator("TTH", r, new TTH(Environment.ProcessorCount)) ),
-                new BlockConsumerFactory("CRC32", r => new HashCalculator("CRC32", r, new Crc32())),
+                new BlockConsumerFactory("ED2K", r => new HashCalculator("ED2K", r, new Ed2kHashAlgorithm())),
+                new BlockConsumerFactory("TIGER", r => new HashCalculator("TIGER", r, new TigerHashAlgorithm())),
+                new BlockConsumerFactory("TTH", r => new HashCalculator("TTH", r, new TigerTreeHashAlgorithm(Environment.ProcessorCount)) ),
+                new BlockConsumerFactory("CRC32", r => new HashCalculator("CRC32", r, new Crc32HashAlgorithm())),
                 new BlockConsumerFactory("MKV", r => new MatroskaParser("MKV", r))
            };
 

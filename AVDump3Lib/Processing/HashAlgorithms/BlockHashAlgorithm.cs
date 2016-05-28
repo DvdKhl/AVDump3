@@ -97,22 +97,22 @@ namespace AVDump3Lib.HashAlgorithms {
 
 
 		internal static class BitTools {
-			public static UInt16 RotLeft(UInt16 v, int b) {
-				UInt32 i = v; i <<= 16; i |= v;
+			public static ushort RotLeft(ushort v, int b) {
+				uint i = v; i <<= 16; i |= v;
 				b %= 16; i >>= b;
-				return (UInt16)i;
+				return (ushort)i;
 			}
-			public static UInt32 RotLeft(UInt32 v, int b) {
+			public static uint RotLeft(uint v, int b) {
                 ulong i = v; i <<= 32; i |= v;
 				b %= 32; i >>= (32 - b);
-				return (UInt32)i;
+				return (uint)i;
 			}
 
-			public static void TypeBlindCopy(byte[] sourceArray, int sourceIndex, UInt32[] destinationArray, int destinationIndex, int sourceLength) {
+			public static void TypeBlindCopy(byte[] sourceArray, int sourceIndex, uint[] destinationArray, int destinationIndex, int sourceLength) {
 				//if(sourceIndex + sourceLength > sourceArray.Length || destinationIndex + (sourceLength + 3) / 4 > destinationArray.Length || sourceLength % 4 != 0) throw new ArgumentException("BitTools.TypeBlindCopy: index or length boundary mismatch.");
 				for(int iCtr = 0;iCtr < sourceLength;iCtr += 4, sourceIndex += 4, ++destinationIndex) destinationArray[destinationIndex] = BitConverter.ToUInt32(sourceArray, sourceIndex);
 			}
-			public static void TypeBlindCopy(UInt32[] sourceArray, int sourceIndex, byte[] destinationArray, int destinationIndex, int sourceLength) {
+			public static void TypeBlindCopy(uint[] sourceArray, int sourceIndex, byte[] destinationArray, int destinationIndex, int sourceLength) {
 				//if(sourceIndex + sourceLength > sourceArray.Length || destinationIndex + sourceLength * 4 > destinationArray.Length) throw new ArgumentException("BitTools.TypeBlindCopy: index or length boundary mismatch.");
 				for(int iCtr = 0;iCtr < sourceLength;++iCtr, ++sourceIndex, destinationIndex += 4) Array.Copy(BitConverter.GetBytes(sourceArray[sourceIndex]), 0, destinationArray, destinationIndex, 4);
 			}

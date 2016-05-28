@@ -1,26 +1,243 @@
-﻿using System;
+﻿// Copyright (C) 2009 DvdKhl 
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.using System;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Threading;
 
 namespace AVDump3Lib.HashAlgorithms {
-    public class Tiger : BlockHashAlgorithm {
-		private ulong[] accu, x;
 
-		public Tiger() : base(64, 192) { accu = new ulong[3]; Initialize(); }
+    public class TigerTreeHashAlgorithm : HashAlgorithm {
+		public const int BLOCKSIZE = 1024;
+		private static byte[] zeroArray = new byte[] { 0 };
+		private static byte[] oneArray = new byte[] { 1 };
+		private static byte[] emptyArray = new byte[0];
+
+		private Environment[] environments; private AutoResetEvent[] signals;
+
+		private ITigerForTTH nodeHasher, blockHasher;
+		private bool hasLastBlock;
+		private bool hasStarted;
+		private int threadCount;
+
+		private Queue<byte[]> blocks;
+		private LinkedList<byte[]> nods;
+		private LinkedList<LinkedListNode<byte[]>> levels;
+		private byte[] dataBlock;
+
+
+		public TigerTreeHashAlgorithm(int threadCount)		{
+			this.blocks = new Queue<byte[]>();
+			this.nods = new LinkedList<byte[]>();
+			this.levels = new LinkedList<LinkedListNode<byte[]>>();
+			nodeHasher = new TTHTiger();
+			blockHasher = new TTHTiger();
+
+			this.threadCount = threadCount /*= 1*/;
+
+			signals = new AutoResetEvent[threadCount];
+			environments = new Environment[threadCount];
+			for(int i = 0;i < threadCount;i++) {
+				environments[i] = new Environment(i);
+				signals[i] = environments[i].WorkDone;
+			}
+		}
+
+		protected override void HashCore(byte[] array, int ibStart, int cbSize) {
+			if(!hasLastBlock && cbSize != 0) throw new Exception();
+			if(!hasStarted) { foreach(var e in environments) e.HashThread.Start(e); hasStarted = true; }
+
+			this.dataBlock = array;
+
+			foreach(var e in environments) {
+				e.Offset = ibStart;
+				e.Length = cbSize;
+				e.DoWork.Set();
+			}
+			WaitHandle.WaitAll(signals);
+
+
+			for(int i = 0;i < cbSize / 1024;i++) blocks.Enqueue(environments[i % threadCount].Blocks.Dequeue());
+
+			if((cbSize & (BLOCKSIZE - 1)) != 0) {
+				ibStart += cbSize - (cbSize & (BLOCKSIZE - 1));
+				cbSize &= BLOCKSIZE - 1;
+
+				blocks.Enqueue(blockHasher.TTHFinalBlockHash(array, ibStart, cbSize));
+				hasLastBlock = false;
+			}
+
+			CompressBlocks();
+		}
+		private void DoWork(object obj) {
+			var e = (Environment)obj;
+			var envBlockSize = BLOCKSIZE * threadCount;
+			var envOffset = BLOCKSIZE * e.Index;
+
+			e.DoWork.WaitOne();
+			while(!e.ThreadJoin) {
+				e.Length -= envOffset;
+				e.Offset += envOffset;
+				while(e.Length >= BLOCKSIZE) {
+					e.Blocks.Enqueue(e.BlockHasher.TTHBlockHash(dataBlock, e.Offset));
+					e.Offset += envBlockSize;
+					e.Length -= envBlockSize;
+				}
+				e.WorkDone.Set();
+				e.DoWork.WaitOne();
+			}
+		}
+		private void CompressBlocks() {
+			if(levels.Last.Value == null && blocks.Count > 1) levels.Last.Value = nods.AddLast(nodeHasher.TTHNodeHash(blocks.Dequeue(), blocks.Dequeue()));
+			while(blocks.Count > 1) nods.AddLast(nodeHasher.TTHNodeHash(blocks.Dequeue(), blocks.Dequeue()));
+
+			var level = levels.Last;
+			LinkedListNode<LinkedListNode<byte[]>> nextLevel;
+			do {
+				while(!(level.Value == null || //Level has no nods
+				  (level.Value.Next == null) || //Level is at last node position (only one node available)
+				  ((nextLevel = GetNextLevel(level)) != null && level.Value.Next == nextLevel.Value))) //Level has only one node
+				{
+					level.Value.Value = nodeHasher.TTHNodeHash(level.Value.Value, level.Value.Next.Value);
+					nods.Remove(level.Value.Next);
+
+					if(level.Previous == null) { //New level Node
+						levels.AddFirst(level.Value);
+					} else if(level.Previous.Value == null) { //First node in higher level
+						level.Previous.Value = level.Value;
+					}
+
+					nextLevel = GetNextLevel(level);
+					if(level.Value.Next == null || (nextLevel != null && level.Value.Next == nextLevel.Value)) {
+						level.Value = null;
+					} else {
+						level.Value = level.Value.Next;
+					}
+				}
+
+			} while((level = level.Previous) != null);
+		}
+		private static LinkedListNode<LinkedListNode<byte[]>> GetNextLevel(LinkedListNode<LinkedListNode<byte[]>> level) {
+			var nextLevel = level;
+			while((nextLevel = nextLevel.Next) != null) if(nextLevel.Value != null) return nextLevel;
+			return null;
+		}
+
+		protected override byte[] HashFinal() {
+			foreach(var e in environments) {
+				e.ThreadJoin = true;
+				e.DoWork.Set();
+				e.HashThread.Join();
+				e.HashThread = null;
+			}
+
+			foreach(var block in blocks) nods.AddLast(block);
+			return nods.Count != 0 ? nods.Reverse<byte[]>().Aggregate((byte[] accumHash, byte[] hash) => nodeHasher.TTHNodeHash(hash, accumHash)) : blockHasher.ZeroArrayHash;
+		}
 
 		public override void Initialize() {
-			base.Initialize();
+			//nodeHasher.TTHInitialize();
+			//blockHasher.TTHInitialize();
 
+			this.blocks.Clear();
+			this.nods.Clear();
+			this.levels.Clear();
+
+			levels.AddFirst((LinkedListNode<byte[]>)null);
+
+			hasStarted = false;
+			hasLastBlock = true;
+
+			foreach(var e in environments) {
+				e.Blocks.Clear();
+				e.DoWork.Reset();
+				e.WorkDone.Reset();
+				e.ThreadJoin = false;
+				//e.BlockHasher.TTHInitialize();
+				e.HashThread = new Thread(DoWork);
+			}
+		}
+
+		private class Environment {
+			public Thread HashThread;
+			public bool ThreadJoin;
+			public int Index;
+
+			public ITigerForTTH BlockHasher = new TTHTiger();
+
+			public Queue<byte[]> Blocks;
+			public int Offset;
+			public int Length;
+
+			public AutoResetEvent WorkDone, DoWork;
+
+			public Environment(int index) {
+				DoWork = new AutoResetEvent(false);
+				WorkDone = new AutoResetEvent(false);
+
+				this.Index = index;
+
+				Blocks = new Queue<byte[]>();
+				//BlockHasher.TTHInitialize();
+			}
+		}
+
+		public interface ITigerForTTH {
+			byte[] TTHBlockHash(byte[] array, int ibStart);
+			byte[] TTHFinalBlockHash(byte[] array, int ibStart, int cbSize);
+			byte[] TTHNodeHash(byte[] l, byte[] r);
+
+			byte[] ZeroArrayHash { get; }
+
+		}
+	}
+
+	public class TTHTiger : TigerTreeHashAlgorithm.ITigerForTTH {
+		protected byte[] ba_PartialBlockBuffer = new byte[64];
+		protected int i_PartialBlockFill;
+
+		protected int i_InputBlockSize = 64;
+		protected long l_TotalBytesProcessed;
+
+		private ulong[] accu, x;
+
+		public TTHTiger() {
+			accu = new ulong[3];
+			x = new ulong[128];
+
+			ZeroArrayHash = (new TigerHashAlgorithm()).ComputeHash(new byte[] { 0 });
+
+			Initialize();
+		}
+
+		public void Initialize() {
 			accu[0] = 0x0123456789ABCDEFUL;
 			accu[1] = 0xFEDCBA9876543210UL;
 			accu[2] = 0xF096A5B4C3B2E187UL;
-
-			if(x == null) x = new ulong[8];
-			else Array.Resize(ref x, 8);
-			Array.Clear(x, 0, 8);
 		}
 
+		//private void Round(ref ulong x, ref ulong y, uint zh, uint zl) {
+		//	x -= t1[(byte)zl] ^ t2[(byte)(zl >> 16)] ^ t3[(byte)zh] ^ t4[(byte)(zh >> 16)];
+		//	y += t4[(byte)(zl >> 8)] ^ t3[(byte)(zl >> 24)] ^ t2[(byte)(zh >> 8)] ^ t1[(byte)(zh >> 24)];
+		//}
 		private void Round(ref ulong x, ref ulong y, uint zh, uint zl) {
-			x -= t1[(int)(byte)zl] ^ t2[(int)(byte)(zl >> 16)] ^ t3[(int)(byte)zh] ^ t4[(int)(byte)(zh >> 16)];
-			y += t4[(int)(byte)(zl >> 8)] ^ t3[(int)(byte)(zl >> 24)] ^ t2[(int)(byte)(zh >> 8)] ^ t1[(int)(byte)(zh >> 24)];
+			x -= t1[(byte)zl] ^ t2[(byte)(zl >> 16)] ^ t3[(byte)zh] ^ t4[(byte)(zh >> 16)];
+			y += t4[(byte)(zl >> 8)] ^ t3[(byte)(zl >> 24)] ^ t2[(byte)(zh >> 8)] ^ t1[(byte)(zh >> 24)];
 		}
 
 		private void KeySchedule(ref ulong x0, ref ulong x1, ref ulong x2, ref ulong x3, ref ulong x4, ref ulong x5, ref ulong x6, ref ulong x7) {
@@ -30,26 +247,24 @@ namespace AVDump3Lib.HashAlgorithms {
 			x3 -= x2 ^ ((~x1) << 19);
 			x4 ^= x3;
 			x5 += x4;
-			x6 -= x5 ^ ((ulong)(~x4) >> 23);
+			x6 -= x5 ^ ~x4 >> 23;
 			x7 ^= x6;
 			x0 += x7;
 			x1 -= x0 ^ ((~x7) << 19);
 			x2 ^= x1;
 			x3 += x2;
-			x4 -= x3 ^ ((ulong)(~x2) >> 23);
+			x4 -= x3 ^ ~x2 >> 23;
 			x5 ^= x4;
 			x6 += x5;
 			x7 -= x6 ^ 0x0123456789ABCDEFUL;
 		}
 
-		protected override void ProcessBlock(byte[] inputBuffer, int inputOffset, int iBlkCount) {
+		protected void ProcessBlock(byte[] inputBuffer, int inputOffset, int iBlkCount) {
 			ulong a = accu[0], b = accu[1], c = accu[2], x0, x1, x2, x3, x4, x5, x6, x7;
 
-			int i, iSpaceNeeded = iBlkCount * 8;
-			if(x.Length < iSpaceNeeded) Array.Resize(ref x, iSpaceNeeded);
-			BitTools.TypeBlindCopy(inputBuffer, inputOffset, x, 0, iBlkCount * i_InputBlockSize);
+			BlockHashAlgorithm.BitTools.TypeBlindCopy(inputBuffer, inputOffset, x, 0, iBlkCount * i_InputBlockSize);
 
-			for(i = -1;iBlkCount > 0;--iBlkCount, inputOffset += i_InputBlockSize) {
+			for(int i = -1; iBlkCount > 0; --iBlkCount, inputOffset += i_InputBlockSize) {
 				x0 = x[++i]; x1 = x[++i]; x2 = x[++i]; x3 = x[++i];
 				x4 = x[++i]; x5 = x[++i]; x6 = x[++i]; x7 = x[++i];
 
@@ -90,7 +305,7 @@ namespace AVDump3Lib.HashAlgorithms {
 			}
 		}
 
-		protected override byte[] ProcessFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount) {
+		protected byte[] ProcessFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount) {
 			if(inputOffset > 0 && inputCount > 0) Array.Copy(inputBuffer, inputOffset, inputBuffer, 0, inputCount);
 			inputOffset = 0;
 
@@ -104,12 +319,12 @@ namespace AVDump3Lib.HashAlgorithms {
 				inputOffset += i_InputBlockSize; inputCount -= i_InputBlockSize;
 			}
 
-			for(inputCount = inputOffset + i_InputBlockSize - sizeof(ulong);msg_bit_length != 0;inputBuffer[inputCount] = (byte)msg_bit_length, msg_bit_length >>= 8, ++inputCount) ;
+			for(inputCount = inputOffset + i_InputBlockSize - sizeof(ulong); msg_bit_length != 0; inputBuffer[inputCount] = (byte)msg_bit_length, msg_bit_length >>= 8, ++inputCount) ;
 			ProcessBlock(inputBuffer, inputOffset, 1);
 
 
-			HashValue = new byte[24];
-			BitTools.TypeBlindCopy(accu, 0, HashValue, 0, 3);
+			byte[] HashValue = new byte[24];
+			BlockHashAlgorithm.BitTools.TypeBlindCopy(accu, 0, HashValue, 0, 3);
 
 
 			return HashValue;
@@ -181,7 +396,7 @@ namespace AVDump3Lib.HashAlgorithms {
 		0x505F33AC0AFB4EAAUL, 0xE8A5CD99A2CCE187UL, 0x534974801E2D30BBUL, 0x8D2D5711D5876D90UL,
 		0x1F1A412891BC038EUL, 0xD6E2E71D82E56648UL, 0x74036C3A497732B7UL, 0x89B67ED96361F5ABUL,
 		0xFFED95D8F1EA02A2UL, 0xE72B3BD61464D43DUL, 0xA6300F170BDC4820UL, 0xEBC18760ED78A77AUL,
-        };
+		};
 
 		private static readonly ulong[] t2 = {
 		0xE6A6BE5A05A12138UL, 0xB5A122A5B4F87C98UL, 0x563C6089140B6990UL, 0x4C46CB2E391F5DD5UL,
@@ -248,7 +463,7 @@ namespace AVDump3Lib.HashAlgorithms {
 		0xAC2F4DF3E5CE32EDUL, 0xCB33D14326EA4C11UL, 0xA4E9044CC77E58BCUL, 0x5F513293D934FCEFUL,
 		0x5DC9645506E55444UL, 0x50DE418F317DE40AUL, 0x388CB31A69DDE259UL, 0x2DB4A83455820A86UL,
 		0x9010A91E84711AE9UL, 0x4DF7F0B7B1498371UL, 0xD62A2EABC0977179UL, 0x22FAC097AA8D5C0EUL,
-        };
+		};
 
 		private static readonly ulong[] t3 = {
 		0xF49FCC2FF1DAF39BUL, 0x487FD5C66FF29281UL, 0xE8A30667FCDCA83FUL, 0x2C9B4BE3D2FCCE63UL,
@@ -315,7 +530,7 @@ namespace AVDump3Lib.HashAlgorithms {
 		0x64669A0F83B1A05FUL, 0x27B3FF7D9644F48BUL, 0xCC6B615C8DB675B3UL, 0x674F20B9BCEBBE95UL,
 		0x6F31238275655982UL, 0x5AE488713E45CF05UL, 0xBF619F9954C21157UL, 0xEABAC46040A8EAE9UL,
 		0x454C6FE9F2C0C1CDUL, 0x419CF6496412691CUL, 0xD3DC3BEF265B0F70UL, 0x6D0E60F5C3578A9EUL,
-        };
+		};
 
 		private static readonly ulong[] t4 = {
 		0x5B0E608526323C55UL, 0x1A46C1A9FA1B59F5UL, 0xA9E245A17C4C8FFAUL, 0x65CA5159DB2955D7UL,
@@ -382,7 +597,163 @@ namespace AVDump3Lib.HashAlgorithms {
 		0x6345A0DC5FBBD519UL, 0x8628FE269B9465CAUL, 0x1E5D01603F9C51ECUL, 0x4DE44006A15049B7UL,
 		0xBF6C70E5F776CBB1UL, 0x411218F2EF552BEDUL, 0xCB0C0708705A36A3UL, 0xE74D14754F986044UL,
 		0xCD56D9430EA8280EUL, 0xC12591D7535F5065UL, 0xC83223F1720AEF96UL, 0xC3A0396F7363A51FL
-        };
+		};
 		#endregion
+
+		private void ProcessTTHBlock() {
+			ulong a = accu[0], b = accu[1], c = accu[2], x0, x1, x2, x3, x4, x5, x6, x7;
+
+
+			for(int i = -1; i < 127;) {
+				x0 = x[++i]; x1 = x[++i]; x2 = x[++i]; x3 = x[++i];
+				x4 = x[++i]; x5 = x[++i]; x6 = x[++i]; x7 = x[++i];
+
+				// rounds and schedule
+				c ^= x0; Round(ref a, ref b, (uint)(c >> 32), (uint)c); b *= 5;
+				a ^= x1; Round(ref b, ref c, (uint)(a >> 32), (uint)a); c *= 5;
+				b ^= x2; Round(ref c, ref a, (uint)(b >> 32), (uint)b); a *= 5;
+				c ^= x3; Round(ref a, ref b, (uint)(c >> 32), (uint)c); b *= 5;
+				a ^= x4; Round(ref b, ref c, (uint)(a >> 32), (uint)a); c *= 5;
+				b ^= x5; Round(ref c, ref a, (uint)(b >> 32), (uint)b); a *= 5;
+				c ^= x6; Round(ref a, ref b, (uint)(c >> 32), (uint)c); b *= 5;
+				a ^= x7; Round(ref b, ref c, (uint)(a >> 32), (uint)a); c *= 5;
+
+				KeySchedule(ref x0, ref x1, ref x2, ref x3, ref x4, ref x5, ref x6, ref x7);
+
+				b ^= x0; Round(ref c, ref a, (uint)(b >> 32), (uint)b); a *= 7;
+				c ^= x1; Round(ref a, ref b, (uint)(c >> 32), (uint)c); b *= 7;
+				a ^= x2; Round(ref b, ref c, (uint)(a >> 32), (uint)a); c *= 7;
+				b ^= x3; Round(ref c, ref a, (uint)(b >> 32), (uint)b); a *= 7;
+				c ^= x4; Round(ref a, ref b, (uint)(c >> 32), (uint)c); b *= 7;
+				a ^= x5; Round(ref b, ref c, (uint)(a >> 32), (uint)a); c *= 7;
+				b ^= x6; Round(ref c, ref a, (uint)(b >> 32), (uint)b); a *= 7;
+				c ^= x7; Round(ref a, ref b, (uint)(c >> 32), (uint)c); b *= 7;
+
+				KeySchedule(ref x0, ref x1, ref x2, ref x3, ref x4, ref x5, ref x6, ref x7);
+
+				a ^= x0; Round(ref b, ref c, (uint)(a >> 32), (uint)a); c *= 9;
+				b ^= x1; Round(ref c, ref a, (uint)(b >> 32), (uint)b); a *= 9;
+				c ^= x2; Round(ref a, ref b, (uint)(c >> 32), (uint)c); b *= 9;
+				a ^= x3; Round(ref b, ref c, (uint)(a >> 32), (uint)a); c *= 9;
+				b ^= x4; Round(ref c, ref a, (uint)(b >> 32), (uint)b); a *= 9;
+				c ^= x5; Round(ref a, ref b, (uint)(c >> 32), (uint)c); b *= 9;
+				a ^= x6; Round(ref b, ref c, (uint)(a >> 32), (uint)a); c *= 9;
+				b ^= x7; Round(ref c, ref a, (uint)(b >> 32), (uint)b); a *= 9;
+
+				// feed forward
+				a = accu[0] ^= a; b -= accu[1]; accu[1] = b; c = accu[2] += c;
+			}
+
+		}
+
+		public unsafe byte[] TTHBlockHash(byte[] array, int ibStart) {
+			Initialize();
+
+			fixed (ulong* pDst = x)
+			{
+				fixed (byte* pSrc = array)
+				{
+					ulong* ps = (ulong*)(pSrc + ibStart);
+					ulong* pd = pDst;
+
+					*((byte*)pd) = 0;
+					pd = (ulong*)((byte*)pDst + 1);
+					*(pd++) = *(ps++);
+					*(pd++) = *(ps++);
+					*(pd++) = *(ps++);
+					*(pd++) = *(ps++);
+					*(pd++) = *(ps++);
+					*(pd++) = *(ps++);
+					*(pd++) = *(ps++);
+
+					byte* ps2 = (byte*)ps;
+					byte* pd2 = (byte*)pd;
+					*(pd2++) = *(ps2++);
+					*(pd2++) = *(ps2++);
+					*(pd2++) = *(ps2++);
+					*(pd2++) = *(ps2++);
+					*(pd2++) = *(ps2++);
+					*(pd2++) = *(ps2++);
+					*(pd2++) = *(ps2++);
+
+					ps = (ulong*)ps2;
+					pd = (ulong*)pd2;
+					for(int n = 0; n < 8 * 15; n++) *(pd++) = *(ps++);
+				}
+			}
+
+			ProcessTTHBlock();
+			l_TotalBytesProcessed = 1024;
+
+
+			ba_PartialBlockBuffer[0] = array[ibStart + 1023];
+			i_PartialBlockFill = 1;
+
+			return ProcessFinalBlock(ba_PartialBlockBuffer, 0, i_PartialBlockFill);
+		}
+
+
+		public byte[] TTHNodeHash(byte[] l, byte[] r) {
+			Initialize();
+
+			ba_PartialBlockBuffer[0] = 1;
+			i_PartialBlockFill = 1;
+
+			if(l != null) {
+				Buffer.BlockCopy(l, 0, ba_PartialBlockBuffer, i_PartialBlockFill, 24);
+				i_PartialBlockFill += 24;
+			}
+
+			if(r != null) {
+				Buffer.BlockCopy(r, 0, ba_PartialBlockBuffer, i_PartialBlockFill, 24);
+				i_PartialBlockFill += 24;
+			}
+
+			return ProcessFinalBlock(ba_PartialBlockBuffer, 0, i_PartialBlockFill);
+
+			//Array.Clear(x, 0, 8);
+			//fixed(ulong* pDst = x) {
+			//    fixed(byte* pSrcL = l, pSrcR = r) {
+			//        ulong* psA = (ulong*)(l != null ? pSrcL : pSrcR);
+			//        ulong* psB = (ulong*)pSrcR;
+			//        ulong* pd = pDst;
+
+			//        *((byte*)pd) = 1;
+			//        pd = (ulong*)((byte*)pDst + 1);
+			//        for(int n = 0;n < 8 * 3;n++) *(pd++) = *(psA++);
+
+			//        if(l != null && r != null) {
+			//            for(int n = 0;n < 8 * 3;n++) *(pd++) = *(psB++);
+			//        }
+
+			//        *((byte*)pd++) = 1;
+
+			//        pd = pDst + 7;
+
+			//        *pd = (ulong)((l != null && r != null ? 49 : 25) << 3);
+			//    }
+			//}
+
+			//ProcessTTHBlock(1);
+			//BitTools.TypeBlindCopy(accu, 0, HashValue, 0, 3); return HashValue;
+		}
+
+
+		public byte[] ZeroArrayHash { get; private set; }
+
+
+		public byte[] TTHFinalBlockHash(byte[] array, int ibStart, int cbSize) {
+			Initialize();
+
+			var t = new TigerHashAlgorithm();
+
+
+			t.TransformBlock(new byte[] { 0 }, 0, 1, null, 0);
+			t.TransformFinalBlock(array, ibStart, cbSize);
+			return t.Hash;
+		}
+
 	}
+
+
 }

@@ -28,8 +28,15 @@ namespace AVDump3Lib.Information.MetaInfo {
             Id = id;
         }
 
-        public void Add<T>(MetaInfoItem<T> item) { items.Add(item); }
-        public void AddNode(MetaInfoContainer node) { nodes.Add(node); }
+		public bool Add(MetaInfoItem item) {
+			if(items.Contains(item.Type)) {
+				return false;
+			}
+			items.Add(item);
+			return true;
+		}
+		public bool Add<T>(MetaInfoItem<T> item) { return Add((MetaInfoItem)item); }
+		public void AddNode(MetaInfoContainer node) { nodes.Add(node); }
 
 
 

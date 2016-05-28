@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="AVD3LibException.cs" />
     <Compile Include="Information\AVD3InformationModule.cs" />
+    <Compile Include="Information\InfoProvider\InfoProviderFactory.cs" />
     <Compile Include="Information\MetaInfo\Core\CompositeMetaDataProvider.cs" />
     <Compile Include="Information\MetaInfo\Core\MetaInfoContainerType.cs" />
     <Compile Include="Modules\AVD3ModuleManagement.cs" />
@@ -98,6 +99,9 @@
     <Compile Include="Processing\StreamProvider\NullStreamProvider.cs" />
     <Compile Include="Processing\StreamProvider\StreamFromPathsProvider.cs" />
     <Compile Include="Reporting\AVD3ReportingModule.cs" />
+    <Compile Include="Reporting\Core\IReport.cs" />
+    <Compile Include="Reporting\Core\ReportFactory.cs" />
+    <Compile Include="Reporting\Reports\AVD3Report.cs" />
     <Compile Include="Settings\AVD3SettingsModule.cs" />
     <Compile Include="Settings\CLArguments\ArgGroup.cs" />
     <Compile Include="Settings\CLArguments\ArgStructure.cs" />
@@ -147,13 +151,11 @@
     <Compile Include="Processing\BlockConsumers\Matroska\Segment\Tracks\TracksSection.cs" />
     <Compile Include="Processing\BlockConsumers\Matroska\Segment\Tracks\VideoSection.cs" />
     <Compile Include="Processing\HashAlgorithms\BlockHashAlgorithm.cs" />
-    <Compile Include="Processing\HashAlgorithms\Crc32.cs" />
-    <Compile Include="Processing\HashAlgorithms\Ed2k.cs" />
-    <Compile Include="Processing\HashAlgorithms\Md4.cs" />
-    <Compile Include="Processing\HashAlgorithms\Md5.cs" />
-    <Compile Include="Processing\HashAlgorithms\Sha1.cs" />
-    <Compile Include="Processing\HashAlgorithms\Tiger.cs" />
-    <Compile Include="Processing\HashAlgorithms\TigerTreeHash.cs" />
+    <Compile Include="Processing\HashAlgorithms\Crc32HashAlgorithm.cs" />
+    <Compile Include="Processing\HashAlgorithms\Ed2kHashAlgorithm.cs" />
+    <Compile Include="Processing\HashAlgorithms\Md4HashAlgorithm.cs" />
+    <Compile Include="Processing\HashAlgorithms\TigerHashAlgorithm.cs" />
+    <Compile Include="Processing\HashAlgorithms\TigerTreeHashAlgorithm.cs" />
     <Compile Include="Processing\StreamConsumer\StreamConsumerFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Processing\StreamConsumer\StreamConsumer.cs" />

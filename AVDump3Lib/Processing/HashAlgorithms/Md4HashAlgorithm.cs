@@ -1,133 +1,60 @@
-﻿using System.Security.Cryptography;
+﻿//// MD4Managed.cs - Message Digest 4 Managed Implementation
+//
+// Author:
+//	Sebastien Pouliot (sebastien@ximian.com)
+//
+// (C) 2003 Motus Technologies Inc. (http://www.motus.com)
+// Copyright (C) 2004-2005 Novell, Inc (http://www.novell.com)
+//
+// Permission is hereby granted, free of charge, to any person obtaining
+// a copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to
+// permit persons to whom the Software is furnished to do so, subject to
+// the following conditions:
+// 
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+//Modified by DvdKhl
+
+using System.Security.Cryptography;
 
 namespace AVDump3Lib.HashAlgorithms {
-    public class Ed2k : HashAlgorithm {
-		public const int BLOCKSIZE = 9500 * 1024;
-
-		public bool BlueIsRed { get { return blueIsRed; } } private bool blueIsRed;
-		public byte[] RedHash { get { var hash = Hash; return redHash != null ? (byte[])redHash.Clone() : hash; } } private byte[] redHash;
-		public byte[] BlueHash { get { var hash = Hash; return blueHash != null ? (byte[])blueHash.Clone() : hash; } } private byte[] blueHash;
-
-		private byte[] nullArray = new byte[0];
-		private byte[] nullMd4Hash, blockHash = new byte[16];
-
-		private long processedBytes;
-		private int missing = BLOCKSIZE;
-		private Ed2kMd4 md4BlockHash;
-		private Md4 md4NodeHash;
-
-		public Ed2k() {
-			md4BlockHash = new Ed2kMd4();
-			md4NodeHash = new Md4();
-
-			nullMd4Hash = md4NodeHash.ComputeHash(nullArray);
-			md4BlockHash.Initialize();
-			md4NodeHash.Initialize();
-		}
-
-		public override bool CanReuseTransform { get { return true; } }
-
-		protected override void HashCore(byte[] b, int offset, int length) {
-			processedBytes += length;
-			while(length != 0) {
-				if(length < missing) {
-					md4BlockHash.TransformBlock(b, offset, length);
-					missing -= length;
-					length = 0;
-
-				} else {
-					md4BlockHash.TransformBlock(b, offset, missing);
-					md4BlockHash.GetHash(blockHash);
-
-					md4NodeHash.TransformBlock(blockHash, 0, 16, null, 0);
-					md4BlockHash.Initialize();
-
-					length -= missing;
-					offset += missing;
-					missing = BLOCKSIZE;
-				}
-			}
-		}
-
-
-		/// <summary>Calculates both ed2k hashes</summary>
-		/// <returns>Always returns the red hash</returns>
-		protected override byte[] HashFinal() {
-			blueIsRed = false;
-			redHash = null;
-			blueHash = null;
-
-			if(processedBytes < BLOCKSIZE) {
-				md4BlockHash.TransformBlock(nullArray, 0, 0);
-				md4BlockHash.GetHash(blueHash = new byte[16]);
-
-			} else if(processedBytes == BLOCKSIZE) {
-				md4BlockHash.GetHash(blueHash = new byte[16]);
-
-				md4BlockHash.TransformBlock(md4NodeHash.Hash, 0, 16);
-				md4BlockHash.TransformBlock(nullMd4Hash, 0, 16);
-				md4BlockHash.GetHash(redHash = new byte[16]);
-
-			} else {
-				if(missing != BLOCKSIZE) {
-					var hash = new byte[16];
-					md4BlockHash.GetHash(hash);
-					md4NodeHash.TransformBlock(hash, 0, 16, null, 0);
-				}
-				md4BlockHash.Initialize();
-
-				//foreach(var md4HashBlock in md4HashBlocks) md4BlockHash.TransformBlock(md4HashBlock, 0, 16, null, 0);
-				var state = md4NodeHash.GetState();
-
-				md4NodeHash.TransformFinalBlock(nullArray, 0, 0);
-				blueHash = md4NodeHash.Hash;
-
-				if(missing == BLOCKSIZE) {
-					md4NodeHash.Initialize(state);
-					md4NodeHash.TransformFinalBlock(nullMd4Hash, 0, 16);
-					redHash = md4NodeHash.Hash;
-				}
-			}
-
-			if(redHash == null) blueIsRed = true;
-			return redHash == null ? blueHash : redHash;
-		}
-
-		public override void Initialize() {
-			//Called when TransformFinalBlock is called in Mono (not in NET) !
-			missing = BLOCKSIZE;
-			md4BlockHash.Initialize();
-			md4NodeHash.Initialize();
-		}
-	}
-
-	public class Ed2kMd4 {
+    public class Md4HashAlgorithm : HashAlgorithm {
 		public const int HASHLENGTH = 16;
 		public const int BLOCKLENGTH = 64;
 		private const uint A0 = 0x67452301U, B0 = 0xEFCDAB89U, C0 = 0x98BADCFEU, D0 = 0x10325476U;
 
 		private uint A, B, C, D;
 		private long hashedLength;
-		private byte[] tail = new byte[72];
 		private byte[] buffer;
+		private byte[] tail = new byte[72];
 
-		public Ed2kMd4() { buffer = new byte[BLOCKLENGTH]; Initialize(); }
+		public Md4HashAlgorithm() { buffer = new byte[BLOCKLENGTH]; Initialize(); }
 
-		public void TransformBlock(byte[] array, int ibStart, int cbSize) {
+		protected override void HashCore(byte[] array, int ibStart, int cbSize) {
 			int n = (int)(hashedLength % BLOCKLENGTH);
 			int partLen = BLOCKLENGTH - n;
 			int i = 0;
 			hashedLength += cbSize;
 
-			unsafe
-			{
+			unsafe {
 				if(cbSize >= partLen) {
 					System.Buffer.BlockCopy(array, ibStart, buffer, n, partLen);
-					fixed (byte* b = buffer) TransformMd4Block((uint*)b);
+					fixed(byte* b = buffer) TransformMd4Block((uint*)b);
 					i = partLen;
 
-					fixed (byte* b = array)
-					{
+					fixed(byte* b = array) {
 						byte* data = b + ibStart;
 						while(i + BLOCKLENGTH - 1 < cbSize) {
 							TransformMd4Block((uint*)(data + i));
@@ -255,9 +182,21 @@ namespace AVDump3Lib.HashAlgorithms {
 			D += dd;
 		}
 
-		public void GetHash(byte[] hash) {
+		protected override byte[] HashFinal() {
 			var length = PadBuffer();
-			TransformBlock(tail, 0, length);
+			HashCore(tail, 0, length);
+
+			return new byte[] {
+                (byte)(A), (byte)(A >> 8), (byte)(A >> 16), (byte)(A >> 24), 
+                (byte)(B), (byte)(B >> 8), (byte)(B >> 16), (byte)(B >> 24), 
+                (byte)(C), (byte)(C >> 8), (byte)(C >> 16), (byte)(C >> 24), 
+                (byte)(D), (byte)(D >> 8), (byte)(D >> 16), (byte)(D >> 24) 
+            };
+		}
+
+		public void GetHash(byte[] hash) {
+			//var length = PadBuffer();
+			//HashCore(tail, 0, length);
 
 			hash[00] = (byte)(A); hash[01] = (byte)(A >> 8); hash[02] = (byte)(A >> 16); hash[03] = (byte)(A >> 24);
 			hash[04] = (byte)(B); hash[05] = (byte)(B >> 8); hash[06] = (byte)(B >> 16); hash[07] = (byte)(B >> 24);
@@ -265,7 +204,7 @@ namespace AVDump3Lib.HashAlgorithms {
 			hash[12] = (byte)(D); hash[13] = (byte)(D >> 8); hash[14] = (byte)(D >> 16); hash[15] = (byte)(D >> 24);
 		}
 
-		public void Initialize() {
+		public override void Initialize() {
 			A = A0;
 			B = B0;
 			C = C0;
@@ -317,4 +256,5 @@ namespace AVDump3Lib.HashAlgorithms {
 		}
 		public InternalState GetState() { return new InternalState(hashedLength, A, B, C, D, buffer); }
 	}
+
 }

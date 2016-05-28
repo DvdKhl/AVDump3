@@ -20,9 +20,9 @@ namespace AVDump2Lib.BlockConsumers.Ogg.BitStreams {
 
 		[StructLayout(LayoutKind.Sequential, Pack = 1)]
 		public struct VorbisIdentHeader {
-			public UInt32 Version;
+			public uint Version;
 			public Byte ChannelCount;
-			public UInt32 SampleRate;
+			public uint SampleRate;
 			public Int32 MaxBitrate;
 			public Int32 NomBitrate;
 			public Int32 MinBitrate;

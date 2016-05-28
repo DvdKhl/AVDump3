@@ -1,6 +1,8 @@
 ﻿using System.Linq;
 
 namespace AVDump3Lib.Information.MetaInfo {
+
+
     public abstract class MetaDataProvider : MetaInfoContainer {
 		public MetaDataProvider(string name) : base(0, null) { Name = name; }
 

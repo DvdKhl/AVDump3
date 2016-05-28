@@ -121,7 +121,7 @@ namespace AVDump3Lib.BlockConsumers.Matroska.Segment.Cluster {
 						MaxSampleRate = maxSampleRate,
 						TrackLength= trackLength,
 						TrackSize= trackSize,
-						SampleCount= (int)frames
+						SampleCount= frames
 					};
 
 				} catch(Exception) { }
