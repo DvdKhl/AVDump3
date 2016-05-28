@@ -14,6 +14,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 
 	public interface IBytesReadProgress : IProgress<BlockStreamProgress> {
 		void Register(ProvidedStream providedStream, IStreamConsumer streamConsumer);
+		void Skip(ProvidedStream providedStream, long length);
 	}
 
 
@@ -81,10 +82,15 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 			do {
 				try {
 					var streamConsumer = streamConsumerFactory.Create(providedStream.Stream);
-					progress?.Register(providedStream, streamConsumer);
 
-					streamConsumer.ConsumeStream(progress, ct);
-					tcs.SetResult(streamConsumer.BlockConsumers);
+					if(streamConsumer != null) {
+						progress?.Register(providedStream, streamConsumer);
+						streamConsumer.ConsumeStream(progress, ct);
+					} else {
+						progress?.Skip(providedStream, providedStream.Stream.Length);
+					}
+
+					tcs.SetResult(streamConsumer?.BlockConsumers ?? new IBlockConsumer[0]);
 
 				} catch(StreamConsumerException ex) {
 					var e = new StreamConsumerExceptionEventArgs(ex, retryCount++);

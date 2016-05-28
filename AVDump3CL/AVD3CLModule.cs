@@ -132,15 +132,16 @@ namespace AVDump3CL {
 			var infoSetup = new InfoProviderSetup(filePath, blockConsumers);
 			var infoProviders = informationModule.InfoProviderFactories.Select(x => x.Create(infoSetup));
 
-			var fileMetaInfo = new FileMetaInfo(new FileInfo(filePath), infoProviders);
+			var reportsFactories = reportingModule.ReportFactories.Where(x => UsedReportNames.Any(y => x.Name.Equals(y, StringComparison.OrdinalIgnoreCase))).ToArray();
 
-			var reportsFactories = reportingModule.ReportFactories.Where(x => UsedReportNames.Any(y => x.Name.Equals(y, StringComparison.OrdinalIgnoreCase)));
-			var reports = reportsFactories.Select(x => x.Create(fileMetaInfo));
+			if(reportsFactories.Length != 0) {
+				var fileMetaInfo = new FileMetaInfo(new FileInfo(filePath), infoProviders);
+				var reports = reportsFactories.Select(x => x.Create(fileMetaInfo));
 
-			foreach(var report in reports) {
-				cl.Writeline(report.ReportToString() + "\n");
-
-				report.SaveToFile(Path.Combine(ReportDirectory, fileName + "." + report.FileExtension));
+				foreach(var report in reports) {
+					cl.Writeline(report.ReportToString() + "\n");
+					report.SaveToFile(Path.Combine(ReportDirectory, fileName + "." + report.FileExtension));
+				}
 			}
 
 

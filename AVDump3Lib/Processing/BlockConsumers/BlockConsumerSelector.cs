@@ -6,7 +6,8 @@ using System.Linq;
 
 namespace AVDump3Lib.Processing.BlockConsumers {
 	public interface IBlockConsumerSelector {
-		IEnumerable<IBlockConsumer> Select(IBlockStream blockStream);
+		IEnumerable<IBlockConsumerFactory> Select();
+		IEnumerable<IBlockConsumer> Create(IEnumerable<IBlockConsumerFactory> factories, IBlockStream blockStream);
 	}
 
 	public class BlockConsumerSelectorEventArgs : EventArgs {
@@ -28,15 +29,20 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 			this.blockConsumerFactories = blockConsumerFactories.ToArray();
 		}
 
-		public IEnumerable<IBlockConsumer> Select(IBlockStream blockStream) {
-			int readerIndex = 0;
+		public IEnumerable<IBlockConsumerFactory> Select() {
 			for(int i = 0; i < blockConsumerFactories.Length; i++) {
 				var args = new BlockConsumerSelectorEventArgs(blockConsumerFactories[i].Name);
 				Filter?.Invoke(this, args);
 				if(!args.Select) continue;
 
+				yield return blockConsumerFactories[i];
+			}
+		}
+		public IEnumerable<IBlockConsumer> Create(IEnumerable<IBlockConsumerFactory> factories, IBlockStream blockStream) {
+			int readerIndex = 0;
+			foreach(var factory in factories) {
 				var blockReader = new BlockStreamReader(blockStream, readerIndex++);
-				yield return blockConsumerFactories[i].Create(blockReader);
+				yield return factory.Create(blockReader);
 			}
 		}
 	}

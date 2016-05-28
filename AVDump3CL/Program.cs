@@ -14,11 +14,11 @@ namespace AVDump3CL {
 		static void Main(string[] args) {
 			if(args.Length == 1 && args[0].Equals("DEBUG")) {
 				args = new string[] {
-					"--Conc=6:G:/,1;H:/,1;I:/,1",
+					//"--Conc=6:G:/,1;H:/,1;I:/,1",
 					//"--BSize=8:8",
 					//"--Consumers=CRC32, ED2K, MD4, MD5, SHA1, SHA384, SHA512, TTH, TIGER",
-					"--Cons=ED2K",
-					"--Reports=AVD3Report",
+					//"--Cons=ED2K",
+					//"--Reports=AVD3Report",
 					@"G:\Video\Anime"
 				};
 			}

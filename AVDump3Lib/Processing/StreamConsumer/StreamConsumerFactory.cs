@@ -18,10 +18,15 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 		}
 
 		public IStreamConsumer Create(Stream stream) {
+			var blockConsumerFactories = blockConsumerSelector.Select();
+			if(!blockConsumerFactories.Any()) {
+				return null;
+			}
+
 			var blockSource = new StreamBlockSource(stream);
 			var buffer = new CircularBlockBuffer(blockPool.Take());
 			var blockStream = new BlockStream(blockSource, buffer);
-			var blockConsumers = blockConsumerSelector.Select(blockStream).ToArray();
+			var blockConsumers = blockConsumerSelector.Create(blockConsumerFactories, blockStream).ToArray();
 			buffer.SetConsumerCount(blockConsumers.Length);
 
 			var streamConsumer =  new StreamConsumer(blockStream, blockConsumers);

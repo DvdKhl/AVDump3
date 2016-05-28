@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace AVDump3Lib.Processing.StreamConsumer {
-	public delegate void StreamConsumerEventHandler(StreamConsumer streamConsumer);
+	public delegate void StreamConsumerEventHandler(IStreamConsumer streamConsumer);
 	public interface IStreamConsumer {
 		event StreamConsumerEventHandler Finished;
 		bool RanToCompletion { get; }
