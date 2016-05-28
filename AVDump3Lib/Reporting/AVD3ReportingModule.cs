@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace AVDump3Lib.Reporting {
 	public interface IAVD3ReportingModule : IAVD3Module {
-
+		IReadOnlyCollection<IReportFactory> ReportFactories { get; }
 	}
 	public class AVD3ReportingModule : IAVD3ReportingModule {
 		private List<IReportFactory> reportFactories;
@@ -20,7 +20,7 @@ namespace AVDump3Lib.Reporting {
 
 		public AVD3ReportingModule() {
 			reportFactories = new List<IReportFactory> {
-				new ReportFactory(fileMetaInfo => new AVD3Report(fileMetaInfo))
+				new ReportFactory("AVD3Report", fileMetaInfo => new AVD3Report(fileMetaInfo))
 			};
 
 			ReportFactories = reportFactories.AsReadOnly();

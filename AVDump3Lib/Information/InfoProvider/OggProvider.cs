@@ -12,7 +12,12 @@ namespace AVDump2Lib.InfoGathering.InfoProvider {
         public OggProvider(OggFile oggFile) : base("OggProvider") { Populate(oggFile); }
 
         private void Populate(OggFile oggFile) {
-            Add(FileSizeType, oggFile.FileSize);
+			if(oggFile == null) {
+				return;
+			}
+
+
+			Add(FileSizeType, oggFile.FileSize);
             Add(OverheadType, oggFile.Overhead);
             Add(DurationType, oggFile.Bitstreams.Where(b => !(b is UnknownOGGBitStream)).Max(b => (double)b.Duration));
 
@@ -21,7 +26,7 @@ namespace AVDump2Lib.InfoGathering.InfoProvider {
             MetaInfoContainer stream = null;
             foreach(var bitStream in oggFile.Bitstreams) {
                 if(bitStream is VideoOGGBitStream) {
-                    stream = new MetaInfoContainer((int)bitStream.Id, VideoStreamType);
+                    stream = new MetaInfoContainer(bitStream.Id, VideoStreamType);
                     var vs = (VideoOGGBitStream)bitStream;
                     Add(stream, VideoStream.PixelDimensionsType, new Dimensions(vs.Width, vs.Height));
                     Add(stream, MediaStream.StatedSampleRateType, vs.FrameRate);
@@ -31,18 +36,18 @@ namespace AVDump2Lib.InfoGathering.InfoProvider {
 
                 } else if(bitStream is AudioOGGBitStream) {
                     var audio = (AudioOGGBitStream)bitStream;
-                    stream = new MetaInfoContainer((int)bitStream.Id, AudioStreamType);
+                    stream = new MetaInfoContainer(bitStream.Id, AudioStreamType);
                     Add(stream, AudioStream.ChannelCountType, audio.ChannelCount);
                     Add(stream, MediaStream.StatedSampleRateType, audio.SampleRate);
                     Add(stream, MediaStream.SampleCountType, audio.SampleCount);
                     AddNode(stream);
 
                 } else if(bitStream is SubtitleOGGBitStream) {
-                    stream = new MetaInfoContainer((int)bitStream.Id, SubtitleStreamType);
+                    stream = new MetaInfoContainer(bitStream.Id, SubtitleStreamType);
                     AddNode(stream);
                 }
                 if(stream == null) {
-                    stream = new MetaInfoContainer((int)bitStream.Id, MediaStreamType);
+                    stream = new MetaInfoContainer(bitStream.Id, MediaStreamType);
                     AddNode(stream);
                 }
 

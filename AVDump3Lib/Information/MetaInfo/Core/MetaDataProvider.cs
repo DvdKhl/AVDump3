@@ -1,10 +1,11 @@
-﻿using System.Linq;
+﻿using AVDump3Lib.Information.MetaInfo.Core;
+using System.Linq;
 
 namespace AVDump3Lib.Information.MetaInfo {
 
 
     public abstract class MetaDataProvider : MetaInfoContainer {
-		public MetaDataProvider(string name) : base(0, null) { Name = name; }
+		public MetaDataProvider(string name, MetaInfoContainerType type) : base(0, type) { Name = name; }
 
         public void Add<T>(MetaInfoItemType<T> type, T value, params string[][] notes) {
             Add(new MetaInfoItem<T>(type, value, this, notes.ToDictionary(x => x[0], x => x[1])));

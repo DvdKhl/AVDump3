@@ -17,7 +17,9 @@ namespace AVDump3CL {
 					"--Conc=6:G:/,1;H:/,1;I:/,1",
 					//"--BSize=8:8",
 					//"--Consumers=CRC32, ED2K, MD4, MD5, SHA1, SHA384, SHA512, TTH, TIGER",
-					"--Consumers=ED2K, CRC32",
+					"--Cons=ED2K",
+					"--Reports=AVD3Report",
+					@"G:\Video\Anime"
 				};
 			}
 			var moduleManagemant = IniModules();

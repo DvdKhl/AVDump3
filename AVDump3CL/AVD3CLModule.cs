@@ -23,34 +23,49 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace AVDump3CL {
+	public class FileExtensions {
+		public bool Allow { get; private set; }
+		public IReadOnlyList<string> Extensions { get; private set; }
+
+		public FileExtensions(bool allow, IEnumerable<string> extensions) {
+			Extensions = Array.AsReadOnly(extensions.ToArray());
+		}
+
+		public static FileExtensions Default { get; } = new FileExtensions(false, new string[0]);
+	}
+
 	public class AVD3CLModule : IAVD3Module {
 		private IAVD3ProcessingModule processingModule;
 		private IAVD3InformationModule informationModule;
 		private IAVD3ReportingModule reportingModule;
 		private AVD3CL cl;
 
-		public int BlockCount { get; private set; }
-		public int BlockLength { get; private set; }
-		public int GlobalConcurrentCount { get; private set; }
-		public IReadOnlyCollection<PathPartition> PathPartitions { get; private set; }
-		public IReadOnlyCollection<string> UsedBlockConsumerNames { get; private set; }
+		public int BlockCount { get; private set; } = 8;
+		public int BlockLength { get; private set; } = 8 << 20;
+		public int GlobalConcurrentCount { get; private set; } = 1;
+		public IReadOnlyList<PathPartition> PathPartitions { get; private set; } = Array.AsReadOnly(new PathPartition[0]);
+		public IReadOnlyList<string> UsedBlockConsumerNames { get; private set; } = Array.AsReadOnly(new string[0]);
+		public IReadOnlyList<string> UsedReportNames { get; private set; } = Array.AsReadOnly(new string[0]);
+		public FileExtensions FileExtensions { get; private set; } = FileExtensions.Default;
+		public string ReportDirectory { get; private set; } = Environment.CurrentDirectory;
 
 		public bool UseNtfsAlternateStreams { get; private set; }
 
 		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) {
-			var settingsgModule = modules.OfType<IAVD3SettingsModule>().Single();
-			settingsgModule.RegisterCommandlineArgs += CreateCommandlineArguments;
-
 			processingModule = modules.OfType<IAVD3ProcessingModule>().Single();
 			informationModule = modules.OfType<IAVD3InformationModule>().Single();
 			reportingModule = modules.OfType<IAVD3ReportingModule>().Single();
+
+			var settingsgModule = modules.OfType<IAVD3SettingsModule>().Single();
+			settingsgModule.RegisterCommandlineArgs += CreateCommandlineArguments;
+
 		}
 
 		public void Process(string[] paths) {
-			if(UsedBlockConsumerNames.Count == 0) {
-				Console.WriteLine("No Blockconsumer chosen: Nothing to do");
-                return;
-			}
+			//if(UsedBlockConsumerNames.Count == 0) {
+			//	Console.WriteLine("No Blockconsumer chosen: Nothing to do");
+			//	return;
+			//}
 
 			var bcs = new BlockConsumerSelector(processingModule.BlockConsumerFactories);
 			bcs.Filter += BlockConsumerFilter;
@@ -60,10 +75,11 @@ namespace AVDump3CL {
 			var scf = new StreamConsumerFactory(bcs, bp);
 			var sp = new StreamFromPathsProvider(GlobalConcurrentCount,
 				PathPartitions, paths, true,
-				//path => path.EndsWith("mkv"), ex => { }
 				path => {
-                    return true;
-                }, ex => { }
+					if(FileExtensions.Extensions.Count == 0) return true;
+					return !FileExtensions.Allow ^ FileExtensions.Extensions.Any(fe => path.EndsWith(fe, StringComparison.InvariantCultureIgnoreCase));
+				},
+				ex => Console.Error.WriteLine("Filediscovery: " + ex.Message)
 			);
 
 			//sp = new NullStreamProvider();
@@ -75,29 +91,25 @@ namespace AVDump3CL {
 			cl = new AVD3CL(bytesReadProgress.GetProgress);
 			cl.TotalFiles = sp.TotalFileCount;
 			cl.TotalBytes = sp.TotalBytes;
-			//cl.TotalFiles = 1;
-			//cl.TotalBytes = 1L << 40;
 
 			cl.Display();
 
 			streamConsumerCollection.ConsumingStream += ConsumingStream;
-            //streamConsumerCollection.ConsumeStreams(CancellationToken.None, null);
 
-            Console.CursorVisible = false;
-            try {
-                streamConsumerCollection.ConsumeStreams(CancellationToken.None, bytesReadProgress);
-
-				cl.Stop();
-
+			Console.CursorVisible = false;
+			try {
+				streamConsumerCollection.ConsumeStreams(CancellationToken.None, bytesReadProgress);
 
 			} catch(Exception ex) {
-                Console.WriteLine(ex);
-            } finally {
-                Console.CursorVisible = true;
-            }
-        }
+				Console.Error.WriteLine(ex);
 
-        private void BlockConsumerFilter(object sender, BlockConsumerSelectorEventArgs e) {
+			} finally {
+				cl.Stop();
+				Console.CursorVisible = true;
+			}
+		}
+
+		private void BlockConsumerFilter(object sender, BlockConsumerSelectorEventArgs e) {
 			e.Select = UsedBlockConsumerNames.Any(x => e.Name.Equals(x, StringComparison.OrdinalIgnoreCase));
 		}
 
@@ -122,6 +134,14 @@ namespace AVDump3CL {
 
 			var fileMetaInfo = new FileMetaInfo(new FileInfo(filePath), infoProviders);
 
+			var reportsFactories = reportingModule.ReportFactories.Where(x => UsedReportNames.Any(y => x.Name.Equals(y, StringComparison.OrdinalIgnoreCase)));
+			var reports = reportsFactories.Select(x => x.Create(fileMetaInfo));
+
+			foreach(var report in reports) {
+				cl.Writeline(report.ReportToString() + "\n");
+
+				report.SaveToFile(Path.Combine(ReportDirectory, fileName + "." + report.FileExtension));
+			}
 
 
 			//if(UseNtfsAlternateStreams) {
@@ -146,29 +166,19 @@ namespace AVDump3CL {
 		}
 
 		private IEnumerable<ArgGroup> CreateCommandlineArguments() {
-			var blockCount = 8;
-			var blockLength = 8 << 20;
-			var globalConcurrentCount = 1;
-			var partitions = Enumerable.Empty<PathPartition>();
-			string[] usedBlockConsumers = new string[0];
+			var availableBlockConsumerNames = processingModule.BlockConsumerFactories.Select(x => x.Name).ToArray();
+			var availableReportNames = reportingModule.ReportFactories.Select(x => x.Name).ToArray();
 
 			yield return new ArgGroup("Processing",
 				"",
-				() => {
-					BlockCount = blockCount;
-					BlockLength = blockLength;
-					GlobalConcurrentCount = globalConcurrentCount;
-					PathPartitions = Array.AsReadOnly(partitions.ToArray());
-					UsedBlockConsumerNames = Array.AsReadOnly(usedBlockConsumers);
-				},
 				ArgStructure.Create(
 					arg => {
 						var raw = arg.Split(':').Select(ldArg => int.Parse(ldArg));
 						return new { BlockSize = raw.ElementAt(0), BlockCount = raw.ElementAt(1) };
 					},
 					args => {
-						blockCount = args.BlockCount;
-						blockLength = args.BlockSize << 20;
+						BlockCount = args.BlockCount;
+						BlockLength = args.BlockSize << 20;
 					},
 					"--BSize=<blocksize in kb>:<block count>",
 					"Circular buffer size for hashing",
@@ -186,8 +196,8 @@ namespace AVDump3CL {
 						};
 					},
 					arg => {
-						globalConcurrentCount = arg.MaxCount;
-						partitions = arg.PerPath.Select(x => new PathPartition(x.Path, x.MaxCount));
+						GlobalConcurrentCount = arg.MaxCount;
+						PathPartitions = Array.AsReadOnly(arg.PerPath.Select(x => new PathPartition(x.Path, x.MaxCount)).ToArray());
 					},
 					"--Concurrent=<max>[:<path1>,<max1>;<path2>,<max2>;...]",
 					"Sets the maximal number of files which will be processed concurrently.\n" +
@@ -196,19 +206,33 @@ namespace AVDump3CL {
 				),
 				ArgStructure.Create(
 					arg => arg.Split(',').Select(a => a.Trim()),
-					hashNames => {
-						usedBlockConsumers = hashNames.ToArray();
-					},
-					"--Consumers=<ConsumerName1>,<ConsumerName2,...>",
-					"Select consumers to use (CRC32, ED2K, MD4, MD5, SHA1, SHA384, SHA512, TTH, TIGER)",
-					"Consumers"
+					hashNames => UsedBlockConsumerNames = Array.AsReadOnly(hashNames.ToArray()),
+					"--Consumers=<ConsumerName1>[,<ConsumerName2>,...]",
+					"Select consumers to use (" + string.Join(", ", availableBlockConsumerNames) + ")",
+					"Consumers", "Cons"
+				)
+			);
+
+
+			yield return new ArgGroup("Reporting",
+				"",
+				ArgStructure.Create(
+					arg => arg.Split(',').Select(a => a.Trim()),
+					reportNames => UsedReportNames = Array.AsReadOnly(reportNames.ToArray()),
+					"--Reports=<ReportName1>[,<ReportName2>,...]",
+					string.Join(", ", availableReportNames),
+					"Reports"
+				),
+				ArgStructure.Create(
+					arg => ReportDirectory = arg,
+					"--ReportDirectory=<DirectoryPath>",
+					"",
+					"ReportDirectory, RDir"
 				)
 			);
 
 			yield return new ArgGroup("FileDiscovery",
 				"",
-				() => {
-				},
 				ArgStructure.Create(
 					arg => { },
 					"--Recursive",
@@ -225,8 +249,6 @@ namespace AVDump3CL {
 
 			yield return new ArgGroup("Display",
 				"",
-				() => {
-				},
 				ArgStructure.Create(
 					arg => { },
 					"--HideBuffers",

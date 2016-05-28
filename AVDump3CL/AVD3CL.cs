@@ -197,6 +197,7 @@ namespace AVDump3CL {
         private int TicksInPeriod = 5;
         private int state;
         private int sbLineCount;
+		private bool dirty;
         private StringBuilder sb;
         private BytesReadProgress.Progress curP, prevP;
 
@@ -222,11 +223,11 @@ namespace AVDump3CL {
 
         private void TimerCallback(object sender) {
             if(!Monitor.TryEnter(timer)) return;
-            Console.Write(output);
-            maxCursorPos = Math.Max(maxCursorPos, Console.CursorTop);
+            Console.Write(output); dirty = true;
+			maxCursorPos = Math.Max(maxCursorPos, Console.CursorTop);
             Console.SetCursorPosition(0, Console.CursorTop - sbLineCount);
 
-            if(state == 0) {
+			if(state == 0) {
                 prevP = curP;
                 curP = getProgress();
             }
@@ -243,7 +244,16 @@ namespace AVDump3CL {
 
         public void Writeline(string line) {
             lock(timer) {
-                Console.WriteLine(line.PadRight(Console.BufferWidth - 1));
+				if(dirty) {
+					var clearLine = new string(' ', Console.BufferWidth - 1);
+					for(int i = 0; i < sbLineCount; i++) {
+						Console.WriteLine(clearLine);
+					}
+					Console.SetCursorPosition(0, Console.CursorTop - sbLineCount);
+					dirty = false;
+				}
+
+				Console.WriteLine(line);
             }
         }
 

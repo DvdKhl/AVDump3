@@ -31,6 +31,10 @@ namespace AVDump2Lib.InfoProvider {
 		private void Populate(MatroskaFile mfi) {
 			MFI = mfi;
 
+			if(MFI == null) {
+				return;
+			}
+
             Add(FileSizeType, MFI.SectionSize.Value);
             Add(CreationDateType, MFI.Segment.SegmentInfo.ProductionDate);
             Add(DurationType, MFI.Segment.SegmentInfo.Duration.OnNotNullReturn(x => x * MFI.Segment.SegmentInfo.TimecodeScale / 1000000000d));
@@ -58,7 +62,7 @@ namespace AVDump2Lib.InfoProvider {
 		}
 
 		private void PopulateChapters(EditionEntrySection edition) {
-			var chapters = new MetaInfoContainer((int?)edition.EditionUId ?? Nodes.Count(x => x.Type == ChaptersType), ChaptersType);
+			var chapters = new MetaInfoContainer(edition.EditionUId ?? (ulong)Nodes.Count(x => x.Type == ChaptersType), ChaptersType);
 
             Add(chapters, Chapters.IdType, (int?)edition.EditionUId);
             Add(chapters, Chapters.IsHiddenType, edition.EditionFlags.HasFlag(EditionEntrySection.Options.Hidden));
@@ -70,7 +74,7 @@ namespace AVDump2Lib.InfoProvider {
 			AddNode(chapters);
 		}
 		private void PopulateChaptersSub(ChapterAtomSection atom, MetaInfoContainer chapters) {
-			var chapter = new MetaInfoContainer((int?)atom.ChapterUId ?? chapters.Nodes.Count(x => x.Type == Chapters.ChapterType), Chapters.ChapterType);
+			var chapter = new MetaInfoContainer(atom.ChapterUId ?? (ulong)chapters.Nodes.Count(x => x.Type == Chapters.ChapterType), Chapters.ChapterType);
             chapters.AddNode(chapter);
 
             Add(chapter, Chapter.IdType, (int?)atom.ChapterUId);
@@ -115,7 +119,7 @@ namespace AVDump2Lib.InfoProvider {
             MetaInfoContainer stream;
 			switch(track.TrackType) {
 				case TrackEntrySection.Types.Video:
-					stream = new MetaInfoContainer((int?)track.TrackUId ?? Nodes.Count(x => x.Type == VideoStreamType), VideoStreamType);
+					stream = new MetaInfoContainer(track.TrackUId ?? (ulong)Nodes.Count(x => x.Type == VideoStreamType), VideoStreamType);
 					AddNode(stream);
 
 					Add(stream, VideoStream.AspectRatioBehaviorType, Convert(track.Video.AspectRatioType));
@@ -136,7 +140,7 @@ namespace AVDump2Lib.InfoProvider {
 					break;
 
 				case TrackEntrySection.Types.Audio:
-					stream = new MetaInfoContainer((int?)track.TrackUId ?? Nodes.Count(x => x.Type == AudioStreamType), AudioStreamType);
+					stream = new MetaInfoContainer(track.TrackUId ?? (ulong)Nodes.Count(x => x.Type == AudioStreamType), AudioStreamType);
 					AddNode(stream);
 					Add(stream, AudioStream.BitDepthType, (int?)track.Audio.BitDepth);
 					Add(stream, AudioStream.ChannelCountType, (int?)track.Audio.ChannelCount);
@@ -145,12 +149,12 @@ namespace AVDump2Lib.InfoProvider {
 					break;
 
 				case TrackEntrySection.Types.Subtitle:
-					stream = new MetaInfoContainer((int?)track.TrackUId ?? Nodes.Count(x => x.Type == SubtitleStreamType), SubtitleStreamType);
+					stream = new MetaInfoContainer(track.TrackUId ?? (ulong)Nodes.Count(x => x.Type == SubtitleStreamType), SubtitleStreamType);
 					AddNode(stream);
 					break;
 
 				default:
-					stream = new MetaInfoContainer((int?)track.TrackUId ?? Nodes.Count(x => x.Type == MediaStreamType), MediaStreamType);
+					stream = new MetaInfoContainer(track.TrackUId ?? (ulong)Nodes.Count(x => x.Type == MediaStreamType), MediaStreamType);
 					AddNode(stream);
 					break;
 			}

@@ -13,9 +13,10 @@ namespace AVDump3Lib.Information.MetaInfo.Media {
         //public IEnumerable<VideoStream> VideoStreams { get; private set; }
         //public IEnumerable<SubtitleStream> SubtitleStreams { get; private set; }
 
-        public MediaProvider(string name) : base(name) { }
+        public MediaProvider(string name) : base(name, MediaProviderType) { }
+		public static readonly MetaInfoContainerType MediaProviderType = new MetaInfoContainerType("MediaProvider");
 
-        public static readonly MetaInfoItemType<long> FileSizeType = new MetaInfoItemType<long>("FileSize", "bytes");
+		public static readonly MetaInfoItemType<long> FileSizeType = new MetaInfoItemType<long>("FileSize", "bytes");
         public static readonly MetaInfoItemType<long> OverheadType = new MetaInfoItemType<long>("Overhead", "bytes");
 
         public static readonly MetaInfoItemType<byte[]> IdType = new MetaInfoItemType<byte[]>("Id", null);
@@ -37,14 +38,14 @@ namespace AVDump3Lib.Information.MetaInfo.Media {
         public static readonly MetaInfoItemType<List<TargetedTag>> TagsType = new MetaInfoItemType<List<TargetedTag>>("Tags", null);
 
 
-        public static readonly MetaInfoContainerType MediaStreamType = new MetaInfoContainerType();
-        public static readonly MetaInfoContainerType AudioStreamType = new MetaInfoContainerType();
-        public static readonly MetaInfoContainerType VideoStreamType = new MetaInfoContainerType();
-        public static readonly MetaInfoContainerType SubtitleStreamType = new MetaInfoContainerType();
-        public static readonly MetaInfoContainerType AttachmentType = new MetaInfoContainerType();
-        public static readonly MetaInfoContainerType JoinTrackBlocksType = new MetaInfoContainerType();
-        public static readonly MetaInfoContainerType CombineTrackPlanesType = new MetaInfoContainerType();
-        public static readonly MetaInfoContainerType ChaptersType = new MetaInfoContainerType();
+        public static readonly MetaInfoContainerType MediaStreamType = new MetaInfoContainerType("MediaStream");
+        public static readonly MetaInfoContainerType AudioStreamType = new MetaInfoContainerType("AudioStream");
+        public static readonly MetaInfoContainerType VideoStreamType = new MetaInfoContainerType("VideoStream");
+        public static readonly MetaInfoContainerType SubtitleStreamType = new MetaInfoContainerType("SubtitleStream");
+        public static readonly MetaInfoContainerType AttachmentType = new MetaInfoContainerType("Attachment");
+        public static readonly MetaInfoContainerType JoinTrackBlocksType = new MetaInfoContainerType("JoinTrackBlocks");
+        public static readonly MetaInfoContainerType CombineTrackPlanesType = new MetaInfoContainerType("CombineTrackPlanes");
+        public static readonly MetaInfoContainerType ChaptersType = new MetaInfoContainerType("Chapters");
     }
 
     #region MediaStream
@@ -181,7 +182,7 @@ namespace AVDump3Lib.Information.MetaInfo.Media {
         public static readonly MetaInfoItemType<bool> IsHiddenType = new MetaInfoItemType<bool>("IsHidden", null);
         public static readonly MetaInfoItemType<bool> IsDefaultType = new MetaInfoItemType<bool>("IsDefault", null);
         public static readonly MetaInfoItemType<bool> IsOrderedType = new MetaInfoItemType<bool>("IsOrdered", null);
-        public static readonly MetaInfoContainerType ChapterType = new MetaInfoContainerType();
+        public static readonly MetaInfoContainerType ChapterType = new MetaInfoContainerType("Chapter");
     }
 
     public class Chapter {

@@ -15,7 +15,7 @@ namespace AVDump3Lib.Information.MetaInfo {
 			FileInfo = fileInfo;
 			Providers = Array.AsReadOnly(items.Where(i => i != null).ToArray());
 
-			CondensedProviders = Providers.GroupBy(x => x.GetType()).Select(x => x.Count() > 1 ? new CompositeMetaDataProvider(x.Key.Name, x) : x.First());
+			CondensedProviders = Providers.GroupBy(x => x.Type).Select(x => x.Count() > 1 ? new CompositeMetaDataProvider(x.Key.Name, x) : x.First());
 		}
 	}
 }

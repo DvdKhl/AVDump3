@@ -18,10 +18,10 @@ namespace AVDump3Lib.Information.MetaInfo {
         public IReadOnlyList<MetaInfoItem> Items { get; }
         public IReadOnlyList<MetaInfoContainer> Nodes { get; }
         public MetaInfoContainerType Type { get; private set; }
-        public int Id { get; private set; }
+        public ulong Id { get; private set; }
 
 
-        public MetaInfoContainer(int id, MetaInfoContainerType type) {
+        public MetaInfoContainer(ulong id, MetaInfoContainerType type) {
             Items = items; //TODO wrap in read only collection
             Nodes = nodes.AsReadOnly();
             Type = type;
@@ -41,7 +41,7 @@ namespace AVDump3Lib.Information.MetaInfo {
 
 
         public MetaInfoItem<T> Select<T>(MetaInfoItemType<T> type) {
-            return (MetaInfoItem<T>)items[type];
+            return items.Contains(type) ? (MetaInfoItem<T>)items[type] : null;
         }
 
     }

@@ -138,15 +138,15 @@ namespace AVDump2Lib.InfoGathering.InfoProvider {
 				for(int streamNumber = 0; streamNumber < streamCount; streamNumber++) {
 					Func<string, string> streamGet = key => mil.Get(streamKind, streamNumber, key);
 
-                    int? id = null;
+                    ulong? id = null;
                     if(!string.IsNullOrEmpty(streamGet("UniqueID"))) {
-                        id = streamGet("UniqueID").ToInvInt32();
+                        id = streamGet("UniqueID").ToInvUInt64();
                     }
 
                     MetaInfoContainer stream = null;
 					switch(streamKind) {
 						case MediaInfoLib.StreamTypes.Video:
-							stream = new MetaInfoContainer(id ?? Nodes.Count(x => x.Type == ChaptersType), VideoStreamType); hasVideo = true;
+							stream = new MetaInfoContainer(id ?? (ulong)Nodes.Count(x => x.Type == ChaptersType), VideoStreamType); hasVideo = true;
 							Add(stream, MediaStream.StatedSampleRateType, () => streamGet("FrameRate").ToInvDouble());
 							Add(stream, MediaStream.SampleCountType, () => streamGet("FrameCount").ToInvInt64());
 							Add(stream, VideoStream.PixelDimensionsType, () => new Dimensions(streamGet("Width").ToInvInt32(), streamGet("Height").ToInvInt32()));
@@ -155,7 +155,7 @@ namespace AVDump2Lib.InfoGathering.InfoProvider {
 							break;
 
 						case MediaInfoLib.StreamTypes.Audio:
-							stream = new MetaInfoContainer(id ?? Nodes.Count(x => x.Type == AudioStreamType), AudioStreamType); hasAudio = true;
+							stream = new MetaInfoContainer(id ?? (ulong)Nodes.Count(x => x.Type == AudioStreamType), AudioStreamType); hasAudio = true;
 							Add(stream, MediaStream.StatedSampleRateType, () => streamGet("SamplingRate").ToInvDouble());
 							Add(stream, MediaStream.SampleCountType, () => streamGet("SamplingCount").ToInvInt32());
 							Add(stream, AudioStream.ChannelCountType, () => streamGet("Channel(s)").ToInvInt32());
@@ -163,12 +163,12 @@ namespace AVDump2Lib.InfoGathering.InfoProvider {
 							break;
 
 						case MediaInfoLib.StreamTypes.Text:
-							stream = new MetaInfoContainer(id ?? Nodes.Count(x => x.Type == SubtitleStreamType), SubtitleStreamType); hasSubtitle = true;
+							stream = new MetaInfoContainer(id ?? (ulong)Nodes.Count(x => x.Type == SubtitleStreamType), SubtitleStreamType); hasSubtitle = true;
 							AddNode(stream);
 							break;
 
 						default:
-							stream = new MetaInfoContainer(id ?? Nodes.Count(x => x.Type == MediaStreamType), MediaStreamType);
+							stream = new MetaInfoContainer(id ?? (ulong)Nodes.Count(x => x.Type == MediaStreamType), MediaStreamType);
 							AddNode(stream);
 							break;
 					}

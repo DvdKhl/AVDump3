@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace AVDump3Lib.Information.MetaInfo.Core {
     public class CompositeMetaDataProvider : MetaDataProvider {
-        public CompositeMetaDataProvider(string name, IEnumerable<MetaDataProvider> providers) : base(name) {
-			CreateFrom(providers);
+        public CompositeMetaDataProvider(string name, IEnumerable<MetaDataProvider> providers) : base(name, providers.First().Type) {
+			ChooseFrom(providers, this);
 		}
-
-        private static MetaInfoContainer CreateFrom(IEnumerable<MetaInfoContainer> sources) {
+		
+		private static void ChooseFrom(IEnumerable<MetaInfoContainer> sources, MetaInfoContainer dest) {
             var type = sources.First().Type;
             var id = sources.First().Id;
 
@@ -18,10 +18,9 @@ namespace AVDump3Lib.Information.MetaInfo.Core {
                 throw new InvalidOperationException();
             }
 
-			var destContainer = new MetaInfoContainer(id, type);
             foreach(var container in sources) {
                 foreach(var item in container.Items) {
-					destContainer.Add(item);
+					dest.Add(item);
                 }
             }
 
@@ -29,10 +28,11 @@ namespace AVDump3Lib.Information.MetaInfo.Core {
 								 from container in source.Nodes
 								 group container by new { container.Id, container.Type }) {
 
-				destContainer.AddNode(CreateFrom(group));
-			}
+				var subContainer = new MetaInfoContainer(group.Key.Id, group.Key.Type);
+				ChooseFrom(group, subContainer);
 
-			return destContainer;
+				dest.AddNode(subContainer);
+			}
         }
     }
 }

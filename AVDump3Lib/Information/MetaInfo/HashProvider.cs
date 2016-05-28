@@ -1,11 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using AVDump3Lib.Information.MetaInfo.Core;
+using System.Collections.Generic;
 
 namespace AVDump3Lib.Information.MetaInfo.Tools {
     public class HashProvider : MetaDataProvider {
-        public HashProvider(IEnumerable<HashResult> hashResults) : base("HashProvider") {
+        public HashProvider(IEnumerable<HashResult> hashResults) : base("HashProvider", HashProviderType) {
         }
+		public static readonly MetaInfoContainerType HashProviderType = new MetaInfoContainerType("HashProvider");
 
-        public class HashResult {
+		public class HashResult {
             public MetaInfoItemType Name { get; private set; }
             public byte[] Value { get; private set; }
             public HashResult(MetaInfoItemType type, byte[] value) { Name = type; Value = value; }

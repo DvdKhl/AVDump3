@@ -11,6 +11,8 @@ using System.Xml.Linq;
 
 namespace AVDump3Lib.Reporting.Reports {
 	public class AVD3Report : IReport {
+		private XDocument report;
+
 
 		public AVD3Report(FileMetaInfo fileMetaInfo) {
 			var xDoc = new XDocument();
@@ -23,9 +25,14 @@ namespace AVDump3Lib.Reporting.Reports {
 			foreach(var provider in fileMetaInfo.CondensedProviders) {
 				rootElem.Add(BuildReportMedia(provider));
 			}
+
+			report = xDoc;
 		}
+
+		public string FileExtension { get; } = "xml";
+
 		public XElement BuildReportMedia(MetaInfoContainer container) {
-			var rootElem = new XElement(container.Type.Name);
+			var rootElem = new XElement(container.Type?.Name ?? container.GetType().Name);
 
 			foreach(var item in container.Items) {
 				string valueStr;
@@ -37,12 +44,22 @@ namespace AVDump3Lib.Reporting.Reports {
 
 				rootElem.Add(new XElement(item.Type.Key,
 					new XAttribute("p", item.Provider.Name),
-					new XAttribute("u", item.Type.ValueType?.Name),
+					new XAttribute("t", item.Type.ValueType.Name),
+					new XAttribute("u", item.Type.Unit ?? "Unkown"),
 					valueStr
 				));
 			}
 
+			foreach(var node in container.Nodes) {
+				rootElem.Add(BuildReportMedia(node));
+			}
+
 			return rootElem;
 		}
+
+		public string ReportToString() { return report.ToString(); }
+		public XDocument ReportToXml() { return new XDocument(report); }
+
+		public void SaveToFile(string filePath) { report.Save(filePath); }
 	}
 }

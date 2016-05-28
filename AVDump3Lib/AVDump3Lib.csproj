@@ -64,7 +64,7 @@
     <Compile Include="Information\InfoProvider\MediaInfoLibProvider.cs" />
     <Compile Include="Information\InfoProvider\OggProvider.cs" />
     <Compile Include="Information\MetaInfo\Core\FileMetaInfo.cs" />
-    <Compile Include="Information\MetaInfo\Hash\HashProvider.cs" />
+    <Compile Include="Information\MetaInfo\HashProvider.cs" />
     <Compile Include="Information\MetaInfo\MediaProvider.cs" />
     <Compile Include="Information\MetaInfo\Core\MetaDataProvider.cs" />
     <Compile Include="Information\MetaInfo\Core\MetaInfoContainer.cs" />
