@@ -143,10 +143,10 @@ namespace AVDump2Lib.InfoGathering.InfoProvider {
                         id = streamGet("UniqueID").ToInvInt32();
                     }
 
-					MediaStream stream = null;
+                    MetaInfoContainer stream = null;
 					switch(streamKind) {
 						case MediaInfoLib.StreamTypes.Video:
-							stream = new VideoStream(id ?? Nodes.OfType<VideoStream>().Count()); hasVideo = true;
+							stream = new MetaInfoContainer(id ?? Nodes.Count(x => x.Type == ChaptersType), VideoStreamType); hasVideo = true;
 							Add(stream, MediaStream.StatedSampleRateType, () => streamGet("FrameRate").ToInvDouble());
 							Add(stream, MediaStream.SampleCountType, () => streamGet("FrameCount").ToInvInt64());
 							Add(stream, VideoStream.PixelDimensionsType, () => new Dimensions(streamGet("Width").ToInvInt32(), streamGet("Height").ToInvInt32()));
@@ -155,7 +155,7 @@ namespace AVDump2Lib.InfoGathering.InfoProvider {
 							break;
 
 						case MediaInfoLib.StreamTypes.Audio:
-							stream = new AudioStream(id ?? Nodes.OfType<AudioStream>().Count()); hasAudio = true;
+							stream = new MetaInfoContainer(id ?? Nodes.Count(x => x.Type == AudioStreamType), AudioStreamType); hasAudio = true;
 							Add(stream, MediaStream.StatedSampleRateType, () => streamGet("SamplingRate").ToInvDouble());
 							Add(stream, MediaStream.SampleCountType, () => streamGet("SamplingCount").ToInvInt32());
 							Add(stream, AudioStream.ChannelCountType, () => streamGet("Channel(s)").ToInvInt32());
@@ -163,12 +163,12 @@ namespace AVDump2Lib.InfoGathering.InfoProvider {
 							break;
 
 						case MediaInfoLib.StreamTypes.Text:
-							stream = new SubtitleStream(id ?? Nodes.OfType<SubtitleStream>().Count()); hasSubtitle = true;
+							stream = new MetaInfoContainer(id ?? Nodes.Count(x => x.Type == SubtitleStreamType), SubtitleStreamType); hasSubtitle = true;
 							AddNode(stream);
 							break;
 
 						default:
-							stream = new MediaStream(id ?? Nodes.OfType<MediaStream>().Count());
+							stream = new MetaInfoContainer(id ?? Nodes.Count(x => x.Type == MediaStreamType), MediaStreamType);
 							AddNode(stream);
 							break;
 					}
@@ -224,7 +224,7 @@ namespace AVDump2Lib.InfoGathering.InfoProvider {
 				}
 			}
 
-			if(SelectFirst(SuggestedFileExtensionType) == null) Add(SuggestedFileExtensionType, milInfo);
+			if(Select(SuggestedFileExtensionType) == null) Add(SuggestedFileExtensionType, milInfo);
 		}
 
 		public MediaInfoLibProvider(string filePath)

@@ -1,11 +1,11 @@
-﻿using System;
+﻿using AVDump3Lib.Information.MetaInfo.Core;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 
 namespace AVDump3Lib.Information.MetaInfo {
-
 
     public class MetaInfoContainer {
         private class MetaInfoItemCollection : KeyedCollection<MetaInfoItemType, MetaInfoItem> {
@@ -17,12 +17,14 @@ namespace AVDump3Lib.Information.MetaInfo {
 
         public IReadOnlyList<MetaInfoItem> Items { get; }
         public IReadOnlyList<MetaInfoContainer> Nodes { get; }
+        public MetaInfoContainerType Type { get; private set; }
         public int Id { get; private set; }
 
 
-        public MetaInfoContainer(int id) {
+        public MetaInfoContainer(int id, MetaInfoContainerType type) {
             Items = items; //TODO wrap in read only collection
             Nodes = nodes.AsReadOnly();
+            Type = type;
             Id = id;
         }
 
@@ -31,10 +33,9 @@ namespace AVDump3Lib.Information.MetaInfo {
 
 
 
-        public IEnumerable<MetaInfoItem<T>> Select<T>(MetaInfoItemType<T> type) {
-            return items.Where(i => i.Type == type).OfType<MetaInfoItem<T>>();
+        public MetaInfoItem<T> Select<T>(MetaInfoItemType<T> type) {
+            return (MetaInfoItem<T>)items[type];
         }
-        public MetaInfoItem<T> SelectFirst<T>(MetaInfoItemType<T> type) { return Select(type).FirstOrDefault(); }
 
     }
 }

@@ -2,7 +2,7 @@
 
 namespace AVDump3Lib.Information.MetaInfo {
     public abstract class MetaDataProvider : MetaInfoContainer {
-		public MetaDataProvider(string name) : base(0) { Name = name; }
+		public MetaDataProvider(string name) : base(0, null) { Name = name; }
 
         public void Add<T>(MetaInfoItemType<T> type, T value, params string[][] notes) {
             Add(new MetaInfoItem<T>(type, value, this, notes.ToDictionary(x => x[0], x => x[1])));

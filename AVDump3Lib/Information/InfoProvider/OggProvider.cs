@@ -1,5 +1,6 @@
 ﻿using AVDump2Lib.BlockConsumers.Ogg;
 using AVDump2Lib.BlockConsumers.Ogg.BitStreams;
+using AVDump3Lib.Information.MetaInfo;
 using AVDump3Lib.Information.MetaInfo.Media;
 using System;
 using System.Linq;
@@ -17,10 +18,10 @@ namespace AVDump2Lib.InfoGathering.InfoProvider {
 
 
 
-            MediaStream stream = null;
+            MetaInfoContainer stream = null;
             foreach(var bitStream in oggFile.Bitstreams) {
                 if(bitStream is VideoOGGBitStream) {
-                    stream = new VideoStream((int)bitStream.Id);
+                    stream = new MetaInfoContainer((int)bitStream.Id, VideoStreamType);
                     var vs = (VideoOGGBitStream)bitStream;
                     Add(stream, VideoStream.PixelDimensionsType, new Dimensions(vs.Width, vs.Height));
                     Add(stream, MediaStream.StatedSampleRateType, vs.FrameRate);
@@ -30,18 +31,18 @@ namespace AVDump2Lib.InfoGathering.InfoProvider {
 
                 } else if(bitStream is AudioOGGBitStream) {
                     var audio = (AudioOGGBitStream)bitStream;
-                    stream = new AudioStream((int)bitStream.Id);
+                    stream = new MetaInfoContainer((int)bitStream.Id, AudioStreamType);
                     Add(stream, AudioStream.ChannelCountType, audio.ChannelCount);
                     Add(stream, MediaStream.StatedSampleRateType, audio.SampleRate);
                     Add(stream, MediaStream.SampleCountType, audio.SampleCount);
                     AddNode(stream);
 
                 } else if(bitStream is SubtitleOGGBitStream) {
-                    stream = new SubtitleStream((int)bitStream.Id);
+                    stream = new MetaInfoContainer((int)bitStream.Id, SubtitleStreamType);
                     AddNode(stream);
                 }
                 if(stream == null) {
-                    stream = new MediaStream((int)bitStream.Id);
+                    stream = new MetaInfoContainer((int)bitStream.Id, MediaStreamType);
                     AddNode(stream);
                 }
 
