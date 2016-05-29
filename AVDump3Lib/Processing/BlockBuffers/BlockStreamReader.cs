@@ -14,6 +14,7 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 
 	public class BlockStreamReader : IBlockStreamReader {
 		private int readerIndex;
+        private int curBlockLength;
 		private IBlockStream blockStream;
 
 		public long ReadBytes { get; private set; }
@@ -31,12 +32,14 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public byte[] GetBlock(out int blockLength) {
 			var block = blockStream.GetBlock(readerIndex, out blockLength);
-			ReadBytes += blockLength;
-			return block;
+            curBlockLength = blockLength;
+
+            return block;
 		}
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		public bool Advance() {
-			return blockStream.Advance(readerIndex);
+            ReadBytes += curBlockLength;
+            return blockStream.Advance(readerIndex);
 		}
 
 		public void DropOut() { blockStream.DropOut(readerIndex); DroppedOut = true; }

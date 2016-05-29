@@ -217,6 +217,10 @@ namespace AVDump3Lib.Information.MetaInfo {
         public string Title { get; private set; }
         public ReadOnlyCollection<string> Languages { get; private set; }
         public ReadOnlyCollection<string> Countries { get; private set; }
+
+        public override string ToString() {
+            return Title + " Languages(" + string.Join(", ", Languages) + ")" + " Countries(" + string.Join(", ", Countries) + ")";
+        }
     }
     #endregion
 

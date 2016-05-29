@@ -228,7 +228,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 		}
 
 		public MediaInfoLibProvider(string filePath)
-			: base("MediaInfoProvider") {
+			: base("MediaInfoLibProvider") {
 
 			using(var mil = new MediaInfoLibNativeMethods()) {
 				mil.Option("Internet", "No");
@@ -262,7 +262,16 @@ namespace AVDump3Lib.Information.InfoProvider {
 		private void Add<T>(MetaInfoContainer container, MetaInfoItemType<T> type, Func<T> getValue) {
 			T value;
 			try { value = getValue(); } catch { return; }
+
 			Add(container, type, value);
 		}
-	}
+        private void Add(MetaInfoContainer container, MetaInfoItemType<string> type, Func<string> getValue) {
+            string value;
+            try { value = getValue(); } catch { return; }
+
+            if(!string.IsNullOrWhiteSpace(value)) {
+                Add(container, type, value);
+            }
+        }
+    }
 }

@@ -215,23 +215,27 @@ namespace AVDump3CL {
                     arg => settings.Reporting.ReportDirectory = arg,
                     "--ReportDirectory=<DirectoryPath>",
                     "",
-                    "ReportDirectory, RDir"
+                    "ReportDirectory", "RDir"
                 )
             );
 
             yield return new ArgGroup("FileDiscovery",
                 "",
                 ArgStructure.Create(
-                    arg => { },
+                    arg => settings.FileDiscovery.Recursive = true,
                     "--Recursive",
                     "",
-                    "Recursive"
+                    "Recursive", "R"
                 ),
                 ArgStructure.Create(
-                    arg => { },
-                    "--WithExtensions",
+                    arg => {
+                        settings.FileDiscovery.FileExtensions.Allow = arg[0] != '-';
+                        if(arg[0] == '-') arg = arg.Substring(1);
+                        settings.FileDiscovery.FileExtensions.Items = Array.AsReadOnly(arg.Split(','));
+                    },
+                    "--WithExtensions=[-]<Extension1>[,<Extension2>,...]",
                     "",
-                    "WithExtensions=[-]<Extension1>[,<Extension2>,...]"
+                    "WithExtensions", "WExts"
                 ),
                 ArgStructure.Create(
                     arg => {

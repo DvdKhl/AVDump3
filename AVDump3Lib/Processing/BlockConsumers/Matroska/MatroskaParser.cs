@@ -54,8 +54,10 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 				var matroskaFile = new MatroskaFile(dataSrc.Length);
 				matroskaFile.Parse(reader, cts.Token);
 
-				Info = matroskaFile;
-			}
+                if(matroskaFile.Segment != null) {
+                    Info = matroskaFile;
+                }
+            }
 		}
 
 		public static bool IsMatroskaFile(string filePath) {

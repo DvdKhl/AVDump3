@@ -19,11 +19,11 @@ namespace AVDump3Lib.Information {
 
 		public AVD3InformationModule() {
 			infoProviderFactories = new List<IInfoProviderFactory> {
-				new InfoProviderFactory(setup => new MediaInfoLibProvider(setup.FilePath)),
-				new InfoProviderFactory(setup => new FormatInfoProvider(setup.FilePath)),
-				new InfoProviderFactory(setup => new HashProvider(setup.BlockConsumers.OfType<HashCalculator>())),
 				new InfoProviderFactory(setup => new MatroskaProvider(setup.BlockConsumers.OfType<MatroskaParser>().FirstOrDefault()?.Info)),
-				new InfoProviderFactory(setup => new OggProvider(setup.BlockConsumers.OfType<OggParser>().FirstOrDefault()?.Info))
+				new InfoProviderFactory(setup => new OggProvider(setup.BlockConsumers.OfType<OggParser>().FirstOrDefault()?.Info)),
+				new InfoProviderFactory(setup => new FormatInfoProvider(setup.FilePath)),
+				new InfoProviderFactory(setup => new MediaInfoLibProvider(setup.FilePath)),
+				new InfoProviderFactory(setup => new HashProvider(setup.BlockConsumers.OfType<HashCalculator>())),
 			};
 
 			InfoProviderFactories = infoProviderFactories.AsReadOnly();

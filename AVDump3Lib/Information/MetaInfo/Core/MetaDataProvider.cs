@@ -19,7 +19,9 @@ namespace AVDump3Lib.Information.MetaInfo.Core {
 
 
         public void Add<T>(MetaInfoContainer container, MetaInfoItemType<T> type, T value, params string[][] notes) {
-            container.Add(new MetaInfoItem<T>(type, value, this, notes.ToDictionary(x => x[0], x => x[1])));
+            if(value != null) {
+                container.Add(new MetaInfoItem<T>(type, value, this, notes.ToDictionary(x => x[0], x => x[1])));
+            }
         }
         public void Add<T>(MetaInfoContainer container, MetaInfoItemType<T> type, T? value, params string[][] notes) where T : struct {
             if(value.HasValue) {

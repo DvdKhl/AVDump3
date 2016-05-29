@@ -62,7 +62,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 
 			RanToCompletion = exceptions.Length == 0;
 			Finished?.Invoke(this);
-			if(exceptions.Length > 0) throw new AggregateException(exceptions);
+			if(exceptions.Length > 0) throw new StreamConsumerException(new AggregateException(exceptions));
 		}
 
 	}
