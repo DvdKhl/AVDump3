@@ -49,6 +49,7 @@
   <ItemGroup>
     <Compile Include="AVD3CL.cs" />
     <Compile Include="AVD3CLModule.cs" />
+    <Compile Include="AVD3CLModuleSettings.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

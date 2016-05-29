@@ -1,6 +1,9 @@
 using AVDump3Lib.Information.MetaInfo.Core;
+using AVDump3Lib.Misc;
 using AVDump3Lib.Reporting.Core;
 using System;
+using System.IO;
+using System.Text;
 using System.Xml.Linq;
 
 namespace AVDump3Lib.Reporting.Reports {
@@ -51,9 +54,20 @@ namespace AVDump3Lib.Reporting.Reports {
 			return rootElem;
 		}
 
-		public string ReportToString() { return report.ToString(); }
+        public string ReportToString() {
+            using(var textWriter = new StringWriter())
+            using(var safeXmlWriter = new SafeXmlWriter(textWriter)) {
+                report.WriteTo(safeXmlWriter);
+                return textWriter.ToString();
+            }
+        }
+
 		public XDocument ReportToXml() { return new XDocument(report); }
 
-		public void SaveToFile(string filePath) { report.Save(filePath); }
+		public void SaveToFile(string filePath) {
+            using(var safeXmlWriter = new SafeXmlWriter(filePath, Encoding.UTF8)) {
+                report.WriteTo(safeXmlWriter);
+            }
+        }
 	}
 }

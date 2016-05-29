@@ -54,13 +54,13 @@
     <Compile Include="Information\InfoProvider\InfoProviderFactory.cs" />
     <Compile Include="Information\MetaInfo\Core\CompositeMetaDataProvider.cs" />
     <Compile Include="Information\MetaInfo\Core\MetaInfoContainerType.cs" />
+    <Compile Include="Misc\SafeXmlWriter.cs" />
     <Compile Include="Modules\AVD3ModuleManagement.cs" />
     <Compile Include="Modules\IAVD3Module.cs" />
     <Compile Include="Information\FormatHeaders\BitmapInfoHeader.cs" />
     <Compile Include="Information\FormatHeaders\VMpeg4IsoAvcHeader.cs" />
     <Compile Include="Information\FormatHeaders\WaveFormatEx.cs" />
     <Compile Include="Information\InfoProvider\FormatInfoProvider.cs" />
-    <Compile Include="Information\InfoProvider\HashProvider.cs" />
     <Compile Include="Information\InfoProvider\MatroskaProvider.cs" />
     <Compile Include="Information\InfoProvider\MediaInfoLibProvider.cs" />
     <Compile Include="Information\InfoProvider\OggProvider.cs" />

@@ -1,4 +1,5 @@
 using AVDump3Lib.Information.InfoProvider;
+using AVDump3Lib.Information.MetaInfo;
 using AVDump3Lib.Modules;
 using AVDump3Lib.Processing.BlockConsumers;
 using AVDump3Lib.Processing.BlockConsumers.Matroska;
