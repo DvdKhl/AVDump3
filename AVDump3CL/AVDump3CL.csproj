@@ -79,9 +79,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>IF EXISTS "$(SolutionDir)BEH/BuildEventHandler.exe" (
-    "$(SolutionDir)BEH/BuildEventHandler.exe" CSharp PostBuild "$(SolutionPath)" "$(ProjectPath)" "$(TargetPath)" "$(ConfigurationName)" "$(PlatformName)" "$(SolutionDir)BEH/AVD3Settings.xml"
-)</PostBuildEvent>
+    <PostBuildEvent>"$(SolutionDir)BEH/BuildEventHandler.exe" CSharp PostBuild "$(SolutionPath)" "$(ProjectPath)" "$(TargetPath)" "$(ConfigurationName)" "$(PlatformName)" "$(SolutionDir)BEH/AVD3Settings.xml"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
