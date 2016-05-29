@@ -14,15 +14,15 @@ namespace AVDump3CL {
 		static void Main(string[] args) {
 			if(args.Length == 1 && args[0].Equals("DEBUG")) {
 				args = new string[] {
-					"--Conc=6:G:/,1;H:/,1;I:/,1",
+					"--Conc=6:G:/,1;H:/,1;I:/,3",
 					//"--BSize=8:8",
-					//"--Consumers=CRC32, ED2K, MD4, MD5, SHA1, SHA384, SHA512, TTH, TIGER, MKV",
-                    "--Consumers=MKV",
+					"--Consumers=CRC32, ED2K, MD4, MD5, SHA1, SHA384, SHA512, TTH, TIGER, MKV",
+                    //"--Consumers=MKV",
                     "--Reports=AVD3Report",
-                    "--PrintReports",
+                    //"--PrintReports",
                     "--WExts=mkv",
                     "--RDir=Reports/",
-                    "H:/"
+                    "I:/"
                 };
 			}
 			var moduleManagemant = IniModules();
