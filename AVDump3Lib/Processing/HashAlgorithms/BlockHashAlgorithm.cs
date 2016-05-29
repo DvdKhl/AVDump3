@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Security.Cryptography;
 
-namespace AVDump3Lib.HashAlgorithms {
+namespace AVDump3Lib.Processing.HashAlgorithms {
     public abstract class BlockHashAlgorithm : HashAlgorithm {
 		protected byte[] ba_PartialBlockBuffer;
 		protected int i_PartialBlockFill;

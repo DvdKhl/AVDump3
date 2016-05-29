@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2009 DvdKhl 
+// Copyright (C) 2009 DvdKhl 
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -17,14 +17,14 @@
 using System;
 using System.IO;
 using System.Threading;
-using AVDump3Lib.BlockBuffers;
-using AVDump3Lib.BlockConsumers.Matroska.EbmlHeader;
 using CSEBML;
 using CSEBML.DataSource;
 using CSEBML.DocTypes;
 using CSEBML.DocTypes.Matroska;
+using AVDump3Lib.Processing.BlockBuffers;
+using AVDump3Lib.Processing.BlockConsumers.Matroska.EbmlHeader;
 
-namespace AVDump3Lib.BlockConsumers.Matroska {
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
     public class MatroskaParser : BlockConsumer {
 		public MatroskaFile Info { get; private set; }
 

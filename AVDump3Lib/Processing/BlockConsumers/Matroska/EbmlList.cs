@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace AVDump3Lib.BlockConsumers.Matroska {
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
     public class EbmlList<T> : IList<T> {
 		protected List<T> items;
 

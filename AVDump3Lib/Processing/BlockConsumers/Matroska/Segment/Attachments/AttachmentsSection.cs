@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using CSEBML;
 using CSEBML.DocTypes.Matroska;
 
-namespace AVDump3Lib.BlockConsumers.Matroska.Segment.Attachments {
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Attachments {
     public class AttachmentsSection : Section {
 		public EbmlList<AttachedFileSection> Items { get; private set; }
 

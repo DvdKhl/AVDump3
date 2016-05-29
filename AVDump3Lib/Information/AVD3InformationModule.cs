@@ -1,16 +1,10 @@
-﻿using AVDump2Lib.BlockConsumers.Ogg;
-using AVDump2Lib.InfoGathering.InfoProvider;
-using AVDump2Lib.InfoProvider;
-using AVDump2Lib.InfoProvider.Tools;
-using AVDump3Lib.BlockConsumers;
-using AVDump3Lib.BlockConsumers.Matroska;
 using AVDump3Lib.Information.InfoProvider;
 using AVDump3Lib.Modules;
-using System;
+using AVDump3Lib.Processing.BlockConsumers;
+using AVDump3Lib.Processing.BlockConsumers.Matroska;
+using AVDump3Lib.Processing.BlockConsumers.Ogg;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AVDump3Lib.Information {
 	public interface IAVD3InformationModule : IAVD3Module {

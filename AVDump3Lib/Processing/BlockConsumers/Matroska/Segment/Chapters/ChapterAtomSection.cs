@@ -1,9 +1,9 @@
-﻿using CSEBML;
+using CSEBML;
 using CSEBML.DocTypes.Matroska;
 using System;
 using System.Collections.Generic;
 
-namespace AVDump3Lib.BlockConsumers.Matroska.Segment.Chapters {
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
     public class ChapterAtomSection : Section {
 		private byte[] chapterSegmentUId;
 		private bool? enabled, hidden;

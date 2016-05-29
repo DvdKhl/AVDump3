@@ -1,10 +1,10 @@
-﻿using AVDump3Lib.Information.MetaInfo.Core;
+using AVDump3Lib.Information.MetaInfo.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace AVDump3Lib.Information.MetaInfo {
+namespace AVDump3Lib.Information.MetaInfo.Core {
     public class FileMetaInfo {
 		public IEnumerable<MetaDataProvider> Providers { get; private set; }
 		public IEnumerable<MetaDataProvider> CondensedProviders { get; private set; }

@@ -1,8 +1,8 @@
-﻿using CSEBML.DataSource;
+using CSEBML.DataSource;
 using System;
 using System.Collections.Generic;
 
-namespace AVDump2Lib.BlockConsumers.Ogg {
+namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
     internal class Page {
 		private static byte[] OggS = { (byte)'O', (byte)'g', (byte)'g', (byte)'S' };
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace AVDump3Lib.Settings.CLArguments {
     public class ArgGroup {

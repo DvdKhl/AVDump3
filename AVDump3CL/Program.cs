@@ -1,4 +1,4 @@
-﻿using AVDump3Lib.Information;
+using AVDump3Lib.Information;
 using AVDump3Lib.Modules;
 using AVDump3Lib.Processing;
 using AVDump3Lib.Reporting;

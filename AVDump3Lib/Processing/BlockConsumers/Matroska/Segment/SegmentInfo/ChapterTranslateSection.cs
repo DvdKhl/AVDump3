@@ -1,8 +1,8 @@
-﻿using CSEBML;
+using CSEBML;
 using CSEBML.DocTypes.Matroska;
 using System.Collections.Generic;
 
-namespace AVDump3Lib.BlockConsumers.Matroska.Segment.SegmentInfo {
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SegmentInfo {
     public class ChapterTranslateSection : Section {
 		private byte[] id;
 

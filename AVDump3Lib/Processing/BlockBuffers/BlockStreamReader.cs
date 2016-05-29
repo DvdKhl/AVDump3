@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Runtime.CompilerServices;
 
-namespace AVDump3Lib.BlockBuffers {
+namespace AVDump3Lib.Processing.BlockBuffers {
 	public interface IBlockStreamReader {
 		bool Advance();
 		byte[] GetBlock(out int blockLength);

@@ -1,7 +1,7 @@
-﻿using AVDump3Lib.Information.MetaInfo.Core;
+using AVDump3Lib.Information.MetaInfo.Core;
 using System.Collections.Generic;
 
-namespace AVDump3Lib.Information.MetaInfo.Tools {
+namespace AVDump3Lib.Information.MetaInfo {
     public class HashProvider : MetaDataProvider {
         public HashProvider(IEnumerable<HashResult> hashResults) : base("HashProvider", HashProviderType) {
         }

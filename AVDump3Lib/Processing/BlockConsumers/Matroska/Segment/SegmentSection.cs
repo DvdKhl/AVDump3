@@ -1,17 +1,17 @@
-﻿using AVDump3Lib.BlockConsumers.Matroska.Segment.Attachments;
-using AVDump3Lib.BlockConsumers.Matroska.Segment.Chapters;
-using AVDump3Lib.BlockConsumers.Matroska.Segment.Cluster;
-using AVDump3Lib.BlockConsumers.Matroska.Segment.Cues;
-using AVDump3Lib.BlockConsumers.Matroska.Segment.SeekHead;
-using AVDump3Lib.BlockConsumers.Matroska.Segment.SegmentInfo;
-using AVDump3Lib.BlockConsumers.Matroska.Segment.Tags;
-using AVDump3Lib.BlockConsumers.Matroska.Segment.Tracks;
+using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Attachments;
+using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters;
+using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster;
+using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cues;
+using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SeekHead;
+using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SegmentInfo;
+using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tags;
+using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks;
 using CSEBML;
 using CSEBML.DocTypes.Matroska;
 using System.Collections.Generic;
 
-namespace AVDump3Lib.BlockConsumers.Matroska.Segment {
-    public class SegmentSection : Section {
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment {
+	public class SegmentSection : Section {
 		#region Fields & Properties
 		public SegmentInfoSection SegmentInfo { get; private set; }
 		public AttachmentsSection Attachments { get; private set; }

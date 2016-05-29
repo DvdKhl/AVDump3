@@ -1,7 +1,7 @@
-﻿using AVDump3Lib.Information.MetaInfo;
+using AVDump3Lib.Information.MetaInfo;
 using AVDump3Lib.Information.MetaInfo.Core;
 
-namespace AVDump2Lib.InfoProvider {
+namespace AVDump3Lib.Information.InfoProvider {
     public class FormatInfoProvider : MetaDataProvider {
 		public FormatInfoProvider(string filePath) : base("FormatInfoProvider", FormatInfoProviderType) {
 		}

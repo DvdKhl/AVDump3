@@ -1,10 +1,10 @@
-﻿//using AVDump3Lib.FormatHeaders;
+//using AVDump3Lib.FormatHeaders;
 using CSEBML;
 using CSEBML.DocTypes.Matroska;
 using System;
 using System.Collections.Generic;
 
-namespace AVDump3Lib.BlockConsumers.Matroska.Segment.Tracks {
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
     public class TrackEntrySection : Section {
 		private bool? enabled, def, forced, lacing;
 		private string language;

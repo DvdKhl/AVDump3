@@ -1,4 +1,4 @@
-﻿// Copyright (C) 2009 DvdKhl 
+// Copyright (C) 2009 DvdKhl 
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -20,7 +20,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
 
-namespace AVDump3Lib.HashAlgorithms {
+namespace AVDump3Lib.Processing.HashAlgorithms {
 
     public class TigerTreeHashAlgorithm : HashAlgorithm {
 		public const int BLOCKSIZE = 1024;

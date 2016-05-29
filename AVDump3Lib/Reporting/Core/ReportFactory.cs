@@ -1,9 +1,4 @@
-﻿using AVDump3Lib.Information.MetaInfo;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using AVDump3Lib.Information.MetaInfo.Core;
 
 namespace AVDump3Lib.Reporting.Core {
 	public interface IReportFactory {

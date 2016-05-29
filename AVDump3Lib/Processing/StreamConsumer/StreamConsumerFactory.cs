@@ -1,11 +1,11 @@
-﻿using AVDump3Lib.BlockBuffers;
-using AVDump3Lib.BlockBuffers.Sources;
+using AVDump3Lib.Processing.BlockBuffers;
+using AVDump3Lib.Processing.BlockBuffers.Sources;
 using AVDump3Lib.Processing.BlockConsumers;
 using System.IO;
 using System.Linq;
 
 namespace AVDump3Lib.Processing.StreamConsumer {
-    public interface IStreamConsumerFactory {
+	public interface IStreamConsumerFactory {
 		IStreamConsumer Create(Stream stream);
 	}
 	public class StreamConsumerFactory : IStreamConsumerFactory {

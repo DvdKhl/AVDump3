@@ -1,9 +1,9 @@
-﻿using CSEBML;
+using CSEBML;
 using CSEBML.DocTypes.Matroska;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace AVDump3Lib.BlockConsumers.Matroska.Segment.Tags {
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tags {
     public class SimpleTagSection : Section {
 		private string tagLanguage;
 		private bool? tagdefault;

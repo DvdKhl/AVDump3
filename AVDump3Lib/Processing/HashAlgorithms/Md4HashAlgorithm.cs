@@ -1,4 +1,4 @@
-﻿//// MD4Managed.cs - Message Digest 4 Managed Implementation
+//// MD4Managed.cs - Message Digest 4 Managed Implementation
 //
 // Author:
 //	Sebastien Pouliot (sebastien@ximian.com)
@@ -29,7 +29,7 @@
 
 using System.Security.Cryptography;
 
-namespace AVDump3Lib.HashAlgorithms {
+namespace AVDump3Lib.Processing.HashAlgorithms {
     public class Md4HashAlgorithm : HashAlgorithm {
 		public const int HASHLENGTH = 16;
 		public const int BLOCKLENGTH = 64;

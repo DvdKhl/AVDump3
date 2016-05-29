@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AVDump2Lib.BlockConsumers.Ogg.BitStreams {
+namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
     public class CeltOGGBitStream : AudioOGGBitStream {
 		public override string CodecName { get { return "Celt"; } }
 		public override string CodecVersion { get; protected set; }

@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 
-namespace AVDump3Lib.BlockBuffers {
+namespace AVDump3Lib.Processing.BlockBuffers {
     public interface IBlockPool {
         int BlockCount { get; }
         int BlockSize { get; }

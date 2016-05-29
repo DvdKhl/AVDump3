@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using AVDump3Lib.Information.MetaInfo.Media;
 using AVDump3Lib.Misc;
 using AVDump3Lib.Information.MetaInfo;
 using System.Linq;
+using AVDump3Lib.Information.MetaInfo.Core;
 
-namespace AVDump2Lib.InfoGathering.InfoProvider {
+namespace AVDump3Lib.Information.InfoProvider {
 
     public class MediaInfoLib : IDisposable {
         public const string MILNAME = "MediaInfo.dll";

@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
-using AVDump3Lib.BlockConsumers.Matroska.EbmlHeader;
-using AVDump3Lib.BlockConsumers.Matroska.Segment;
 using CSEBML;
 using CSEBML.DocTypes;
 using CSEBML.DocTypes.Matroska;
+using AVDump3Lib.Processing.BlockConsumers.Matroska.EbmlHeader;
+using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment;
 
-namespace AVDump3Lib.BlockConsumers.Matroska {
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 	public class MatroskaFile : Section {
 		public EbmlHeaderSection EbmlHeader { get; private set; }
 		public SegmentSection Segment { get; private set; }

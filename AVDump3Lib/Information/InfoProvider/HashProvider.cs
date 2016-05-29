@@ -1,13 +1,13 @@
-﻿using AVDump3Lib.BlockConsumers;
 using AVDump3Lib.Information.MetaInfo;
-using AVDump3Lib.Information.MetaInfo.Media;
+using AVDump3Lib.Information.MetaInfo.Core;
+using AVDump3Lib.Processing.BlockConsumers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AVDump2Lib.InfoProvider.Tools {
+namespace AVDump3Lib.Information.InfoProvider {
     public class HashProvider : MediaProvider {
         public HashProvider(IEnumerable<HashCalculator> hashCalculators) : base("HashProvider") {
 			foreach(var hashCalculator in hashCalculators) {

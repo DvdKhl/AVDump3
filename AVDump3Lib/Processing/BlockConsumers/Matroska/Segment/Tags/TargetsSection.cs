@@ -1,8 +1,8 @@
-﻿using CSEBML;
+using CSEBML;
 using CSEBML.DocTypes.Matroska;
 using System.Collections.Generic;
 
-namespace AVDump3Lib.BlockConsumers.Matroska.Segment.Tags {
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tags {
     public class TargetsSection : Section {
 		private ulong? targetTypeValue;
 		private EbmlList<ulong> trackUId, editionUId, chapterUId, attachmentUId;

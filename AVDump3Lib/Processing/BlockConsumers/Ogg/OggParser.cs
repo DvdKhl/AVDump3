@@ -1,14 +1,12 @@
-﻿using AVDump3Lib.BlockConsumers;
+using AVDump3Lib.Processing.BlockBuffers;
 using CSEBML.DataSource;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using System.Threading.Tasks;
-using AVDump3Lib.BlockBuffers;
 
-namespace AVDump2Lib.BlockConsumers.Ogg {
-    public class OggParser : BlockConsumer {
+namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
+	public class OggParser : BlockConsumer {
         private OggFile result;
 
 		public OggFile Info { get; private set; }

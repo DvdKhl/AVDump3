@@ -1,8 +1,8 @@
-﻿using CSEBML;
+using CSEBML;
 using CSEBML.DocTypes.Matroska;
 using System.Collections.Generic;
 
-namespace AVDump3Lib.BlockConsumers.Matroska.Segment.Tracks {
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
     public class VideoSection : Section {
 		private ulong? pixelCropBottom;
 		private ulong? pixelCropTop;

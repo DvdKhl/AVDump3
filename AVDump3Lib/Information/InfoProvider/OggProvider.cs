@@ -1,11 +1,11 @@
-﻿using AVDump2Lib.BlockConsumers.Ogg;
-using AVDump2Lib.BlockConsumers.Ogg.BitStreams;
 using AVDump3Lib.Information.MetaInfo;
-using AVDump3Lib.Information.MetaInfo.Media;
+using AVDump3Lib.Information.MetaInfo.Core;
+using AVDump3Lib.Processing.BlockConsumers.Ogg;
+using AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams;
 using System;
 using System.Linq;
 
-namespace AVDump2Lib.InfoGathering.InfoProvider {
+namespace AVDump3Lib.Information.InfoProvider {
     public class OggProvider : MediaProvider {
         public OggFile FileInfo { get; private set; }
 

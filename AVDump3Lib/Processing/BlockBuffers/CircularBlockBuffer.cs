@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Linq;
 
-namespace AVDump3Lib.BlockBuffers {
+namespace AVDump3Lib.Processing.BlockBuffers {
     public class CircularBlockBuffer {
         public byte[][] Blocks{ get { return blocks; } }
         private readonly byte[][] blocks;

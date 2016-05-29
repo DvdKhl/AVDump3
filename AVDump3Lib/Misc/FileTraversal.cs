@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 
-namespace AVDump3Lib.Processing {
+namespace AVDump3Lib.Misc {
     public class FileTraversal {
 		public static void Traverse(string path, bool includeSubFolders, Action<string> onFile, Action<Exception> onError) {
 			try {

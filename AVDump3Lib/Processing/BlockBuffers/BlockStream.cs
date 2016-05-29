@@ -1,10 +1,9 @@
-﻿using System;
+using AVDump3Lib.Processing.BlockBuffers.Sources;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using AVDump3Lib.BlockBuffers.Sources;
-using System.Diagnostics;
 
-namespace AVDump3Lib.BlockBuffers {
+namespace AVDump3Lib.Processing.BlockBuffers {
 	public interface IBlockStream {
 		void DropOut(int consumerIndex);
 		bool Advance(int consumerIndex);

@@ -1,11 +1,11 @@
-﻿using AVDump3Lib.Information.MetaInfo.Core;
+using AVDump3Lib.Information.MetaInfo.Core;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 
-namespace AVDump3Lib.Information.MetaInfo.Media {
+namespace AVDump3Lib.Information.MetaInfo {
     public abstract class MediaProvider : MetaDataProvider {
         //public IEnumerable<Attachment> Attachments { get; private set; }
         //public IEnumerable<VirtualTrack> VirtualTracks { get; private set; }

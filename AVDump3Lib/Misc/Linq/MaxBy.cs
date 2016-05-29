@@ -1,4 +1,4 @@
-﻿﻿#region License and Terms
+#region License and Terms
 // MoreLINQ - Extensions to LINQ to Objects
 // Copyright (c) 2008-2011 Jonathan Skeet. All rights reserved.
 // 
@@ -18,7 +18,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace MoreLinq {
+namespace AVDump3Lib.Misc.Linq {
 	public static partial class MoreEnumerable {
 		/// <summary>
 		/// Returns the maximal element of the given sequence, based on

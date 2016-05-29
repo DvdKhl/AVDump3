@@ -1,8 +1,8 @@
-﻿using System;
+using AVDump3Lib.Processing.BlockBuffers;
+using System;
 using System.Threading;
-using AVDump3Lib.BlockBuffers;
 
-namespace AVDump3Lib.BlockConsumers {
+namespace AVDump3Lib.Processing.BlockConsumers {
 	public interface IBlockConsumer {
 		string Name { get; }
 		Exception Exception { get; }

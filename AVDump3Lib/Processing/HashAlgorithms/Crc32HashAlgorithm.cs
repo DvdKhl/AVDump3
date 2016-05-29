@@ -1,4 +1,4 @@
-﻿namespace AVDump3Lib.HashAlgorithms {
+namespace AVDump3Lib.Processing.HashAlgorithms {
     using System;
     using System.Security.Cryptography;
 

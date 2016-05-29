@@ -1,9 +1,9 @@
-﻿using CSEBML;
+using CSEBML;
 using CSEBML.DocTypes.Matroska;
 using System;
 using System.Collections.Generic;
 
-namespace AVDump3Lib.BlockConsumers.Matroska.Segment.Tracks {
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
     public class ContentEncodingSection : Section {
 		private ulong? contentEncodingOrder;
 		private CEScopes? contentEncodingScope;

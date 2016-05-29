@@ -1,10 +1,4 @@
-﻿using AVDump3Lib.BlockBuffers;
-using AVDump3Lib.BlockConsumers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using AVDump3Lib.Processing.BlockBuffers;
 
 namespace AVDump3Lib.Processing.BlockConsumers {
 	public interface IBlockConsumerFactory {

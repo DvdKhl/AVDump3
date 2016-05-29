@@ -1,11 +1,11 @@
-﻿using AVDump3Lib.Information.MetaInfo.Core;
+using AVDump3Lib.Information.MetaInfo.Core;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 
-namespace AVDump3Lib.Information.MetaInfo {
+namespace AVDump3Lib.Information.MetaInfo.Core {
 
     public class MetaInfoContainer {
         private class MetaInfoItemCollection : KeyedCollection<MetaInfoItemType, MetaInfoItem> {

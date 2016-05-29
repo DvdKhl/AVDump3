@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using CSEBML;
 using CSEBML.DocTypes.Matroska;
 
-namespace AVDump3Lib.BlockConsumers.Matroska.Segment.Tags {
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tags {
     public class TagsSection : Section {
 		public EbmlList<TagSection> Items { get; private set; }
 

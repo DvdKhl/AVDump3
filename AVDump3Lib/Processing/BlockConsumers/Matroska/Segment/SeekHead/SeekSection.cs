@@ -1,8 +1,8 @@
-﻿using CSEBML;
+using CSEBML;
 using CSEBML.DocTypes.Matroska;
 using System.Collections.Generic;
 
-namespace AVDump3Lib.BlockConsumers.Matroska.Segment.SeekHead {
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SeekHead {
     public class SeekSection : Section {
 		private byte[] seekId;
 

@@ -1,19 +1,19 @@
-﻿using AVDump2Lib.FormatHeaders;
-using AVDump3Lib.BlockConsumers.Matroska;
-using AVDump3Lib.BlockConsumers.Matroska.Segment.Chapters;
-using AVDump3Lib.BlockConsumers.Matroska.Segment.Cluster;
-using AVDump3Lib.BlockConsumers.Matroska.Segment.Tags;
-using AVDump3Lib.BlockConsumers.Matroska.Segment.Tracks;
+using AVDump3Lib.Information.FormatHeaders;
 using AVDump3Lib.Information.MetaInfo;
-using AVDump3Lib.Information.MetaInfo.Media;
+using AVDump3Lib.Information.MetaInfo.Core;
 using AVDump3Lib.Misc;
-using MoreLinq;
+using AVDump3Lib.Misc.Linq;
+using AVDump3Lib.Processing.BlockConsumers.Matroska;
+using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters;
+using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster;
+using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tags;
+using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-namespace AVDump2Lib.InfoProvider {
+namespace AVDump3Lib.Information.InfoProvider {
 	public class MatroskaProvider : MediaProvider {
 		public MatroskaFile MFI { get; private set; }
 

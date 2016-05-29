@@ -1,22 +1,13 @@
-﻿using AVDump3Lib.BlockConsumers;
-using AVDump3Lib.BlockConsumers.Matroska;
-using AVDump3Lib.HashAlgorithms;
 using AVDump3Lib.Modules;
 using AVDump3Lib.Processing.BlockConsumers;
+using AVDump3Lib.Processing.BlockConsumers.Matroska;
 using AVDump3Lib.Processing.HashAlgorithms;
-using AVDump3Lib.Processing.StreamConsumer;
-using AVDump3Lib.Settings;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AVDump3Lib.Processing {
-    public interface IAVD3ProcessingModule : IAVD3Module {
+	public interface IAVD3ProcessingModule : IAVD3Module {
         IReadOnlyCollection<IBlockConsumerFactory> BlockConsumerFactories { get; }
 
     }

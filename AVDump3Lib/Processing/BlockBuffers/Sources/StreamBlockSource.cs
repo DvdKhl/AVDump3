@@ -1,6 +1,6 @@
-﻿using System.IO;
+using System.IO;
 
-namespace AVDump3Lib.BlockBuffers.Sources {
+namespace AVDump3Lib.Processing.BlockBuffers.Sources {
     public class StreamBlockSource : IBlockSource {
 		private readonly Stream source;
 

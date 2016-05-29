@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using CSEBML;
 using CSEBML.DocTypes;
 
-namespace AVDump3Lib.BlockConsumers.Matroska.EbmlHeader {
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska.EbmlHeader {
     public class EbmlHeaderSection : Section {
 		private ulong? ebmlVersion;
 		private ulong? ebmlReadVersion;

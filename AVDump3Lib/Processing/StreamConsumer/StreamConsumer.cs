@@ -1,5 +1,5 @@
-﻿using AVDump3Lib.BlockBuffers;
-using AVDump3Lib.BlockConsumers;
+﻿using AVDump3Lib.Processing.BlockBuffers;
+using AVDump3Lib.Processing.BlockConsumers;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,12 +1,7 @@
-﻿using AVDump3Lib.Information;
 using AVDump3Lib.Modules;
 using AVDump3Lib.Reporting.Core;
 using AVDump3Lib.Reporting.Reports;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AVDump3Lib.Reporting {
 	public interface IAVD3ReportingModule : IAVD3Module {

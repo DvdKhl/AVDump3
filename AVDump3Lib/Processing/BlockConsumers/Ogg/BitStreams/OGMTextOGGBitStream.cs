@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 
-namespace AVDump2Lib.BlockConsumers.Ogg.BitStreams {
+namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
     public class OGMTextOGGBitStream : SubtitleOGGBitStream, IOGMStream, IVorbisComment {
 		public override string CodecName { get { return "OGMText"; } }
 		public override string CodecVersion { get; protected set; }

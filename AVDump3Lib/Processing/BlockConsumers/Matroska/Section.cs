@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using CSEBML;
 using CSEBML.DocTypes;
 using System.Collections;
 
-namespace AVDump3Lib.BlockConsumers.Matroska {
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
     public abstract class Section : IEnumerable<KeyValuePair<string, object>> {
 		public long? SectionSize { get; protected set; }
 

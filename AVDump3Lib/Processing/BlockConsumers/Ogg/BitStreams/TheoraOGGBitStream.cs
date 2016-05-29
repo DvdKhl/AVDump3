@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AVDump2Lib.BlockConsumers.Ogg.BitStreams {
+namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
     public class TheoraOGGBitStream : VideoOGGBitStream {
 		public override string CodecName { get { return "Theora"; } }
 		public override string CodecVersion { get; protected set; }

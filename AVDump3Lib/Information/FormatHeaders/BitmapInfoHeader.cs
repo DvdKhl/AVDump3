@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AVDump2Lib.FormatHeaders {
+namespace AVDump3Lib.Information.FormatHeaders {
 
 
 	public class BitmapInfoHeader {

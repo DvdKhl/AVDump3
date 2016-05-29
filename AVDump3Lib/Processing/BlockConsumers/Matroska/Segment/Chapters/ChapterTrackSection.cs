@@ -1,8 +1,8 @@
-﻿using CSEBML;
+using CSEBML;
 using CSEBML.DocTypes.Matroska;
 using System.Collections.Generic;
 
-namespace AVDump3Lib.BlockConsumers.Matroska.Segment.Chapters {
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
     public class ChapterTrackSection : Section {
 		public EbmlList<ulong> ChapterTrackNumbers { get; private set; }
 

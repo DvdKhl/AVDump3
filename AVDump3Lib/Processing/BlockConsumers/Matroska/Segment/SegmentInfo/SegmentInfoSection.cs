@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using CSEBML;
 using CSEBML.DocTypes.Matroska;
 
-namespace AVDump3Lib.BlockConsumers.Matroska.Segment.SegmentInfo {
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SegmentInfo {
     public class SegmentInfoSection : Section {
 		private ulong? timecodeScale;
 		private EbmlList<byte[]> segmentFamily;

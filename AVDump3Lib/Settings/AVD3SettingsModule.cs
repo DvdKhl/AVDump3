@@ -1,10 +1,8 @@
-﻿using AVDump3Lib.Modules;
+using AVDump3Lib.Modules;
 using AVDump3Lib.Settings.CLArguments;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AVDump3Lib.Settings {
 	public interface IAVD3SettingsModule : IAVD3Module {

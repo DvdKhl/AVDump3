@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace AVDump2Lib.BlockConsumers.Ogg.BitStreams {
+namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
     public abstract class OGGBitStream {
 		public uint Id { get; private set; }
 		public long Size { get; private set; }

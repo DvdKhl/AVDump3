@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AVDump3Lib.HashAlgorithms {
+namespace AVDump3Lib.Processing.HashAlgorithms {
     public class TigerHashAlgorithm : BlockHashAlgorithm {
 		private ulong[] accu, x;
 

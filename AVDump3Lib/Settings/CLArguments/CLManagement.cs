@@ -1,4 +1,4 @@
-﻿using AVDump3Lib.Misc;
+using AVDump3Lib.Misc;
 using System;
 using System.Collections.Generic;
 using System.Linq;

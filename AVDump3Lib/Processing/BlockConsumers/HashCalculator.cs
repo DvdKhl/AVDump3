@@ -1,10 +1,9 @@
-﻿using System.Security.Cryptography;
+using AVDump3Lib.Processing.BlockBuffers;
+using System.Security.Cryptography;
 using System.Threading;
-using AVDump3Lib.BlockBuffers;
-using AVDump3Lib.Information.MetaInfo;
 
-namespace AVDump3Lib.BlockConsumers {
-    public class HashCalculator : BlockConsumer {
+namespace AVDump3Lib.Processing.BlockConsumers {
+	public class HashCalculator : BlockConsumer {
         public HashAlgorithm HashAlgorithm { get; }
         public HashCalculator(string name, IBlockStreamReader reader, HashAlgorithm hashAlgorithm) : base(name, reader) {
             HashAlgorithm = hashAlgorithm;

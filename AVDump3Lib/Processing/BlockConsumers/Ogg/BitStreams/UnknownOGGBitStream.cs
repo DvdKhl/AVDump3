@@ -1,4 +1,4 @@
-﻿namespace AVDump2Lib.BlockConsumers.Ogg.BitStreams {
+namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
     public class UnknownOGGBitStream : OGGBitStream {
 		public UnknownOGGBitStream() : base(false) {}
 

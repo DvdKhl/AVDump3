@@ -1,8 +1,8 @@
-﻿using CSEBML;
+using CSEBML;
 using CSEBML.DocTypes.Matroska;
 using System.Collections.Generic;
 
-namespace AVDump3Lib.BlockConsumers.Matroska.Segment.Cues {
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cues {
     public class CuesSection : Section {
 		public EbmlList<CuePointSection> CuePoints { get; private set; }
 

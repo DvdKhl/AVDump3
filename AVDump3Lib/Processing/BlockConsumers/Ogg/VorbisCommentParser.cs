@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-namespace AVDump2Lib.BlockConsumers.Ogg {
+namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 
     public interface IVorbisComment {
 		Comments Comments { get; }

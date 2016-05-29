@@ -1,4 +1,4 @@
-﻿﻿#region License and Terms
+#region License and Terms
 // MoreLINQ - Extensions to LINQ to Objects
 // Copyright (c) 2008-2011 Jonathan Skeet. All rights reserved.
 // 
@@ -17,7 +17,7 @@
 
 using System;
 
-namespace MoreLinq {
+namespace AVDump3Lib.Misc.Linq {
 	/// <summary>
 	/// Helper methods to make it easier to throw exceptions.
 	/// </summary>

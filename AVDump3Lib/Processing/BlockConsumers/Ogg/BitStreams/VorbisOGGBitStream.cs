@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 
-namespace AVDump2Lib.BlockConsumers.Ogg.BitStreams {
+namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
     public class VorbisOGGBitStream : AudioOGGBitStream, IVorbisComment {
 		public override string CodecName { get { return "Vorbis"; } }
 		public override string CodecVersion { get; protected set; }

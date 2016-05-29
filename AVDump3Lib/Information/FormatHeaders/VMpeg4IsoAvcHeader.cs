@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AVDump2Lib.FormatHeaders {
+namespace AVDump3Lib.Information.FormatHeaders {
 	public class VMpeg4IsoAvcHeader {
 		public byte ConfigurationVersion { get; private set; }
 		public byte Profile { get; private set; }

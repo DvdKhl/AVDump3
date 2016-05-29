@@ -1,8 +1,8 @@
-﻿using AVDump3Lib.BlockBuffers;
+using AVDump3Lib.Processing.BlockBuffers;
 using CSEBML.DataSource;
 using System;
 
-namespace AVDump3Lib.BlockConsumers.Matroska {
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
     public class EBMLBlockDataSource : IEBMLDataSource {
 		IBlockStreamReader reader;
 

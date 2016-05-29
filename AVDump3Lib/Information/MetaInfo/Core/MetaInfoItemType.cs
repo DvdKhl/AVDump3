@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AVDump3Lib.Information.MetaInfo {
+namespace AVDump3Lib.Information.MetaInfo.Core {
 	public class MetaInfoItemType<T> : MetaInfoItemType {
 		public MetaInfoItemType(string key, string unit) : base(key, unit, typeof(T)) { }
 	}

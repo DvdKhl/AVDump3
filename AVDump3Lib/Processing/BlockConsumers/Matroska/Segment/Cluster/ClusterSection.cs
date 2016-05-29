@@ -1,4 +1,4 @@
-﻿using AVDump3Lib.BlockConsumers.Matroska.Segment.Tracks;
+using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks;
 using CSEBML;
 using CSEBML.DocTypes.Matroska;
 using System;
@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-namespace AVDump3Lib.BlockConsumers.Matroska.Segment.Cluster {
-    public class ClusterSection : Section {
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster {
+	public class ClusterSection : Section {
 		public Dictionary<int, Track> Tracks { get; private set; }
 
 		public ClusterSection() { Tracks = new Dictionary<int, Track>(); }

@@ -1,12 +1,6 @@
-﻿using AVDump2Lib.InfoProvider.Tools;
-using AVDump3Lib.Information.MetaInfo;
-using AVDump3Lib.Information.MetaInfo.Media;
+using AVDump3Lib.Information.MetaInfo.Core;
 using AVDump3Lib.Reporting.Core;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace AVDump3Lib.Reporting.Reports {

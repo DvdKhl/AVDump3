@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace AVDump3Lib.Information.MetaInfo {
+namespace AVDump3Lib.Information.MetaInfo.Core {
 	public class MetaInfoItem<T> : MetaInfoItem {
 		public new T Value { get; }
 		public MetaInfoItem(MetaInfoItemType type, T value, MetaDataProvider provider, IReadOnlyDictionary<string, string> notes)

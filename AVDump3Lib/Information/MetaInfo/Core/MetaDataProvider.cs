@@ -1,7 +1,7 @@
-﻿using AVDump3Lib.Information.MetaInfo.Core;
+using AVDump3Lib.Information.MetaInfo.Core;
 using System.Linq;
 
-namespace AVDump3Lib.Information.MetaInfo {
+namespace AVDump3Lib.Information.MetaInfo.Core {
 
 
     public abstract class MetaDataProvider : MetaInfoContainer {
