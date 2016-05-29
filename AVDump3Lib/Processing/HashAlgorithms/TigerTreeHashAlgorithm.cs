@@ -22,7 +22,7 @@ using System.Threading;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
 
-    public class TigerTreeHashAlgorithm : HashAlgorithm {
+    public sealed class TigerTreeHashAlgorithm : HashAlgorithm {
 		public const int BLOCKSIZE = 1024;
 		private static byte[] zeroArray = new byte[] { 0 };
 		private static byte[] oneArray = new byte[] { 1 };
@@ -42,9 +42,9 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 
 
 		public TigerTreeHashAlgorithm(int threadCount)		{
-			this.blocks = new Queue<byte[]>();
-			this.nods = new LinkedList<byte[]>();
-			this.levels = new LinkedList<LinkedListNode<byte[]>>();
+			blocks = new Queue<byte[]>();
+			nods = new LinkedList<byte[]>();
+			levels = new LinkedList<LinkedListNode<byte[]>>();
 			nodeHasher = new TTHTiger();
 			blockHasher = new TTHTiger();
 
@@ -62,7 +62,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			if(!hasLastBlock && cbSize != 0) throw new Exception();
 			if(!hasStarted) { foreach(var e in environments) e.HashThread.Start(e); hasStarted = true; }
 
-			this.dataBlock = array;
+			dataBlock = array;
 
 			foreach(var e in environments) {
 				e.Offset = ibStart;
@@ -144,19 +144,20 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 				e.DoWork.Set();
 				e.HashThread.Join();
 				e.HashThread = null;
+				e.Dispose();
 			}
 
 			foreach(var block in blocks) nods.AddLast(block);
-			return nods.Count != 0 ? nods.Reverse<byte[]>().Aggregate((byte[] accumHash, byte[] hash) => nodeHasher.TTHNodeHash(hash, accumHash)) : blockHasher.ZeroArrayHash;
+			return nods.Count != 0 ? nods.Reverse().Aggregate((byte[] accumHash, byte[] hash) => nodeHasher.TTHNodeHash(hash, accumHash)) : blockHasher.ZeroArrayHash;
 		}
 
 		public override void Initialize() {
 			//nodeHasher.TTHInitialize();
 			//blockHasher.TTHInitialize();
 
-			this.blocks.Clear();
-			this.nods.Clear();
-			this.levels.Clear();
+			blocks.Clear();
+			nods.Clear();
+			levels.Clear();
 
 			levels.AddFirst((LinkedListNode<byte[]>)null);
 
@@ -173,7 +174,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			}
 		}
 
-		private class Environment {
+		private sealed class Environment : IDisposable {
 			public Thread HashThread;
 			public bool ThreadJoin;
 			public int Index;
@@ -190,10 +191,15 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 				DoWork = new AutoResetEvent(false);
 				WorkDone = new AutoResetEvent(false);
 
-				this.Index = index;
+				Index = index;
 
 				Blocks = new Queue<byte[]>();
 				//BlockHasher.TTHInitialize();
+			}
+
+			public void Dispose() {
+				WorkDone.Dispose();
+				DoWork.Dispose();
 			}
 		}
 

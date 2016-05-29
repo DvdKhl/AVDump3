@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
-    public class Ed2kHashAlgorithm : HashAlgorithm {
+    public sealed class Ed2kHashAlgorithm : HashAlgorithm {
 		public const int BLOCKSIZE = 9500 * 1024;
 
 		public bool BlueIsRed { get { return blueIsRed; } } private bool blueIsRed;

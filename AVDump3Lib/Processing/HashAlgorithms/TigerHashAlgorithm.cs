@@ -1,7 +1,7 @@
 using System;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
-    public class TigerHashAlgorithm : BlockHashAlgorithm {
+    public sealed class TigerHashAlgorithm : BlockHashAlgorithm {
 		private ulong[] accu, x;
 
 		public TigerHashAlgorithm() : base(64, 192) { accu = new ulong[3]; Initialize(); }

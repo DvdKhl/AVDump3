@@ -67,7 +67,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 
 	}
 
-
+	[Serializable]
 	public class StreamConsumerException : AVD3LibException {
 		public StreamConsumerException(string message, Exception innerException) : base("StreamConsumer threw an Exception: " + message, innerException) { }
 		public StreamConsumerException(Exception innerException) : base("StreamConsumer threw an Exception", innerException) { }

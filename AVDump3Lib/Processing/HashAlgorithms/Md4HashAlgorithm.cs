@@ -30,7 +30,7 @@
 using System.Security.Cryptography;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
-    public class Md4HashAlgorithm : HashAlgorithm {
+    public sealed class Md4HashAlgorithm : HashAlgorithm {
 		public const int HASHLENGTH = 16;
 		public const int BLOCKLENGTH = 64;
 		private const uint A0 = 0x67452301U, B0 = 0xEFCDAB89U, C0 = 0x98BADCFEU, D0 = 0x10325476U;
@@ -67,7 +67,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			if(i < cbSize) System.Buffer.BlockCopy(array, ibStart + i, buffer, n, cbSize - i);
 		}
 
-		protected unsafe void TransformMd4Block(uint* dataPtr) {
+		private unsafe void TransformMd4Block(uint* dataPtr) {
 			uint aa, bb, cc, dd;
 
 			aa = A;
@@ -221,7 +221,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		}
 
 
-		protected int PadBuffer() {
+		private int PadBuffer() {
 			int padding;
 			int n = (int)(hashedLength % BLOCKLENGTH);
 			if(n < 56) padding = 56 - n; else padding = 120 - n;

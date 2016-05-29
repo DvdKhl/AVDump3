@@ -8,7 +8,7 @@ using AVDump3Lib.Information.MetaInfo.Core;
 
 namespace AVDump3Lib.Information.InfoProvider {
 
-    public class MediaInfoLib : IDisposable {
+    public sealed class MediaInfoLibNativeMethods : IDisposable {
         public const string MILNAME = "MediaInfo.dll";
 
         public static readonly bool UseUnicode = Environment.OSVersion.Platform == PlatformID.Win32NT;
@@ -88,7 +88,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 
         public IntPtr Handle { get; private set; }
 
-        public MediaInfoLib() { Handle = MediaInfo_New(); }
+        public MediaInfoLibNativeMethods() { Handle = MediaInfo_New(); }
 
         public bool Open(string filePath) { var retVal = MediaInfo_Open(Handle, filePath); return (int)retVal == 1; }
         public string Inform() { return MediaInfo_Inform(Handle, IntPtr.Zero); }
@@ -119,7 +119,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 
     public class MediaInfoLibProvider : MediaProvider {
 
-		private void Populate(MediaInfoLib mil) {
+		private void Populate(MediaInfoLibNativeMethods mil) {
 			Func<string, string> removeNonNumerics = s => Regex.Replace(s, "[^-,.0-9]", "");
 			Func<string, string> splitTakeFirst = s => s.Split('\\', '/', '|')[0];
 			Func<string, string, string> nonEmpty = (a, b) => string.IsNullOrEmpty(a) ? b : a;
@@ -132,7 +132,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 
 			bool hasAudio = false, hasVideo = false, hasSubtitle = false;
-			foreach(MediaInfoLib.StreamTypes streamKind in new[] { MediaInfoLib.StreamTypes.Video, MediaInfoLib.StreamTypes.Audio, MediaInfoLib.StreamTypes.Text }) {
+			foreach(MediaInfoLibNativeMethods.StreamTypes streamKind in new[] { MediaInfoLibNativeMethods.StreamTypes.Video, MediaInfoLibNativeMethods.StreamTypes.Audio, MediaInfoLibNativeMethods.StreamTypes.Text }) {
 				var streamCount = mil.GetCount(streamKind);
 
 				for(int streamNumber = 0; streamNumber < streamCount; streamNumber++) {
@@ -145,7 +145,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 
                     MetaInfoContainer stream = null;
 					switch(streamKind) {
-						case MediaInfoLib.StreamTypes.Video:
+						case MediaInfoLibNativeMethods.StreamTypes.Video:
 							stream = new MetaInfoContainer(id ?? (ulong)Nodes.Count(x => x.Type == ChaptersType), VideoStreamType); hasVideo = true;
 							Add(stream, MediaStream.StatedSampleRateType, () => streamGet("FrameRate").ToInvDouble());
 							Add(stream, MediaStream.SampleCountType, () => streamGet("FrameCount").ToInvInt64());
@@ -154,7 +154,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 							AddNode(stream);
 							break;
 
-						case MediaInfoLib.StreamTypes.Audio:
+						case MediaInfoLibNativeMethods.StreamTypes.Audio:
 							stream = new MetaInfoContainer(id ?? (ulong)Nodes.Count(x => x.Type == AudioStreamType), AudioStreamType); hasAudio = true;
 							Add(stream, MediaStream.StatedSampleRateType, () => streamGet("SamplingRate").ToInvDouble());
 							Add(stream, MediaStream.SampleCountType, () => streamGet("SamplingCount").ToInvInt32());
@@ -162,7 +162,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 							AddNode(stream);
 							break;
 
-						case MediaInfoLib.StreamTypes.Text:
+						case MediaInfoLibNativeMethods.StreamTypes.Text:
 							stream = new MetaInfoContainer(id ?? (ulong)Nodes.Count(x => x.Type == SubtitleStreamType), SubtitleStreamType); hasSubtitle = true;
 							AddNode(stream);
 							break;
@@ -189,7 +189,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 			AddSuggestedFileExtension(mil, hasAudio, hasVideo, hasSubtitle);
 		}
 
-		private void AddSuggestedFileExtension(MediaInfoLib mil, bool hasAudio, bool hasVideo, bool hasSubtitle) {
+		private void AddSuggestedFileExtension(MediaInfoLibNativeMethods mil, bool hasAudio, bool hasVideo, bool hasSubtitle) {
 			string milInfo = (mil.Get("Format/Extensions") ?? "").ToLowerInvariant();
 			string fileExt = (mil.Get("FileExtension") ?? "").ToLowerInvariant();
 			if(milInfo.Contains("asf") && milInfo.Contains("wmv") && milInfo.Contains("wma")) {
@@ -208,7 +208,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 					Add(SuggestedFileExtensionType, fileExt.Equals("mpeg") ? "mpeg" : "mpg");
 				}
 			} else if((milInfo.Contains("mp1") && milInfo.Contains("mp2") && milInfo.Contains("mp3")) || milInfo.Contains("wav")) {
-				switch(mil.Get(MediaInfoLib.StreamTypes.Audio, 0, "Format_Profile")) {
+				switch(mil.Get(MediaInfoLibNativeMethods.StreamTypes.Audio, 0, "Format_Profile")) {
 					case "Layer 1": Add(SuggestedFileExtensionType, "mp1"); break;
 					case "Layer 2": Add(SuggestedFileExtensionType, "mp2"); break;
 					case "Layer 3": Add(SuggestedFileExtensionType, "mp3"); break;
@@ -230,7 +230,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 		public MediaInfoLibProvider(string filePath)
 			: base("MediaInfoProvider") {
 
-			using(var mil = new MediaInfoLib()) {
+			using(var mil = new MediaInfoLibNativeMethods()) {
 				mil.Option("Internet", "No");
 				if(mil.Open(filePath)) {
 					Populate(mil);

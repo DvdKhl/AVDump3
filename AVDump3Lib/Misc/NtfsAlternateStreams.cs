@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace AVDump3Lib.Misc {
-    public static class NtfsAlternateStreams {
+    public static class NtfsAlternateStreamsNativeMethods {
         #region Constants and flags
 
         public const int MaxPath = 256;

@@ -105,6 +105,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 				}
 			} while(retry);
 		}
+
 	}
 
 	public class StreamConsumerExceptionEventArgs : EventArgs {

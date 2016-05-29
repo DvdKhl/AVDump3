@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
-    public class VorbisOGGBitStream : AudioOGGBitStream, IVorbisComment {
+    public sealed class VorbisOGGBitStream : AudioOGGBitStream, IVorbisComment {
 		public override string CodecName { get { return "Vorbis"; } }
 		public override string CodecVersion { get; protected set; }
 
@@ -21,13 +21,13 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 		[StructLayout(LayoutKind.Sequential, Pack = 1)]
 		public struct VorbisIdentHeader {
 			public uint Version;
-			public Byte ChannelCount;
+			public byte ChannelCount;
 			public uint SampleRate;
-			public Int32 MaxBitrate;
-			public Int32 NomBitrate;
-			public Int32 MinBitrate;
-			public Byte BlockSizes;
-			public Boolean Framing;
+			public int MaxBitrate;
+			public int NomBitrate;
+			public int MinBitrate;
+			public byte BlockSizes;
+			public bool Framing;
 		}
 
 

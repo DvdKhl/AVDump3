@@ -191,9 +191,8 @@ namespace AVDump3CL {
 
 	}
 
-	public class AVD3CL {
+	public sealed class AVD3CL : IDisposable {
 		private Func<BytesReadProgress.Progress> getProgress;
-
 
 		public long TotalBytes { get; set; }
 		public int TotalFiles { get; set; }
@@ -222,10 +221,6 @@ namespace AVDump3CL {
 		}
 
 		public void Stop() {
-			lock (timer) {
-				timer.Dispose();
-			}
-
 			Console.SetCursorPosition(0, maxCursorPos);
 			Console.WriteLine();
 		}
@@ -390,6 +385,12 @@ namespace AVDump3CL {
 			sb.Append(' ', consoleWidth).AppendLine();
 			sb.Append(' ', consoleWidth).AppendLine();
 			sbLineCount += 4;
+		}
+
+		public void Dispose() {
+			lock (timer) {
+				timer.Dispose();
+			}
 		}
 	}
 }

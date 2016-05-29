@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AVD3LibException.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Information\AVD3InformationModule.cs" />
     <Compile Include="Information\InfoProvider\InfoProviderFactory.cs" />
     <Compile Include="Information\MetaInfo\Core\CompositeMetaDataProvider.cs" />

@@ -105,6 +105,9 @@ namespace AVDump3CL {
 				cl.Stop();
 				Console.CursorVisible = true;
 			}
+
+			sp.Dispose();
+			cl.Dispose();
 		}
 
 		private void BlockConsumerFilter(object sender, BlockConsumerSelectorEventArgs e) {

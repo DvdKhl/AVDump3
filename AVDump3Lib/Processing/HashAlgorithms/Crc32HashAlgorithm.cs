@@ -3,7 +3,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
     using System.Security.Cryptography;
 
     //Source: http://damieng.com/blog/2006/08/08/Calculating_CRC32_in_C_and_NET
-    public class Crc32HashAlgorithm : HashAlgorithm {
+    public sealed class Crc32HashAlgorithm : HashAlgorithm {
 		public const uint DefaultPolynomial = 0xedb88320;
 		public const uint DefaultSeed = 0xffffffff;
 

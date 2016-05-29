@@ -16,7 +16,7 @@ namespace AVDump3Lib.Processing.StreamProvider {
 		}
 	}
 
-	public class StreamFromPathsProvider : IStreamProvider {
+	public sealed class StreamFromPathsProvider : IStreamProvider, IDisposable {
 		private List<LocalConcurrency> localConcurrencyPartitions;
 		private SemaphoreSlim globalConcurrency = new SemaphoreSlim(1);
 
@@ -63,6 +63,14 @@ namespace AVDump3Lib.Processing.StreamProvider {
 		private void Release(string filePath) {
 			localConcurrencyPartitions.First(ldKey => filePath.StartsWith(ldKey.Path)).Limit.Release();
 			globalConcurrency.Release();
+		}
+
+		public void Dispose() {
+			globalConcurrency.Dispose();
+			foreach(var localConcurrencyPartition in localConcurrencyPartitions) {
+				localConcurrencyPartition.Limit.Dispose();
+			}
+
 		}
 
 		private class LocalConcurrency {
