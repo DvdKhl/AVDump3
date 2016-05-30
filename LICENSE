@@ -19,3 +19,8 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
+THIRD PARTY LIBRARIES
+The software relies on third party libraries. Such libraries have their own license:
+[MediaInfoLib](https://github.com/MediaArea/MediaInfoLib) - [License](https://github.com/MediaArea/MediaInfoLib/blob/master/License.html)
