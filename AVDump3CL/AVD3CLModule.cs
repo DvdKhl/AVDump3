@@ -1,7 +1,9 @@
-﻿using AVDump3Lib.Information;
+﻿using AVDump3Lib;
+using AVDump3Lib.Information;
 using AVDump3Lib.Information.InfoProvider;
 using AVDump3Lib.Information.MetaInfo;
 using AVDump3Lib.Information.MetaInfo.Core;
+using AVDump3Lib.Misc;
 using AVDump3Lib.Modules;
 using AVDump3Lib.Processing;
 using AVDump3Lib.Processing.BlockBuffers;
@@ -16,6 +18,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -28,6 +31,30 @@ namespace AVDump3CL {
         private IAVD3InformationModule informationModule;
         private IAVD3ReportingModule reportingModule;
         private AVD3CL cl;
+
+        public AVD3CLModule() {
+            AppDomain.CurrentDomain.UnhandledException += UnhandleException;
+        }
+
+        private void UnhandleException(object sender, UnhandledExceptionEventArgs e) {
+            var wrapEx = new AVD3CLException("Unhandled AppDomain wide Exception", 
+                e.ExceptionObject as Exception ?? new Exception("Non Exception Type: " + e.ExceptionObject.ToString()));
+
+            var exElem = wrapEx.ToXElement(
+                settings.Diagnostics.SkipEnvironmentElement,
+                settings.Diagnostics.IncludePersonalData
+            );
+            //TODO Raise Event for modules to listen to
+
+            if(settings.Diagnostics.SaveErrors) {
+                Directory.CreateDirectory(Path.GetDirectoryName(settings.Diagnostics.ErrorDirectory));
+                var filePath = Path.Combine(settings.Diagnostics.ErrorDirectory, "AVD3Error" + wrapEx.ThrownOn.ToString("yyyyMMdd HHmmssffff") + ".xml");
+
+                using(var safeXmlWriter = new SafeXmlWriter(filePath, Encoding.UTF8)) {
+                    exElem.WriteTo(safeXmlWriter);
+                }
+            }
+        }
 
         public void Initialize(IReadOnlyCollection<IAVD3Module> modules) {
             processingModule = modules.OfType<IAVD3ProcessingModule>().Single();
@@ -177,6 +204,7 @@ namespace AVDump3CL {
             var availableBlockConsumerNames = processingModule.BlockConsumerFactories.Select(x => x.Name).ToArray();
             var availableReportNames = reportingModule.ReportFactories.Select(x => x.Name).ToArray();
 
+            #region Processing
             yield return new ArgGroup("Processing",
                 "",
                 ArgStructure.Create(
@@ -200,8 +228,9 @@ namespace AVDump3CL {
                     "Consumers", "Cons"
                 )
             );
+            #endregion
 
-
+            #region Reporting
             yield return new ArgGroup("Reporting",
                 "",
                 ArgStructure.Create(
@@ -218,7 +247,9 @@ namespace AVDump3CL {
                     "ReportDirectory", "RDir"
                 )
             );
+            #endregion
 
+            #region FileDiscovery
             yield return new ArgGroup("FileDiscovery",
                 "",
                 ArgStructure.Create(
@@ -258,7 +289,9 @@ namespace AVDump3CL {
                     "Concurrent", "Conc"
                 )
             );
+            #endregion
 
+            #region Display
             yield return new ArgGroup("Display",
                 "",
                 ArgStructure.Create(
@@ -302,6 +335,40 @@ namespace AVDump3CL {
                     "PrintReports"
                 )
             );
+            #endregion
+
+            #region Diagnostics
+            yield return new ArgGroup("Diagnostics",
+                "",
+                ArgStructure.Create(
+                    arg => arg.Split(',').Select(a => a.Trim()),
+                    _ => settings.Diagnostics.SaveErrors = true,
+                    "--SaveErrors",
+                    "",
+                    "SaveErrors"
+                ),
+                ArgStructure.Create(
+                    arg => arg.Split(',').Select(a => a.Trim()),
+                    _ => settings.Diagnostics.SkipEnvironmentElement = true,
+                    "--SkipEnvironmentElement",
+                    "",
+                    "SkipEnvironmentElement"
+                ),
+                ArgStructure.Create(
+                    arg => arg.Split(',').Select(a => a.Trim()),
+                    _ => settings.Diagnostics.IncludePersonalData = true,
+                    "--IncludePersonalData",
+                    "",
+                    "IncludePersonalData"
+                ),
+                ArgStructure.Create(
+                    arg => settings.Diagnostics.ErrorDirectory = arg,
+                    "--ErrorDirectory=<DirectoryPath>",
+                    "",
+                    "ErrorDirectory", "ErrDir"
+                )
+            );
+            #endregion
 
             //bool useNtfsAlternateStreams = false;
             //yield return new ArgGroup("Internal",
@@ -316,6 +383,12 @@ namespace AVDump3CL {
             //		"UseNtfsAlternateStreams"
             //	)
             //);
+        }
+    }
+
+    public class AVD3CLException : AVD3LibException {
+        public AVD3CLException(string message, Exception innerException) : base(message, innerException)  {
+
         }
     }
 }

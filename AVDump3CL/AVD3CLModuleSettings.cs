@@ -11,6 +11,7 @@ namespace AVDump3CL {
         public ProcessingSettings Processing { get; }
         public ReportingSettings Reporting { get; }
         public DisplaySettings Display { get; }
+        public DiagnosticsSettings Diagnostics { get; }
 
         public bool UseNtfsAlternateStreams { get; set; }
 
@@ -19,6 +20,7 @@ namespace AVDump3CL {
             Processing = new ProcessingSettings();
             Reporting = new ReportingSettings();
             Display = new DisplaySettings();
+            Diagnostics = new DiagnosticsSettings();
         }
     }
 
@@ -75,6 +77,17 @@ namespace AVDump3CL {
 
         public bool PrintHashes { get; set; }
         public bool PrintReports { get; set; }
+    }
+
+    public class DiagnosticsSettings {
+        public bool SaveErrors { get; set; }
+        public bool SkipEnvironmentElement { get; set; }
+        public bool IncludePersonalData { get; set; }
+        public string ErrorDirectory { get; set; }
+
+        public DiagnosticsSettings() {
+            ErrorDirectory = Environment.CurrentDirectory;
+        }
     }
 
 }

@@ -92,10 +92,12 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 					tcs.SetResult(streamConsumer?.BlockConsumers ?? new IBlockConsumer[0]);
 
 				} catch(StreamConsumerException ex) {
+                    ex.Data.Add("StreamTag", new SensitiveData<object>(providedStream.Tag));
+
 					var e = new StreamConsumerExceptionEventArgs(ex, retryCount++);
 					eventArgs.RaiseOnException(this, e);
 					if(!e.IsHandled) {
-						throw new StreamConsumerCollectionException("Unhandled exception in StreamConsumerException", ex);
+						throw new StreamConsumerCollectionException("Refused to handle StreamConsumerException", ex);
 					} else {
 						retry = e.Retry;
 					}
@@ -124,7 +126,6 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 		public Task<IReadOnlyCollection<IBlockConsumer>> FinishedProcessing { get; private set; }
 
 		internal void RaiseOnException(object sender, StreamConsumerExceptionEventArgs ex) {
-
 			OnException?.Invoke(sender, ex);
 		}
 

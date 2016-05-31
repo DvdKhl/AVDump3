@@ -67,12 +67,15 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 
 	}
 
-	[Serializable]
+	//[Serializable]
 	public class StreamConsumerException : AVD3LibException {
-		public StreamConsumerException(string message, Exception innerException) : base("StreamConsumer threw an Exception: " + message, innerException) { }
+		public StreamConsumerException(string message, Exception innerException) : base(message, innerException) { }
 		public StreamConsumerException(Exception innerException) : base("StreamConsumer threw an Exception", innerException) { }
-		protected StreamConsumerException(SerializationInfo info, StreamingContext context) : base(info, context) { }
-		public override void GetObjectData(SerializationInfo info, StreamingContext context) { base.GetObjectData(info, context); }
+
+
+
+		//protected StreamConsumerException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+		//public override void GetObjectData(SerializationInfo info, StreamingContext context) { base.GetObjectData(info, context); }
 		//public override System.Xml.Linq.XElement ToXElement() { var exRoot = base.ToXElement(); return exRoot; }
 	}
 
