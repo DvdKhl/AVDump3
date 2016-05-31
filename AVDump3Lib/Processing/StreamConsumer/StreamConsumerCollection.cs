@@ -44,8 +44,9 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 				Exception firstChanceException = null;
 				foreach(var providedStream in streamProvider.GetConsumingEnumerable(ct)) {
 					ct.ThrowIfCancellationRequested();
+                    throw new System.Exception("Testing");
 
-					counter.AddCount();
+                    counter.AddCount();
 					Task.Factory.StartNew(() => {
 						ConsumeStream(providedStream, progress, cts.Token);
 					}, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current).ContinueWith(t => {
@@ -92,7 +93,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 					tcs.SetResult(streamConsumer?.BlockConsumers ?? new IBlockConsumer[0]);
 
 				} catch(StreamConsumerException ex) {
-                    ex.Data.Add("StreamTag", new SensitiveData<object>(providedStream.Tag));
+                    ex.Data.Add("StreamTag", new SensitiveData(providedStream.Tag));
 
 					var e = new StreamConsumerExceptionEventArgs(ex, retryCount++);
 					eventArgs.RaiseOnException(this, e);

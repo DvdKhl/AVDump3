@@ -39,8 +39,11 @@ namespace AVDump3CL {
         private void UnhandleException(object sender, UnhandledExceptionEventArgs e) {
             var wrapEx = new AVD3CLException("Unhandled AppDomain wide Exception", 
                 e.ExceptionObject as Exception ?? new Exception("Non Exception Type: " + e.ExceptionObject.ToString()));
+            OnException(wrapEx);
+        }
 
-            var exElem = wrapEx.ToXElement(
+        private void OnException(AVD3CLException ex) {
+            var exElem = ex.ToXElement(
                 settings.Diagnostics.SkipEnvironmentElement,
                 settings.Diagnostics.IncludePersonalData
             );
@@ -48,12 +51,13 @@ namespace AVDump3CL {
 
             if(settings.Diagnostics.SaveErrors) {
                 Directory.CreateDirectory(Path.GetDirectoryName(settings.Diagnostics.ErrorDirectory));
-                var filePath = Path.Combine(settings.Diagnostics.ErrorDirectory, "AVD3Error" + wrapEx.ThrownOn.ToString("yyyyMMdd HHmmssffff") + ".xml");
+                var filePath = Path.Combine(settings.Diagnostics.ErrorDirectory, "AVD3Error" + ex.ThrownOn.ToString("yyyyMMdd HHmmssffff") + ".xml");
 
                 using(var safeXmlWriter = new SafeXmlWriter(filePath, Encoding.UTF8)) {
                     exElem.WriteTo(safeXmlWriter);
                 }
             }
+
         }
 
         public void Initialize(IReadOnlyCollection<IAVD3Module> modules) {
@@ -142,6 +146,8 @@ namespace AVDump3CL {
             e.OnException += (s, args) => {
                 args.IsHandled = true;
                 args.Retry = args.RetryCount < 2;
+
+                OnException(new AVD3CLException("ConsumingStream", args.Cause));
             };
 
             var blockConsumers = await e.FinishedProcessing;
@@ -341,21 +347,18 @@ namespace AVDump3CL {
             yield return new ArgGroup("Diagnostics",
                 "",
                 ArgStructure.Create(
-                    arg => arg.Split(',').Select(a => a.Trim()),
                     _ => settings.Diagnostics.SaveErrors = true,
                     "--SaveErrors",
                     "",
                     "SaveErrors"
                 ),
                 ArgStructure.Create(
-                    arg => arg.Split(',').Select(a => a.Trim()),
                     _ => settings.Diagnostics.SkipEnvironmentElement = true,
                     "--SkipEnvironmentElement",
                     "",
                     "SkipEnvironmentElement"
                 ),
                 ArgStructure.Create(
-                    arg => arg.Split(',').Select(a => a.Trim()),
                     _ => settings.Diagnostics.IncludePersonalData = true,
                     "--IncludePersonalData",
                     "",

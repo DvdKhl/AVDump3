@@ -29,7 +29,10 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 			try {
 				DoWork(ct);
 			} catch(Exception ex) {
-				Exception = ex;
+                ex.Data.Add("BlockConsumerName", Name);
+                ex.Data.Add("BlockConsumerReadBytes", Reader.ReadBytes);
+                Exception = ex;
+
 			} finally {
 				Reader.DropOut();
 			}

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -20,25 +21,34 @@ namespace AVDump3Lib {
 
         public XElement ToXElement(bool skipInformationElement, bool includePersonalData) {
             return new XElement(GetType().Name,
-                !skipInformationElement ? AddEnvironmentInfo() : null,
+                !skipInformationElement ? AddEnvironmentInfo(includePersonalData) : null,
                 new XElement("Message", Message),
                 ToXElementAdditional(includePersonalData),
-                new XElement("Data", Data?.Cast<DictionaryEntry>().Select(x => new XElement(x.Key.ToString(), x.Value))),
+                new XElement("Data", Data?.Cast<DictionaryEntry>().Select(
+                    x => new XElement(x.Key.ToString(), HandleSensitiveData(x.Value, includePersonalData)))),
                 new XElement("Cause", ToXElement(InnerException, includePersonalData)),
                 new XElement("Stacktrace", StackTrace?.Split('\n').Select(x => new XElement("Frame", x.Trim()))),
                 new XAttribute("thrownOn", ThrownOn.ToString("yyyy-MM-dd HH:mm:ss.ffff"))
             );
         }
 
+        protected static string HandleSensitiveData(object value, bool includePersonalData) {
+            if(includePersonalData && value is SensitiveData) {
+                return ((SensitiveData)value).Data.ToString();
+            } else {
+                return value.ToString();
+            }
+        }
 
-        private static XElement AddEnvironmentInfo() {
+        private static XElement AddEnvironmentInfo(bool includePersonalData) {
             XElement infoElem = new XElement("Information");
             infoElem.Add(new XElement("EntryAssemblyVersion", Assembly.GetEntryAssembly().GetName().Version));
             infoElem.Add(new XElement("LibVersion", Assembly.GetExecutingAssembly().GetName().Version));
+            infoElem.Add(new XElement("SessionId", Process.GetCurrentProcess().SessionId));
             infoElem.Add(new XElement("IntPtr.Size", IntPtr.Size));
             infoElem.Add(new XElement("Framework", Environment.Version));
             infoElem.Add(new XElement("OSVersion", Environment.OSVersion.VersionString));
-            infoElem.Add(new XElement("Commandline", Environment.CommandLine));
+            if(includePersonalData) infoElem.Add(new XElement("Commandline", Environment.CommandLine));
             infoElem.Add(new XElement("Is64BitOperatingSystem", Environment.Is64BitOperatingSystem));
             infoElem.Add(new XElement("Is64BitProcess", Environment.Is64BitProcess));
             infoElem.Add(new XElement("ProcessorCount", Environment.ProcessorCount));
@@ -56,18 +66,19 @@ namespace AVDump3Lib {
 
         protected virtual IEnumerable<XElement> ToXElementAdditional(bool includePersonalData) { yield break; }
 
-        protected XElement ToXElement(Exception ex, bool includePersonalData) {
+        protected static XElement ToXElement(Exception ex, bool includePersonalData) {
             XElement exElem;
 
             if(ex is AVD3LibException) {
-                var avd3LibEx = (AVD3LibException)InnerException;
+                var avd3LibEx = (AVD3LibException)ex;
                 exElem = avd3LibEx.ToXElement(true, includePersonalData);
 
             } else {
-                exElem = new XElement(GetType().Name,
-                    new XElement("Message", Message),
-                    new XElement("Stacktrace", StackTrace?.Split('\n').Select(x => new XElement("Frame", x.Trim()))),
-                    new XElement("Data", Data?.Cast<DictionaryEntry>().Select(x => new XElement(x.Key.ToString(), x.Value)))
+                exElem = new XElement(ex.GetType().Name,
+                    new XElement("Message", ex.Message),
+                    new XElement("Stacktrace", ex.StackTrace?.Split('\n').Select(x => new XElement("Frame", x.Trim()))),
+                    new XElement("Data", ex.Data?.Cast<DictionaryEntry>().Select(
+                        x => new XElement(x.Key.ToString(), HandleSensitiveData(x.Value, includePersonalData))))
                 );
 
                 if(ex is AggregateException) {
@@ -82,8 +93,10 @@ namespace AVDump3Lib {
             return exElem;
         }
     }
-    public class SensitiveData<T> {
-        private static readonly int salt = new Random().Next();
+
+    [Serializable]
+    public class SensitiveData {
+        private static readonly int salt = Process.GetCurrentProcess().SessionId;
         private static readonly SHA1 sha1 = SHA1.Create();
 
         private static string ComputeHash(string value) {
@@ -92,12 +105,8 @@ namespace AVDump3Lib {
             }
         }
 
-        public T Value { get; private set; }
-
-        public SensitiveData(T value) {
-            Value = value;
-        }
-
-        public override string ToString() { return "Hidden<" + typeof(T).Name + "|" + ComputeHash(Value?.ToString()) + ">"; }
+        public object Data { get; private set; }
+        public SensitiveData(object data) { Data = data; }
+        public override string ToString() { return "Hidden(" + ComputeHash(Data?.ToString()) + ")"; }
     }
 }
