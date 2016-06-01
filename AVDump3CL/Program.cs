@@ -14,6 +14,7 @@ namespace AVDump3CL {
 		static void Main(string[] args) {
 			if(args.Length == 1 && args[0].Equals("DEBUG")) {
 				args = new string[] {
+                    //"--Help",
 					"--Conc=6:G:/,1;H:/,1;I:/,2",
 					//"--BSize=8:8",
 					//"--Consumers=CRC32, ED2K, MD4, MD5, SHA1, SHA384, SHA512, TTH, TIGER, MKV",
@@ -24,14 +25,18 @@ namespace AVDump3CL {
                     "--WExts=mkv",
                     "--RDir=Reports/",
                     "--SaveErrors",
+                    "--IncludePersonalData",
                     "--ErrorDirectory=Error",
                     "I:/"
                 };
 			}
 			var moduleManagemant = IniModules();
 			var pathsToProcess = ProcessCommandlineArguments(moduleManagemant.GetModule<AVD3SettingsModule>(), args);
+            moduleManagemant.RaiseAfterConfiguration();
 
-			if(pathsToProcess == null) {
+
+
+            if(pathsToProcess == null) {
 				Console.Read();
 				return;
 			}
@@ -42,15 +47,15 @@ namespace AVDump3CL {
 			Console.Read();
 		}
 		private static AVD3ModuleManagement IniModules() {
-			var moduleManagament = new AVD3ModuleManagement();
-			moduleManagament.LoadModules(AppDomain.CurrentDomain.BaseDirectory);
-			moduleManagament.LoadModuleFromType(typeof(AVD3InformationModule));
-			moduleManagament.LoadModuleFromType(typeof(AVD3ProcessingModule));
-			moduleManagament.LoadModuleFromType(typeof(AVD3ReportingModule));
-			moduleManagament.LoadModuleFromType(typeof(AVD3SettingsModule));
-			moduleManagament.LoadModuleFromType(typeof(AVD3CLModule));
-			moduleManagament.InitializeModules();
-			return moduleManagament;
+			var moduleManagement = new AVD3ModuleManagement();
+			moduleManagement.LoadModules(AppDomain.CurrentDomain.BaseDirectory);
+			moduleManagement.LoadModuleFromType(typeof(AVD3InformationModule));
+			moduleManagement.LoadModuleFromType(typeof(AVD3ProcessingModule));
+			moduleManagement.LoadModuleFromType(typeof(AVD3ReportingModule));
+			moduleManagement.LoadModuleFromType(typeof(AVD3SettingsModule));
+			moduleManagement.LoadModuleFromType(typeof(AVD3CLModule));
+			moduleManagement.InitializeModules();
+			return moduleManagement;
 		}
 
 		private static string[] ProcessCommandlineArguments(AVD3SettingsModule settingsModule, string[] arguments) {

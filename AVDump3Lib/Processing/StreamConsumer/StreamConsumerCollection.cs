@@ -44,7 +44,6 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 				Exception firstChanceException = null;
 				foreach(var providedStream in streamProvider.GetConsumingEnumerable(ct)) {
 					ct.ThrowIfCancellationRequested();
-                    throw new System.Exception("Testing");
 
                     counter.AddCount();
 					Task.Factory.StartNew(() => {
@@ -75,9 +74,9 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 			var eventArgs = new ConsumingStreamEventArgs(providedStream.Tag, tcs.Task);
 			ConsumingStream?.Invoke(this, eventArgs);
 
-			//Thread.CurrentThread.Priority = ThreadPriority.Highest;
+            //Thread.CurrentThread.Priority = ThreadPriority.Highest;
 
-			var retry = false;
+            var retry = false;
 			int retryCount = 0;
 			do {
 				try {

@@ -6,6 +6,7 @@ using AVDump3Lib.Processing.BlockConsumers.Matroska;
 using AVDump3Lib.Processing.BlockConsumers.Ogg;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace AVDump3Lib.Information {
 	public interface IAVD3InformationModule : IAVD3Module {
@@ -31,5 +32,7 @@ namespace AVDump3Lib.Information {
 
 		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) {
 		}
-	}
+
+        public void AfterConfiguration() {        }
+    }
 }

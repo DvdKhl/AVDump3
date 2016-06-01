@@ -1,7 +1,6 @@
 ﻿using AVDump3Lib;
 using AVDump3Lib.Information;
 using AVDump3Lib.Information.InfoProvider;
-using AVDump3Lib.Information.MetaInfo;
 using AVDump3Lib.Information.MetaInfo.Core;
 using AVDump3Lib.Misc;
 using AVDump3Lib.Modules;
@@ -15,16 +14,30 @@ using AVDump3Lib.Settings;
 using AVDump3Lib.Settings.CLArguments;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace AVDump3CL {
-    public class AVD3CLModule : IAVD3Module {
+    public class AVD3CLModuleExceptionEventArgs : EventArgs {
+        public AVD3CLModuleExceptionEventArgs(XElement exception) {
+            Exception = exception;
+        }
+
+        public XElement Exception { get; private set; }
+    }
+
+
+    public interface IAVD3CLModule : IAVD3Module {
+        event EventHandler<AVD3CLModuleExceptionEventArgs> ExceptionThrown;
+    }
+
+
+    public class AVD3CLModule : IAVD3CLModule {
+        public event EventHandler<AVD3CLModuleExceptionEventArgs> ExceptionThrown;
+
         private AVD3CLModuleSettings settings = new AVD3CLModuleSettings();
 
         private IAVD3ProcessingModule processingModule;
@@ -37,7 +50,7 @@ namespace AVDump3CL {
         }
 
         private void UnhandleException(object sender, UnhandledExceptionEventArgs e) {
-            var wrapEx = new AVD3CLException("Unhandled AppDomain wide Exception", 
+            var wrapEx = new AVD3CLException("Unhandled AppDomain wide Exception",
                 e.ExceptionObject as Exception ?? new Exception("Non Exception Type: " + e.ExceptionObject.ToString()));
             OnException(wrapEx);
         }
@@ -47,10 +60,12 @@ namespace AVDump3CL {
                 settings.Diagnostics.SkipEnvironmentElement,
                 settings.Diagnostics.IncludePersonalData
             );
+
+            ExceptionThrown?.Invoke(this, new AVD3CLModuleExceptionEventArgs(exElem));
             //TODO Raise Event for modules to listen to
 
             if(settings.Diagnostics.SaveErrors) {
-                Directory.CreateDirectory(Path.GetDirectoryName(settings.Diagnostics.ErrorDirectory));
+                Directory.CreateDirectory(settings.Diagnostics.ErrorDirectory);
                 var filePath = Path.Combine(settings.Diagnostics.ErrorDirectory, "AVD3Error" + ex.ThrownOn.ToString("yyyyMMdd HHmmssffff") + ".xml");
 
                 using(var safeXmlWriter = new SafeXmlWriter(filePath, Encoding.UTF8)) {
@@ -69,6 +84,7 @@ namespace AVDump3CL {
             settingsgModule.RegisterCommandlineArgs += CreateCommandlineArguments;
 
         }
+        public void AfterConfiguration() { }
 
         public void Process(string[] paths) {
             //if(UsedBlockConsumerNames.Count == 0) {
@@ -118,24 +134,22 @@ namespace AVDump3CL {
             cl.TotalFiles = sp.TotalFileCount;
             cl.TotalBytes = sp.TotalBytes;
 
-            cl.Display();
+            using(sp)
+            using(cl) {
+                cl.Display();
 
-            streamConsumerCollection.ConsumingStream += ConsumingStream;
+                streamConsumerCollection.ConsumingStream += ConsumingStream;
 
-            Console.CursorVisible = false;
-            try {
-                streamConsumerCollection.ConsumeStreams(CancellationToken.None, bytesReadProgress);
+                Console.CursorVisible = false;
+                try {
+                    streamConsumerCollection.ConsumeStreams(CancellationToken.None, bytesReadProgress);
 
-            } catch(Exception ex) {
-                Console.Error.WriteLine(ex);
-
-            } finally {
-                cl.Stop();
-                Console.CursorVisible = true;
+                } finally {
+                    cl.Stop();
+                    Console.CursorVisible = true;
+                }
             }
 
-            sp.Dispose();
-            cl.Dispose();
         }
 
         private void BlockConsumerFilter(object sender, BlockConsumerSelectorEventArgs e) {
@@ -390,7 +404,7 @@ namespace AVDump3CL {
     }
 
     public class AVD3CLException : AVD3LibException {
-        public AVD3CLException(string message, Exception innerException) : base(message, innerException)  {
+        public AVD3CLException(string message, Exception innerException) : base(message, innerException) {
 
         }
     }

@@ -13,8 +13,9 @@ namespace AVDump3Lib.Settings {
 		public event Func<IEnumerable<ArgGroup>> RegisterCommandlineArgs;
 
 		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) { }
+        public void AfterConfiguration() { }
 
-		public IEnumerable<ArgGroup> RaiseCommandlineRegistration() {
+        public IEnumerable<ArgGroup> RaiseCommandlineRegistration() {
 			return RegisterCommandlineArgs?.GetInvocationList()
 				.Cast<Func<IEnumerable<ArgGroup>>>().Select(x => x()).SelectMany(x => x);
 		}

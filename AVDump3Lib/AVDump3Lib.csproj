@@ -64,6 +64,7 @@
     <Compile Include="Information\InfoProvider\InfoProviderFactory.cs" />
     <Compile Include="Information\MetaInfo\Core\CompositeMetaDataProvider.cs" />
     <Compile Include="Information\MetaInfo\Core\MetaInfoContainerType.cs" />
+    <Compile Include="Misc\TraceSourceEx.cs" />
     <Compile Include="Misc\SafeXmlWriter.cs" />
     <Compile Include="Modules\AVD3ModuleManagement.cs" />
     <Compile Include="Modules\IAVD3Module.cs" />
@@ -181,7 +182,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>"$(SolutionDir)BEH/BuildEventHandler.exe" CSharp PostBuild "$(SolutionPath)" "$(ProjectPath)" "$(TargetPath)" "$(ConfigurationName)" "$(PlatformName)" "$(SolutionDir)BEH/AVD3Settings.xml"</PostBuildEvent>
+    <PostBuildEvent>if exist "$(SolutionDir)BEH/BuildEventHandler.exe" "$(SolutionDir)BEH/BuildEventHandler.exe" CSharp PostBuild "$(SolutionPath)" "$(ProjectPath)" "$(TargetPath)" "$(ConfigurationName)" "$(PlatformName)" "$(SolutionDir)BEH/AVD3Settings.xml"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

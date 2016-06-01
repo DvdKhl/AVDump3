@@ -42,5 +42,11 @@ namespace AVDump3Lib.Modules {
 		}
 
 		public T GetModule<T>() where T: IAVD3Module { return modules.OfType<T>().FirstOrDefault(); }
-	}
+
+        public void RaiseAfterConfiguration() {
+            foreach(var module in modules) {
+                module.AfterConfiguration();
+            }
+        }
+    }
 }
