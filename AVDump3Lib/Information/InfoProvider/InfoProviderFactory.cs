@@ -9,7 +9,9 @@ using System.Threading.Tasks;
 
 namespace AVDump3Lib.Information.InfoProvider {
 	public interface IInfoProviderFactory {
-		MetaDataProvider Create(InfoProviderSetup setup);
+        Type ProviderType { get; }
+
+        MetaDataProvider Create(InfoProviderSetup setup);
 	}
 
 	public class InfoProviderSetup {
@@ -32,7 +34,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 			this.createInfoProvider = createInfoProvider;
 		}
 
-		public string Name { get; }
+		public Type ProviderType { get { return createInfoProvider.Method.ReturnType; } }
 		public MetaDataProvider Create(InfoProviderSetup setup) {
 			return createInfoProvider(setup);
 		}

@@ -150,8 +150,9 @@ namespace AVDump3Lib.Information.InfoProvider {
 							Add(stream, MediaStream.StatedSampleRateType, () => streamGet("FrameRate").ToInvDouble());
 							Add(stream, MediaStream.SampleCountType, () => streamGet("FrameCount").ToInvInt64());
 							Add(stream, VideoStream.PixelDimensionsType, () => new Dimensions(streamGet("Width").ToInvInt32(), streamGet("Height").ToInvInt32()));
-							Add(stream, VideoStream.DisplayAspectRatioType, () => streamGet("DisplayAspectRatio").ToInvDouble());
-							AddNode(stream);
+                            Add(stream, VideoStream.DisplayAspectRatioType, () => streamGet("DisplayAspectRatio").ToInvDouble());
+                            Add(stream, VideoStream.ColorBitDepthType, () => streamGet("BitDepth").ToInvInt32());
+                            AddNode(stream);
 							break;
 
 						case MediaInfoLibNativeMethods.StreamTypes.Audio:

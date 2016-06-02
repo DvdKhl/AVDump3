@@ -30,7 +30,6 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 		private void Populate(MatroskaFile mfi) {
 			MFI = mfi;
-
 			if(MFI == null) {
 				return;
 			}

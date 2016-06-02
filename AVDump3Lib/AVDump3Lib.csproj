@@ -64,6 +64,7 @@
     <Compile Include="Information\InfoProvider\InfoProviderFactory.cs" />
     <Compile Include="Information\MetaInfo\Core\CompositeMetaDataProvider.cs" />
     <Compile Include="Information\MetaInfo\Core\MetaInfoContainerType.cs" />
+    <Compile Include="Misc\KMeans.cs" />
     <Compile Include="Misc\TraceSourceEx.cs" />
     <Compile Include="Misc\SafeXmlWriter.cs" />
     <Compile Include="Modules\AVD3ModuleManagement.cs" />
@@ -113,6 +114,8 @@
     <Compile Include="Reporting\AVD3ReportingModule.cs" />
     <Compile Include="Reporting\Core\IReport.cs" />
     <Compile Include="Reporting\Core\ReportFactory.cs" />
+    <Compile Include="Reporting\Core\XmlReport.cs" />
+    <Compile Include="Reporting\Reports\AniDBReport.cs" />
     <Compile Include="Reporting\Reports\AVD3Report.cs" />
     <Compile Include="Settings\AVD3SettingsModule.cs" />
     <Compile Include="Settings\CLArguments\ArgGroup.cs" />

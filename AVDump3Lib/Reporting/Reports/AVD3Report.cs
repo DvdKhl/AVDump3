@@ -9,8 +9,8 @@ using System.Text;
 using System.Xml.Linq;
 
 namespace AVDump3Lib.Reporting.Reports {
-    public class AVD3Report : IReport {
-        private XDocument report;
+    public class AVD3Report : XmlReport {
+        protected override XDocument Report { get; }
 
 
         public AVD3Report(FileMetaInfo fileMetaInfo) {
@@ -25,10 +25,8 @@ namespace AVDump3Lib.Reporting.Reports {
                 rootElem.Add(BuildReportMedia(provider));
             }
 
-            report = xDoc;
+            Report = xDoc;
         }
-
-        public string FileExtension { get; } = "xml";
 
         public XElement BuildReportMedia(MetaInfoContainer container) {
             var rootElem = new XElement(container.Type?.Name ?? container.GetType().Name);
@@ -61,24 +59,6 @@ namespace AVDump3Lib.Reporting.Reports {
             }
 
             return rootElem;
-        }
-
-        public string ReportToString() {
-            using(var textWriter = new StringWriter())
-            using(var safeXmlWriter = new SafeXmlWriter(textWriter)) {
-                report.WriteTo(safeXmlWriter);
-                return textWriter.ToString();
-            }
-        }
-
-        public XDocument ReportToXml() { return new XDocument(report); }
-
-        public void SaveToFile(string filePath) {
-            Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-
-            using(var safeXmlWriter = new SafeXmlWriter(filePath, Encoding.UTF8)) {
-                report.WriteTo(safeXmlWriter);
-            }
         }
     }
 }

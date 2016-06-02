@@ -114,6 +114,7 @@ namespace AVDump3Lib.Information.MetaInfo {
 
         public static readonly MetaInfoItemType<CropSides> PixelCropType = new MetaInfoItemType<CropSides>("PixelCrop", null);
         public static readonly MetaInfoItemType<int> ColorSpaceType = new MetaInfoItemType<int>("ColorSpace", null);
+        public static readonly MetaInfoItemType<int> ColorBitDepthType = new MetaInfoItemType<int>("ColorBitDepth", null);
 
 
     }
