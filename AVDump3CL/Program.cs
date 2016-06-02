@@ -15,7 +15,7 @@ namespace AVDump3CL {
 			if(args.Length == 1 && args[0].Equals("DEBUG")) {
 				args = new string[] {
                     //"--Help",
-					"--Conc=6:G:/,1;H:/,1;I:/,2",
+					"--Conc=6:G:/,1;H:/,1;I:/,1",
 					//"--BSize=8:8",
 					//"--Consumers=CRC32, ED2K, MD4, MD5, SHA1, SHA384, SHA512, TTH, TIGER, MKV",
                     "--Consumers=CRC32, ED2K, MD5, SHA1, TTH, MKV",

@@ -30,11 +30,12 @@ namespace AVDump3Lib.Information.InfoProvider {
 		private CreateInfoProvider createInfoProvider;
 
 
-		public InfoProviderFactory(CreateInfoProvider createInfoProvider) {
-			this.createInfoProvider = createInfoProvider;
+		public InfoProviderFactory(Type providerType, CreateInfoProvider createInfoProvider) {
+            ProviderType = providerType;
+            this.createInfoProvider = createInfoProvider;
 		}
 
-		public Type ProviderType { get { return createInfoProvider.Method.ReturnType; } }
+		public Type ProviderType { get; }
 		public MetaDataProvider Create(InfoProviderSetup setup) {
 			return createInfoProvider(setup);
 		}
