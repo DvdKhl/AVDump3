@@ -44,7 +44,7 @@ namespace AVDump3Lib {
             XElement infoElem = new XElement("Information");
             infoElem.Add(new XElement("EntryAssemblyVersion", Assembly.GetEntryAssembly().GetName().Version));
             infoElem.Add(new XElement("LibVersion", Assembly.GetExecutingAssembly().GetName().Version));
-            infoElem.Add(new XElement("SessionId", Process.GetCurrentProcess().SessionId));
+            //infoElem.Add(new XElement("SessionId", Process.GetCurrentProcess().SessionId));
             infoElem.Add(new XElement("IntPtr.Size", IntPtr.Size));
             infoElem.Add(new XElement("Framework", Environment.Version));
             infoElem.Add(new XElement("OSVersion", Environment.OSVersion.VersionString));
@@ -96,7 +96,7 @@ namespace AVDump3Lib {
 
     [Serializable]
     public class SensitiveData {
-        private static readonly int salt = Process.GetCurrentProcess().SessionId;
+        private static readonly int salt = new Random().Next();
         private static readonly SHA1 sha1 = SHA1.Create();
 
         private static string ComputeHash(string value) {
