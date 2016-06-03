@@ -11,7 +11,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 		}
 
 
-		internal override void ProcessPage(Page page) {
+        public override void ProcessPage(OggPage page) {
 			base.ProcessPage(page);
 
 			var sampleIndex = BitConverter.ToInt64(page.GranulePosition, 0);

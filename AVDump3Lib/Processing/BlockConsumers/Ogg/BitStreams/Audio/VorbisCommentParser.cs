@@ -12,29 +12,26 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 		public bool FullyRead { get; private set; }
 		public bool ContainsComments { get; private set; }
 
-		private int dataLength;
 		private byte[] data;
+        private int dataLength;
 
 		private byte[] header = new byte[] { 0x03, (byte)'v', (byte)'o', (byte)'r', (byte)'b', (byte)'i', (byte)'s' };
 
 
-		public void ParsePage(Page page) {
+		public void ParsePage(OggPage page) {
 			if(FullyRead) return;
 
-			int offset;
-			var packet = page.GetData(out offset);
-
-			if(!ContainsComments && packet.SequenceEqual(header)) ContainsComments = true;
+			if(!ContainsComments && page.Data.Skip(page.DataOffset).SequenceEqual(header)) ContainsComments = true;
 			if(!ContainsComments) return;
 
 			if(data == null) data = new byte[page.DataLength * 5];
 			else if(data.Length - dataLength < page.DataLength) Array.Resize(ref data, data.Length * 2);
 
-			Buffer.BlockCopy(packet, 0, data, dataLength, page.DataLength);
+			Buffer.BlockCopy(page.Data, page.DataOffset, data, dataLength, page.DataLength);
+            dataLength += page.DataLength;
 
-			if((page.Flags & PageFlags.SpanAfter) != 0) {
 
-
+            if((page.Flags & PageFlags.SpanAfter) != 0) {
 				FullyRead = true;
 			}
 		}

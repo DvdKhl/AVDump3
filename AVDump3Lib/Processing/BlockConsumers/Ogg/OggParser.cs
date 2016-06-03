@@ -6,54 +6,28 @@ using System.IO;
 using System.Threading;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
-	public class OggParser : BlockConsumer {
-        private OggFile result;
+    public class OggParser : BlockConsumer {
 
-		public OggFile Info { get; private set; }
+        public OggFile Info { get; private set; }
 
-		public OggParser(string name, IBlockStreamReader reader) : base(name, reader) {
-        }
-
-        //public OggParser(string name) : base(name) { }
+        public OggParser(string name, IBlockStreamReader reader) : base(name, reader) { }
 
 
-
-        private IEnumerable<byte[]> Source(IEnumerable<byte[]> blocks) {
-            foreach(var block in blocks) {
-                yield return block;
-                //ProcessedBlocks++;
-            }
-        }
         protected override void DoWork(CancellationToken ct) {
-            var oggFile = new OggFile();
-            //oggFile.Parse(dataSrc);
+            var info = new OggFile();
 
-            result = oggFile;
+            var page = new OggPage();
+            var stream = new OggBlockDataSource(Reader);
+
+            if(!stream.SeekPastSyncBytes(true)) return;
+
+
+            stream.LocalPosition = 0; //Max Page size ~ 256 * 255
+            while(stream.ReadOggPage(page)) {
+                info.ProcessOggPage(page);
+            }
+
+            Info = info;
         }
-
-        public static bool IsOggFile(string filePath) {
-            if(!File.Exists(filePath)) return false;
-            using(var fileStream = File.OpenRead(filePath)) return IsOggFile(fileStream);
-        }
-        public static bool IsOggFile(Stream fileStream) {
-            if(fileStream.ReadByte() == 'O' && fileStream.ReadByte() == 'g' && fileStream.ReadByte() == 'g' && fileStream.ReadByte() == 'S') {
-                fileStream.Position = 0;
-            } else return false;
-
-
-            var dataSrc = new EBMLStreamDataSource(fileStream);
-
-            try {
-                var page = Page.Read(dataSrc);
-                page.Skip();
-
-                long offset = 0;
-                var syncBytes = dataSrc.GetData(4, out offset);
-
-                return syncBytes[offset + 0] == 'O' && syncBytes[offset + 1] == 'g' && syncBytes[offset + 2] == 'g' && syncBytes[offset + 3] == 'S';
-
-            } catch(Exception) { return false; }
-        }
-
     }
 }

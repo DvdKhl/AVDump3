@@ -14,7 +14,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 		}
 
 
-		internal override void ProcessPage(Page page) {
+        public override void ProcessPage(OggPage page) {
 			base.ProcessPage(page);
 
 			var frameIndex = BitConverter.ToInt64(page.GranulePosition, 0);

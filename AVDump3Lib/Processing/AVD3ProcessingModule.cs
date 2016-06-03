@@ -1,6 +1,7 @@
 using AVDump3Lib.Modules;
 using AVDump3Lib.Processing.BlockConsumers;
 using AVDump3Lib.Processing.BlockConsumers.Matroska;
+using AVDump3Lib.Processing.BlockConsumers.Ogg;
 using AVDump3Lib.Processing.HashAlgorithms;
 using System;
 using System.Collections.Generic;
@@ -29,7 +30,8 @@ namespace AVDump3Lib.Processing {
                 new BlockConsumerFactory("TIGER", r => new HashCalculator("TIGER", r, new TigerHashAlgorithm())),
                 new BlockConsumerFactory("TTH", r => new HashCalculator("TTH", r, new TigerTreeHashAlgorithm(Environment.ProcessorCount)) ),
                 new BlockConsumerFactory("CRC32", r => new HashCalculator("CRC32", r, new Crc32HashAlgorithm())),
-                new BlockConsumerFactory("MKV", r => new MatroskaParser("MKV", r))
+                new BlockConsumerFactory("MKV", r => new MatroskaParser("MKV", r)),
+                new BlockConsumerFactory("OGG", r => new OggParser("OGG", r))
            };
 
             BlockConsumerFactories = blockConsumerFactories.AsReadOnly();

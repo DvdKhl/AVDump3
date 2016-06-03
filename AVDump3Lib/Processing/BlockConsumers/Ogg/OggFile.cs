@@ -15,27 +15,20 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 		private Dictionary<uint, OGGBitStream> bitStreams = new Dictionary<uint, OGGBitStream>();
 
 
-		internal void Parse(IEBMLDataSource src) {
-			Page page;
-			while((page = Page.Read(src)) != null) {
-				Overhead += 27 + page.SegmentCount;
+        public void ProcessOggPage(OggPage page) {
+            Overhead += 27 + page.SegmentCount;
 
-				OGGBitStream bitStream = null;
-				if(bitStreams.TryGetValue(page.StreamId, out bitStream)) {
-					bitStream.ProcessPage(page);
+            OGGBitStream bitStream = null;
+            if(bitStreams.TryGetValue(page.StreamId, out bitStream)) {
+                bitStream.ProcessPage(page);
 
-				} else if(page.Flags.HasFlag(PageFlags.Header)) {
-					bitStream = OGGBitStream.ProcessBeginPage(page);
-					bitStreams.Add(bitStream.Id, bitStream);
+            } else if(page.Flags.HasFlag(PageFlags.Header)) {
+                bitStream = OGGBitStream.ProcessBeginPage(page);
+                bitStreams.Add(bitStream.Id, bitStream);
 
-				} else {
-					Overhead += page.DataLength;
-				}
-
-				page.Skip();
-			}
-
-			Bitstreams = Array.AsReadOnly(bitStreams.Values.ToArray());
-		}
-	}
+            } else {
+                Overhead += page.DataLength;
+            }
+        }
+    }
 }

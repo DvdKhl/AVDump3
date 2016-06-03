@@ -59,35 +59,5 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
                 }
             }
 		}
-
-		public static bool IsMatroskaFile(string filePath) {
-			if(!File.Exists(filePath)) return false;
-			using(var fileStream = File.OpenRead(filePath)) return IsMatroskaFile(fileStream);
-		}
-		public static bool IsMatroskaFile(Stream fileStream) {
-			if(fileStream.ReadByte() == 0x1a && fileStream.ReadByte() == 0x45 && fileStream.ReadByte() == 0xdf && fileStream.ReadByte() == 0xa3) {
-				fileStream.Position = 0;
-			} else {
-				return false;
-			}
-
-			var matroskaDocType = new MatroskaDocType(MatroskaVersion.V3);
-			var dataSrc = new EBMLStreamDataSource(fileStream);
-			var reader = new EBMLReader(dataSrc, matroskaDocType);
-
-			bool isMatroskaFile;
-			try {
-				var elementInfo = reader.Next();
-				if(elementInfo.DocElement.Id == EBMLDocType.EBMLHeader.Id) {
-					Section.CreateRead(new EbmlHeaderSection(), reader, elementInfo);
-					isMatroskaFile = true;
-				} else {
-					isMatroskaFile = false;
-				}
-			} catch(Exception) { isMatroskaFile = false; }
-
-			fileStream.Position = 0;
-			return isMatroskaFile;
-		}
 	}
 }

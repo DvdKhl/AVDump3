@@ -5,6 +5,7 @@ using AVDump3Lib.Misc;
 using AVDump3Lib.Information.MetaInfo;
 using System.Linq;
 using AVDump3Lib.Information.MetaInfo.Core;
+using System.Diagnostics;
 
 namespace AVDump3Lib.Information.InfoProvider {
 
@@ -258,7 +259,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 				foreach(var processingStep in processingChain) value = processingStep(value);
 				value = value.Trim();
 				Add(container, type, transform(value));
-			} catch(Exception ex) { }
+			} catch(Exception ex) { Debug.WriteLine(ex.Message); }
 		}
 		private void Add<T>(MetaInfoContainer container, MetaInfoItemType<T> type, Func<T> getValue) {
 			T value;
