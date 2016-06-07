@@ -94,9 +94,14 @@ namespace AVDump3CL {
             reportingModule = modules.OfType<IAVD3ReportingModule>().Single();
 
             var settingsgModule = modules.OfType<IAVD3SettingsModule>().Single();
-            settingsgModule.RegisterCommandlineArgs += CreateCommandlineArguments;
+            settingsgModule.RegisterSettings(settings.Diagnostics);
+            settingsgModule.RegisterSettings(settings.Display);
+            settingsgModule.RegisterSettings(settings.FileDiscovery);
+            settingsgModule.RegisterSettings(settings.Processing);
+            settingsgModule.RegisterSettings(settings.Reporting);
 
         }
+        public void BeforeConfiguration() { }
         public void AfterConfiguration() { }
 
         public void Process(string[] paths) {
@@ -108,14 +113,13 @@ namespace AVDump3CL {
             var bcs = new BlockConsumerSelector(processingModule.BlockConsumerFactories);
             bcs.Filter += BlockConsumerFilter;
 
-            var bp = new BlockPool(settings.Processing.BlockCount, settings.Processing.BlockLength);
+            var bp = new BlockPool(settings.Processing.BlockSize.BlockCount, settings.Processing.BlockSize.BlockLength);
 
             var fileDiscoveryOn = DateTimeOffset.UtcNow;
             var acceptedFiles = 0;
 
             var scf = new StreamConsumerFactory(bcs, bp);
-            var sp = new StreamFromPathsProvider(settings.FileDiscovery.GlobalConcurrentCount,
-                settings.FileDiscovery.PathPartitions, paths, true,
+            var sp = new StreamFromPathsProvider(settings.FileDiscovery.Concurrent, paths, true,
                 path => {
                     if(fileDiscoveryOn.AddSeconds(1) < DateTimeOffset.UtcNow) {
                         Console.WriteLine("Accepted files: " + acceptedFiles);
@@ -124,11 +128,10 @@ namespace AVDump3CL {
                     }
 
                     var accept = false;
-                    if(settings.FileDiscovery.FileExtensions.Items.Count == 0) accept = true;
+                    if(settings.FileDiscovery.WithExtensions.Items.Count == 0) accept = true;
 
-
-                    accept = !settings.FileDiscovery.FileExtensions.Allow ^
-                        settings.FileDiscovery.FileExtensions.Items.Any(
+                    accept = !settings.FileDiscovery.WithExtensions.Allow ^
+                        settings.FileDiscovery.WithExtensions.Items.Any(
                             fe => path.EndsWith(fe, StringComparison.InvariantCultureIgnoreCase));
 
                     if(accept) acceptedFiles++;
@@ -166,7 +169,7 @@ namespace AVDump3CL {
         }
 
         private void BlockConsumerFilter(object sender, BlockConsumerSelectorEventArgs e) {
-            e.Select = settings.Processing.UsedBlockConsumerNames.Any(x => e.Name.Equals(x, StringComparison.OrdinalIgnoreCase));
+            e.Select = settings.Processing.Consumers.Any(x => e.Name.Equals(x, StringComparison.OrdinalIgnoreCase));
         }
 
         private async void ConsumingStream(object sender, ConsumingStreamEventArgs e) {
@@ -198,7 +201,7 @@ namespace AVDump3CL {
                 cl.Writeline("");
             }
 
-            var reportsFactories = reportingModule.ReportFactories.Where(x => settings.Reporting.UsedReportNames.Any(y => x.Name.Equals(y, StringComparison.OrdinalIgnoreCase))).ToArray();
+            var reportsFactories = reportingModule.ReportFactories.Where(x => settings.Reporting.Reports.Any(y => x.Name.Equals(y, StringComparison.OrdinalIgnoreCase))).ToArray();
             if(reportsFactories.Length != 0) {
                 var infoSetup = new InfoProviderSetup(filePath, blockConsumers);
                 var infoProviders = informationModule.InfoProviderFactories.Select(x => x.Create(infoSetup));
@@ -235,188 +238,6 @@ namespace AVDump3CL {
             //}
 
             FileProcessed?.Invoke(this, new AVD3CLFileProcessedEventArgs(filePath, blockConsumers));
-        }
-
-        private IEnumerable<ArgGroup> CreateCommandlineArguments() {
-            var availableBlockConsumerNames = processingModule.BlockConsumerFactories.Select(x => x.Name).ToArray();
-            var availableReportNames = reportingModule.ReportFactories.Select(x => x.Name).ToArray();
-
-            #region Processing
-            yield return new ArgGroup("Processing",
-                "",
-                ArgStructure.Create(
-                    arg => {
-                        var raw = arg.Split(':').Select(ldArg => int.Parse(ldArg));
-                        return new { BlockSize = raw.ElementAt(0), BlockCount = raw.ElementAt(1) };
-                    },
-                    args => {
-                        settings.Processing.BlockCount = args.BlockCount;
-                        settings.Processing.BlockLength = args.BlockSize << 20;
-                    },
-                    "--BSize=<blocksize in kb>:<block count>",
-                    "Circular buffer size for hashing",
-                    "BlockSize", "BSize"
-                ),
-                ArgStructure.Create(
-                    arg => arg.Split(',').Select(a => a.Trim()),
-                    hashNames => settings.Processing.UsedBlockConsumerNames = Array.AsReadOnly(hashNames.ToArray()),
-                    "--Consumers=<ConsumerName1>[,<ConsumerName2>,...]",
-                    "Select consumers to use (" + string.Join(", ", availableBlockConsumerNames) + ")",
-                    "Consumers", "Cons"
-                )
-            );
-            #endregion
-
-            #region Reporting
-            yield return new ArgGroup("Reporting",
-                "",
-                ArgStructure.Create(
-                    arg => arg.Split(',').Select(a => a.Trim()),
-                    reportNames => settings.Reporting.UsedReportNames = Array.AsReadOnly(reportNames.ToArray()),
-                    "--Reports=<ReportName1>[,<ReportName2>,...]",
-                    string.Join(", ", availableReportNames),
-                    "Reports"
-                ),
-                ArgStructure.Create(
-                    arg => settings.Reporting.ReportDirectory = arg,
-                    "--ReportDirectory=<DirectoryPath>",
-                    "",
-                    "ReportDirectory", "RDir"
-                )
-            );
-            #endregion
-
-            #region FileDiscovery
-            yield return new ArgGroup("FileDiscovery",
-                "",
-                ArgStructure.Create(
-                    arg => settings.FileDiscovery.Recursive = true,
-                    "--Recursive",
-                    "",
-                    "Recursive", "R"
-                ),
-                ArgStructure.Create(
-                    arg => {
-                        settings.FileDiscovery.FileExtensions.Allow = arg[0] != '-';
-                        if(arg[0] == '-') arg = arg.Substring(1);
-                        settings.FileDiscovery.FileExtensions.Items = Array.AsReadOnly(arg.Split(','));
-                    },
-                    "--WithExtensions=[-]<Extension1>[,<Extension2>,...]",
-                    "",
-                    "WithExtensions", "WExts"
-                ),
-                ArgStructure.Create(
-                    arg => {
-                        var raw = arg.Split(new char[] { ':' }, 2);
-                        return new {
-                            MaxCount = int.Parse(raw[0]),
-                            PerPath =
-                              from item in (raw.Length > 1 ? raw[1].Split(';') : new string[0])
-                              let parts = item.Split(',')
-                              select new { Path = parts[0], MaxCount = int.Parse(parts[1]) }
-                        };
-                    },
-                    arg => {
-                        settings.FileDiscovery.GlobalConcurrentCount = arg.MaxCount;
-                        settings.FileDiscovery.PathPartitions = Array.AsReadOnly(arg.PerPath.Select(x => new PathPartition(x.Path, x.MaxCount)).ToArray());
-                    },
-                    "--Concurrent=<max>[:<path1>,<max1>;<path2>,<max2>;...]",
-                    "Sets the maximal number of files which will be processed concurrently.\n" +
-                    "First param (max) sets a global limit. (path,max) pairs sets limits per path.",
-                    "Concurrent", "Conc"
-                )
-            );
-            #endregion
-
-            #region Display
-            yield return new ArgGroup("Display",
-                "",
-                ArgStructure.Create(
-                    arg => settings.Display.HideBuffers = true,
-                    "--HideBuffers",
-                    "",
-                    "HideBuffers"
-                ),
-                ArgStructure.Create(
-                    arg => settings.Display.HideFileProgress = true,
-                    "--HideFileProgress",
-                    "",
-                    "HideFileProgress"
-                ),
-                ArgStructure.Create(
-                    arg => settings.Display.HideTotalProgress = true,
-                    "--HideTotalProgress",
-                    "",
-                    "HideTotalProgress"
-                ),
-                ArgStructure.Create(
-                    arg => {
-                        settings.Display.HideBuffers = true;
-                        settings.Display.HideFileProgress = true;
-                        settings.Display.HideTotalProgress = true;
-                    },
-                    "--HideUI",
-                    "",
-                    "HideUI"
-                ),
-                ArgStructure.Create(
-                    arg => settings.Display.PrintHashes = true,
-                    "--PrintHashes",
-                    "",
-                    "PrintHashes"
-                ),
-                ArgStructure.Create(
-                    arg => settings.Display.PrintReports = true,
-                    "--PrintReports",
-                    "",
-                    "PrintReports"
-                )
-            );
-            #endregion
-
-            #region Diagnostics
-            yield return new ArgGroup("Diagnostics",
-                "",
-                ArgStructure.Create(
-                    _ => settings.Diagnostics.SaveErrors = true,
-                    "--SaveErrors",
-                    "",
-                    "SaveErrors"
-                ),
-                ArgStructure.Create(
-                    _ => settings.Diagnostics.SkipEnvironmentElement = true,
-                    "--SkipEnvironmentElement",
-                    "",
-                    "SkipEnvironmentElement"
-                ),
-                ArgStructure.Create(
-                    _ => settings.Diagnostics.IncludePersonalData = true,
-                    "--IncludePersonalData",
-                    "",
-                    "IncludePersonalData"
-                ),
-                ArgStructure.Create(
-                    arg => settings.Diagnostics.ErrorDirectory = arg,
-                    "--ErrorDirectory=<DirectoryPath>",
-                    "",
-                    "ErrorDirectory", "ErrDir"
-                )
-            );
-            #endregion
-
-            //bool useNtfsAlternateStreams = false;
-            //yield return new ArgGroup("Internal",
-            //	"",
-            //	() => {
-            //		UseNtfsAlternateStreams = useNtfsAlternateStreams;
-            //	},
-            //	ArgStructure.Create(
-            //		arg => useNtfsAlternateStreams = true,
-            //		"--UseNtfsAlternateStreams",
-            //		"Store Hashes in Ntfs Alternate Streams to avoid unecessary rehashing",
-            //		"UseNtfsAlternateStreams"
-            //	)
-            //);
         }
     }
 

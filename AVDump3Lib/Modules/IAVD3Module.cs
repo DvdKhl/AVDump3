@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace AVDump3Lib.Modules {
 	public interface IAVD3Module {
         void Initialize(IReadOnlyCollection<IAVD3Module> modules);
+        void BeforeConfiguration();
         void AfterConfiguration();
     }
 }

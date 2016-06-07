@@ -39,6 +39,7 @@ namespace AVDump3Lib.Processing {
         }
 
         public void Initialize(IReadOnlyCollection<IAVD3Module> modules) {        }
+        public void BeforeConfiguration() { }
         public void AfterConfiguration() { }
     }
 }

@@ -34,5 +34,7 @@ namespace AVDump3Lib.Information {
         }
 
         public void AfterConfiguration() { }
+
+        public void BeforeConfiguration() { }
     }
 }

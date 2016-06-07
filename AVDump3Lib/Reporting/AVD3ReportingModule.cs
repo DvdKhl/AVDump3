@@ -6,8 +6,9 @@ using System.Collections.Generic;
 namespace AVDump3Lib.Reporting {
 	public interface IAVD3ReportingModule : IAVD3Module {
 		IReadOnlyCollection<IReportFactory> ReportFactories { get; }
-	}
-	public class AVD3ReportingModule : IAVD3ReportingModule {
+        void AddReport(ReportFactory reportFactory);
+    }
+    public class AVD3ReportingModule : IAVD3ReportingModule {
 		private List<IReportFactory> reportFactories;
 
 		public IReadOnlyCollection<IReportFactory> ReportFactories { get; }
@@ -21,8 +22,11 @@ namespace AVDump3Lib.Reporting {
 			ReportFactories = reportFactories.AsReadOnly();
 		}
 
+        public void AddReport(ReportFactory reportFactory) { reportFactories.Add(reportFactory); }
+
 		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) {
 		}
+        public void BeforeConfiguration() { }
         public void AfterConfiguration() { }
     }
 }

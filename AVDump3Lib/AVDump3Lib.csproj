@@ -118,8 +118,6 @@
     <Compile Include="Reporting\Reports\AniDBReport.cs" />
     <Compile Include="Reporting\Reports\AVD3Report.cs" />
     <Compile Include="Settings\AVD3SettingsModule.cs" />
-    <Compile Include="Settings\CLArguments\ArgGroup.cs" />
-    <Compile Include="Settings\CLArguments\ArgStructure.cs" />
     <Compile Include="Processing\BlockBuffers\BlockPool.cs" />
     <Compile Include="Processing\BlockBuffers\BlockStream.cs" />
     <Compile Include="Processing\BlockBuffers\BlockStreamReader.cs" />
@@ -175,11 +173,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Processing\StreamConsumer\StreamConsumer.cs" />
     <Compile Include="Processing\StreamConsumer\StreamConsumerCollection.cs" />
-    <Compile Include="Settings\CLArguments\CLManagement.cs" />
+    <Compile Include="Settings\SettingsHandlers\CLSettingsHandler.cs" />
+    <Compile Include="Settings\Core\ISettingsHandler.cs" />
+    <Compile Include="Settings\Core\SettingsObject.cs" />
+    <Compile Include="Settings\Core\SettingsProperty.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Settings\ConfigFile\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>

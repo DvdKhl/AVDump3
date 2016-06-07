@@ -29,8 +29,8 @@ namespace AVDump3Lib.Modules {
 			}
 		}
 
-		public void LoadModuleFromType(Type moduleType) {
-			var module = (IAVD3Module)Activator.CreateInstance(moduleType);
+		public void LoadModuleFromType(Type moduleType, params object[] args) {
+			var module = (IAVD3Module)Activator.CreateInstance(moduleType, args);
 			modules.Add(module);
 		}
 
@@ -43,6 +43,11 @@ namespace AVDump3Lib.Modules {
 
 		public T GetModule<T>() where T: IAVD3Module { return modules.OfType<T>().FirstOrDefault(); }
 
+        public void RaiseBeforeConfiguration() {
+            foreach(var module in modules) {
+                module.BeforeConfiguration();
+            }
+        }
         public void RaiseAfterConfiguration() {
             foreach(var module in modules) {
                 module.AfterConfiguration();

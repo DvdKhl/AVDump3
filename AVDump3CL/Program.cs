@@ -10,11 +10,12 @@ using System.Linq;
 
 namespace AVDump3CL {
 	class Program {
+        private static CLSettingsHandler clSettingsHandler;
 
-		static void Main(string[] args) {
+        static void Main(string[] args) {
 			if(args.Length == 1 && args[0].Equals("DEBUG")) {
 				args = new string[] {
-                    //"--Help",
+                    "--Help",
 					"--Conc=6:G:/,1;H:/,1;I:/,1",
 					//"--BSize=8:8",
 					//"--Consumers=CRC32, ED2K, MD4, MD5, SHA1, SHA384, SHA512, TTH, TIGER, MKV",
@@ -22,55 +23,43 @@ namespace AVDump3CL {
                     //"--Consumers=MKV",
                     "--Reports=AVD3Report",
                     //"--PrintReports",
-                    "--WExts=mkv",
+                    "--WExts=mkv, avi, ogg, ogm, mp4",
+                    "--Reports=AniDBReport",
                     "--RDir=Reports/",
                     "--SaveErrors",
                     "--IncludePersonalData",
                     "--ErrorDirectory=Error",
+                    "G:/",
+                    "H:/",
                     "I:/"
                 };
 			}
-			var moduleManagemant = IniModules();
-			var pathsToProcess = ProcessCommandlineArguments(moduleManagemant.GetModule<AVD3SettingsModule>(), args);
-            moduleManagemant.RaiseAfterConfiguration();
+            clSettingsHandler = new CLSettingsHandler();
 
+            var moduleManagemant = IniModules();
+            moduleManagemant.RaiseBeforeConfiguration();
 
-
-            if(pathsToProcess == null) {
+            var pathsToProcess = new List<string>();
+            if(!clSettingsHandler.ParseArgs(args, pathsToProcess)) {
 				Console.Read();
 				return;
-			}
+            }
+
+            moduleManagemant.RaiseAfterConfiguration();
 
 			var clModule = moduleManagemant.GetModule<AVD3CLModule>();
-			clModule.Process(pathsToProcess);
-
-			Console.Read();
+			clModule.Process(pathsToProcess.ToArray());
 		}
 		private static AVD3ModuleManagement IniModules() {
-			var moduleManagement = new AVD3ModuleManagement();
+            var moduleManagement = new AVD3ModuleManagement();
 			moduleManagement.LoadModules(AppDomain.CurrentDomain.BaseDirectory);
 			moduleManagement.LoadModuleFromType(typeof(AVD3InformationModule));
 			moduleManagement.LoadModuleFromType(typeof(AVD3ProcessingModule));
 			moduleManagement.LoadModuleFromType(typeof(AVD3ReportingModule));
-			moduleManagement.LoadModuleFromType(typeof(AVD3SettingsModule));
+			moduleManagement.LoadModuleFromType(typeof(AVD3SettingsModule), clSettingsHandler);
 			moduleManagement.LoadModuleFromType(typeof(AVD3CLModule));
 			moduleManagement.InitializeModules();
 			return moduleManagement;
 		}
-
-		private static string[] ProcessCommandlineArguments(AVD3SettingsModule settingsModule, string[] arguments) {
-			var unnamedArgs = new List<string>();
-			var clManagement = new CLManagement();
-			clManagement.SetUnnamedParamHandler(arg => unnamedArgs.Add(arg));
-
-			var argGroups = settingsModule.RaiseCommandlineRegistration().ToArray();
-			clManagement.RegisterArgGroups(argGroups);
-
-			if(!clManagement.ParseArgs(arguments)) return null;
-
-			return unnamedArgs.ToArray();
-		}
-
-
 	}
 }

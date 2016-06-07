@@ -1,11 +1,22 @@
 using AVDump3Lib.Misc;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading;
 
 namespace AVDump3Lib.Processing.StreamProvider {
+    public class PathPartitions {
+        public int ConcurrentCount { get; private set; }
+        public ReadOnlyCollection<PathPartition> Partitions { get; private set; }
+
+        public PathPartitions(int concurrentCount, IEnumerable<PathPartition> partitions) {
+            ConcurrentCount = concurrentCount;
+            Partitions = Array.AsReadOnly(partitions.ToArray());
+        }
+    }
+
 	public class PathPartition {
 		public string Path { get; }
 		public int ConcurrentCount { get; }
@@ -23,13 +34,13 @@ namespace AVDump3Lib.Processing.StreamProvider {
 		public int TotalFileCount { get; private set; }
 		public long TotalBytes { get; private set; }
 
-		public StreamFromPathsProvider(int globalConcurrencyCount, IEnumerable<PathPartition> pathPartitions,
+		public StreamFromPathsProvider(PathPartitions pathPartitions,
 			IEnumerable<string> paths, bool includeSubFolders, Func<string, bool> accept, Action<Exception> onError
 		) {
 
-			globalConcurrency = new SemaphoreSlim(globalConcurrencyCount);
+			globalConcurrency = new SemaphoreSlim(pathPartitions.ConcurrentCount);
 
-			localConcurrencyPartitions = pathPartitions.Select(pp =>
+			localConcurrencyPartitions = pathPartitions.Partitions.Select(pp =>
 				new LocalConcurrency {
 					Path = pp.Path,
 					Limit = new SemaphoreSlim(pp.ConcurrentCount)
