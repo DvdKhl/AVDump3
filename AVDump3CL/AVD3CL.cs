@@ -231,7 +231,7 @@ namespace AVDump3CL {
             if(!Monitor.TryEnter(timer)) return;
             Console.Write(output); dirty = true;
             maxCursorPos = Math.Max(maxCursorPos, Console.CursorTop);
-            Console.SetCursorPosition(0, Console.CursorTop - sbLineCount);
+            Console.SetCursorPosition(0, Math.Max(0, Console.CursorTop - sbLineCount));
 
             if(state == 0) {
                 prevP = curP;

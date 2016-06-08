@@ -15,14 +15,17 @@ namespace AVDump3CL {
         static void Main(string[] args) {
 			if(args.Length == 1 && args[0].Equals("DEBUG")) {
 				args = new string[] {
-                    "--Help",
+                    //"--Help",
 					"--Conc=6:G:/,1;H:/,1;I:/,1",
 					//"--BSize=8:8",
 					//"--Consumers=CRC32, ED2K, MD4, MD5, SHA1, SHA384, SHA512, TTH, TIGER, MKV",
-                    "--Consumers=CRC32, ED2K, MD5, SHA1, TTH, MKV, OGG",
+                    "--Consumers=CRC32,ED2K,MD5,SHA1,TTH",
                     //"--Consumers=MKV",
                     "--Reports=AVD3Report",
                     //"--PrintReports",
+                    "--HideBuffers",
+                    //"--HideTotalProgress",
+                    "--HideFileProgress",
                     "--WExts=mkv, avi, ogg, ogm, mp4",
                     "--Reports=AniDBReport",
                     "--RDir=Reports/",

@@ -52,7 +52,7 @@ namespace AVDump3CL {
             set { SetValue(ConcurrentProperty, value); }
         }
 
-        [CLNames("WExt")]
+        [CLNames("WExts")]
         public SettingsProperty WithExtensionsProperty { get; }
         public FileExtensionsSetting WithExtensions {
             get { return (FileExtensionsSetting)GetValue(WithExtensionsProperty); }
