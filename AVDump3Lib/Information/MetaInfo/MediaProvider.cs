@@ -100,6 +100,7 @@ namespace AVDump3Lib.Information.MetaInfo {
     #region VideoStream
     public class VideoStream {
         public static readonly MetaInfoItemType<bool> IsInterlacedType = new MetaInfoItemType<bool>("IsInterlaced", null);
+        public static readonly MetaInfoItemType<bool> HasVariableFrameRateType = new MetaInfoItemType<bool>("HasVariableFrameRate", null);
         public static readonly MetaInfoItemType<bool> HasAlphaType = new MetaInfoItemType<bool>("HasAlpha", null);
         public static readonly MetaInfoItemType<StereoModes> StereoModeType = new MetaInfoItemType<StereoModes>("StereoMode", null);
 
@@ -113,6 +114,7 @@ namespace AVDump3Lib.Information.MetaInfo {
         public static readonly MetaInfoItemType<double> StorageAspectRatioType = new MetaInfoItemType<double>("StorageAspectRatio", null);
 
         public static readonly MetaInfoItemType<CropSides> PixelCropType = new MetaInfoItemType<CropSides>("PixelCrop", null);
+        public static readonly MetaInfoItemType<ChromeSubsampling> ChromaSubsamplingType = new MetaInfoItemType<ChromeSubsampling>("ChromaSubsampling", null);
         public static readonly MetaInfoItemType<int> ColorSpaceType = new MetaInfoItemType<int>("ColorSpace", null);
         public static readonly MetaInfoItemType<int> ColorBitDepthType = new MetaInfoItemType<int>("ColorBitDepth", null);
 
@@ -123,6 +125,22 @@ namespace AVDump3Lib.Information.MetaInfo {
     public enum DisplayUnits { Invalid, Pixel, Meter, AspectRatio, Unknown }
     public enum AspectRatioBehaviors { Invalid, FreeResizing, KeepAR, Fixed, Unknown }
 
+    public class ChromeSubsampling {
+        public int Y { get; }
+        public int Cb { get; }
+        public int Cr { get;  }
+        public ChromeSubsampling(int y, int cb, int cr) {
+            Y = y;
+            Cb = cb;
+            Cr = cr;
+        }
+        public ChromeSubsampling(string data) {
+            var parts = data.Split(':');
+            Y = int.Parse(parts[0]);
+            Cb = int.Parse(parts[1]);
+            Cr = int.Parse(parts[2]);
+        }
+    }
     public class Dimensions {
         public Dimensions(int width, int height) {
             Width = width;

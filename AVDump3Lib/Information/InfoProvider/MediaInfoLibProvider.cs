@@ -150,9 +150,15 @@ namespace AVDump3Lib.Information.InfoProvider {
 							stream = new MetaInfoContainer(id ?? (ulong)Nodes.Count(x => x.Type == ChaptersType), VideoStreamType); hasVideo = true;
 							Add(stream, MediaStream.StatedSampleRateType, () => streamGet("FrameRate").ToInvDouble());
 							Add(stream, MediaStream.SampleCountType, () => streamGet("FrameCount").ToInvInt64());
-							Add(stream, VideoStream.PixelDimensionsType, () => new Dimensions(streamGet("Width").ToInvInt32(), streamGet("Height").ToInvInt32()));
+                            Add(stream, VideoStream.PixelAspectRatioType, () => streamGet("PixelAspectRatio").ToInvDouble());
+                            Add(stream, VideoStream.PixelDimensionsType, () => new Dimensions(streamGet("Width").ToInvInt32(), streamGet("Height").ToInvInt32()));
                             Add(stream, VideoStream.DisplayAspectRatioType, () => streamGet("DisplayAspectRatio").ToInvDouble());
                             Add(stream, VideoStream.ColorBitDepthType, () => streamGet("BitDepth").ToInvInt32());
+
+                            Add(stream, VideoStream.IsInterlacedType, () => streamGet("ScanType").Equals("Interlaced"));
+                            Add(stream, VideoStream.HasVariableFrameRateType, () => streamGet("FrameRate_Mode").Equals("VFR", StringComparison.OrdinalIgnoreCase));
+                            Add(stream, VideoStream.ChromaSubsamplingType, () => new ChromeSubsampling(streamGet("ChromaSubsampling")));
+                            //Add(stream, VideoStream.ColorSpaceType, () => streamGet("ColorSpace"));
                             AddNode(stream);
 							break;
 
@@ -176,8 +182,10 @@ namespace AVDump3Lib.Information.InfoProvider {
 					}
 
 					Add(stream, MediaStream.SizeType, () => streamGet("StreamSize").ToInvInt64());
-					Add(stream, MediaStream.TitleType, () => streamGet("Title"));
-					Add(stream, MediaStream.IdType, () => streamGet("UniqueID").ToInvUInt64());
+                    Add(stream, MediaStream.TitleType, () => streamGet("Title"));
+                    Add(stream, MediaStream.IsForcedType, () => streamGet("Forced").Equals("yes", StringComparison.OrdinalIgnoreCase));
+                    Add(stream, MediaStream.IsDefaultType, () => streamGet("Default").Equals("yes", StringComparison.OrdinalIgnoreCase));
+                    Add(stream, MediaStream.IdType, () => streamGet("UniqueID").ToInvUInt64());
 					Add(stream, MediaStream.LanguageType, () => streamGet("Language"));
 					Add(stream, MediaStream.DurationType, () => streamGet("Duration"), s => TimeSpan.FromSeconds(s.ToInvDouble() / 1000), splitTakeFirst);
 					Add(stream, MediaStream.BitrateType, () => streamGet("BitRate").ToInvDouble());
