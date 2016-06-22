@@ -7,12 +7,14 @@ using AVDump3Lib.Processing.BlockConsumers.Ogg;
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using AVDump3Lib.Information.MetaInfo.Core;
 
 namespace AVDump3Lib.Information {
     public interface IAVD3InformationModule : IAVD3Module {
         IReadOnlyCollection<IInfoProviderFactory> InfoProviderFactories { get; }
-    }
-    public class AVD3InformationModule : IAVD3InformationModule {
+		void AddProviderFactory(IInfoProviderFactory infoProviderFactory);
+	}
+	public class AVD3InformationModule : IAVD3InformationModule {
         private List<IInfoProviderFactory> infoProviderFactories;
 
         public IReadOnlyCollection<IInfoProviderFactory> InfoProviderFactories { get; }
@@ -30,7 +32,9 @@ namespace AVDump3Lib.Information {
             InfoProviderFactories = infoProviderFactories.AsReadOnly();
         }
 
-        public void Initialize(IReadOnlyCollection<IAVD3Module> modules) {
+		public void AddProviderFactory(IInfoProviderFactory infoProviderFactory) { infoProviderFactories.Add(infoProviderFactory); }
+
+		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) {
         }
 
         public void AfterConfiguration() { }

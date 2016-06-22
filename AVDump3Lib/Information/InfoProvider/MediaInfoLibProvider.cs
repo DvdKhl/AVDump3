@@ -234,7 +234,9 @@ namespace AVDump3Lib.Information.InfoProvider {
 				}
 			}
 
-			if(Select(SuggestedFileExtensionType) == null) Add(SuggestedFileExtensionType, milInfo);
+			if(Select(SuggestedFileExtensionType) == null) {
+				Add(SuggestedFileExtensionType, milInfo);
+			}
 		}
 
 		public MediaInfoLibProvider(string filePath)
@@ -250,6 +252,11 @@ namespace AVDump3Lib.Information.InfoProvider {
 			}
 		}
 
+		private void Add(MetaInfoItemType<string> type, string value) {
+			if(!string.IsNullOrWhiteSpace(value)) {
+				base.Add(type, value);
+			}
+		}
 
 
 		private void Add<T>(MetaInfoItemType<T> type, Func<string> getValue, Func<string, T> transform, params Func<string, string>[] processingChain) {

@@ -10,9 +10,9 @@ using System.Linq;
 
 namespace AVDump3CL {
 	class Program {
-        private static CLSettingsHandler clSettingsHandler;
+		private static CLSettingsHandler clSettingsHandler;
 
-        static void Main(string[] args) {
+		static void Main(string[] args) {
 			if(args.Length == 1 && args[0].Equals("DEBUG")) {
 				args = new string[] {
                     //"--Help",
@@ -22,39 +22,39 @@ namespace AVDump3CL {
                     "--Consumers=CRC32,ED2K,MD5,SHA1,TTH",
                     //"--Consumers=MKV",
                     "--Reports=AVD3Report",
-                    //"--PrintReports",
-                    "--HideBuffers",
+					"--PrintReports",
+					"--HideBuffers",
                     //"--HideTotalProgress",
                     "--HideFileProgress",
-                    "--WExts=mkv, avi, ogg, ogm, mp4",
-                    "--Reports=AniDBReport",
+                    //"--WExts=mkv, avi, ogg, ogm, mp4",
+                    //"--Reports=AniDBReport",
                     "--RDir=Reports/",
-                    "--SaveErrors",
-                    "--IncludePersonalData",
-                    "--ErrorDirectory=Error",
-                    "G:/",
-                    "H:/",
-                    "I:/"
+					"--SaveErrors",
+					"--IncludePersonalData",
+					"--ErrorDirectory=Error",
+					"--PauseBeforeExit",
+                    //"H:/",
+                    //"I:/"
                 };
 			}
-            clSettingsHandler = new CLSettingsHandler();
+			clSettingsHandler = new CLSettingsHandler();
 
-            var moduleManagemant = IniModules();
-            moduleManagemant.RaiseBeforeConfiguration();
+			var moduleManagemant = IniModules();
+			moduleManagemant.RaiseBeforeConfiguration();
 
-            var pathsToProcess = new List<string>();
-            if(!clSettingsHandler.ParseArgs(args, pathsToProcess)) {
+			var pathsToProcess = new List<string>();
+			if(!clSettingsHandler.ParseArgs(args, pathsToProcess)) {
 				Console.Read();
 				return;
-            }
+			}
 
-            moduleManagemant.RaiseAfterConfiguration();
+			moduleManagemant.RaiseAfterConfiguration();
 
 			var clModule = moduleManagemant.GetModule<AVD3CLModule>();
 			clModule.Process(pathsToProcess.ToArray());
 		}
 		private static AVD3ModuleManagement IniModules() {
-            var moduleManagement = new AVD3ModuleManagement();
+			var moduleManagement = new AVD3ModuleManagement();
 			moduleManagement.LoadModules(AppDomain.CurrentDomain.BaseDirectory);
 			moduleManagement.LoadModuleFromType(typeof(AVD3InformationModule));
 			moduleManagement.LoadModuleFromType(typeof(AVD3ProcessingModule));

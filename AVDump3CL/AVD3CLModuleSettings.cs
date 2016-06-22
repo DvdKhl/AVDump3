@@ -121,6 +121,14 @@ namespace AVDump3CL {
             set { SetValue(BlockSizeProperty, value); }
         }
 
+
+        [CLNames("PBExit")]
+        public SettingsProperty PauseBeforeExitProperty { get; }
+        public bool PauseBeforeExit {
+            get { return (bool)GetValue(PauseBeforeExitProperty); }
+            set { SetValue(PauseBeforeExitProperty, value); }
+        }
+
         [CLNames("Cons")]
         public SettingsProperty ConsumersProperty { get; }
         public ReadOnlyCollection<string> Consumers {
@@ -133,6 +141,7 @@ namespace AVDump3CL {
             ResourceManager = Lang.ResourceManager;
             BlockSizeProperty = Register(nameof(BlockSize), new BlockSizeSettings(8, 8 << 20));
             ConsumersProperty = Register(nameof(Consumers), Array.AsReadOnly(new string[0]));
+            PauseBeforeExitProperty = Register(nameof(PauseBeforeExit), false);
         }
 
         string ICLConvert.ToCLString(SettingsProperty property, object obj) {

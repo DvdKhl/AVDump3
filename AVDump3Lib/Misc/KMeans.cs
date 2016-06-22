@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace AVDump3Lib.Misc {
     public static class Clustering {
-        public static double[][] KMeans(int k, KeyValuePair<double, int>[] data) { // TODO: Rewrite
+        public static double[][] KMeans<T>(int k, T[] data, Func<T, double> getKey, Func<T, int> getValue) { // TODO: Rewrite
             double[] center = new double[k];
             int[] clusterMap = new int[data.Length];
 
 
             int minIndex = 0, maxIndex = 0;
-            center[0] = data[data.Length / (k + 1)].Key;
+            center[0] = getKey(data[data.Length / (k + 1)]);
             double distance, maxDistance, minDistance;
             for(int i = 1; i < k; i++) {
                 maxDistance = 0;
@@ -20,7 +20,7 @@ namespace AVDump3Lib.Misc {
                 for(int j = 0; j < data.Length; j++) {
                     minDistance = -1;
                     for(int l = 0; l < i; l++) {
-                        distance = Math.Abs(center[l] - data[j].Key);
+                        distance = Math.Abs(center[l] - getKey(data[j]));
                         if(minDistance == -1 || distance < minDistance) {
                             minDistance = distance;
                             minIndex = j;
@@ -31,7 +31,7 @@ namespace AVDump3Lib.Misc {
                         maxIndex = minIndex;
                     }
                 }
-                center[i] = data[maxIndex].Key;
+                center[i] = getKey(data[maxIndex]);
             }
 
             bool hasChanged;
@@ -40,7 +40,7 @@ namespace AVDump3Lib.Misc {
                 for(int i = 0; i < data.Length; i++) {
                     minDistance = -1;
                     for(int j = 0; j < k; j++) {
-                        distance = Math.Abs(center[j] - data[i].Key);
+                        distance = Math.Abs(center[j] - getKey(data[i]));
                         if(minDistance == -1 || distance < minDistance) {
                             minDistance = distance;
                             minIndex = j;
@@ -58,8 +58,8 @@ namespace AVDump3Lib.Misc {
                     sum = count = 0;
                     for(int j = 0; j < clusterMap.Length; j++) {
                         if(clusterMap[j] == i) {
-                            sum += data[j].Key * data[j].Value;
-                            count += data[j].Value;
+                            sum += getKey(data[j]) * getValue(data[j]);
+                            count += getValue(data[j]);
                         }
                     }
                     center[i] = sum / count;
@@ -70,7 +70,7 @@ namespace AVDump3Lib.Misc {
 
             double[][] bla = new double[data.Length][];
             for(int i = 0; i < data.Length; i++) {
-                bla[i] = new double[] { clusterMap[i], data[i].Key, data[i].Value };
+                bla[i] = new double[] { clusterMap[i], getKey(data[i]), getValue(data[i]) };
             }
 
 

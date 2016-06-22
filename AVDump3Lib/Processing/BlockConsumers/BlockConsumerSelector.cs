@@ -5,7 +5,8 @@ using System.Linq;
 
 namespace AVDump3Lib.Processing.BlockConsumers {
 	public interface IBlockConsumerSelector {
-		IEnumerable<IBlockConsumerFactory> Select();
+        event EventHandler<BlockConsumerSelectorEventArgs> Filter;
+        IEnumerable<IBlockConsumerFactory> Select();
 		IEnumerable<IBlockConsumer> Create(IEnumerable<IBlockConsumerFactory> factories, IBlockStream blockStream);
 	}
 
