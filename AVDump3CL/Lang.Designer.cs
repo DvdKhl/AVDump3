@@ -206,6 +206,24 @@ namespace AVDump3CL {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use Memory as the DataSource for HashSpeed testing. Overrides any FileDiscovery Settings!.
+        /// </summary>
+        internal static string NullStreamTestDescription {
+            get {
+                return ResourceManager.GetString("NullStreamTestDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to --NullStreamTest=&lt;StreamCount&gt;:&lt;StreamLength in MiB&gt;:&lt;ParallelStreamCount&gt;.
+        /// </summary>
+        internal static string NullStreamTestExample {
+            get {
+                return ResourceManager.GetString("NullStreamTestExample", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to .
         /// </summary>
         internal static string PrintHashesDescription {

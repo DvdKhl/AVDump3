@@ -248,7 +248,20 @@ namespace AVDump3CL {
         }
     }
 
-    public class DiagnosticsSettings : SettingsObject {
+    public class NullStreamTestSettings {
+        public NullStreamTestSettings(int streamCount, long streamLength, int parallelStreamCount) {
+            StreamCount = streamCount;
+            StreamLength = streamLength;
+            ParallelStreamCount = parallelStreamCount;
+        }
+
+        public int StreamCount { get; }
+        public long StreamLength { get; }
+        public int ParallelStreamCount { get; internal set; }
+    }
+
+
+    public class DiagnosticsSettings : SettingsObject, ICLConvert {
         public SettingsProperty SaveErrorsProperty { get; }
         public bool SaveErrors {
             get { return (bool)GetValue(SaveErrorsProperty); }
@@ -273,6 +286,12 @@ namespace AVDump3CL {
             set { SetValue(ErrorDirectoryProperty, value); }
         }
 
+        public SettingsProperty NullStreamTestProperty { get; }
+        public NullStreamTestSettings NullStreamTest {
+            get { return (NullStreamTestSettings)GetValue(NullStreamTestProperty); }
+            set { SetValue(NullStreamTestProperty, value); }
+        }
+
         public DiagnosticsSettings() {
             Name = "Diagnostics";
             ResourceManager = Lang.ResourceManager;
@@ -281,7 +300,33 @@ namespace AVDump3CL {
             SkipEnvironmentElementProperty = Register(nameof(SkipEnvironmentElement), false);
             IncludePersonalDataProperty = Register(nameof(IncludePersonalData), false);
             ErrorDirectoryProperty = Register(nameof(ErrorDirectory), Environment.CurrentDirectory);
+            NullStreamTestProperty = Register(nameof(NullStreamTest), "");
 
+        }
+
+        public string ToCLString(SettingsProperty property, object obj) {
+            if(property == NullStreamTestProperty) {
+                var nullStreamTestSettings = (NullStreamTestSettings)obj;
+
+                return nullStreamTestSettings == null ? "" :
+                    nullStreamTestSettings.StreamCount + 
+                    ":" + nullStreamTestSettings.StreamLength + 
+                    ":" + nullStreamTestSettings.ParallelStreamCount;
+            }
+            return obj.ToString();
+        }
+
+        public object FromCLString(SettingsProperty property, string str) {
+            if(property == NullStreamTestProperty) {
+                var args = str.Split(':');
+                return args.Length == 0 ? null :
+                    new NullStreamTestSettings(
+                        int.Parse(args[0]),
+                        long.Parse(args[1]) * (1 << 20),
+                        int.Parse(args[2])
+                    );
+            }
+            return Convert.ChangeType(str, property.ValueType);
         }
     }
 

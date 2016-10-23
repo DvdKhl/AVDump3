@@ -16,25 +16,25 @@ namespace AVDump3CL {
 			if(args.Length == 1 && args[0].Equals("DEBUG")) {
 				args = new string[] {
                     //"--Help",
-					"--Conc=6:G:/,1;H:/,1;I:/,1",
+					"--Conc=6",
 					//"--BSize=8:8",
 					//"--Consumers=CRC32, ED2K, MD4, MD5, SHA1, SHA384, SHA512, TTH, TIGER, MKV",
-                    "--Consumers=CRC32,ED2K,MD5,SHA1,TTH",
+                    "--Consumers=SHA1",
                     //"--Consumers=MKV",
-                    "--Reports=AVD3Report",
-					"--PrintReports",
-					"--HideBuffers",
+                    //"--Reports=AVD3Report",
+					//"--PrintReports",
+					//"--HideBuffers",
                     //"--HideTotalProgress",
-                    "--HideFileProgress",
+                    //"--HideFileProgress",
                     //"--WExts=mkv, avi, ogg, ogm, mp4",
                     //"--Reports=AniDBReport",
-                    "--RDir=Reports/",
+                    //"--RDir=Reports/",
 					"--SaveErrors",
 					"--IncludePersonalData",
 					"--ErrorDirectory=Error",
 					"--PauseBeforeExit",
+                    "--NullStreamTest=8:10240:4"
                     //"H:/",
-                    //"I:/"
                 };
 			}
 			clSettingsHandler = new CLSettingsHandler();

@@ -166,6 +166,12 @@ First param (max) sets a global limit. (path,max) pairs sets limits per path.</v
   <data name="IncludePersonalDataExample" xml:space="preserve">
     <value />
   </data>
+  <data name="NullStreamTestDescription" xml:space="preserve">
+    <value>Use Memory as the DataSource for HashSpeed testing. Overrides any FileDiscovery Settings!</value>
+  </data>
+  <data name="NullStreamTestExample" xml:space="preserve">
+    <value>--NullStreamTest=&lt;StreamCount&gt;:&lt;StreamLength in MiB&gt;:&lt;ParallelStreamCount&gt;</value>
+  </data>
   <data name="PrintHashesDescription" xml:space="preserve">
     <value />
   </data>
