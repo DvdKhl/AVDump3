@@ -300,7 +300,7 @@ namespace AVDump3CL {
             SkipEnvironmentElementProperty = Register(nameof(SkipEnvironmentElement), false);
             IncludePersonalDataProperty = Register(nameof(IncludePersonalData), false);
             ErrorDirectoryProperty = Register(nameof(ErrorDirectory), Environment.CurrentDirectory);
-            NullStreamTestProperty = Register(nameof(NullStreamTest), "");
+            NullStreamTestProperty = Register<NullStreamTestSettings>(nameof(NullStreamTest), null);
 
         }
 

@@ -6,10 +6,14 @@ using AVDump3Lib.Settings;
 using AVDump3Lib.Settings.CLArguments;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace AVDump3CL {
-	class Program {
+
+
+    class Program {
 		private static CLSettingsHandler clSettingsHandler;
 
 		static void Main(string[] args) {
@@ -17,9 +21,9 @@ namespace AVDump3CL {
 				args = new string[] {
                     //"--Help",
 					"--Conc=6",
-					//"--BSize=8:8",
+					"--BSize=16:32",
 					//"--Consumers=CRC32, ED2K, MD4, MD5, SHA1, SHA384, SHA512, TTH, TIGER, MKV",
-                    "--Consumers=SHA1",
+                    "--Consumers=CRC32C",
                     //"--Consumers=MKV",
                     //"--Reports=AVD3Report",
 					//"--PrintReports",
@@ -33,8 +37,8 @@ namespace AVDump3CL {
 					"--IncludePersonalData",
 					"--ErrorDirectory=Error",
 					"--PauseBeforeExit",
-                    "--NullStreamTest=8:10240:4"
-                    //"H:/",
+                    "--NullStreamTest=8:1000000:4",
+                    //@"D:\MyStuff\BigFile"
                 };
 			}
 			clSettingsHandler = new CLSettingsHandler();

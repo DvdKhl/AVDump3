@@ -107,6 +107,7 @@
     <Compile Include="Processing\BlockConsumers\Ogg\OggParser.cs" />
     <Compile Include="Processing\BlockConsumers\Ogg\BitStreams\Audio\VorbisCommentParser.cs" />
     <Compile Include="Misc\FileTraversal.cs" />
+    <Compile Include="Processing\HashAlgorithms\Crc32CIntelHashAlgorithm.cs" />
     <Compile Include="Processing\HashAlgorithms\NullHashAlgorithm.cs" />
     <Compile Include="Processing\StreamProvider\IStreamProvider.cs" />
     <Compile Include="Processing\StreamProvider\NullStreamProvider.cs" />

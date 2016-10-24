@@ -342,7 +342,7 @@ namespace AVDump3CL {
 
                     sb.Append('[').Append('#', barPosition).Append(' ', 10 - barPosition).Append("] ");
 
-                    sb.Append(speed).Append("MiB/s");
+                    sb.Append(Math.Min(999, speed)).Append("MiB/s");
 
                     sbLineCount++;
                     sb.Append(' ', consoleWidth - (sb.Length - sbLength)).AppendLine();
@@ -358,7 +358,7 @@ namespace AVDump3CL {
             }
 
             if(!settings.HideTotalProgress) {
-                barWidth = consoleWidth - 17;
+                barWidth = consoleWidth - 19;
                 prevSpeed = (prevP.BytesProcessed >> 20) / (now - prevP.StartedOn).TotalSeconds;
                 curSpeed = (curP.BytesProcessed >> 20) / (now - curP.StartedOn).TotalSeconds;
                 speed = (int)(prevSpeed + relPos * (curSpeed - prevSpeed));
@@ -369,7 +369,7 @@ namespace AVDump3CL {
 
                 sbLength = sb.Length;
                 sb.Append("Total [").Append('#', barPosition).Append(' ', barWidth - barPosition).Append("] ");
-                sb.Append(Math.Min(999, speed)).Append("MiB/s");
+                sb.Append(Math.Min(99999, speed).ToString().PadLeft(5)).Append("MiB/s");
 
                 sbLineCount++;
                 sb.Append(' ', consoleWidth - (sb.Length - sbLength)).AppendLine();
