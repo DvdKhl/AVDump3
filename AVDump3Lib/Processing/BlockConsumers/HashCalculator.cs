@@ -4,6 +4,8 @@ using System.Threading;
 
 namespace AVDump3Lib.Processing.BlockConsumers {
 	public class HashCalculator : BlockConsumer {
+		private readonly static byte[] EmptyArray = new byte[0];
+
         public HashAlgorithm HashAlgorithm { get; }
         public HashCalculator(string name, IBlockStreamReader reader, HashAlgorithm hashAlgorithm) : base(name, reader) {
             HashAlgorithm = hashAlgorithm;
@@ -19,7 +21,7 @@ namespace AVDump3Lib.Processing.BlockConsumers {
                 HashAlgorithm.TransformBlock(Reader.GetBlock(out toRead), 0, toRead, null, 0);
             } while(Reader.Advance());
 
-            HashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);
+            HashAlgorithm.TransformFinalBlock(EmptyArray, 0, 0);
         }
     }
 }

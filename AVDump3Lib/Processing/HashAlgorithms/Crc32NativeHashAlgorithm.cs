@@ -31,6 +31,8 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
         }
 
         protected unsafe override void HashCore(byte[] array, int ibStart, int cbSize) {
+			if(cbSize == 0) return;
+
             fixed (byte* bPtr = array) {
                 CRC32Transform(handle, bPtr + ibStart, cbSize);
             }
