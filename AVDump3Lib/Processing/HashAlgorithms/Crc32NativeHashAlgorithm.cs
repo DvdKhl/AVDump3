@@ -7,41 +7,39 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
-
-    public class Crc32CIntelHashAlgorithm : HashAlgorithm {
+    public class Crc32NativeHashAlgorithm : HashAlgorithm {
         [DllImport("AVDump3NativeLib.dll")]
-        private static extern IntPtr CRC32CCreate();
+        private static extern IntPtr CRC32Create();
         [DllImport("AVDump3NativeLib.dll")]
-        private static extern void CRC32CInit(IntPtr handle);
+        private static extern void CRC32Init(IntPtr handle);
         [DllImport("AVDump3NativeLib.dll")]
-        private unsafe static extern void CRC32CTransform(IntPtr handle, byte* b, int length);
+        private unsafe static extern void CRC32Transform(IntPtr handle, byte* b, int length);
         [DllImport("AVDump3NativeLib.dll")]
-        private unsafe static extern void CRC32CFinal(IntPtr handle, byte* hash);
+        private unsafe static extern void CRC32Final(IntPtr handle, byte* hash);
         [DllImport("AVDump3NativeLib.dll")]
         private static extern void FreeHashObject(IntPtr handle);
-
 
         private IntPtr handle;
         private bool disposed;
 
-        public Crc32CIntelHashAlgorithm() {
-            handle = CRC32CCreate();
+        public Crc32NativeHashAlgorithm() {
+            handle = CRC32Create();
         }
 
         public override void Initialize() {
-            CRC32CInit(handle);
+            CRC32Init(handle);
         }
 
         protected unsafe override void HashCore(byte[] array, int ibStart, int cbSize) {
-            fixed(byte* bPtr = array) {
-                CRC32CTransform(handle, bPtr + ibStart, cbSize);
+            fixed (byte* bPtr = array) {
+                CRC32Transform(handle, bPtr + ibStart, cbSize);
             }
         }
 
         protected unsafe override byte[] HashFinal() {
             var b = new byte[4];
             fixed (byte* bPtr = b) {
-                CRC32CFinal(handle, bPtr);
+                CRC32Final(handle, bPtr);
             }
             return b;
         }

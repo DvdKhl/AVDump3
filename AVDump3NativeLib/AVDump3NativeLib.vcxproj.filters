@@ -18,6 +18,9 @@
     <ClCompile Include="AVD3NativeLibApi.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="CRC32C.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="CRC32.c">
       <Filter>Source Files</Filter>
     </ClCompile>

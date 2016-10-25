@@ -21,9 +21,9 @@ namespace AVDump3CL {
 				args = new string[] {
                     //"--Help",
 					"--Conc=6",
-					"--BSize=16:32",
+					"--BSize=16:16",
 					//"--Consumers=CRC32, ED2K, MD4, MD5, SHA1, SHA384, SHA512, TTH, TIGER, MKV",
-                    "--Consumers=CRC32C",
+                    "--Consumers=CRC32",
                     //"--Consumers=MKV",
                     //"--Reports=AVD3Report",
 					//"--PrintReports",
@@ -37,7 +37,7 @@ namespace AVDump3CL {
 					"--IncludePersonalData",
 					"--ErrorDirectory=Error",
 					"--PauseBeforeExit",
-                    "--NullStreamTest=8:1000000:4",
+                    "--NullStreamTest=8:1000000:8",
                     //@"D:\MyStuff\BigFile"
                 };
 			}
