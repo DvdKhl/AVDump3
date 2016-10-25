@@ -295,7 +295,7 @@ namespace AVDump3CL {
                     barPosition = (int)(prevBarPosition + relPos * (curBarPosition - prevBarPosition));
 
                     sbLength = sb.Length;
-                    sb.Append(cur.Name);
+                    sb.Append(cur.Name.Substring(0, Math.Min(cur.Name.Length, 8)));
                     sb.Append(' ', 8 - (sb.Length - sbLength));
 
                     sb.Append('[').Append('#', barPosition).Append(' ', barWidth - barPosition).Append("] ");

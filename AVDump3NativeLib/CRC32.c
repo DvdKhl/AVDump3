@@ -39,8 +39,8 @@
 
 #include "AVD3NativeLibApi.h"
 
-static uint32_t crc32_little (uint32_t, const uint8_t *, unsigned);
-static uint32_t crc32_big (uint32_t, const uint8_t *, unsigned);
+static uint32_t crc32_little (uint32_t, const uint8_t *, int32_t);
+static uint32_t crc32_big (uint32_t, const uint8_t *, int32_t);
 
 static const uint32_t crc_table[8][256] =
 {
@@ -484,7 +484,7 @@ static const uint32_t crc_table[8][256] =
 uint32_t crc32(crc, buf, len)
 uint32_t crc;
 const uint8_t *buf;
-uint32_t len;
+int32_t len;
 {
 	if (buf == NULL) return 0UL;
 
@@ -504,19 +504,18 @@ uint32_t len;
 static uint32_t crc32_little(crc, buf, len)
 uint32_t crc;
 const uint8_t *buf;
-unsigned len;
+int32_t len;
 {
-	register int32_t c;
-	register const int32_t *buf4;
+	register uint32_t c;
+	register const uint32_t *buf4;
 
-	c = (int32_t)crc;
-	c = ~c;
+	c = ~crc;
 	while (len && ((ptrdiff_t)buf & 3)) {
 		c = crc_table[0][(c ^ *buf++) & 0xff] ^ (c >> 8);
 		len--;
 	}
 
-	buf4 = (const int32_t *)(const void *)buf;
+	buf4 = (const uint32_t *)(const void *)buf;
 	while (len >= 32) {
 		DOLIT32;
 		len -= 32;
@@ -530,8 +529,7 @@ unsigned len;
 	if (len) do {
 		c = crc_table[0][(c ^ *buf++) & 0xff] ^ (c >> 8);
 	} while (--len);
-	c = ~c;
-	return (uint32_t)c;
+	return c = ~c;
 }
 
 /* ========================================================================= */
@@ -544,12 +542,12 @@ unsigned len;
 static uint32_t crc32_big(crc, buf, len)
 uint32_t crc;
 const uint8_t *buf;
-unsigned len;
+int32_t len;
 {
 	register uint32_t c;
 	register const uint32_t *buf4;
 
-	c = ZSWAP32((uint32_t)crc);
+	c = ZSWAP32(crc);
 	c = ~c;
 
 	while (len && ((ptrdiff_t)buf & 3)) {

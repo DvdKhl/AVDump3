@@ -43,6 +43,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
             fixed (byte* bPtr = b) {
                 CRC32Final(handle, bPtr);
             }
+			Array.Reverse(b);
             return b;
         }
 
@@ -53,5 +54,5 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
                 disposed = true;
             }
         }
-    }
+	}
 }
