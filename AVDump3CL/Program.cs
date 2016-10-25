@@ -39,10 +39,10 @@ namespace AVDump3CL {
 					"--PauseBeforeExit",
                     //"--NullStreamTest=8:1000000:8",
                     //@"D:\MyStuff\BigFile",
-					//@"D:\MyStuff\SmallFile"
+					@"D:\MyStuff\SmallFile"
 				};
 
-				//File.WriteAllBytes(@"D:\MyStuff\SmallFile", Enumerable.Range(0, (1 << 20) + 1).Select(x => (byte)1).ToArray());
+				File.WriteAllBytes(@"D:\MyStuff\SmallFile", Enumerable.Range(0, (1 << 20) + 1).Select(x => (byte)1).ToArray());
 			}
 			clSettingsHandler = new CLSettingsHandler();
 
