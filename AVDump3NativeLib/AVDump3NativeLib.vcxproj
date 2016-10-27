@@ -87,9 +87,11 @@ copy /Y $(OutDir)*.pdb $(SolutionDir)AVDump3CL\bin\$(ConfigurationName)\
     <ClCompile Include="AVD3NativeLibApi.c" />
     <ClCompile Include="CRC32.c" />
     <ClCompile Include="CRC32C.c" />
+    <ClCompile Include="Tiger.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AVD3NativeLibApi.h" />
+    <ClInclude Include="DLLDefines.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

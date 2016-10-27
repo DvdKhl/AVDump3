@@ -34,7 +34,7 @@
 * factor of two increase in speed on a Power PC G4 (PPC7455) using gcc -O3.
 *
 * Taken from zlib ( https://github.com/madler/zlib/commit/6c9bd474aa08312ef2e2e9655a80e18db24a1680 )
-* Modified to make it standalone
+* (DvdKhl) Modified to make it standalone and stripped down to bare minimum
 */
 
 #include "AVD3NativeLibApi.h"

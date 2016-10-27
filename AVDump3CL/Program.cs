@@ -21,12 +21,14 @@ namespace AVDump3CL {
 				args = new string[] {
                     //"--Help",
 					"--Conc=6",
-					"--BSize=2:1",
+					"--BSize=8:8",
 					//"--Consumers=CRC32, ED2K, MD4, MD5, SHA1, SHA384, SHA512, TTH, TIGER, MKV",
-                    "--Consumers=CRC32,CRC32-NATIVE",
+                    "--Consumers=TIGER-NATIVE",
+					//"--Consumers=SHA1,CRC32-NATIVE,TIGER-NATIVE",
+					"--PrintHashes",
                     //"--Consumers=MKV",
-                    "--Reports=AVD3Report",
-					"--PrintReports",
+                    //"--Reports=AVD3Report",
+					//"--PrintReports",
 					//"--HideBuffers",
                     //"--HideTotalProgress",
                     //"--HideFileProgress",
@@ -37,12 +39,12 @@ namespace AVDump3CL {
 					"--IncludePersonalData",
 					"--ErrorDirectory=Error",
 					"--PauseBeforeExit",
-                    //"--NullStreamTest=8:1000000:8",
+                    "--NullStreamTest=100:1000000:1",
                     //@"D:\MyStuff\BigFile",
-					@"D:\MyStuff\SmallFile"
+					//@"D:\MyStuff\SmallFile"
 				};
 
-				File.WriteAllBytes(@"D:\MyStuff\SmallFile", Enumerable.Range(0, (1 << 20) + 1).Select(x => (byte)1).ToArray());
+				File.WriteAllBytes(@"D:\MyStuff\SmallFile", Enumerable.Range(0, (1 << 20) + 2).Select(x => (byte)1).ToArray());
 			}
 			clSettingsHandler = new CLSettingsHandler();
 

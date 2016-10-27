@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
     public sealed class TigerHashAlgorithm : BlockHashAlgorithm {
