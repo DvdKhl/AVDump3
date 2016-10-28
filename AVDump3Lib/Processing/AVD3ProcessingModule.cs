@@ -32,7 +32,7 @@ namespace AVDump3Lib.Processing {
 				new BlockConsumerFactory("TTH", r => new HashCalculator("TTH", r, new TigerTreeHashAlgorithm(Environment.ProcessorCount)) ),
                 new BlockConsumerFactory("CRC32", r => new HashCalculator("CRC32", r, new Crc32HashAlgorithm())),
                 new BlockConsumerFactory("CRC32-Native", r => new HashCalculator("CRC32-Native", r, new Crc32NativeHashAlgorithm())),
-                new BlockConsumerFactory("CRC32C", r => new HashCalculator("CRC32C", r, new Crc32CIntelHashAlgorithm())),
+                new BlockConsumerFactory("CRC32C-Native", r => new HashCalculator("CRC32C-Native", r, new Crc32CIntelHashAlgorithm())),
                 new BlockConsumerFactory("MKV", r => new MatroskaParser("MKV", r)),
                 new BlockConsumerFactory("OGG", r => new OggParser("OGG", r))
            };
