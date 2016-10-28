@@ -186,10 +186,9 @@ namespace AVDump3CL {
 					e.Cancel = true;
 					cts.Cancel();
 				};
+				Console.CancelKeyPress += cancelKeyHandler;
 				Console.CursorVisible = false;
 				try {
-					Console.CancelKeyPress += cancelKeyHandler;
-
 					streamConsumerCollection.ConsumeStreams(cts.Token, bytesReadProgress);
 
 				} catch(OperationCanceledException ex) {
