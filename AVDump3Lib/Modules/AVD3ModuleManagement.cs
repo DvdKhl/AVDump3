@@ -7,6 +7,11 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace AVDump3Lib.Modules {
+	public class ModuleConfigurationEventArgs : EventArgs {
+		public bool Continue { get; set; }
+		public string Reason { get; set; }
+	}
+
 	public class AVD3ModuleManagement {
 		private List<IAVD3Module> modules;
 
@@ -41,17 +46,17 @@ namespace AVDump3Lib.Modules {
 			}
 		}
 
-		public T GetModule<T>() where T: IAVD3Module { return modules.OfType<T>().FirstOrDefault(); }
+		public T GetModule<T>() where T: IAVD3Module { return modules.OfType<T>().SingleOrDefault(); }
 
-        public void RaiseBeforeConfiguration() {
-            foreach(var module in modules) {
-                module.BeforeConfiguration();
-            }
-        }
-        public void RaiseAfterConfiguration() {
-            foreach(var module in modules) {
-                module.AfterConfiguration();
-            }
-        }
+        public ModuleConfigurationEventArgs RaiseBeforeConfiguration() => RaiseConfiguration((m, e) => m.BeforeConfiguration(e));
+		public ModuleConfigurationEventArgs RaiseAfterConfiguration() => RaiseConfiguration((m, e) => m.AfterConfiguration(e));
+		private ModuleConfigurationEventArgs RaiseConfiguration(Action<IAVD3Module, ModuleConfigurationEventArgs> onConfiguration) {
+			var e = new ModuleConfigurationEventArgs { Continue = true };
+			foreach(var module in modules) {
+				onConfiguration(module, e);
+				if(!e.Continue) break;
+			}
+			return e;
+		}
     }
 }

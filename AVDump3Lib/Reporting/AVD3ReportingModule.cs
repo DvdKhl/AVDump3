@@ -26,7 +26,7 @@ namespace AVDump3Lib.Reporting {
 
 		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) {
 		}
-		public void BeforeConfiguration() { }
-		public void AfterConfiguration() { }
+		public void BeforeConfiguration(ModuleConfigurationEventArgs args) { }
+		public void AfterConfiguration(ModuleConfigurationEventArgs args) { }
 	}
 }

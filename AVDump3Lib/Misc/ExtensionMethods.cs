@@ -37,7 +37,7 @@ namespace AVDump3Lib.Misc {
 		public static DateTime ToInvDateTime(this string s, DateTime defVal) { DateTime val; if(DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.None, out val)) return val; else return defVal; }
 		public static DateTime? ToInvDateTime(this string s, DateTime? defVal) { DateTime val; if(DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.None, out val)) return val; else return defVal; }
 		public static string ToInvString(this DateTime v) { return v.ToString(CultureInfo.InvariantCulture); }
-        #endregion
+		#endregion
 
         //public static TResult OnNotNullReturn<TResult, TSource>(this TSource? n, Func<TSource, TResult> transform) where TSource : struct {
         //    return n.HasValue ? transform(n.Value) : default(TResult);

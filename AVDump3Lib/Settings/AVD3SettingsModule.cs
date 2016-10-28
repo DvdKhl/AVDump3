@@ -21,10 +21,10 @@ namespace AVDump3Lib.Settings {
         }
 
         public void Initialize(IReadOnlyCollection<IAVD3Module> modules) { }
-        public void BeforeConfiguration() {
+        public void BeforeConfiguration(ModuleConfigurationEventArgs args) {
             settingsHandler.Register(settingsObjects);
         }
-        public void AfterConfiguration() {
+        public void AfterConfiguration(ModuleConfigurationEventArgs args) {
         }
 
 

@@ -101,8 +101,16 @@ namespace AVDump3CL {
 			settingsgModule.RegisterSettings(settings.Reporting);
 
 		}
-		public void BeforeConfiguration() { }
-		public void AfterConfiguration() { }
+		public void BeforeConfiguration(ModuleConfigurationEventArgs args) { }
+		public void AfterConfiguration(ModuleConfigurationEventArgs args) {
+			if(settings.Processing.Consumers == null) {
+				Console.WriteLine("Available Consumers: ");
+				foreach(var name in processingModule.BlockConsumerFactories.Select(x => x.Name)) {
+					Console.WriteLine(name);
+				}
+				args.Continue = false;
+			}
+		}
 
 
 		public NullStreamProvider CreateNullStreamProvider() {
@@ -117,14 +125,6 @@ namespace AVDump3CL {
 			//	Console.WriteLine("No Blockconsumer chosen: Nothing to do");
 			//	return;
 			//}
-			if(settings.Processing.Consumers.Count == 0) {
-				Console.WriteLine("Available Consumers: ");
-				foreach(var name in processingModule.BlockConsumerFactories.Select(x => x.Name)) {
-					Console.WriteLine(name);
-				}
-				return;
-			}
-
 
 			var bcs = new BlockConsumerSelector(processingModule.BlockConsumerFactories);
 			bcs.Filter += BlockConsumerFilter;

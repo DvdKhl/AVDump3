@@ -37,8 +37,8 @@ namespace AVDump3Lib.Information {
 		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) {
         }
 
-        public void AfterConfiguration() { }
+        public void AfterConfiguration(ModuleConfigurationEventArgs args) { }
 
-        public void BeforeConfiguration() { }
+        public void BeforeConfiguration(ModuleConfigurationEventArgs args) { }
     }
 }

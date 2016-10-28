@@ -141,10 +141,10 @@ namespace AVDump3Lib.Settings.CLArguments {
                 if(clCOnvert != null) {
                     defaultValue = clCOnvert.ToCLString(prop, prop.DefaultValue);
                 } else {
-                    defaultValue = prop.DefaultValue.ToString();
+                    defaultValue = prop.DefaultValue?.ToString();
                 }
 
-                PrintLine(argToString(prop).PadRight(descPad, ' ') + " | " + example + " (" + defaultValue + ")");
+                PrintLine(argToString(prop).PadRight(descPad, ' ') + " | " + example + " (" + (defaultValue ?? "<null>") + ")");
                 if(detailed && !string.IsNullOrEmpty(description)) {
                     if(!string.IsNullOrEmpty(description)) PrintLine("▶8 " + description);
                     Console.WriteLine();

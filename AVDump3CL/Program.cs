@@ -23,8 +23,8 @@ namespace AVDump3CL {
 					"--Conc=6",
 					"--BSize=8:8",
 					//"--Consumers=CRC32, ED2K, MD4, MD5, SHA1, SHA384, SHA512, TTH, TIGER, MKV",
-                    //"--Consumers",
-					"--Consumers=SHA1",
+                    "--Consumers",
+					//"--Consumers=TIGER,TIGER-NATIVE",
 					"--PrintHashes",
                     //"--Consumers=MKV",
                     //"--Reports=AVD3Report",
@@ -60,7 +60,13 @@ namespace AVDump3CL {
 			clSettingsHandler = new CLSettingsHandler();
 
 			var moduleManagemant = IniModules();
-			moduleManagemant.RaiseBeforeConfiguration();
+			var configEventArgs = moduleManagemant.RaiseBeforeConfiguration();
+			if(!configEventArgs.Continue) {
+				if(!string.IsNullOrEmpty(configEventArgs.Reason)) {
+					Console.WriteLine("BeforeConfiguration: " + configEventArgs.Reason);
+				}
+				return;
+			}
 
 			var pathsToProcess = new List<string>();
 			try {
@@ -73,7 +79,13 @@ namespace AVDump3CL {
 				return;
 			}
 
-			moduleManagemant.RaiseAfterConfiguration();
+			configEventArgs = moduleManagemant.RaiseAfterConfiguration();
+			if(!configEventArgs.Continue) {
+				if(!string.IsNullOrEmpty(configEventArgs.Reason)) {
+					Console.WriteLine("AfterConfiguration: " + configEventArgs.Reason);
+				}
+				return;
+			}
 
 			var clModule = moduleManagemant.GetModule<AVD3CLModule>();
 			clModule.Process(pathsToProcess.ToArray());
