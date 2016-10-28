@@ -99,14 +99,14 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 				}
 			}
 
-			readBytes = (int)Math.Min(Buffer.BlockLength, Length - Buffer.ConsumerBlocksRead(consumerIndex) * Buffer.BlockLength);
+			readBytes = (int)Math.Min(Buffer.BlockLength, Length - Buffer.ConsumerBlocksRead(consumerIndex) * (long)Buffer.BlockLength);
 
 			return Buffer.ConsumerBlock(consumerIndex);
 		}
 
 		public bool Advance(int consumerIndex) {
 			//TODO move out param from GetBlock to this method to avoid calculating readBytes twice
-			var readBytes = (int)Math.Min(Buffer.BlockLength, Length - Buffer.ConsumerBlocksRead(consumerIndex) * Buffer.BlockLength);
+			var readBytes = (int)Math.Min(Buffer.BlockLength, Length - Buffer.ConsumerBlocksRead(consumerIndex) * (long)Buffer.BlockLength);
 			progress?.Report(new BlockStreamProgress(this, consumerIndex, readBytes));
 
 			Buffer.ConsumerAdvance(consumerIndex);
