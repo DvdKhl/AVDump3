@@ -98,7 +98,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Select consumers to use. See --ListConsumers for available consumers.
+        ///   Looks up a localized string similar to Select consumers to use. Use without arguments to list available consumers.
         /// </summary>
         internal static string ConsumersDescription {
             get {
@@ -278,7 +278,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Select reports to use. See --ListReports for available reports.
+        ///   Looks up a localized string similar to Select reports to use. Use without arguments to list available reports.
         /// </summary>
         internal static string ReportsDescription {
             get {

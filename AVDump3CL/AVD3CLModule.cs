@@ -117,6 +117,14 @@ namespace AVDump3CL {
 			//	Console.WriteLine("No Blockconsumer chosen: Nothing to do");
 			//	return;
 			//}
+			if(settings.Processing.Consumers.Count == 0) {
+				Console.WriteLine("Available Consumers: ");
+				foreach(var name in processingModule.BlockConsumerFactories.Select(x => x.Name)) {
+					Console.WriteLine(name);
+				}
+				return;
+			}
+
 
 			var bcs = new BlockConsumerSelector(processingModule.BlockConsumerFactories);
 			bcs.Filter += BlockConsumerFilter;
@@ -168,17 +176,28 @@ namespace AVDump3CL {
 			var streamConsumerCollection = new StreamConsumerCollection(scf, sp);
 
 			using(sp as IDisposable)
-			using(cl) {
+			using(cl)
+			using(var cts = new CancellationTokenSource()) {
 				cl.Display();
 
 				streamConsumerCollection.ConsumingStream += ConsumingStream;
 
+				ConsoleCancelEventHandler cancelKeyHandler = (s, e) => {
+					e.Cancel = true;
+					cts.Cancel();
+				};
 				Console.CursorVisible = false;
 				try {
-					streamConsumerCollection.ConsumeStreams(CancellationToken.None, bytesReadProgress);
+					Console.CancelKeyPress += cancelKeyHandler;
+
+					streamConsumerCollection.ConsumeStreams(cts.Token, bytesReadProgress);
+
+				} catch(OperationCanceledException ex) {
+					Console.WriteLine(ex.Message);
 
 				} finally {
 					cl.Stop();
+					Console.CancelKeyPress -= cancelKeyHandler;
 					Console.CursorVisible = true;
 				}
 			}

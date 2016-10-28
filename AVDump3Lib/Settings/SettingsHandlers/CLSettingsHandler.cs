@@ -83,7 +83,7 @@ namespace AVDump3Lib.Settings.CLArguments {
                     var entry = argCandidates.First();
 
                     try {
-                        param = param ?? "true";
+                        param = param ?? (entry.Property.ValueType == typeof(bool) ? "true" : "");
                         object value = null;
                         if(entry.Group is ICLConvert) {
                             value = ((ICLConvert)entry.Group).FromCLString(entry.Property, param);

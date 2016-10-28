@@ -131,7 +131,7 @@ First param (max) sets a global limit. (path,max) pairs sets limits per path.</v
     <value>--Concurrent=&lt;max&gt;[:&lt;path1&gt;,&lt;max1&gt;;&lt;path2&gt;,&lt;max2&gt;;...]</value>
   </data>
   <data name="ConsumersDescription" xml:space="preserve">
-    <value>Select consumers to use. See --ListConsumers for available consumers</value>
+    <value>Select consumers to use. Use without arguments to list available consumers</value>
   </data>
   <data name="ConsumersExample" xml:space="preserve">
     <value>--Consumers=&lt;ConsumerName1&gt;[,&lt;ConsumerName2&gt;,...]</value>
@@ -191,7 +191,7 @@ First param (max) sets a global limit. (path,max) pairs sets limits per path.</v
     <value>--Recursive</value>
   </data>
   <data name="ReportsDescription" xml:space="preserve">
-    <value>Select reports to use. See --ListReports for available reports</value>
+    <value>Select reports to use. Use without arguments to list available reports</value>
   </data>
   <data name="ReportsExample" xml:space="preserve">
     <value>--Reports</value>

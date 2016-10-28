@@ -161,7 +161,7 @@ namespace AVDump3CL {
                 return new BlockSizeSettings(int.Parse(args[0]), int.Parse(args[1]) << 20);
 
             } else if(property == ConsumersProperty) {
-                return Array.AsReadOnly(str.Split(',').Select(x => x.Trim()).ToArray());
+                return Array.AsReadOnly(str.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray());
             }
             return Convert.ChangeType(str, property.ValueType);
         }
