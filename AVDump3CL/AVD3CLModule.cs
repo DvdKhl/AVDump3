@@ -106,7 +106,7 @@ namespace AVDump3CL {
 			if(settings.Processing.Consumers == null) {
 				Console.WriteLine("Available Consumers: ");
 				foreach(var name in processingModule.BlockConsumerFactories.Select(x => x.Name)) {
-					Console.WriteLine(name);
+					Console.WriteLine(name.PadRight(14) + " - " + processingModule.GetBlockConsumerDescription(name));
 				}
 				args.Continue = false;
 			}

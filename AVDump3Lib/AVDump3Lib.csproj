@@ -54,6 +54,11 @@
     <Compile Include="Information\InfoProvider\InfoProviderFactory.cs" />
     <Compile Include="Information\MetaInfo\Core\CompositeMetaDataProvider.cs" />
     <Compile Include="Information\MetaInfo\Core\MetaInfoContainerType.cs" />
+    <Compile Include="Lang.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Lang.resx</DependentUpon>
+    </Compile>
     <Compile Include="Misc\KMeans.cs" />
     <Compile Include="Misc\TraceSourceEx.cs" />
     <Compile Include="Misc\SafeXmlWriter.cs" />
@@ -171,7 +176,12 @@
     <Compile Include="Settings\Core\SettingsObject.cs" />
     <Compile Include="Settings\Core\SettingsProperty.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Lang.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Lang.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>

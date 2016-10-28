@@ -5,15 +5,17 @@ using AVDump3Lib.Processing.BlockConsumers.Ogg;
 using AVDump3Lib.Processing.HashAlgorithms;
 using System;
 using System.Collections.Generic;
+using System.Resources;
 using System.Security.Cryptography;
 
 namespace AVDump3Lib.Processing {
 	public interface IAVD3ProcessingModule : IAVD3Module {
         IReadOnlyCollection<IBlockConsumerFactory> BlockConsumerFactories { get; }
-
-    }
+		string GetBlockConsumerDescription(string name);
+	}
     public class AVD3ProcessingModule : IAVD3ProcessingModule {
         private List<IBlockConsumerFactory> blockConsumerFactories;
+		private ResourceManager resourceManager = Lang.ResourceManager;
 
         public IReadOnlyCollection<IBlockConsumerFactory> BlockConsumerFactories { get; }
 
@@ -36,12 +38,16 @@ namespace AVDump3Lib.Processing {
                 new BlockConsumerFactory("MKV", r => new MatroskaParser("MKV", r)),
                 new BlockConsumerFactory("OGG", r => new OggParser("OGG", r))
            };
-
             BlockConsumerFactories = blockConsumerFactories.AsReadOnly();
-
         }
 
-        public void Initialize(IReadOnlyCollection<IAVD3Module> modules) {        }
+		public string GetBlockConsumerDescription(string name) {
+			var description = resourceManager.GetString(name.Replace("-", "") + "ConsumerDescription");
+			return !string.IsNullOrEmpty(description) ? description : "<NoDescriptionGiven>";
+		}
+
+
+		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) {        }
         public void BeforeConfiguration(ModuleConfigurationEventArgs args) { }
         public void AfterConfiguration(ModuleConfigurationEventArgs args) { }
     }
