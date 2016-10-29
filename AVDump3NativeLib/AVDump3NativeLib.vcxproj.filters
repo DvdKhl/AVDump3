@@ -27,6 +27,9 @@
     <ClCompile Include="Tiger.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="InstructionSupport.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AVD3NativeLibApi.h">

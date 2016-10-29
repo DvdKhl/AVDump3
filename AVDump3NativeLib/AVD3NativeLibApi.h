@@ -7,6 +7,8 @@
 
 #include "DLLDefines.h"
 
+DLL_PUBLIC uint64_t RetrieveCPUInstructions();
+
 DLL_PUBLIC void* CRC32CCreate();
 DLL_PUBLIC void CRC32CInit(void* handle);
 DLL_PUBLIC void CRC32CTransform(void* handle, uint8_t *b, int32_t length);

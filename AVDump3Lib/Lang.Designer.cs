@@ -61,11 +61,11 @@ namespace AVDump3Lib {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Castagnoli Variant (0x1EDC6F41 Polynomial) (Native version).
+        ///   Looks up a localized string similar to Castagnoli Variant (0x1EDC6F41 Polynomial).
         /// </summary>
-        internal static string CRC32CNativeConsumerDescription {
+        internal static string CRC32CConsumerDescription {
             get {
-                return ResourceManager.GetString("CRC32CNativeConsumerDescription", resourceCulture);
+                return ResourceManager.GetString("CRC32CConsumerDescription", resourceCulture);
             }
         }
         
@@ -75,15 +75,6 @@ namespace AVDump3Lib {
         internal static string CRC32ConsumerDescription {
             get {
                 return ResourceManager.GetString("CRC32ConsumerDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Native version.
-        /// </summary>
-        internal static string CRC32NativeConsumerDescription {
-            get {
-                return ResourceManager.GetString("CRC32NativeConsumerDescription", resourceCulture);
             }
         }
         
@@ -183,15 +174,6 @@ namespace AVDump3Lib {
         internal static string TIGERConsumerDescription {
             get {
                 return ResourceManager.GetString("TIGERConsumerDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Native version.
-        /// </summary>
-        internal static string TIGERNativeConsumerDescription {
-            get {
-                return ResourceManager.GetString("TIGERNativeConsumerDescription", resourceCulture);
             }
         }
         
