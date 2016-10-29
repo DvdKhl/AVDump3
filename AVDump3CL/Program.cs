@@ -1,4 +1,5 @@
 using AVDump3Lib.Information;
+using AVDump3Lib.Misc;
 using AVDump3Lib.Modules;
 using AVDump3Lib.Processing;
 using AVDump3Lib.Reporting;
@@ -19,7 +20,7 @@ namespace AVDump3CL {
 		static void Main(string[] args) {
 			if(args.Length == 1 && args[0].Equals("DEBUG")) {
 				args = new string[] {
-                    //"--Help",
+                    "--Help",
 					"--Conc=6",
 					"--BSize=8:8",
 					//"--Consumers=CRC32, ED2K, MD4, MD5, SHA1, SHA384, SHA512, TTH, TIGER, MKV",
@@ -71,7 +72,7 @@ namespace AVDump3CL {
 			var pathsToProcess = new List<string>();
 			try {
 				if(!clSettingsHandler.ParseArgs(args, pathsToProcess)) {
-					Console.Read();
+					if(!Utils.UsingMono) Console.Read();
 					return;
 				}
 			} catch(InvalidOperationException ex) {

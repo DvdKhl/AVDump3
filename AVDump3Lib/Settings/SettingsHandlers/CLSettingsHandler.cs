@@ -23,7 +23,8 @@ namespace AVDump3Lib.Settings.CLArguments {
 
 
     public class CLSettingsHandler : ISettingsHandler {
-        private Dictionary<SettingsProperty, ReadOnlyCollection<string>> propToNames;
+
+		private Dictionary<SettingsProperty, ReadOnlyCollection<string>> propToNames;
 
         private SettingsObject[] items;
 
@@ -130,7 +131,7 @@ namespace AVDump3Lib.Settings.CLArguments {
 
 
             var resMan = argGroup.ResourceManager;
-            PrintLine(("▶2 NameSpace◀: " + argGroup.Name).PadRight(descPad, ' ') + resMan?.GetString($"{argGroup.Name}Description").OnNotNullReturn(s => " | ▶8 " + s));
+            PrintLine(("▶2 NameSpace◀: " + argGroup.Name).PadRight(descPad, ' ') + resMan?.GetString($"{argGroup.Name}Description").OnNotNullReturn(s => " | ▶8 " + s + "◀"));
             Console.WriteLine();
             foreach(var prop in argGroup.Properties) {
                 var example = resMan?.GetString($"{prop.Name}Example");
@@ -146,14 +147,17 @@ namespace AVDump3Lib.Settings.CLArguments {
 
                 PrintLine(argToString(prop).PadRight(descPad, ' ') + " | " + example + " (" + (defaultValue ?? "<null>") + ")");
                 if(detailed && !string.IsNullOrEmpty(description)) {
-                    if(!string.IsNullOrEmpty(description)) PrintLine("▶8 " + description);
+					if(!string.IsNullOrEmpty(description)) {
+						PrintLine(Utils.UsingMono ? description : "▶8 " + description + "◀");
+					}
                     Console.WriteLine();
                 }
             }
             Console.WriteLine();
         }
 
-        private void PrintLine(string msg, bool noColors = false) { Print(msg, noColors); Console.WriteLine(); }
+
+		private void PrintLine(string msg, bool noColors = false) { Print(msg, noColors); Console.WriteLine(); }
         private void Print(string msg, bool noColors = false) {
             var strb = new StringBuilder();
 
