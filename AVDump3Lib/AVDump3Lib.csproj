@@ -62,6 +62,7 @@
     <Compile Include="Misc\KMeans.cs" />
     <Compile Include="Misc\TraceSourceEx.cs" />
     <Compile Include="Misc\SafeXmlWriter.cs" />
+    <Compile Include="Misc\Utils.cs" />
     <Compile Include="Modules\AVD3ModuleManagement.cs" />
     <Compile Include="Modules\IAVD3Module.cs" />
     <Compile Include="Information\FormatHeaders\BitmapInfoHeader.cs" />
