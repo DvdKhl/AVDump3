@@ -1,36 +1,35 @@
 using AVDump3Lib.Processing.BlockBuffers;
+using AVDump3Lib.System.Security.Cryptography;
+using System;
 using System.Security.Cryptography;
 using System.Threading;
 
 namespace AVDump3Lib.Processing.BlockConsumers {
-	public class HashCalculator : BlockConsumer {
-		//Needs to be non-empty otherwise pinvoke makes it a null pointer (See CRC32Native hash)
-		private readonly static byte[] EmptyArray = new byte[] { 0 };
+    public class HashCalculator : BlockConsumer {
+        //Needs to be non-empty otherwise pinvoke makes it a null pointer (See CRC32Native hash)
+        private static readonly byte[] EmptyArray = new byte[] { 0 };
 
-		public byte[] Hash { get; private set; }
+        public ReadOnlyMemory<byte> Hash { get; private set; }
 
-		public HashAlgorithm Transform { get; }
-        public HashCalculator(string name, IBlockStreamReader reader, ICryptoTransform transform) : base(name, reader) {
+        public IHashAlgorithmWithSpan Transform { get; }
+        public HashCalculator(string name, IBlockStreamReader reader, IHashAlgorithmWithSpan transform) : base(name, reader) {
             Transform = transform;
         }
 
+        protected override void DoWork(CancellationToken ct) {
+            Transform.Initialize();
 
+            int bytesProcessed;
+            do {
+                ct.ThrowIfCancellationRequested();
 
-		protected override void DoWork(CancellationToken ct) {
-			if(Transform is HashAlgorithm) {
-				((HashAlgorithm)Transform).Initialize();
-			}
+                var block = Reader.GetBlock();
+                Transform.HashCore(block);
+                bytesProcessed = block.Length;
 
-			int toRead;
-			do {
-				ct.ThrowIfCancellationRequested();
-				Transform.TransformBlock(Reader.GetBlock(out toRead), 0, toRead, null, 0);
-			} while(Reader.Advance());
+            } while(Reader.Advance(bytesProcessed));
 
-			Hash = Transform.TransformFinalBlock(EmptyArray, 0, 0);
-			if(Transform is HashAlgorithm) {
-				Hash = ((HashAlgorithm)Transform).Hash;
-			}
-		}
-	}
+            Hash = Transform.HashFinal();
+        }
+    }
 }

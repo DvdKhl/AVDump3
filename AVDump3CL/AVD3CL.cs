@@ -115,7 +115,7 @@ namespace AVDump3CL {
 
 			var fileProgressCollection = new List<FileProgress>(blockStreamProgress.Count);
 			foreach(var info in blockStreamProgress.Values.ToArray()) {
-				var bufferLength = info.StreamConsumer.BlockStream.Buffer.BlockLength * (long)info.StreamConsumer.BlockStream.Buffer.Blocks.Length;
+				var bufferLength = info.StreamConsumer.BlockStream.Length;
 				var bytesRead = (long[])info.BytesRead.Clone();
 				var bcfProgress = new KeyValuePair<string, long>[bytesRead.Length - 1];
 
@@ -174,10 +174,9 @@ namespace AVDump3CL {
 		}
 
 		private void BlockConsumerFinished(IStreamConsumer s) {
-			StreamConsumerProgressInfo info;
-			var removed = blockStreamProgress.TryRemove(s.BlockStream, out info);
+            var removed = blockStreamProgress.TryRemove(s.BlockStream, out StreamConsumerProgressInfo info);
 
-			if(s.RanToCompletion) {
+            if(s.RanToCompletion) {
 				foreach(var blockConsumer in s.BlockConsumers) {
 					var index = bcNameIndexMap[blockConsumer.Name];
 					Interlocked.Add(ref bcBytesProcessed[index], s.BlockStream.Length);

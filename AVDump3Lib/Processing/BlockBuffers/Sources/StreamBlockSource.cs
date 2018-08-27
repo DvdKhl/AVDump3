@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 namespace AVDump3Lib.Processing.BlockBuffers.Sources {
@@ -6,6 +7,6 @@ namespace AVDump3Lib.Processing.BlockBuffers.Sources {
 
 		public StreamBlockSource(Stream source) { this.source = source; }
 		public long Length => source.Length;
-		public int Read(byte[] block) => source.Read(block, 0, block.Length);
+		public int Read(Span<byte> block) => source.Read(block);
 	}
 }

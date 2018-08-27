@@ -13,9 +13,9 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
         [DllImport("AVDump3NativeLib.dll")]
         private static extern void CRC32Init(IntPtr handle);
         [DllImport("AVDump3NativeLib.dll")]
-        private unsafe static extern void CRC32Transform(IntPtr handle, byte* b, int length);
+        private static extern unsafe void CRC32Transform(IntPtr handle, byte* b, int length);
         [DllImport("AVDump3NativeLib.dll")]
-        private unsafe static extern void CRC32Final(IntPtr handle, byte* hash);
+        private static extern unsafe void CRC32Final(IntPtr handle, byte* hash);
         [DllImport("AVDump3NativeLib.dll")]
         private static extern void FreeHashObject(IntPtr handle);
 
@@ -30,18 +30,18 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
             CRC32Init(handle);
         }
 
-        protected unsafe override void HashCore(byte[] array, int ibStart, int cbSize) {
+        protected override unsafe void HashCore(byte[] array, int ibStart, int cbSize) {
             fixed (byte* bPtr = array) {
                 CRC32Transform(handle, bPtr + ibStart, cbSize);
             }
         }
 
-        protected unsafe override byte[] HashFinal() {
+        protected override unsafe byte[] HashFinal() {
             var b = new byte[4];
             fixed (byte* bPtr = b) {
                 CRC32Final(handle, bPtr);
             }
-			Array.Reverse(b);
+            Array.Reverse(b);
             return b;
         }
 
@@ -52,5 +52,5 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
                 disposed = true;
             }
         }
-	}
+    }
 }
