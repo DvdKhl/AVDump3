@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AVDump3CL": {
+      "commandName": "Project",
+      "commandLineArgs": "DEBUG"
+    }
+  }
+}
