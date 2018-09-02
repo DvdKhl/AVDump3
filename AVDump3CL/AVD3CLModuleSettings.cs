@@ -127,22 +127,12 @@ namespace AVDump3CL {
 		}
 	}
 
-	public class BlockSizeSettings {
-		public BlockSizeSettings(int blockCount, int blockLength) {
-			BlockCount = blockCount;
-			BlockLength = blockLength;
-		}
-
-		public int BlockCount { get; }
-		public int BlockLength { get; }
-	}
-
 	public class ProcessingSettings : SettingsObject, ICLConvert {
-		[CLNames("BSize")]
-		public SettingsProperty BlockSizeProperty { get; }
-		public BlockSizeSettings BlockSize {
-			get { return (BlockSizeSettings)GetValue(BlockSizeProperty); }
-			set { SetValue(BlockSizeProperty, value); }
+		[CLNames("BLength")]
+		public SettingsProperty BufferLengthProperty { get; }
+		public int BufferLength {
+			get { return (int)GetValue(BufferLengthProperty); }
+			set { SetValue(BufferLengthProperty, value); }
 		}
 
 
@@ -163,15 +153,15 @@ namespace AVDump3CL {
 		public ProcessingSettings() {
 			Name = "Processing";
 			ResourceManager = Lang.ResourceManager;
-			BlockSizeProperty = Register(nameof(BlockSize), new BlockSizeSettings(8, 8 << 20));
+			BufferLengthProperty = Register(nameof(BufferLength), 64 << 20);
 			ConsumersProperty = Register(nameof(Consumers), Array.AsReadOnly(new string[0]));
 			PauseBeforeExitProperty = Register(nameof(PauseBeforeExit), false);
 		}
 
 		string ICLConvert.ToCLString(SettingsProperty property, object obj) {
-			if(property == BlockSizeProperty) {
-				var value = (BlockSizeSettings)obj;
-				return value.BlockCount + ":" + (value.BlockLength >> 20);
+			if(property == BufferLengthProperty) {
+				var value = (int)obj;
+				return (value >> 20).ToString();
 
 			} else if(property == ConsumersProperty) {
 				var lst = (ReadOnlyCollection<string>)obj;
@@ -182,9 +172,9 @@ namespace AVDump3CL {
 		}
 
 		object ICLConvert.FromCLString(SettingsProperty property, string str) {
-			if(property == BlockSizeProperty) {
+			if(property == BufferLengthProperty) {
 				var args = str.Split(':');
-				return new BlockSizeSettings(int.Parse(args[0]), int.Parse(args[1]) << 20);
+				return int.Parse(args[1]) << 20;
 
 			} else if(property == ConsumersProperty) {
 				if(str != null && str.Length == 0) return null;

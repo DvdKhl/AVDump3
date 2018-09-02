@@ -15,20 +15,20 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
         public OGGBitStream(bool isOfficiallySupported) { IsOfficiallySupported = isOfficiallySupported; }
 
 
-        public static OGGBitStream ProcessBeginPage(OggPage page) {
+        public static OGGBitStream ProcessBeginPage(ref OggPage page) {
             OGGBitStream bitStream = null;
-            if(page.DataLength - page.DataOffset >= 29 && Encoding.ASCII.GetString(page.Data, page.DataOffset + 1, 5).Equals("video")) {
-                bitStream = new OGMVideoOGGBitStream(page.Data, page.DataOffset);
-            } else if(page.DataLength - page.DataOffset >= 42 && Encoding.ASCII.GetString(page.Data, page.DataOffset + 1, 6).Equals("theora")) {
-                bitStream = new TheoraOGGBitStream(page.Data, page.DataOffset);
-            } else if(page.DataLength - page.DataOffset >= 30 && Encoding.ASCII.GetString(page.Data, page.DataOffset + 1, 6).Equals("vorbis")) {
-                bitStream = new VorbisOGGBitStream(page.Data, page.DataOffset);
-            } else if(page.DataLength - page.DataOffset >= 79 && Encoding.ASCII.GetString(page.Data, page.DataOffset + 1, 4).Equals("FLAC")) {
-                bitStream = new FlacOGGBitStream(page.Data, page.DataOffset);
-            } else if(page.DataLength - page.DataOffset >= 46 && Encoding.ASCII.GetString(page.Data, page.DataOffset + 1, 5).Equals("audio")) {
-                bitStream = new OGMAudioOGGBitStream(page.Data, page.DataOffset);
-            } else if(page.DataLength - page.DataOffset >= 0x39 && Encoding.ASCII.GetString(page.Data, page.DataOffset + 1, 4).Equals("text")) {
-                bitStream = new OGMTextOGGBitStream(page.Data, page.DataOffset);
+            if(page.Data.Length >= 29 && Encoding.ASCII.GetString(page.Data.Slice(1, 5)).Equals("video")) {
+                bitStream = new OGMVideoOGGBitStream(page.Data);
+            } else if(page.Data.Length  >= 42 && Encoding.ASCII.GetString(page.Data.Slice(1, 6)).Equals("theora")) {
+                bitStream = new TheoraOGGBitStream(page.Data);
+            } else if(page.Data.Length >= 30 && Encoding.ASCII.GetString(page.Data.Slice(1, 6)).Equals("vorbis")) {
+                bitStream = new VorbisOGGBitStream(page.Data);
+            } else if(page.Data.Length >= 79 && Encoding.ASCII.GetString(page.Data.Slice(1, 4)).Equals("FLAC")) {
+                bitStream = new FlacOGGBitStream(page.Data);
+            } else if(page.Data.Length  >= 46 && Encoding.ASCII.GetString(page.Data.Slice(1, 5)).Equals("audio")) {
+                bitStream = new OGMAudioOGGBitStream(page.Data);
+            } else if(page.Data.Length >= 0x39 && Encoding.ASCII.GetString(page.Data.Slice(1, 4)).Equals("text")) {
+                bitStream = new OGMTextOGGBitStream(page.Data);
             }
 
             if(bitStream == null) bitStream = new UnknownOGGBitStream();
@@ -37,18 +37,8 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
             return bitStream;
         }
 
-        public virtual void ProcessPage(OggPage page) {
-            Size += page.DataLength;
-        }
-
-
-        protected unsafe static T GetStruct<T>(byte[] b, int offset, int length) {
-            var structBytes = new byte[length];
-            Buffer.BlockCopy(b, offset, structBytes, 0, length);
-            fixed (byte* structPtr = structBytes)
-            {
-                return (T)Marshal.PtrToStructure((IntPtr)structPtr, typeof(T));
-            }
+        public virtual void ProcessPage(ref OggPage page) {
+            Size += page.Data.Length;
         }
     }
 }

@@ -32,7 +32,7 @@ namespace AVDump3Lib.Processing {
 		IReadOnlyCollection<IBlockConsumerFactory> BlockConsumerFactories { get; }
 
 		event EventHandler<BlockConsumerFilterEventArgs> BlockConsumerFilter;
-		IStreamConsumerCollection CreateStreamConsumerCollection(IStreamProvider streamProvider, int blockCount, int blockLength);
+		IStreamConsumerCollection CreateStreamConsumerCollection(IStreamProvider streamProvider, int bufferLength);
 	}
 	public class AVD3ProcessingModule : IAVD3ProcessingModule {
 		[Flags]
@@ -63,28 +63,29 @@ namespace AVDump3Lib.Processing {
 
 		public AVD3ProcessingModule() {
 			var factories = new Dictionary<string, IBlockConsumerFactory>();
-			Action<IBlockConsumerFactory> addOrReplace = factory => factories[factory.Name] = factory;
+            void addOrReplace(IBlockConsumerFactory factory) => factories[factory.Name] = factory;
 
-			addOrReplace(new BlockConsumerFactory("NULL", r => new HashCalculator("NULL", r, new NullHashAlgorithm())));
-			addOrReplace(new BlockConsumerFactory("SHA1", r => new HashCalculator("SHA1", r, SHA1.Create())));
-			addOrReplace(new BlockConsumerFactory("SHA256", r => new HashCalculator("SHA256", r, SHA256.Create())));
-			addOrReplace(new BlockConsumerFactory("SHA384", r => new HashCalculator("SHA384", r, SHA384.Create())));
-			addOrReplace(new BlockConsumerFactory("SHA512", r => new HashCalculator("SHA512", r, SHA512.Create())));
+            addOrReplace(new BlockConsumerFactory("NULL", r => new HashCalculator("NULL", r, new NullHashAlgorithm(4 << 20))));
+			//addOrReplace(new BlockConsumerFactory("SHA1", r => new HashCalculator("SHA1", r, SHA1.Create())));
+			//addOrReplace(new BlockConsumerFactory("SHA256", r => new HashCalculator("SHA256", r, SHA256.Create())));
+			//addOrReplace(new BlockConsumerFactory("SHA384", r => new HashCalculator("SHA384", r, SHA384.Create())));
+			//addOrReplace(new BlockConsumerFactory("SHA512", r => new HashCalculator("SHA512", r, SHA512.Create())));
 			addOrReplace(new BlockConsumerFactory("MD4", r => new HashCalculator("MD4", r, new Md4HashAlgorithm())));
-			addOrReplace(new BlockConsumerFactory("MD5", r => new HashCalculator("MD5", r, MD5.Create())));
+			//addOrReplace(new BlockConsumerFactory("MD5", r => new HashCalculator("MD5", r, MD5.Create())));
 			addOrReplace(new BlockConsumerFactory("ED2K", r => new HashCalculator("ED2K", r, new Ed2kHashAlgorithm())));
-			addOrReplace(new BlockConsumerFactory("TIGER", r => new HashCalculator("TIGER", r, new TigerHashAlgorithm())));
-			addOrReplace(new BlockConsumerFactory("TTH", r => new HashCalculator("TTH", r, new TigerTreeHashAlgorithm(Environment.ProcessorCount))));
+			//addOrReplace(new BlockConsumerFactory("TIGER", r => new HashCalculator("TIGER", r, new TigerHashAlgorithm())));
+			//addOrReplace(new BlockConsumerFactory("TTH", r => new HashCalculator("TTH", r, new TigerTreeHashAlgorithm(Environment.ProcessorCount))));
 			addOrReplace(new BlockConsumerFactory("CRC32", r => new HashCalculator("CRC32", r, new Crc32HashAlgorithm())));
 			addOrReplace(new BlockConsumerFactory("MKV", r => new MatroskaParser("MKV", r)));
-			addOrReplace(new BlockConsumerFactory("OGG", r => new OggParser("OGG", r)));
-			addOrReplace(new BlockConsumerFactory("MP4", r => new MP4Parser("MP4", r)));
+            addOrReplace(new BlockConsumerFactory("OGG", r => new OggParser("OGG", r)));
+            addOrReplace(new BlockConsumerFactory("COPY", r => new CopyToFileBlockConsumer("COPY", r, @"D:\Projects\Visual Studio 2017\Projects\New\AVDump3\bla.bin")));
+            //addOrReplace(new BlockConsumerFactory("MP4", r => new MP4Parser("MP4", r)));
 
-			try {
+            try {
 				var cpuInstructions = RetrieveCPUInstructions();
 				if(cpuInstructions.HasFlag(CPUInstructions.SSE2)) {
 					addOrReplace(new BlockConsumerFactory("TIGER", r => new HashCalculator("TIGER", r, new TigerNativeHashAlgorithm())));
-					addOrReplace(new BlockConsumerFactory("CRC32", r => new HashCalculator("CRC32", r, new Crc32NativeHashAlgorithm())));
+					//addOrReplace(new BlockConsumerFactory("CRC32", r => new HashCalculator("CRC32", r, new Crc32NativeHashAlgorithm())));
 					addOrReplace(new BlockConsumerFactory("SHA3", r => new HashCalculator("SHA3", r, new SHA3NativeHashAlgorithm())));
 				}
 				if(cpuInstructions.HasFlag(CPUInstructions.SSE4)) {
@@ -107,9 +108,9 @@ namespace AVDump3Lib.Processing {
 			e.Select = filterEvent.Accepted;
 		}
 
-		public IStreamConsumerCollection CreateStreamConsumerCollection(IStreamProvider streamProvider, int blockCount, int blockLength) {
+		public IStreamConsumerCollection CreateStreamConsumerCollection(IStreamProvider streamProvider, int bufferLength) {
 			var bcs = new BlockConsumerSelector(BlockConsumerFactories);
-			var bp = new BlockPool(blockCount, blockLength);
+			var bp = new MirroredBufferPool(bufferLength);
 			var scf = new StreamConsumerFactory(bcs, bp);
 			var scc = new StreamConsumerCollection(scf, streamProvider);
 

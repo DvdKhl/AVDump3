@@ -27,10 +27,10 @@
     <ClCompile Include="Tiger.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="InstructionSupport.cpp">
+    <ClCompile Include="SHA3.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SHA3.c">
+    <ClCompile Include="InstructionSupport.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

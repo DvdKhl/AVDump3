@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
     public class CeltOGGBitStream : AudioOGGBitStream {
@@ -11,11 +12,11 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 		}
 
 
-        public override void ProcessPage(OggPage page) {
-			base.ProcessPage(page);
+        public override void ProcessPage(ref OggPage page) {
+			base.ProcessPage(ref page);
 
-			var sampleIndex = BitConverter.ToInt64(page.GranulePosition, 0);
-			if(SampleCount < (int)sampleIndex) SampleCount = (int)sampleIndex;
+            var sampleIndex = MemoryMarshal.Read<long>(page.GranulePosition);
+            if(SampleCount < (int)sampleIndex) SampleCount = (int)sampleIndex;
 		}
 	}
 }

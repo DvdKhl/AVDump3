@@ -1,12 +1,13 @@
 using AVDump3Lib.Information.MetaInfo.Core;
 using AVDump3Lib.Processing.BlockConsumers;
+using System;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Information.MetaInfo {
     public class HashProvider : MetaDataProvider {
         public HashProvider(IEnumerable<HashCalculator> hashCalculators) : base("HashProvider", HashProviderType) {
             foreach(var hashCalculator in hashCalculators) {
-                Add(new MetaInfoItemType<byte[]>(hashCalculator.Name, null), hashCalculator.Hash);
+                Add(new MetaInfoItemType<ReadOnlyMemory<byte>>(hashCalculator.Name, null), hashCalculator.HashValue);
             }
         }
         public static readonly MetaInfoContainerType HashProviderType = new MetaInfoContainerType("HashProvider");

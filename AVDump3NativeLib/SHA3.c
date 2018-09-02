@@ -322,7 +322,7 @@ void rhash_keccak_final(sha3_ctx *ctx, unsigned char* result)
 
 /* ========================================================================= */
 
-void* SHA3Create() {
+void* SHA3Create(uint32_t *blockLength) {
 	uint8_t *b = (uint8_t*)malloc(sizeof(uint64_t) * 25 * 2 + 2);
 	SHA3Init(b);
 	return b;

@@ -27,36 +27,23 @@
 
 //Modified by DvdKhl
 
-using AVDump3Lib.System.Security.Cryptography;
 using System;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
-    public sealed class Md4HashAlgorithm : IHashAlgorithmWithSpan {
+    public sealed class Md4HashAlgorithm : AVDHashAlgorithm {
         public const int HASHLENGTH = 16;
         public const int BLOCKLENGTH = 64;
         private const uint A0 = 0x67452301U, B0 = 0xEFCDAB89U, C0 = 0x98BADCFEU, D0 = 0x10325476U;
 
         private uint A, B, C, D;
-        private long hashedLength;
-        private readonly byte[] tail = new byte[128];
+        public long BytesProcessed { get; private set; }
+
+        public override int BlockSize => 64;
 
         public Md4HashAlgorithm() { Initialize(); }
 
-        public unsafe void HashCore(ReadOnlySpan<byte> data) {
-            fixed (byte* pData = &data[0]) {
-                for(int offset = 0; offset < data.Length; offset += BLOCKLENGTH) {
-                    TransformMd4Block((uint*)pData + offset);
-                }
-            }
-
-            var unprocessedBytes = data.Length % BLOCKLENGTH;
-            if(unprocessedBytes > 0) {
-                data.Slice(data.Length - unprocessedBytes).TryCopyTo(tail);
-            }
-            hashedLength += data.Length;
-        }
 
         private unsafe void TransformMd4Block(uint* dataPtr) {
             uint aa, bb, cc, dd;
@@ -173,11 +160,23 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
             D += dd;
         }
 
-        public byte[] HashFinal() {
+        protected override unsafe void HashCore(ReadOnlySpan<byte> data) {
+            fixed (byte* pData = &data[0]) {
+                for(int offset = 0; offset < data.Length; offset += BLOCKLENGTH) {
+                    TransformMd4Block((uint*)pData + offset);
+                }
+            }
+            BytesProcessed += data.Length;
+        }
+
+
+        private int PadBuffer(Span<byte> tail) {
             int padding;
-            int n = (int)(hashedLength % BLOCKLENGTH);
+            int n = (int)(BytesProcessed % BLOCKLENGTH);
             if(n < 56) padding = 56; else padding = 120;
-            long bits = hashedLength << 3;
+            long bits = BytesProcessed << 3;
+
+            tail.Slice(n + 1, padding - n - 1).Clear();
 
             tail[n] = 0x80;
             tail[padding] = (byte)(bits & 0xFF);
@@ -188,50 +187,44 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
             tail[padding + 5] = (byte)(bits >> 40 & 0xFF);
             tail[padding + 6] = (byte)(bits >> 48 & 0xFF);
             tail[padding + 7] = (byte)(bits >> 56 & 0xFF);
+            return padding;
+        }
 
-            HashCore(new ReadOnlySpan<byte>(tail, 0, padding + 8));
+        public void ComputeHash(ReadOnlySpan<byte> data, Span<byte> hash) {
+            Span<byte> tail = stackalloc byte[128];
 
-            return new byte[] {
-                (byte)(A), (byte)(A >> 8), (byte)(A >> 16), (byte)(A >> 24),
-                (byte)(B), (byte)(B >> 8), (byte)(B >> 16), (byte)(B >> 24),
-                (byte)(C), (byte)(C >> 8), (byte)(C >> 16), (byte)(C >> 24),
-                (byte)(D), (byte)(D >> 8), (byte)(D >> 16), (byte)(D >> 24)
-            };
+            var toProcess = data.Slice(0, (data.Length / BlockSize) * BlockSize);
+            if(toProcess.Length > 0) HashCore(toProcess);
+
+            data.Slice(toProcess.Length).TryCopyTo(tail);
+            BytesProcessed += data.Length - toProcess.Length;
+
+            var padding = PadBuffer(tail);
+            HashCore(tail.Slice(0, padding + 8));
+
+            hash[00] = (byte)(A); hash[01] = (byte)(A >> 8); hash[02] = (byte)(A >> 16); hash[03] = (byte)(A >> 24);
+            hash[04] = (byte)(B); hash[05] = (byte)(B >> 8); hash[06] = (byte)(B >> 16); hash[07] = (byte)(B >> 24);
+            hash[08] = (byte)(C); hash[09] = (byte)(C >> 8); hash[10] = (byte)(C >> 16); hash[11] = (byte)(C >> 24);
+            hash[12] = (byte)(D); hash[13] = (byte)(D >> 8); hash[14] = (byte)(D >> 16); hash[15] = (byte)(D >> 24);
+
+            Initialize();
+        }
+
+        public override ReadOnlySpan<byte> TransformFinalBlock(ReadOnlySpan<byte> data) {
+            Span<byte> hash = new byte[16];
+            ComputeHash(data, hash);
+            return hash;
         }
 
 
-        public void Initialize() {
+
+        public override void Initialize() {
             A = A0;
             B = B0;
             C = C0;
             D = D0;
-            hashedLength = 0;
-            Array.Clear(tail, 0, tail.Length);
+            BytesProcessed = 0;
         }
-        public void Initialize(InternalState state) {
-            hashedLength = state.hashedLength;
-            A = state.A;
-            B = state.B;
-            C = state.C;
-            D = state.D;
-            Array.Clear(tail, 0, tail.Length);
-        }
-
-        public struct InternalState {
-            public uint A, B, C, D;
-            public long hashedLength;
-
-            public InternalState(long hashedLength, uint A, uint B, uint C, uint D) {
-                this.hashedLength = hashedLength;
-                this.A = A;
-                this.B = B;
-                this.C = C;
-                this.D = D;
-            }
-        }
-        public InternalState GetState() { return new InternalState(hashedLength, A, B, C, D); }
-
-        public void Dispose() { }
     }
 
 }

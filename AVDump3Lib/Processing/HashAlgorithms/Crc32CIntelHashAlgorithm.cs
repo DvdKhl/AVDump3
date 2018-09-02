@@ -7,49 +7,16 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
-    public class Crc32CIntelHashAlgorithm : HashAlgorithm {
+    public unsafe class Crc32CIntelHashAlgorithm : AVDNativeHashAlgorithm {
         [DllImport("AVDump3NativeLib.dll")]
-        private static extern IntPtr CRC32CCreate();
+        private static extern IntPtr CRC32CCreate(out int blockSize);
         [DllImport("AVDump3NativeLib.dll")]
         private static extern void CRC32CInit(IntPtr handle);
         [DllImport("AVDump3NativeLib.dll")]
-        private static extern unsafe void CRC32CTransform(IntPtr handle, byte* b, int length);
+        private static extern void CRC32CTransform(IntPtr handle, byte* b, int length, byte lastBlock);
         [DllImport("AVDump3NativeLib.dll")]
-        private static extern unsafe void CRC32CFinal(IntPtr handle, byte* hash);
-        [DllImport("AVDump3NativeLib.dll")]
-        private static extern void FreeHashObject(IntPtr handle);
+        private static extern void CRC32CFinal(IntPtr handle, byte* hash);
 
-        private IntPtr handle;
-        private bool disposed;
-
-        public Crc32CIntelHashAlgorithm() {
-            handle = CRC32CCreate();
-        }
-
-        public override void Initialize() {
-            CRC32CInit(handle);
-        }
-
-        protected override unsafe void HashCore(byte[] array, int ibStart, int cbSize) {
-            fixed (byte* bPtr = array) {
-                CRC32CTransform(handle, bPtr + ibStart, cbSize);
-            }
-        }
-
-        protected override unsafe byte[] HashFinal() {
-            var b = new byte[4];
-            fixed (byte* bPtr = b) {
-                CRC32CFinal(handle, bPtr);
-            }
-            return b;
-        }
-
-        protected override void Dispose(bool disposing) {
-            base.Dispose(disposing);
-            if(!disposed) {
-                FreeHashObject(handle);
-                disposed = true;
-            }
-        }
+        public Crc32CIntelHashAlgorithm() : base(CRC32CCreate, CRC32CInit, CRC32CTransform, CRC32CFinal) { }
     }
 }

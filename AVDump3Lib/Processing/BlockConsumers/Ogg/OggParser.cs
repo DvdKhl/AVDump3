@@ -22,9 +22,8 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
             if(!stream.SeekPastSyncBytes(true)) return;
 
 
-            stream.LocalPosition = 0; //Max Page size ~ 256 * 255
-            while(stream.ReadOggPage(page)) {
-                info.ProcessOggPage(page);
+            while(stream.ReadOggPage(ref page)) {
+                info.ProcessOggPage(ref page);
             }
 
             Info = info;

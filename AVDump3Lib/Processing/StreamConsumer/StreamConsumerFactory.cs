@@ -10,11 +10,11 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 	}
 	public class StreamConsumerFactory : IStreamConsumerFactory {
 		private IBlockConsumerSelector blockConsumerSelector;
-		private IBlockPool blockPool;
+		private IMirroredBufferPool bufferPool;
 
-		public StreamConsumerFactory(IBlockConsumerSelector blockConsumerSelector, IBlockPool blockPool) {
+		public StreamConsumerFactory(IBlockConsumerSelector blockConsumerSelector, IMirroredBufferPool bufferPool) {
 			this.blockConsumerSelector = blockConsumerSelector;
-			this.blockPool = blockPool;
+			this.bufferPool = bufferPool;
 		}
 
 		public IStreamConsumer Create(Stream stream) {
@@ -24,13 +24,14 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 			}
 
 			var blockSource = new StreamBlockSource(stream);
-			var buffer = new CircularBlockBuffer(blockPool.Take());
-			var blockStream = new BlockStream(blockSource, buffer);
+
+            var buffer = bufferPool.Take();
+            var circularBuffer = new CircularBuffer64Bit(buffer, blockConsumerFactories.Count()); //TODO CircularBuffer64Bit CircularBuffer32Bit
+            var blockStream = new BlockStream(blockSource, circularBuffer);
 			var blockConsumers = blockConsumerSelector.Create(blockConsumerFactories, blockStream).ToArray();
-			buffer.SetConsumerCount(blockConsumers.Length);
 
 			var streamConsumer =  new StreamConsumer(blockStream, blockConsumers);
-			streamConsumer.Finished += s => blockPool.Release(buffer.Blocks);
+			streamConsumer.Finished += s => bufferPool.Release(buffer);
 
 			return streamConsumer;
 		}

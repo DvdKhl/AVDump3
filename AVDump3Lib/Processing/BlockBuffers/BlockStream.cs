@@ -7,7 +7,7 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 	public interface IBlockStream {
 		void CompleteConsumption(int consumerIndex);
 		bool Advance(int consumerIndex, int length);
-        ReadOnlySpan<byte> GetBlock(int consumerIndex);
+        ReadOnlySpan<byte> GetBlock(int consumerIndex, int minBlockLength);
 
 		Task Produce(IProgress<BlockStreamProgress> progress, CancellationToken ct);
 		long Length { get; }
@@ -83,13 +83,19 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 
 		public void CompleteConsumption(int consumerIndex) { Buffer.CompleteConsumption(consumerIndex); }
 
-		public ReadOnlySpan<byte> GetBlock(int consumerIndex) {
+		public ReadOnlySpan<byte> GetBlock(int consumerIndex, int minBlockLength) {
             ReadOnlySpan<byte> readerSpan;
 
-            if((readerSpan = Buffer.ConsumerBlock(consumerIndex)).Length < 0) { //TODO
+            if((readerSpan = Buffer.ConsumerBlock(consumerIndex)).Length < minBlockLength) {
 				if(Buffer.ConsumerCompleted(consumerIndex)) throw new InvalidOperationException("Cannot read block when EOS is reached");
 				lock (consumerLock) {
-					while((readerSpan = Buffer.ConsumerBlock(consumerIndex)).Length < 0) { //TODO
+					while((readerSpan = Buffer.ConsumerBlock(consumerIndex)).Length < minBlockLength) {
+                        if(Buffer.IsProducionCompleted) {
+                            //We have to get the span again since the producer could have loaded the last data between the previous two statements
+                            readerSpan = Buffer.ConsumerBlock(consumerIndex); 
+                            break;
+                        }
+
 						Monitor.Wait(consumerLock, 1000);
 						ct.ThrowIfCancellationRequested();
 						BufferUnderrunCount++;

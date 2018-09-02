@@ -16,19 +16,19 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 
 
 
-        public void ProcessOggPage(OggPage page) {
+        public void ProcessOggPage(ref OggPage page) {
             Overhead += 27 + page.SegmentCount;
 
             OGGBitStream bitStream = null;
             if(bitStreams.TryGetValue(page.StreamId, out bitStream)) {
-                bitStream.ProcessPage(page);
+                bitStream.ProcessPage(ref page);
 
             } else if(page.Flags.HasFlag(PageFlags.Header)) {
-                bitStream = OGGBitStream.ProcessBeginPage(page);
+                bitStream = OGGBitStream.ProcessBeginPage(ref page);
                 bitStreams.Add(bitStream.Id, bitStream);
 
             } else {
-                Overhead += page.DataLength;
+                Overhead += page.Data.Length;
             }
         }
     }

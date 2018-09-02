@@ -33,7 +33,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 
 
 		protected override void DoWork(CancellationToken ct) {
-			var dataSrc = new EBMLBlockDataSource(Reader);
+            IEBMLDataSource dataSrc = null; //new EBMLBlockDataSource(Reader);
 			using(var cts = new CancellationTokenSource())
 			using(ct.Register(() => cts.Cancel())) {
 				var matroskaDocType = new MatroskaDocType(MatroskaVersion.V3);

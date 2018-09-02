@@ -1,35 +1,47 @@
 using AVDump3Lib.Processing.BlockBuffers;
-using AVDump3Lib.System.Security.Cryptography;
+using AVDump3Lib.Processing.HashAlgorithms;
 using System;
 using System.Security.Cryptography;
 using System.Threading;
 
 namespace AVDump3Lib.Processing.BlockConsumers {
     public class HashCalculator : BlockConsumer {
-        //Needs to be non-empty otherwise pinvoke makes it a null pointer (See CRC32Native hash)
-        private static readonly byte[] EmptyArray = new byte[] { 0 };
+        public int ReadLength { get; }
+        public ReadOnlyMemory<byte> HashValue;
 
-        public ReadOnlyMemory<byte> Hash { get; private set; }
+        public AVDHashAlgorithm HashAlgorithm { get; }
+        public HashCalculator(string name, IBlockStreamReader reader, AVDHashAlgorithm transform) : base(name, reader) {
+            HashAlgorithm = transform;
 
-        public IHashAlgorithmWithSpan Transform { get; }
-        public HashCalculator(string name, IBlockStreamReader reader, IHashAlgorithmWithSpan transform) : base(name, reader) {
-            Transform = transform;
+            var length = ((reader.SuggestedReadLength / transform.BlockSize) + 1) * transform.BlockSize;
+            if(length > reader.MaxReadLength) {
+                length -= transform.BlockSize;
+                if(length == 0) {
+                    throw new Exception("Min/Max BlockLength too restrictive") {
+                        Data = {
+                            { "TransformName", Name },
+                            { "MaxBlockLength", reader.MaxReadLength },
+                            { "HashBlockLength", transform.BlockSize }
+                        }
+                    };
+                }
+            }
+            ReadLength = length;
         }
 
         protected override void DoWork(CancellationToken ct) {
-            Transform.Initialize();
+            HashAlgorithm.Initialize();
 
+            ReadOnlySpan<byte> block;
             int bytesProcessed;
             do {
                 ct.ThrowIfCancellationRequested();
 
-                var block = Reader.GetBlock();
-                Transform.HashCore(block);
-                bytesProcessed = block.Length;
+                block = Reader.GetBlock(ReadLength);
+                bytesProcessed = HashAlgorithm.TransformFullBlocks(block);
+            } while(Reader.Advance(bytesProcessed) && bytesProcessed == block.Length);
 
-            } while(Reader.Advance(bytesProcessed));
-
-            Hash = Transform.HashFinal();
+            HashValue = HashAlgorithm.TransformFinalBlock(block.Slice(bytesProcessed, block.Length - bytesProcessed)).ToArray();
         }
     }
 }

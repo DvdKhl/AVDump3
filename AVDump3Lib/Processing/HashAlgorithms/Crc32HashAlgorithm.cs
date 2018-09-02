@@ -1,88 +1,66 @@
 namespace AVDump3Lib.Processing.HashAlgorithms {
     using System;
-    using System.Security.Cryptography;
 
     //Source: http://damieng.com/blog/2006/08/08/Calculating_CRC32_in_C_and_NET
-    public sealed class Crc32HashAlgorithm : HashAlgorithm {
-		public const uint DefaultPolynomial = 0xedb88320;
-		public const uint DefaultSeed = 0xffffffff;
+    public sealed class Crc32HashAlgorithm : AVDHashAlgorithm {
+        public const uint DefaultPolynomial = 0xedb88320;
+        public const uint DefaultSeed = 0xffffffff;
 
-		private uint hash;
-		private uint seed;
-		private uint[] table;
-		private static uint[] defaultTable;
+        private uint hash;
+        private readonly uint seed;
+        private readonly uint[] table;
+        private static uint[] defaultTable;
 
-		public Crc32HashAlgorithm() {
-			table = InitializeTable(DefaultPolynomial);
-			seed = DefaultSeed;
-			Initialize();
-		}
+        public override int BlockSize => 1;
 
-		public Crc32HashAlgorithm(uint polynomial, uint seed) {
-			table = InitializeTable(polynomial);
-			this.seed = seed;
-			Initialize();
-		}
+        public Crc32HashAlgorithm() {
+            table = InitializeTable(DefaultPolynomial);
+            seed = DefaultSeed;
+            Initialize();
+        }
 
-		public override void Initialize() {
-			hash = seed;
-		}
+        public Crc32HashAlgorithm(uint polynomial, uint seed) {
+            table = InitializeTable(polynomial);
+            this.seed = seed;
+            Initialize();
+        }
 
-		protected override void HashCore(byte[] buffer, int start, int length) {
-			hash = CalculateHash(table, hash, buffer, start, length);
-		}
+        public override void Initialize() => hash = seed;
 
-		protected override byte[] HashFinal() {
-			byte[] hashBuffer = UInt32ToBigEndianBytes(~hash);
-			this.HashValue = hashBuffer;
-			return hashBuffer;
-		}
+        protected override void HashCore(ReadOnlySpan<byte> data) {
+            hash = CalculateHash(table, hash, data);
+        }
+        public override ReadOnlySpan<byte> TransformFinalBlock(ReadOnlySpan<byte> data) {
+            hash = CalculateHash(table, hash, data);
+            return UInt32ToBigEndianBytes(~hash);
+        }
 
-		public override int HashSize {
-			get { return 32; }
-		}
 
-		public static uint Compute(byte[] buffer) {
-			return ~CalculateHash(InitializeTable(DefaultPolynomial), DefaultSeed, buffer, 0, buffer.Length);
-		}
+        private static uint[] InitializeTable(uint polynomial) {
+            if(polynomial == DefaultPolynomial && defaultTable != null) return defaultTable;
 
-		public static uint Compute(uint seed, byte[] buffer) {
-			return ~CalculateHash(InitializeTable(DefaultPolynomial), seed, buffer, 0, buffer.Length);
-		}
+            uint[] createTable = new uint[256];
+            for(int i = 0; i < 256; i++) {
+                uint entry = (uint)i;
+                for(int j = 0; j < 8; j++) {
+                    if((entry & 1) == 1) entry = (entry >> 1) ^ polynomial;
+                    else entry = entry >> 1;
+                }
+                createTable[i] = entry;
+            }
 
-		public static uint Compute(uint polynomial, uint seed, byte[] buffer) {
-			return ~CalculateHash(InitializeTable(polynomial), seed, buffer, 0, buffer.Length);
-		}
+            if(polynomial == DefaultPolynomial) defaultTable = createTable;
+            return createTable;
+        }
 
-		private static uint[] InitializeTable(uint polynomial) {
-			if(polynomial == DefaultPolynomial && defaultTable != null)
-				return defaultTable;
+        private static uint CalculateHash(uint[] table, uint seed, ReadOnlySpan<byte> data) {
+            uint crc = seed;
+            for(int i = 0; i < data.Length; i++) unchecked { crc = (crc >> 8) ^ table[data[i] ^ crc & 0xff]; }
+            return crc;
+        }
 
-			uint[] createTable = new uint[256];
-			for(int i = 0;i < 256;i++) {
-				uint entry = (uint)i;
-				for(int j = 0;j < 8;j++)
-					if((entry & 1) == 1)
-						entry = (entry >> 1) ^ polynomial;
-					else
-						entry = entry >> 1;
-				createTable[i] = entry;
-			}
-
-			if(polynomial == DefaultPolynomial)
-				defaultTable = createTable;
-
-			return createTable;
-		}
-
-		private static uint CalculateHash(uint[] table, uint seed, byte[] buffer, int start, int size) {
-			uint crc = seed;
-			for(int i = start;i < size;i++) unchecked { crc = (crc >> 8) ^ table[buffer[i] ^ crc & 0xff]; }
-			return crc;
-		}
-
-		private byte[] UInt32ToBigEndianBytes(uint x) {
-			return new byte[] { (byte)((x >> 24) & 0xff), (byte)((x >> 16) & 0xff), (byte)((x >> 8) & 0xff), (byte)(x & 0xff) };
-		}
-	}
+        private byte[] UInt32ToBigEndianBytes(uint x) {
+            return new byte[] { (byte)((x >> 24) & 0xff), (byte)((x >> 16) & 0xff), (byte)((x >> 8) & 0xff), (byte)(x & 0xff) };
+        }
+    }
 }

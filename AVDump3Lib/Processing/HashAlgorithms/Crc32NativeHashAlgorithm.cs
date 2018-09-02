@@ -7,50 +7,16 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
-    public class Crc32NativeHashAlgorithm : HashAlgorithm {
+    public unsafe class Crc32NativeHashAlgorithm : AVDNativeHashAlgorithm {
         [DllImport("AVDump3NativeLib.dll")]
-        private static extern IntPtr CRC32Create();
+        private static extern IntPtr CRC32Create(out int blockSize);
         [DllImport("AVDump3NativeLib.dll")]
         private static extern void CRC32Init(IntPtr handle);
         [DllImport("AVDump3NativeLib.dll")]
-        private static extern unsafe void CRC32Transform(IntPtr handle, byte* b, int length);
+        private static extern void CRC32Transform(IntPtr handle, byte* b, int length, byte lastBlock);
         [DllImport("AVDump3NativeLib.dll")]
-        private static extern unsafe void CRC32Final(IntPtr handle, byte* hash);
-        [DllImport("AVDump3NativeLib.dll")]
-        private static extern void FreeHashObject(IntPtr handle);
+        private static extern void CRC32Final(IntPtr handle, byte* hash);
 
-        private IntPtr handle;
-        private bool disposed;
-
-        public Crc32NativeHashAlgorithm() {
-            handle = CRC32Create();
-        }
-
-        public override void Initialize() {
-            CRC32Init(handle);
-        }
-
-        protected override unsafe void HashCore(byte[] array, int ibStart, int cbSize) {
-            fixed (byte* bPtr = array) {
-                CRC32Transform(handle, bPtr + ibStart, cbSize);
-            }
-        }
-
-        protected override unsafe byte[] HashFinal() {
-            var b = new byte[4];
-            fixed (byte* bPtr = b) {
-                CRC32Final(handle, bPtr);
-            }
-            Array.Reverse(b);
-            return b;
-        }
-
-        protected override void Dispose(bool disposing) {
-            base.Dispose(disposing);
-            if(!disposed) {
-                FreeHashObject(handle);
-                disposed = true;
-            }
-        }
+        public Crc32NativeHashAlgorithm() : base(CRC32Create, CRC32Init, CRC32Transform, CRC32Final) { }
     }
 }

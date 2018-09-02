@@ -578,7 +578,9 @@ int32_t len;
 /* ========================================================================= */
 
 
-void* CRC32Create() {
+void* CRC32Create(uint32_t *blockLength) {
+	*blockLength = 4;
+
 	uint8_t *b = (uint8_t*)malloc(4);
 	CRC32Init(b);
 	return b;
@@ -588,7 +590,7 @@ void CRC32Init(void * handle) {
 	*(uint32_t*)handle = crc32(0L, NULL, 0);
 }
 
-void CRC32Transform(void* handle, uint8_t *b, int32_t length) {
+void CRC32Transform(void* handle, uint8_t *b, int32_t length, uint8_t lastBlock) {
 	*(uint32_t*)handle = crc32(*(uint32_t*)handle, b, length);
 }
 
