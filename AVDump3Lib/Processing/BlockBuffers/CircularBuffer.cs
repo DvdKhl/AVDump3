@@ -56,13 +56,24 @@ namespace AVDump3Lib.Processing.BlockBuffers {
             return consumers[consumerId] == producer;
         }
 
+#if true
+        private int ProducerCanWrite() {
+            long lastConsumer = long.MaxValue;
+            foreach(var consumer in consumers) {
+                if(lastConsumer > consumer) lastConsumer = consumer;
+            }
+            return buffer.Length - (int)Math.Max(0, producer - lastConsumer); //Min: When all readers are dropped out
+        }
+#else
         private int ProducerCanWrite() {
             long lastConsumer = 0;
             foreach(var consumer in consumers) {
                 if(lastConsumer < consumer) lastConsumer = consumer;
             }
-            return Math.Min(buffer.Length, buffer.Length - (int)(producer - lastConsumer)); //Min: When all readers are dropped out
+            return buffer.Length - (int)(producer - lastConsumer); //Min: When all readers are dropped out
         }
+#endif
+
         public void ProducerAdvance(int length) => producer += length;
         public Span<byte> ProducerBlock() => buffer.Slice((int)(producer % buffer.Length), ProducerCanWrite());
         public void CompleteProduction() => IsProducionCompleted = true;

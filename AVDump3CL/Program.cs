@@ -28,7 +28,7 @@ namespace AVDump3CL {
 					//"--DLPath=Donelog.txt",
                     //"--Consumers",
 					//"--Reports",
-					"--Consumers=CRC32C",
+					"--Consumers=ED2K",
 					"--PrintHashes",
 					//"--Consumers=MKV",
                     //"--Reports=AniDBReport",
@@ -50,7 +50,7 @@ namespace AVDump3CL {
 					//@"G:\Anime", //5B64C2B0
                     //@"H:\Anime", //5B64C2B0
                     //@"I:\Anime", //5B64C2B0
-					@"D:\New folder\Genius Party - 1 - Genius Party [no group](FF0FA0CE).mp4",
+                    //@"D:\New folder\Genius Party - 1 - Genius Party [no group](FF0FA0CE).mp4",
 					//@"E:\Anime\",
 					//@"G:\Anime\Processed\Shinseiki Evangelion Gekijouban Shi to Shinsei 2 - Rebirth [aF][DVD][640x360][1bfc05dc].ogm"
                     //@"D:\MyStuff\BigFile", //C548A93C

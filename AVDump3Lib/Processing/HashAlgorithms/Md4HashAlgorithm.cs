@@ -161,9 +161,9 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
         }
 
         protected override unsafe void HashCore(ReadOnlySpan<byte> data) {
-            fixed (byte* pData = &data[0]) {
+            fixed (byte* pData = data) {
                 for(int offset = 0; offset < data.Length; offset += BLOCKLENGTH) {
-                    TransformMd4Block((uint*)pData + offset);
+                    TransformMd4Block((uint*)(pData + offset));
                 }
             }
             BytesProcessed += data.Length;

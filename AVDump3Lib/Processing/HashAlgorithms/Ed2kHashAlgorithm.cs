@@ -22,7 +22,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
         }
 
         protected override unsafe void HashCore(ReadOnlySpan<byte> data) {
-            if(blockHashes.Length < blockHashOffset + ((data.Length % BlockSize) + 1) * 16) {
+            if(blockHashes.Length < blockHashOffset + ((data.Length / BlockSize) + 2) * 16) {
                 Array.Resize(ref blockHashes, blockHashes.Length * 2);
             }
 

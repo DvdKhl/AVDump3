@@ -39,7 +39,7 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 
                 block = Reader.GetBlock(ReadLength);
                 bytesProcessed = HashAlgorithm.TransformFullBlocks(block);
-            } while(Reader.Advance(bytesProcessed) && bytesProcessed == block.Length);
+            } while(Reader.Advance(bytesProcessed) &&  bytesProcessed != 0);
 
             HashValue = HashAlgorithm.TransformFinalBlock(block.Slice(bytesProcessed, block.Length - bytesProcessed)).ToArray();
         }

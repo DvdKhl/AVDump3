@@ -146,10 +146,12 @@ namespace AVDump3Lib.Processing.BlockBuffers {
             var d = (byte*)data.ToPointer();
             var m = (byte*)mirror.ToPointer();
             for(int i = 0; i < Length; i++) {
-                *d = (byte)i;
+                *(m + i) = (byte)i;
 
-                if(*d != *m) throw new Exception("Data Mirroring failed");
+                if(*(d + i) != *(m + i)) throw new Exception("Data Mirroring failed");
             }
+            for(int i = 0; i < Length * 2; i++) *(d + i) = (byte)i;
+
 
             Data = (byte*)data;
 
