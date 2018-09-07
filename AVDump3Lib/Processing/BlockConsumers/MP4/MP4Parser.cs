@@ -1,7 +1,5 @@
 ﻿using AVDump3Lib.Processing.BlockBuffers;
-using CSEBML;
-using CSEBML.DocTypes.MP4;
-using CSEBML.DocTypes.MP4.DataSource;
+using BXmlLib;
 using System;
 using System.Collections.Generic;
 using System.IO;

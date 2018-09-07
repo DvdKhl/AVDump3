@@ -1,5 +1,5 @@
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SegmentInfo {
@@ -10,13 +10,13 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SegmentInfo {
 		public ulong? Codec { get; private set; }
 		public byte[] Id { get { return id != null ? (byte[])id.Clone() : null; } }
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.ChapterTranslateEditionUID.Id) {
-				EditionUId.Add((ulong)reader.RetrieveValue(elemInfo));
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ChapterTranslateCodec.Id) {
-				Codec = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ChapterTranslateID.Id) {
-				id = (byte[])reader.RetrieveValue(elemInfo);
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.ChapterTranslateEditionUID) {
+				EditionUId.Add((ulong)reader.RetrieveValue());
+			} else if(reader.DocElement == MatroskaDocType.ChapterTranslateCodec) {
+				Codec = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.ChapterTranslateID) {
+				id = (byte[])reader.RetrieveValue();
 			} else return false;
 
 			return true;

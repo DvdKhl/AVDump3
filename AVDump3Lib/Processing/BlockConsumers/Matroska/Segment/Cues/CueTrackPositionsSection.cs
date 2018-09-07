@@ -1,5 +1,5 @@
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cues {
@@ -18,21 +18,21 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cues {
 
 		public CueTrackPositionsSection() { CueReferences = new EbmlList<CueReferenceSection>(); }
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.CueReference.Id) {
-				Section.CreateReadAdd(new CueReferenceSection(), reader, elemInfo, CueReferences);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.CueTrack.Id) {
-				CueTrack = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.CueClusterPosition.Id) {
-				CueClusterPosition = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.CueRelativePosition.Id) {
-				CueRelativePosition = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.CueDuration.Id) {
-				CueDuration = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.CueBlockNumber.Id) {
-				cueBlockNumber = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.CueCodecState.Id) {
-				cueCodecState = (ulong)reader.RetrieveValue(elemInfo);
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.CueReference) {
+				Section.CreateReadAdd(new CueReferenceSection(), reader, CueReferences);
+			} else if(reader.DocElement == MatroskaDocType.CueTrack) {
+				CueTrack = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.CueClusterPosition) {
+				CueClusterPosition = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.CueRelativePosition) {
+				CueRelativePosition = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.CueDuration) {
+				CueDuration = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.CueBlockNumber) {
+				cueBlockNumber = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.CueCodecState) {
+				cueCodecState = (ulong)reader.RetrieveValue();
 			} else return false;
 
 			return true;

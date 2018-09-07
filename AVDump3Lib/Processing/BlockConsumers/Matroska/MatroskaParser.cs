@@ -17,13 +17,12 @@
 using System;
 using System.IO;
 using System.Threading;
-using CSEBML;
-using CSEBML.DataSource;
-using CSEBML.DocTypes;
-using CSEBML.DocTypes.Matroska;
 using AVDump3Lib.Processing.BlockBuffers;
 using AVDump3Lib.Processing.BlockConsumers.Matroska.EbmlHeader;
 using AVDump3Lib.Processing.StreamConsumer;
+using BXmlLib;
+using BXmlLib.DataSource;
+using BXmlLib.DocTypes.Matroska;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 	public class MatroskaParser : BlockConsumer {
@@ -33,11 +32,11 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 
 
 		protected override void DoWork(CancellationToken ct) {
-            IEBMLDataSource dataSrc = null; //new EBMLBlockDataSource(Reader);
+            IBXmlDataSource dataSrc = null; //new EBMLBlockDataSource(Reader);
 			using(var cts = new CancellationTokenSource())
 			using(ct.Register(() => cts.Cancel())) {
-				var matroskaDocType = new MatroskaDocType(MatroskaVersion.V3);
-				var reader = new EBMLReader(dataSrc, matroskaDocType);
+				var matroskaDocType = new MatroskaDocType();
+				var bxmlReader = new BXmlReader(dataSrc, matroskaDocType);
 
 				//var updateTask = Task.Factory.StartNew(() => {
 				//	long oldProcessedBytes = 0;
@@ -52,10 +51,10 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 				//}, ct, TaskCreationOptions.LongRunning, TaskScheduler.Current);
 
 
-				var matroskaFile = new MatroskaFile(dataSrc.Length);
+				var matroskaFile = new MatroskaFile(Reader.Length);
 
 				try {
-					matroskaFile.Parse(reader, cts.Token);
+					matroskaFile.Parse(bxmlReader, cts.Token);
 
 					if(matroskaFile.Segment != null) {
 						Info = matroskaFile;

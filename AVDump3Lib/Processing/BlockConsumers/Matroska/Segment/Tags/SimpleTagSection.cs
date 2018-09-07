@@ -1,5 +1,5 @@
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -20,19 +20,19 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tags {
 
 		public SimpleTagSection() { SimpleTags = new EbmlList<SimpleTagSection>(); }
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.TagName.Id) {
-				TagName = (string)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.TagLanguage.Id) {
-				tagLanguage = (string)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.TagString.Id) {
-				TagString = (string)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.TagDefault.Id) {
-				tagdefault = (ulong)reader.RetrieveValue(elemInfo) == 1;
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.TagBinary.Id) {
-				tagBinary = (byte[])reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.SimpleTag.Id) {
-				Section.CreateReadAdd(new SimpleTagSection(), reader, elemInfo, SimpleTags);
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.TagName) {
+				TagName = (string)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.TagLanguage) {
+				tagLanguage = (string)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.TagString) {
+				TagString = (string)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.TagDefault) {
+				tagdefault = (ulong)reader.RetrieveValue() == 1;
+			} else if(reader.DocElement == MatroskaDocType.TagBinary) {
+				tagBinary = (byte[])reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.SimpleTag) {
+				Section.CreateReadAdd(new SimpleTagSection(), reader, SimpleTags);
 			} else return false;
 
 			return true;

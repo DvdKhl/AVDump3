@@ -1,22 +1,22 @@
 using System;
 using System.Collections.Generic;
-using CSEBML;
-using CSEBML.DocTypes;
 using System.Collections;
+using BXmlLib;
+using BXmlLib.DocTypes.Ebml;
+using BXmlLib.DocType;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
     public abstract class Section : IEnumerable<KeyValuePair<string, object>> {
 		public long? SectionSize { get; protected set; }
 
-		internal void Read(EBMLReader reader, ElementInfo elemInfo) {
-			SectionSize = elemInfo.DataLength;
+		internal void Read(IBXmlReader reader) {
+			SectionSize = reader.Header.DataLength;
 
-			using(reader.EnterElement(elemInfo)) {
-				ElementInfo elementInfo;
+			using(reader.EnterElement()) {
 				try {
-					while((elementInfo = reader.Next()) != null) {
+					while(reader.Next()) {
 						try {
-							if(!ProcessElement(reader, elementInfo) && !IsGlobalElement(elementInfo)) {
+							if(!ProcessElement(reader) && !IsGlobalElement(reader.DocElement)) {
 								//Debug.Print("Unprocessed Item: " + elementInfo.ToDetailedString());
 							}
 						} catch(Exception) {
@@ -30,19 +30,19 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 			}
 		}
 
-		internal void ContinueRead(EBMLReader reader, ElementInfo elemInfo) {
-			SectionSize = elemInfo.DataLength;
+		internal void ContinueRead(IBXmlReader reader) {
+			SectionSize = reader.Header.DataLength;
 
 			try {
 				do {
 					try {
-						if(!ProcessElement(reader, elemInfo) && !IsGlobalElement(elemInfo)) {
+						if(!ProcessElement(reader) && !IsGlobalElement(reader.DocElement)) {
 							//Debug.Print("Unprocessed Item: " + elementInfo.ToDetailedString());
 						}
 					} catch(Exception) {
 						//TODO: Add Issue
 					}
-				} while((elemInfo = reader.Next()) != null);
+				} while(reader.Next());
 
 				Validate();
 			} catch(Exception) {
@@ -51,19 +51,19 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 		}
 
 
-		internal static bool IsGlobalElement(ElementInfo elementInfo) {
-			return elementInfo.DocElement.Id == EBMLDocType.CRC32.Id || elementInfo.DocElement.Id == EBMLDocType.Void.Id;
+		internal static bool IsGlobalElement(BXmlDocElement docElement) {
+			return docElement == EbmlDocType.CRC32 || docElement == EbmlDocType.Void;
 		}
-		internal static void CreateReadAdd<T>(T section, EBMLReader reader, ElementInfo elemInfo, EbmlList<T> lst) where T : Section {
-			section.Read(reader, elemInfo);
+		internal static void CreateReadAdd<T>(T section, IBXmlReader reader, EbmlList<T> lst) where T : Section {
+			section.Read(reader);
 			lst.Add(section);
 		}
-		internal static T CreateRead<T>(T section, EBMLReader reader, ElementInfo elemInfo) where T : Section {
-			section.Read(reader, elemInfo);
+		internal static T CreateRead<T>(T section, IBXmlReader reader) where T : Section {
+			section.Read(reader);
 			return section;
 		}
 
-		protected abstract bool ProcessElement(EBMLReader reader, ElementInfo elementInfo);
+		protected abstract bool ProcessElement(IBXmlReader reader);
 		protected abstract void Validate();
 
 		IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }

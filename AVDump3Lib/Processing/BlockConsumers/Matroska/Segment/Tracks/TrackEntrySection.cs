@@ -1,6 +1,6 @@
 //using AVDump3Lib.FormatHeaders;
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System;
 using System.Collections.Generic;
 
@@ -44,53 +44,53 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
 
 		public TrackEntrySection() { TrackOverlay = new EbmlList<ulong>(); }
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.TrackNumber.Id) {
-				TrackNumber = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.TrackUID.Id) {
-				TrackUId = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.TrackOverlay.Id) {
-				TrackOverlay.Add((ulong)reader.RetrieveValue(elemInfo));
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.TrackType.Id) {
-				trackType = (Types)(ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.MinCache.Id) {
-				minCache = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.MaxCache.Id) {
-				MaxCache = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.MaxBlockAdditionID.Id) {
-				maxBlockAdditionID = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.DefaultDuration.Id) {
-				DefaultDuration = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.DefaultDecodedFieldDuration.Id) {
-				DefaultDecodedFieldDuration = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.TrackTimecodeScale.Id) {
-				TrackTimecodeScale = (double)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.Name.Id) {
-				Name = (string)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.Language.Id) {
-				language = (string)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.CodecID.Id) {
-				CodecId = (string)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.CodecName.Id) {
-				CodecName = (string)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.CodecPrivate.Id) {
-				CodecPrivate = (byte[])reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.AttachmentLink.Id) {
-				AttachmentLink = (string)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.FlagEnabled.Id) {
-				enabled = (ulong)reader.RetrieveValue(elemInfo) == 1;
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.FlagDefault.Id) {
-				def = (ulong)reader.RetrieveValue(elemInfo) == 1;
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.FlagForced.Id) {
-				forced = (ulong)reader.RetrieveValue(elemInfo) == 1;
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.FlagLacing.Id) {
-				lacing = (ulong)reader.RetrieveValue(elemInfo) == 1;
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.Video.Id) {
-				Video = Section.CreateRead(new VideoSection(), reader, elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.Audio.Id) {
-				Audio = Section.CreateRead(new AudioSection(), reader, elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ContentEncodings.Id) {
-				ContentEncodings = Section.CreateRead(new ContentEncodingsSection(), reader, elemInfo);
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.TrackNumber) {
+				TrackNumber = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.TrackUID) {
+				TrackUId = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.TrackOverlay) {
+				TrackOverlay.Add((ulong)reader.RetrieveValue());
+			} else if(reader.DocElement == MatroskaDocType.TrackType) {
+				trackType = (Types)(ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.MinCache) {
+				minCache = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.MaxCache) {
+				MaxCache = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.MaxBlockAdditionID) {
+				maxBlockAdditionID = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.DefaultDuration) {
+				DefaultDuration = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.DefaultDecodedFieldDuration) {
+				DefaultDecodedFieldDuration = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.TrackTimecodeScale) {
+				TrackTimecodeScale = (double)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.Name) {
+				Name = (string)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.Language) {
+				language = (string)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.CodecID) {
+				CodecId = (string)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.CodecName) {
+				CodecName = (string)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.CodecPrivate) {
+				CodecPrivate = (byte[])reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.AttachmentLink) {
+				AttachmentLink = (string)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.FlagEnabled) {
+				enabled = (ulong)reader.RetrieveValue() == 1;
+			} else if(reader.DocElement == MatroskaDocType.FlagDefault) {
+				def = (ulong)reader.RetrieveValue() == 1;
+			} else if(reader.DocElement == MatroskaDocType.FlagForced) {
+				forced = (ulong)reader.RetrieveValue() == 1;
+			} else if(reader.DocElement == MatroskaDocType.FlagLacing) {
+				lacing = (ulong)reader.RetrieveValue() == 1;
+			} else if(reader.DocElement == MatroskaDocType.Video) {
+				Video = Section.CreateRead(new VideoSection(), reader);
+			} else if(reader.DocElement == MatroskaDocType.Audio) {
+				Audio = Section.CreateRead(new AudioSection(), reader);
+			} else if(reader.DocElement == MatroskaDocType.ContentEncodings) {
+				ContentEncodings = Section.CreateRead(new ContentEncodingsSection(), reader);
 			} else return false;
 
 			return true;

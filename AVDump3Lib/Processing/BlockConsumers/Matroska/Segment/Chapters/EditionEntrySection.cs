@@ -1,5 +1,5 @@
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System;
 using System.Collections.Generic;
 
@@ -19,17 +19,17 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
 
 		public EditionEntrySection() { ChapterAtoms = new EbmlList<ChapterAtomSection>(); }
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.ChapterAtom.Id) {
-				Section.CreateReadAdd(new ChapterAtomSection(), reader, elemInfo, ChapterAtoms);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.EditionUID.Id) {
-				EditionUId = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.EditionFlagHidden.Id) {
-				hidden = (ulong)reader.RetrieveValue(elemInfo) == 1;
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.EditionFlagDefault.Id) {
-				def = (ulong)reader.RetrieveValue(elemInfo) == 1;
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.EditionFlagOrdered.Id) {
-				ordered = (ulong)reader.RetrieveValue(elemInfo) == 1;
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.ChapterAtom) {
+				Section.CreateReadAdd(new ChapterAtomSection(), reader, ChapterAtoms);
+			} else if(reader.DocElement == MatroskaDocType.EditionUID) {
+				EditionUId = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.EditionFlagHidden) {
+				hidden = (ulong)reader.RetrieveValue() == 1;
+			} else if(reader.DocElement == MatroskaDocType.EditionFlagDefault) {
+				def = (ulong)reader.RetrieveValue() == 1;
+			} else if(reader.DocElement == MatroskaDocType.EditionFlagOrdered) {
+				ordered = (ulong)reader.RetrieveValue() == 1;
 			} else return false;
 
 			return true;

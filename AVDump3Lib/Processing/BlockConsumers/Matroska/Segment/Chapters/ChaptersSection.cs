@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
     public class ChaptersSection : Section {
@@ -8,9 +8,9 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
 
 		public ChaptersSection() { Items = new EbmlList<EditionEntrySection>(); }
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.EditionEntry.Id) {
-				Section.CreateReadAdd(new EditionEntrySection(), reader, elemInfo, Items);
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.EditionEntry) {
+				Section.CreateReadAdd(new EditionEntrySection(), reader, Items);
 				return true;
 			}
 			return false;

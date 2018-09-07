@@ -1,5 +1,5 @@
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
@@ -16,19 +16,19 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
 		public byte[] ContentSignature { get { return (byte[])contentSignature.Clone(); } }
 		public byte[] ContentSigKeyId { get { return (byte[])contentSigKeyId.Clone(); } }
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.ContentEncAlgo.Id) {
-				contentEncAlgo = (EncAlgos)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ContentSigAlgo.Id) {
-				contentSigAlgo = (SigAlgos)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ContentSigHashAlgo.Id) {
-				contentSigHashAlgo = (SigHashAlgos)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ContentEncKeyID.Id) {
-				contentEncKeyId = (byte[])reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ContentSignature.Id) {
-				contentSignature = (byte[])reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ContentSigKeyID.Id) {
-				contentSigKeyId = (byte[])reader.RetrieveValue(elemInfo);
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.ContentEncAlgo) {
+				contentEncAlgo = (EncAlgos)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.ContentSigAlgo) {
+				contentSigAlgo = (SigAlgos)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.ContentSigHashAlgo) {
+				contentSigHashAlgo = (SigHashAlgos)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.ContentEncKeyID) {
+				contentEncKeyId = (byte[])reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.ContentSignature) {
+				contentSignature = (byte[])reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.ContentSigKeyID) {
+				contentSigKeyId = (byte[])reader.RetrieveValue();
 			} else return false;
 
 			return true;

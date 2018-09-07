@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tags {
     public class TagsSection : Section {
@@ -8,9 +8,9 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tags {
 
 		public TagsSection() { Items = new EbmlList<TagSection>(); }
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.Tag.Id) {
-				Section.CreateReadAdd(new TagSection(), reader, elemInfo, Items);
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.Tag) {
+				Section.CreateReadAdd(new TagSection(), reader, Items);
 			} else return false;
 
 			return true;

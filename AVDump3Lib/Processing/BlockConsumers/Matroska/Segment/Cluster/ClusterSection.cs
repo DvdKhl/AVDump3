@@ -1,6 +1,6 @@
 using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks;
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -24,22 +24,22 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster {
 			}
 		}
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.SimpleBlock.Id || elemInfo.DocElement.Id == MatroskaDocType.Block.Id) {
-				MatroskaBlock matroskaBlock = (MatroskaBlock)reader.RetrieveValue(elemInfo);
-				Track track;
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.SimpleBlock || reader.DocElement == MatroskaDocType.Block) {
+                MatroskaDocType.RetrieveMatroskaBlock(reader, out MatroskaBlock matroskaBlock);
+                Track track;
 				if(
 					!Tracks.TryGetValue(matroskaBlock.TrackNumber, out track) &&
 					!Tracks.TryGetValue(~matroskaBlock.TrackNumber, out track)
 				) {
 					Tracks.Add(~matroskaBlock.TrackNumber, track = new Track(~matroskaBlock.TrackNumber, 1, null));
 				}
-				track.Timecodes.Add(new TrackTimecode((ulong)((matroskaBlock.TimeCode + timecode) * track.TimecodeScale * TimeCodeScale), matroskaBlock.FrameCount, matroskaBlock.DataLength));
+				track.Timecodes.Add(new TrackTimecode((ulong)((matroskaBlock.TimeCode + timecode) * track.TimecodeScale * TimeCodeScale), matroskaBlock.FrameCount, matroskaBlock.Data.Length));
 
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.BlockGroup.Id) {
-				Read(reader, elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.Timecode.Id) {
-				timecode = (long)(ulong)reader.RetrieveValue(elemInfo);
+			} else if(reader.DocElement == MatroskaDocType.BlockGroup) {
+				Read(reader);
+			} else if(reader.DocElement == MatroskaDocType.Timecode) {
+				timecode = (long)(ulong)reader.RetrieveValue();
 			} else return false;
 
 			return true;
@@ -199,9 +199,9 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster {
 		public struct TrackTimecode : IComparable<TrackTimecode> {
 			public ulong timeCode;
 			public byte frames;
-			public uint size;
+			public int size;
 
-			public TrackTimecode(ulong timeCode, byte frames, uint size) {
+			public TrackTimecode(ulong timeCode, byte frames, int size) {
 				this.frames = frames; this.size = size; this.timeCode = timeCode;
 			}
 

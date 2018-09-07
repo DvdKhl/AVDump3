@@ -1,5 +1,5 @@
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System;
 using System.Collections.Generic;
 
@@ -15,15 +15,15 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
 
 		public ContentCompressionSection ContentCompression { get; private set; }
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.ContentEncodingOrder.Id) {
-				contentEncodingOrder = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ContentEncodingScope.Id) {
-				contentEncodingScope = (CEScopes)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ContentEncodingType.Id) {
-				contentEncodingType = (CETypes)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ContentCompression.Id) {
-				ContentCompression = Section.CreateRead(new ContentCompressionSection(), reader, elemInfo);
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.ContentEncodingOrder) {
+				contentEncodingOrder = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.ContentEncodingScope) {
+				contentEncodingScope = (CEScopes)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.ContentEncodingType) {
+				contentEncodingType = (CETypes)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.ContentCompression) {
+				ContentCompression = Section.CreateRead(new ContentCompressionSection(), reader);
 			} else return false;
 
 			return true;

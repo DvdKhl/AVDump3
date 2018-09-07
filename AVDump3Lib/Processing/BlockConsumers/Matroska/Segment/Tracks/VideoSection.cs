@@ -1,5 +1,5 @@
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
@@ -35,43 +35,43 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
 		public ulong DisplayHeight { get { return displayHeight ?? PixelHeight; } } //Default: $PixelHeight
 		public Unit DisplayUnit { get { return displayUnit ?? Unit.Pixels; } } //Default: Pixels (0)
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.PixelWidth.Id) {
-				PixelWidth = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.PixelHeight.Id) {
-				PixelHeight = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.PixelCropBottom.Id) {
-				pixelCropBottom = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.PixelCropTop.Id) {
-				pixelCropTop = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.PixelCropLeft.Id) {
-				pixelCropLeft = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.PixelCropRight.Id) {
-				pixelCropRight = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.DisplayWidth.Id) {
-				displayWidth = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.DisplayHeight.Id) {
-				displayHeight = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.DisplayUnit.Id) {
-				displayUnit = (Unit)(ulong)reader.RetrieveValue(elemInfo);
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.PixelWidth) {
+				PixelWidth = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.PixelHeight) {
+				PixelHeight = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.PixelCropBottom) {
+				pixelCropBottom = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.PixelCropTop) {
+				pixelCropTop = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.PixelCropLeft) {
+				pixelCropLeft = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.PixelCropRight) {
+				pixelCropRight = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.DisplayWidth) {
+				displayWidth = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.DisplayHeight) {
+				displayHeight = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.DisplayUnit) {
+				displayUnit = (Unit)(ulong)reader.RetrieveValue();
 
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.AspectRatioType.Id) {
-				aspectRatioType = (ARType)(ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.OldStereoMode.Id) {
-				OldStereoMode = (OldStereoModes)(ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.StereoMode.Id) {
-				stereoMode = (StereoModes)(ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.AlphaMode.Id) {
-				alphaMode = (ulong)reader.RetrieveValue(elemInfo);
+			} else if(reader.DocElement == MatroskaDocType.AspectRatioType) {
+				aspectRatioType = (ARType)(ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.OldStereoMode) {
+				OldStereoMode = (OldStereoModes)(ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.StereoMode) {
+				stereoMode = (StereoModes)(ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.AlphaMode) {
+				alphaMode = (ulong)reader.RetrieveValue();
 
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.FrameRate.Id) {
-				FrameRate = (double)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.FlagInterlaced.Id) {
-				interlaced = (ulong)reader.RetrieveValue(elemInfo) == 1;
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ColourSpace.Id) {
-				colorSpace = (byte[])reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.GammaValue.Id) {
-				Gamma = (double)reader.RetrieveValue(elemInfo);
+			} else if(reader.DocElement == MatroskaDocType.FrameRate) {
+				FrameRate = (double)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.FlagInterlaced) {
+				interlaced = (ulong)reader.RetrieveValue() == 1;
+			} else if(reader.DocElement == MatroskaDocType.ColourSpace) {
+				colorSpace = (byte[])reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.GammaValue) {
+				Gamma = (double)reader.RetrieveValue();
 			} else return false;
 
 			return true;

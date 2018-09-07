@@ -1,6 +1,5 @@
 ﻿using AVDump3Lib.Processing.BlockConsumers.Ogg;
 using AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams;
-using CSEBML.DataSource;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

@@ -1,5 +1,5 @@
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,9 +18,9 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
 
 		public TracksSection() { Items = new EbmlList<TrackEntrySection>(); }
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elementInfo) {
-			if(elementInfo.DocElement.Id == MatroskaDocType.TrackEntry.Id) {
-				Section.CreateReadAdd(new TrackEntrySection(), reader, elementInfo, Items);
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.TrackEntry) {
+				Section.CreateReadAdd(new TrackEntrySection(), reader, Items);
 				return true;
 			}
 			return false;

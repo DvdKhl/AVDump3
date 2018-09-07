@@ -1,5 +1,5 @@
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Attachments {
@@ -10,17 +10,17 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Attachments {
 		public ulong? FileUId { get; private set; }
 		public ulong FileDataSize { get; private set; }
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.FileDescription.Id) {
-				FileDescription = (string)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.FileName.Id) {
-				FileName = (string)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.FileMimeType.Id) {
-				FileMimeType = (string)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.FileUID.Id) {
-				FileUId = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.FileData.Id) {
-				FileDataSize = (ulong)elemInfo.DataLength.Value;
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.FileDescription) {
+				FileDescription = (string)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.FileName) {
+				FileName = (string)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.FileMimeType) {
+				FileMimeType = (string)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.FileUID) {
+				FileUId = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.FileData) {
+				FileDataSize = (ulong)reader.Header.DataLength;
 			} else return false;
 
 			return true;

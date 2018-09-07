@@ -1,5 +1,5 @@
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
@@ -12,11 +12,11 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
 
 		public ChapterProcessSection() { ChapterProcessCommands = new EbmlList<ChapterProcessCommandSection>(); }
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.ChapProcessCommand.Id) {
-				Section.CreateReadAdd(new ChapterProcessCommandSection(), reader, elemInfo, ChapterProcessCommands);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ChapProcessCodecID.Id) {
-				chapterProcessCodecId = (ulong)reader.RetrieveValue(elemInfo);
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.ChapProcessCommand) {
+				Section.CreateReadAdd(new ChapterProcessCommandSection(), reader, ChapterProcessCommands);
+			} else if(reader.DocElement == MatroskaDocType.ChapProcessCodecID) {
+				chapterProcessCodecId = (ulong)reader.RetrieveValue();
 			} else return false;
 
 			return true;

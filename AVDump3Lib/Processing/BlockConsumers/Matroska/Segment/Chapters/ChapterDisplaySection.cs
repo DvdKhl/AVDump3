@@ -1,5 +1,5 @@
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
@@ -13,13 +13,13 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
 			ChapterCountries = new EbmlList<string>();
 		}
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.ChapString.Id) {
-				ChapterString = (string)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ChapLanguage.Id) {
-				ChapterLanguages.Add((string)reader.RetrieveValue(elemInfo));
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ChapCountry.Id) {
-				ChapterCountries.Add((string)reader.RetrieveValue(elemInfo));
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.ChapString) {
+				ChapterString = (string)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.ChapLanguage) {
+				ChapterLanguages.Add((string)reader.RetrieveValue());
+			} else if(reader.DocElement == MatroskaDocType.ChapCountry) {
+				ChapterCountries.Add((string)reader.RetrieveValue());
 			} else return false;
 
 			return true;

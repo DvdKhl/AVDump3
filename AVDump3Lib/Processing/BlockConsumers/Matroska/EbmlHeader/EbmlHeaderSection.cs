@@ -1,6 +1,6 @@
+using BXmlLib;
+using BXmlLib.DocTypes.Ebml;
 using System.Collections.Generic;
-using CSEBML;
-using CSEBML.DocTypes;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.EbmlHeader {
     public class EbmlHeaderSection : Section {
@@ -20,21 +20,21 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.EbmlHeader {
 		public ulong DocTypeVersion { get { return docTypeVersion ?? 1; } }
 		public string DocType { get { return docType ?? "matroska"; } }
 
-		protected sealed override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == EBMLDocType.DocType.Id) {
-				docType = (string)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == EBMLDocType.DocTypeReadVersion.Id) {
-				docTypeReadVersion = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == EBMLDocType.DocTypeVersion.Id) {
-				docTypeVersion = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == EBMLDocType.EBMLMaxIDLength.Id) {
-				ebmlMaxIdLength = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == EBMLDocType.EBMLMaxSizeLength.Id) {
-				ebmlMaxSizeLength = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == EBMLDocType.EBMLReadVersion.Id) {
-				ebmlReadVersion = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == EBMLDocType.EBMLVersion.Id) {
-				ebmlVersion = (ulong)reader.RetrieveValue(elemInfo);
+		protected sealed override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == EbmlDocType.DocType) {
+				docType = (string)reader.RetrieveValue();
+			} else if(reader.DocElement == EbmlDocType.DocTypeReadVersion) {
+				docTypeReadVersion = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == EbmlDocType.DocTypeVersion) {
+				docTypeVersion = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == EbmlDocType.EbmlMaxIDLength) {
+				ebmlMaxIdLength = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == EbmlDocType.EbmlMaxSizeLength) {
+				ebmlMaxSizeLength = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == EbmlDocType.EbmlReadVersion) {
+				ebmlReadVersion = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == EbmlDocType.EbmlVersion) {
+				ebmlVersion = (ulong)reader.RetrieveValue();
 			} else return false;
 
 			return true;

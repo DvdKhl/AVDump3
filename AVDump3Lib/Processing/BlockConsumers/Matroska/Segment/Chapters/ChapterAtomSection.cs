@@ -1,5 +1,5 @@
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System;
 using System.Collections.Generic;
 
@@ -27,33 +27,33 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
 			ChapterProcesses = new EbmlList<ChapterProcessSection>();
 		}
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.ChapterTrack.Id) {
-				ChapterTrack = Section.CreateRead(new ChapterTrackSection(), reader, elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ChapterAtom.Id) {
-				Section.CreateReadAdd(new ChapterAtomSection(), reader, elemInfo, ChapterAtoms);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ChapterDisplay.Id) {
-				Section.CreateReadAdd(new ChapterDisplaySection(), reader, elemInfo, ChapterDisplays);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ChapProcess.Id) {
-				Section.CreateReadAdd(new ChapterProcessSection(), reader, elemInfo, ChapterProcesses);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ChapterUID.Id) {
-				ChapterUId = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ChapterStringUID.Id) {
-				ChapterStringUId = (string)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ChapterTimeStart.Id) {
-				ChapterTimeStart = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ChapterTimeEnd.Id) {
-				ChapterTimeEnd = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ChapterFlagEnabled.Id) {
-				enabled = (ulong)reader.RetrieveValue(elemInfo) == 1;
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ChapterFlagHidden.Id) {
-				hidden = (ulong)reader.RetrieveValue(elemInfo) == 1;
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ChapterSegmentUID.Id) {
-				chapterSegmentUId = (byte[])reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ChapterSegmentEditionUID.Id) {
-				ChapterSegmentEditionUId = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ChapterPhysicalEquiv.Id) {
-				ChapterPhysicalEquiv = (ulong)reader.RetrieveValue(elemInfo);
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.ChapterTrack) {
+				ChapterTrack = CreateRead(new ChapterTrackSection(), reader);
+			} else if(reader.DocElement == MatroskaDocType.ChapterAtom) {
+				CreateReadAdd(new ChapterAtomSection(), reader, ChapterAtoms);
+			} else if(reader.DocElement == MatroskaDocType.ChapterDisplay) {
+				CreateReadAdd(new ChapterDisplaySection(), reader, ChapterDisplays);
+			} else if(reader.DocElement == MatroskaDocType.ChapProcess) {
+				CreateReadAdd(new ChapterProcessSection(), reader, ChapterProcesses);
+			} else if(reader.DocElement == MatroskaDocType.ChapterUID) {
+				ChapterUId = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.ChapterStringUID) {
+				ChapterStringUId = (string)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.ChapterTimeStart) {
+				ChapterTimeStart = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.ChapterTimeEnd) {
+				ChapterTimeEnd = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.ChapterFlagEnabled) {
+				enabled = (ulong)reader.RetrieveValue() == 1;
+			} else if(reader.DocElement == MatroskaDocType.ChapterFlagHidden) {
+				hidden = (ulong)reader.RetrieveValue() == 1;
+			} else if(reader.DocElement == MatroskaDocType.ChapterSegmentUID) {
+				chapterSegmentUId = (byte[])reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.ChapterSegmentEditionUID) {
+				ChapterSegmentEditionUId = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.ChapterPhysicalEquiv) {
+				ChapterPhysicalEquiv = (ulong)reader.RetrieveValue();
 			} else return false;
 
 			return true;

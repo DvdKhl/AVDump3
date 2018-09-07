@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SegmentInfo {
     public class SegmentInfoSection : Section {
@@ -30,35 +30,35 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SegmentInfo {
 			ChapterTranslate = new EbmlList<ChapterTranslateSection>();
 		}
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.SegmentUID.Id) {
-				segmentUId = (byte[])reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.SegmentFilename.Id) {
-				SegmentFilename = (string)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.PrevUID.Id) {
-				prevUId = (byte[])reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.PrevFilename.Id) {
-				PreviousFilename = (string)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.NextUID.Id) {
-				nextUId = (byte[])reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.NextFilename.Id) {
-				NextFilename = (string)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.SegmentFamily.Id) {
-				segmentFamily.Add((byte[])reader.RetrieveValue(elemInfo));
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.ChapterTranslate.Id) {
-				Section.CreateReadAdd(new ChapterTranslateSection(), reader, elemInfo, ChapterTranslate);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.TimecodeScale.Id) {
-				timecodeScale = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.Duration.Id) {
-				Duration = (double)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.Title.Id) {
-				Title = (string)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.MuxingApp.Id) {
-				MuxingApp = (string)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.WritingApp.Id) {
-				WritingApp = (string)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.DateUTC.Id) {
-				ProductionDate = (DateTime)reader.RetrieveValue(elemInfo);
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.SegmentUID) {
+				segmentUId = (byte[])reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.SegmentFilename) {
+				SegmentFilename = (string)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.PrevUID) {
+				prevUId = (byte[])reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.PrevFilename) {
+				PreviousFilename = (string)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.NextUID) {
+				nextUId = (byte[])reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.NextFilename) {
+				NextFilename = (string)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.SegmentFamily) {
+				segmentFamily.Add((byte[])reader.RetrieveValue());
+			} else if(reader.DocElement == MatroskaDocType.ChapterTranslate) {
+				Section.CreateReadAdd(new ChapterTranslateSection(), reader, ChapterTranslate);
+			} else if(reader.DocElement == MatroskaDocType.TimecodeScale) {
+				timecodeScale = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.Duration) {
+				Duration = (double)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.Title) {
+				Title = (string)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.MuxingApp) {
+				MuxingApp = (string)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.WritingApp) {
+				WritingApp = (string)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.DateUTC) {
+				ProductionDate = (DateTime)reader.RetrieveValue();
 			} else return false;
 
 			return true;

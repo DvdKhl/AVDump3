@@ -1,5 +1,5 @@
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cues {
@@ -9,9 +9,9 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cues {
 
 		public CuesSection() { CuePoints = new EbmlList<CuePointSection>(); }
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elementInfo) {
-			if(elementInfo.DocElement.Id == MatroskaDocType.CuePoint.Id) {
-				Section.CreateReadAdd(new CuePointSection(), reader, elementInfo, CuePoints);
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.CuePoint) {
+				Section.CreateReadAdd(new CuePointSection(), reader, CuePoints);
 				return true;
 			}
 			return false;

@@ -1,5 +1,5 @@
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
@@ -9,9 +9,9 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
 		public CompAlgos ContentCompAlgo { get { return contentCompAlgo ?? CompAlgos.zlib; } }
 		//ContentCompSetting
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.ContentCompAlgo.Id) {
-				contentCompAlgo = (CompAlgos)reader.RetrieveValue(elemInfo);
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.ContentCompAlgo) {
+				contentCompAlgo = (CompAlgos)reader.RetrieveValue();
 			} else return false;
 
 			return true;

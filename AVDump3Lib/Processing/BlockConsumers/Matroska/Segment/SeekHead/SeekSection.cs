@@ -1,5 +1,5 @@
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SeekHead {
@@ -9,11 +9,11 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SeekHead {
 		public byte[] SeekId { get { return seekId != null ? (byte[])seekId.Clone() : null; } }
 		public ulong SeekPosition { get; private set; }
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.SeekID.Id) {
-				seekId = (byte[])reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.SeekPosition.Id) {
-				SeekPosition = (ulong)reader.RetrieveValue(elemInfo);
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.SeekID) {
+				seekId = (byte[])reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.SeekPosition) {
+				SeekPosition = (ulong)reader.RetrieveValue();
 			} else return false;
 
 			return true;

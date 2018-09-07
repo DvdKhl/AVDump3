@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\CSEBML\CSEBML\CSEBML.csproj" />
+    <ProjectReference Include="..\..\..\BXmlLib\BXmlLib\BXmlLib.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,5 +1,5 @@
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
@@ -12,15 +12,15 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
 		public ulong ChannelCount { get { return channelCount ?? 1; } } //Default: 1
 		public ulong? BitDepth { get; private set; }
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.SamplingFrequency.Id) {
-				samplingFrequency = (double)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.OutputSamplingFrequency.Id) {
-				outputSamplingFrequency = (double)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.Channels.Id) {
-				channelCount = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.BitDepth.Id) {
-				BitDepth = (ulong)reader.RetrieveValue(elemInfo);
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.SamplingFrequency) {
+				samplingFrequency = (double)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.OutputSamplingFrequency) {
+				outputSamplingFrequency = (double)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.Channels) {
+				channelCount = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.BitDepth) {
+				BitDepth = (ulong)reader.RetrieveValue();
 			} else return false;
 
 			return true;
@@ -38,9 +38,9 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
 
 		public ContentEncodingsSection() { Encodings = new EbmlList<ContentEncodingSection>(); }
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.ContentEncodings.Id) {
-				Section.CreateReadAdd(new ContentEncodingSection(), reader, elemInfo, Encodings);
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.ContentEncodings) {
+				Section.CreateReadAdd(new ContentEncodingSection(), reader, Encodings);
 				return true;
 			}
 			return false;

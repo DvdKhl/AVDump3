@@ -1,5 +1,5 @@
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SeekHead {
@@ -9,9 +9,9 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SeekHead {
 
 		public SeekHeadSection() { Seeks = new EbmlList<SeekSection>(); }
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elementInfo) {
-			if(elementInfo.DocElement.Id == MatroskaDocType.Seek.Id) {
-				Section.CreateReadAdd(new SeekSection(), reader, elementInfo, Seeks);
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.Seek) {
+				Section.CreateReadAdd(new SeekSection(), reader, Seeks);
 				return true;
 			}
 			return false;

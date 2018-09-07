@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using CSEBML;
-using CSEBML.DocTypes;
-using CSEBML.DocTypes.Matroska;
 using AVDump3Lib.Processing.BlockConsumers.Matroska.EbmlHeader;
 using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment;
 using System.Xml.Linq;
+using BXmlLib;
+using BXmlLib.DocTypes.Ebml;
+using BXmlLib.DocTypes.Matroska;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 	public class MatroskaFile : Section {
@@ -16,31 +16,28 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 
 		public MatroskaFile(long fileSize) { SectionSize = fileSize; }
 
-		internal void Parse(EBMLReader reader, CancellationToken ct) {
+		internal void Parse(IBXmlReader reader, CancellationToken ct) {
 			reader.Strict = true;
-			var elementInfo = reader.Next();
-			if(elementInfo.DocElement.Id == EBMLDocType.EBMLHeader.Id) {
-				EbmlHeader = CreateRead(new EbmlHeaderSection(), reader, elementInfo);
-			} else {
-				//Todo: dispose reader / add warning
-				return;
-			}
-
+            if(reader.Next() && reader.DocElement == EbmlDocType.EbmlHeader) {
+                EbmlHeader = CreateRead(new EbmlHeaderSection(), reader);
+            } else {
+                //Todo: dispose reader / add warning
+                return;
+            }
 			reader.Strict = false;
 
 			//while((elementInfo = reader.Next()) != null && Section.IsGlobalElement(elementInfo)) ;
-			while((elementInfo = reader.Next()) != null && elementInfo.DocElement.Id != MatroskaDocType.Segment.Id && elementInfo.DocElement.Id != MatroskaDocType.Info.Id) {
+			while(reader.Next() && reader.DocElement != MatroskaDocType.Segment && reader.DocElement != MatroskaDocType.Info) {
 				if(reader.BaseStream.Position > 4 * 1024 * 1024) {
-					elementInfo = null;
 					break;
 				}
 			}
 
-			if(elementInfo != null && elementInfo.DocElement.Id == MatroskaDocType.Segment.Id) {
-				Segment = CreateRead(new SegmentSection(), reader, elementInfo);
-			} else if(elementInfo != null && elementInfo.DocElement.Id == MatroskaDocType.Info.Id) {
+			if(reader.DocElement == MatroskaDocType.Segment) {
+				Segment = CreateRead(new SegmentSection(), reader);
+			} else if(reader.DocElement == MatroskaDocType.Info) {
 				Segment = new SegmentSection();
-				Segment.ContinueRead(reader, elementInfo);
+				Segment.ContinueRead(reader);
 			} else {
 				//Todo: dispose reader / add warning
 				return;
@@ -49,7 +46,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 			Validate();
 		}
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elementInfo) { throw new NotSupportedException(); }
+		protected override bool ProcessElement(IBXmlReader reader) { throw new NotSupportedException(); }
 
 		protected override void Validate() { }
 

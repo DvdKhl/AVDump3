@@ -1,5 +1,5 @@
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
@@ -8,9 +8,9 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
 
 		public ChapterTrackSection() { ChapterTrackNumbers = new EbmlList<ulong>(); }
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.ChapterTrackNumber.Id) {
-				ChapterTrackNumbers.Add((ulong)reader.RetrieveValue(elemInfo));
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.ChapterTrackNumber) {
+				ChapterTrackNumbers.Add((ulong)reader.RetrieveValue());
 			} else return false;
 
 			return true;

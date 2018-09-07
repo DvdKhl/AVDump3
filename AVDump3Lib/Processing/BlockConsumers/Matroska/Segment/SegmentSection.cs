@@ -6,8 +6,8 @@ using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SeekHead;
 using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SegmentInfo;
 using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tags;
 using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks;
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment {
@@ -25,25 +25,25 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment {
 
 		public SegmentSection() { Cluster = new ClusterSection(); Tags = new EbmlList<TagsSection>(); }
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.Cluster.Id) {
-				Cluster.Read(reader, elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.Tracks.Id && Tracks == null) { //TODO Add warning
-				Tracks = Section.CreateRead(new TracksSection(), reader, elemInfo);
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.Cluster) {
+				Cluster.Read(reader);
+			} else if(reader.DocElement == MatroskaDocType.Tracks && Tracks == null) { //TODO Add warning
+				Tracks = CreateRead(new TracksSection(), reader);
 				Cluster.AddTracks(Tracks.Items); //Must be set and != 0 (add warning)
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.Info.Id) {
-				SegmentInfo = Section.CreateRead(new SegmentInfoSection(), reader, elemInfo);
+			} else if(reader.DocElement == MatroskaDocType.Info) {
+				SegmentInfo = CreateRead(new SegmentInfoSection(), reader);
 				Cluster.TimeCodeScale = SegmentInfo.TimecodeScale;
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.Chapters.Id) {
-				Chapters = Section.CreateRead(new ChaptersSection(), reader, elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.Attachments.Id) {
-				Attachments = Section.CreateRead(new AttachmentsSection(), reader, elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.Tags.Id) {
-				Section.CreateReadAdd(new TagsSection(), reader, elemInfo, Tags);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.SeekHead.Id) {
-				SeekHead = Section.CreateRead(new SeekHeadSection(), reader, elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.Cues.Id) {
-				Cues = Section.CreateRead(new CuesSection(), reader, elemInfo);
+			} else if(reader.DocElement == MatroskaDocType.Chapters) {
+				Chapters = CreateRead(new ChaptersSection(), reader);
+			} else if(reader.DocElement == MatroskaDocType.Attachments) {
+				Attachments = CreateRead(new AttachmentsSection(), reader);
+			} else if(reader.DocElement == MatroskaDocType.Tags) {
+				CreateReadAdd(new TagsSection(), reader, Tags);
+			} else if(reader.DocElement == MatroskaDocType.SeekHead) {
+				SeekHead = CreateRead(new SeekHeadSection(), reader);
+			} else if(reader.DocElement == MatroskaDocType.Cues) {
+				Cues = CreateRead(new CuesSection(), reader);
 			} else return false;
 
 			return true;

@@ -1,6 +1,6 @@
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Attachments {
     public class AttachmentsSection : Section {
@@ -8,9 +8,9 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Attachments {
 
 		public AttachmentsSection() { Items = new EbmlList<AttachedFileSection>(); }
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.AttachedFile.Id) {
-				Section.CreateReadAdd(new AttachedFileSection(), reader, elemInfo, Items);
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.AttachedFile) {
+                CreateReadAdd(new AttachedFileSection(), reader, Items);
 				return true;
 			}
 			return false;

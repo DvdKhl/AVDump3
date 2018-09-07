@@ -1,5 +1,5 @@
-using CSEBML;
-using CSEBML.DocTypes.Matroska;
+using BXmlLib;
+using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tags {
@@ -24,21 +24,21 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tags {
 			//SimpleTags = new EbmlList<SimpleTagSection>();
 		}
 
-		protected override bool ProcessElement(EBMLReader reader, ElementInfo elemInfo) {
-			if(elemInfo.DocElement.Id == MatroskaDocType.TargetTypeValue.Id) {
-				targetTypeValue = (ulong)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.TargetType.Id) {
-				TargetType = (string)reader.RetrieveValue(elemInfo);
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.TagTrackUID.Id) {
-				trackUId.Add((ulong)reader.RetrieveValue(elemInfo));
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.TagEditionUID.Id) {
-				editionUId.Add((ulong)reader.RetrieveValue(elemInfo));
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.TagChapterUID.Id) {
-				chapterUId.Add((ulong)reader.RetrieveValue(elemInfo));
-			} else if(elemInfo.DocElement.Id == MatroskaDocType.TagAttachmentUID.Id) {
-				attachmentUId.Add((ulong)reader.RetrieveValue(elemInfo));
-			//} else if(elemInfo.DocElement.Id == MatroskaDocType.SimpleTag.Id) {
-			//	Section.CreateReadAdd(new SimpleTagSection(), reader, elemInfo, SimpleTags);
+		protected override bool ProcessElement(IBXmlReader reader) {
+			if(reader.DocElement == MatroskaDocType.TargetTypeValue) {
+				targetTypeValue = (ulong)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.TargetType) {
+				TargetType = (string)reader.RetrieveValue();
+			} else if(reader.DocElement == MatroskaDocType.TagTrackUID) {
+				trackUId.Add((ulong)reader.RetrieveValue());
+			} else if(reader.DocElement == MatroskaDocType.TagEditionUID) {
+				editionUId.Add((ulong)reader.RetrieveValue());
+			} else if(reader.DocElement == MatroskaDocType.TagChapterUID) {
+				chapterUId.Add((ulong)reader.RetrieveValue());
+			} else if(reader.DocElement == MatroskaDocType.TagAttachmentUID) {
+				attachmentUId.Add((ulong)reader.RetrieveValue());
+			//} else if(reader.DocElement == MatroskaDocType.SimpleTag) {
+			//	Section.CreateReadAdd(new SimpleTagSection(), reader, SimpleTags);
 			} else return false;
 
 			return true;
