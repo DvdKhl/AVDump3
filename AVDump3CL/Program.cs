@@ -28,9 +28,9 @@ namespace AVDump3CL {
 					//"--DLPath=Donelog.txt",
                     //"--Consumers",
 					//"--Reports",
-					"--Consumers=ED2K",
+					//"--Consumers=ED2K",
 					"--PrintHashes",
-					//"--Consumers=MKV",
+					"--Consumers=MKV",
                     //"--Reports=AniDBReport",
 					//"--PrintReports",
 					//"--HideBuffers",
@@ -43,7 +43,7 @@ namespace AVDump3CL {
 					//"--IncludePersonalData",
 					//"--ErrorDirectory=Error",
 					"--PauseBeforeExit",
-					"--NullStreamTest=12:10000:4",
+					//"--NullStreamTest=12:10000:4",
 					//"--Host=ommina.l5.ca:9002",
 					//"--Auth=Arokh:Anime",
 					//@"D:\Ziel.txt",
@@ -51,6 +51,7 @@ namespace AVDump3CL {
                     //@"H:\Anime", //5B64C2B0
                     //@"I:\Anime", //5B64C2B0
                     //@"D:\New folder\Genius Party - 1 - Genius Party [no group](FF0FA0CE).mp4",
+                    @"E:\Anime\[Exiled-Destiny]_Girls_Und_Panzer_Der_Movie_(2DB009FC).mkv",
 					//@"E:\Anime\",
 					//@"G:\Anime\Processed\Shinseiki Evangelion Gekijouban Shi to Shinsei 2 - Rebirth [aF][DVD][640x360][1bfc05dc].ogm"
                     //@"D:\MyStuff\BigFile", //C548A93C
