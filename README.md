@@ -8,6 +8,14 @@ So imaginable other uses would be to copy a file from once source to multiple de
 
 ## Example Output
 
+## What happened to AVDump1 & AVDump2
+
+## Speed
+
+## Cross-Platform
+
+## Module System
+
 ## Structure
 
 ### Projects
@@ -76,3 +84,5 @@ Configuration of this instance is handled by the *AVD3ProcessingModule* instance
 ### Information
 
 ### Third Party Modules
+
+## Contributing
