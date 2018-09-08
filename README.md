@@ -1,7 +1,7 @@
 # AVDump3
 
 ## What does AVDump3 do
-The main purpose of AVDump is to provide meta information about multi media files (Video, Audio, Subtitles and so on) and their file hashes in choosable report formats.
+The main purpose of AVDump is to provide meta information about multi media files (Video, Audio, Subtitles and so on) and their file hashes by selectable report formats.
 
 Though this is the main purpose, AVDump can be used for multiple other purposes. It basically reads data from a source and provides it to multiple consumers in parallel while the data is only read once and never copied.
 So imaginable other uses would be to copy a file from once source to multiple destinations at the highest speed possible (bottlenecked by the slowest reader/writer) while at the same time calculate multiple hashes for it in one pass.
@@ -36,8 +36,8 @@ Can make use of an *ICircularBuffer* and *IBlockSource* instance. It uses the *I
 **IBlockStreamReader**:  
 Can make use of an *IBlockStream* instance and restricts the access to the *IBlockStream* instance allowing only access to one reader. In addition, it also provides hints to the reader how long their reads should/can be.
 
-**IBlockConsumer** and **BlockConsumer**:
-Can make use of an *IBlockStreamReader* instance and uses it to consume data. Each BlockConsumer runs in its own thread (subject to change) and can operate on the data for its own purposes.
+**IBlockConsumer** and **BlockConsumer**:  
+Can make use of an *IBlockStreamReader* instance and uses it to consume data. Each BlockConsumer runs in its own thread (subject to change) and can operate on the data for its own purposes. It can request a minimum data length to be available and the called method will block until it can satisfy that request or until there is no data left.
 
 **HashCalculator**:  
 Derives from BlockConsumer and should be used to implement HashAlgorithm BlockConsumers. It takes an instance of *IAVDHashAlgorithm* an handles the reading and passing of data into the *IAVDHashAlgorithm* instance.
