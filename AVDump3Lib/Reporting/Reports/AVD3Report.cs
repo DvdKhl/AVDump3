@@ -28,6 +28,14 @@ namespace AVDump3Lib.Reporting.Reports {
             Report = xDoc;
         }
 
+		private static string GetDisplayTypeName(Type type) {
+			if (type == typeof(ReadOnlyMemory<byte>)) {
+				return "Binary";
+			} else {
+				return type.Name;
+			}
+		}
+
         public XElement BuildReportMedia(MetaInfoContainer container) {
             var rootElem = new XElement(container.Type?.Name ?? container.GetType().Name);
 
@@ -35,8 +43,10 @@ namespace AVDump3Lib.Reporting.Reports {
                 object valueStr;
                 if(item.Type.ValueType == typeof(byte[])) {
                     valueStr = BitConverter.ToString((byte[])item.Value).Replace("-", "");
-                } else if(item.Value is ICollection) {
-                    var values = new List<XElement>();
+				} else if (item.Value is ReadOnlyMemory<byte>) {
+					valueStr = BitConverter.ToString(((ReadOnlyMemory<byte>)item.Value).ToArray()).Replace("-", "");
+				} else if (item.Value is ICollection) {
+					var values = new List<XElement>();
                     foreach(var itemValue in (IEnumerable)item.Value) {
                         values.Add(new XElement("Item", itemValue));
                     }
@@ -48,7 +58,7 @@ namespace AVDump3Lib.Reporting.Reports {
 
                 rootElem.Add(new XElement(item.Type.Key,
                     new XAttribute("p", item.Provider.Name),
-                    new XAttribute("t", item.Type.ValueType.Name),
+                    new XAttribute("t", GetDisplayTypeName(item.Type.ValueType)),
                     new XAttribute("u", item.Type.Unit ?? "Unknown"),
                     valueStr
                 ));

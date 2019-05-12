@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections;
 using BXmlLib;
-using BXmlLib.DocTypes.Ebml;
 using BXmlLib.DocType;
+using BXmlLib.DocTypes.Ebml;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
     public abstract class Section : IEnumerable<KeyValuePair<string, object>> {
@@ -66,10 +66,10 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 		protected abstract bool ProcessElement(IBXmlReader reader);
 		protected abstract void Validate();
 
-		IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
+		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 		public abstract IEnumerator<KeyValuePair<string, object>> GetEnumerator();
 
-		protected KeyValuePair<string, object> CreatePair(string key, object value) { return new KeyValuePair<string, object>(key, value); }
+		protected KeyValuePair<string, object> CreatePair(string key, object value) => new KeyValuePair<string, object>(key, value);
 
 	}
 }

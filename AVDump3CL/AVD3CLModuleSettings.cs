@@ -173,8 +173,7 @@ namespace AVDump3CL {
 
 		object ICLConvert.FromCLString(SettingsProperty property, string str) {
 			if(property == BufferLengthProperty) {
-				var args = str.Split(':');
-				return int.Parse(args[1]) << 20;
+				return int.Parse(str) << 20;
 
 			} else if(property == ConsumersProperty) {
 				if(str != null && str.Length == 0) return null;
@@ -246,6 +245,11 @@ namespace AVDump3CL {
 			get { return (bool)GetValue(HideTotalProgressProperty); }
 			set { SetValue(HideTotalProgressProperty, value); }
 		}
+		public SettingsProperty ShowDisplayJitterProperty { get; }
+		public bool ShowDisplayJitter {
+			get { return (bool)GetValue(ShowDisplayJitterProperty); }
+			set { SetValue(ShowDisplayJitterProperty, value); }
+		}
 
 		public SettingsProperty PrintHashesProperty { get; }
 		public bool PrintHashes {
@@ -266,6 +270,7 @@ namespace AVDump3CL {
 			HideBuffersProperty = Register(nameof(HideBuffers), false);
 			HideFileProgressProperty = Register(nameof(HideFileProgress), false);
 			HideTotalProgressProperty = Register(nameof(HideTotalProgress), false);
+			ShowDisplayJitterProperty = Register(nameof(ShowDisplayJitter), false);
 			PrintHashesProperty = Register(nameof(PrintHashes), false);
 			PrintReportsProperty = Register(nameof(PrintReports), false);
 		}

@@ -1,5 +1,4 @@
 ﻿using AVDump3Lib.Processing.BlockBuffers;
-using BXmlLib;
 using System;
 using System.Collections.Generic;
 using System.IO;

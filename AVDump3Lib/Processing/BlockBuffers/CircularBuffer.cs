@@ -80,7 +80,7 @@ namespace AVDump3Lib.Processing.BlockBuffers {
     }
 
     public class CircularBuffer32Bit : ICircularBuffer {
-        private readonly MirroredBufferWindows buffer;
+        private readonly IMirroredBuffer buffer;
         private readonly long[] consumers;
         private long producer;
 
@@ -99,7 +99,7 @@ namespace AVDump3Lib.Processing.BlockBuffers {
         }
         public bool IsProducionCompleted { get; private set; }
 
-        public CircularBuffer32Bit(MirroredBufferWindows buffer, int consumerCount) {
+        public CircularBuffer32Bit(IMirroredBuffer buffer, int consumerCount) {
             this.buffer = buffer;
             consumers = new long[consumerCount];
         }

@@ -96,7 +96,7 @@ namespace AVDump3Lib.Settings.CLArguments {
 
 
                     } catch(Exception ex) {
-                        throw new Exception("Property (" + entry.Group.Name + "." + entry.Property + ") cold not be set", ex);
+                        throw new Exception("Property (" + entry.Group.Name + "." + entry.Property.Name + ") cold not be set", ex);
                     }
                 } else unnamedArgs.Add(args[i]);
             }

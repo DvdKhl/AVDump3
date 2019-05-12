@@ -19,7 +19,7 @@ namespace AVDump3CL {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Lang {
@@ -63,18 +63,18 @@ namespace AVDump3CL {
         /// <summary>
         ///   Looks up a localized string similar to Circular buffer size for hashing.
         /// </summary>
-        internal static string BlockSizeDescription {
+        internal static string BufferLengthDescription {
             get {
-                return ResourceManager.GetString("BlockSizeDescription", resourceCulture);
+                return ResourceManager.GetString("BufferLengthDescription", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to --BSize=&lt;blocksize in MiB&gt;:&lt;block count&gt;.
+        ///   Looks up a localized string similar to --BufferLength=&lt;Size in MiB&gt;.
         /// </summary>
-        internal static string BlockSizeExample {
+        internal static string BufferLengthExample {
             get {
-                return ResourceManager.GetString("BlockSizeExample", resourceCulture);
+                return ResourceManager.GetString("BufferLengthExample", resourceCulture);
             }
         }
         
@@ -292,6 +292,24 @@ namespace AVDump3CL {
         internal static string ReportsExample {
             get {
                 return ResourceManager.GetString("ReportsExample", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string ShowDisplayJitterDescription {
+            get {
+                return ResourceManager.GetString("ShowDisplayJitterDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string ShowDisplayJitterExample {
+            get {
+                return ResourceManager.GetString("ShowDisplayJitterExample", resourceCulture);
             }
         }
         

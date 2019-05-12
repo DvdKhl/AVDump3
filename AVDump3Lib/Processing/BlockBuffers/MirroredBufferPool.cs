@@ -22,7 +22,7 @@ namespace AVDump3Lib.Processing.BlockBuffers {
                 if(slots.Count != 0) {
                     return slots.Pop();
                 } else {
-                    return new MirroredBufferWindows(BufferSize);
+                    return new MirroredBuffer(BufferSize);
                 }
             }
         }

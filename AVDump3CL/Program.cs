@@ -7,6 +7,8 @@ using AVDump3Lib.Settings;
 using AVDump3Lib.Settings.CLArguments;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace AVDump3CL {
 	class Program {
@@ -18,56 +20,7 @@ namespace AVDump3CL {
 			//return;
 
 			if(args.Length == 1 && args[0].Equals("DEBUG")) {
-				args = new string[] {
-                    //"--Help",
-					//@"--Conc=3:G:\,1;H:\,1;I:\,1;D:\,1",
-					//"--BSize=128:128",
-					//"--Consumers=MP4",
-					//"--Consumers=CRC32",
-					//"--Consumers=OGG",
-					//"--DLPath=Donelog.txt",
-                    //"--Consumers",
-					//"--Reports",
-					//"--Consumers=ED2K",
-					"--PrintHashes",
-					"--Consumers=MKV",
-                    //"--Reports=AniDBReport",
-					//"--PrintReports",
-					//"--HideBuffers",
-                    //"--HideTotalProgress",
-                    //"--HideFileProgress",
-                    //"--WExts=mkv,avi,ogg,ogm,mp4",
-                    //"--Reports=AniDBReport",
-                    //"--RDir=Reports/",
-					//"--SaveErrors",
-					//"--IncludePersonalData",
-					//"--ErrorDirectory=Error",
-					"--PauseBeforeExit",
-					//"--NullStreamTest=12:10000:4",
-					//"--Host=ommina.l5.ca:9002",
-					//"--Auth=Arokh:Anime",
-					//@"D:\Ziel.txt",
-					//@"G:\Anime", //5B64C2B0
-                    //@"H:\Anime", //5B64C2B0
-                    //@"I:\Anime", //5B64C2B0
-                    //@"D:\New folder\Genius Party - 1 - Genius Party [no group](FF0FA0CE).mp4",
-                    @"E:\Anime\[Exiled-Destiny]_Girls_Und_Panzer_Der_Movie_(2DB009FC).mkv",
-					//@"E:\Anime\",
-					//@"G:\Anime\Processed\Shinseiki Evangelion Gekijouban Shi to Shinsei 2 - Rebirth [aF][DVD][640x360][1bfc05dc].ogm"
-                    //@"D:\MyStuff\BigFile", //C548A93C
-				};
-
-				//if(true) {
-				//	using(var stream = File.Create(@"D:\MyStuff\MediumFile")) {
-				//		var b = new byte[64];
-				//		for(int i = 0; i < b.Length; i++) b[i] = (byte)'a';
-				//		stream.Write(b, 0, b.Length);
-				//		//stream.Write(b, 0, b.Length);
-				//	}
-				//}
-
-
-				//File.WriteAllBytes(@"D:\MyStuff\SmallFile", Enumerable.Range(0, (1 << 20) + 2).Select(x => (byte)1).ToArray());
+				args = File.ReadLines("DebugParams.txt").Where(x => !x.StartsWith("//")).ToArray();
 			}
 
 			clSettingsHandler = new CLSettingsHandler();

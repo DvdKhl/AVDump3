@@ -4,8 +4,11 @@
 
 
 #include "AVD3NativeLibApi.h"
-//#include "InstructionSupport.cpp"
 
+#define CRYPTOPP_GENERATE_X64_MASM
+#define CRYPTOPP_X86_ASM_AVAILABLE
+#define CRYPTOPP_BOOL_X64 1
+#define CRYPTOPP_BOOL_SSE2_ASM_AVAILABLE 1
 
 #ifdef CRYPTOPP_GENERATE_X64_MASM
 #define AS1(x) x*newline*
@@ -893,7 +896,9 @@ void TigerTransformBlock(uint64_t *digest, const uint64_t *X)
 
 
 //========================================================================
-void* TigerCreate(uint32_t *blockLength) {
+void* TigerCreate(uint32_t* blockSize) {
+	*blockSize = 64;
+
 	uint8_t *b = (uint8_t*)malloc(sizeof(uint64_t) * 4);
 	TigerInit(b);
 	return b;

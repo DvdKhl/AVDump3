@@ -5,8 +5,8 @@ namespace AVDump3Lib.Processing.BlockBuffers.Sources {
     public class StreamBlockSource : IBlockSource {
 		private readonly Stream source;
 
-		public StreamBlockSource(Stream source) { this.source = source; }
-		public long Length => source.Length;
+		public StreamBlockSource(Stream source) { this.source = source; Length = source.Length; }
+		public long Length { get; }
 		public int Read(Span<byte> block) => source.Read(block);
 	}
 }

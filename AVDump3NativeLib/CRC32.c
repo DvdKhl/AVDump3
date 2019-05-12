@@ -578,8 +578,8 @@ int32_t len;
 /* ========================================================================= */
 
 
-void* CRC32Create(uint32_t *blockLength) {
-	*blockLength = 4;
+void* CRC32Create(uint32_t* blockSize) {
+	*blockSize = 4;
 
 	uint8_t *b = (uint8_t*)malloc(4);
 	CRC32Init(b);

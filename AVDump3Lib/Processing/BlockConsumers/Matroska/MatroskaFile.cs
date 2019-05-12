@@ -18,24 +18,25 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 
 		internal void Parse(IBXmlReader reader, CancellationToken ct) {
 			reader.Strict = true;
-            if(reader.Next() && reader.DocElement == EbmlDocType.EbmlHeader) {
-                EbmlHeader = CreateRead(new EbmlHeaderSection(), reader);
-            } else {
-                //Todo: dispose reader / add warning
-                return;
-            }
+
+			if(reader.Next() && reader.DocElement == EbmlDocType.EbmlHeader) {
+				EbmlHeader = CreateRead(new EbmlHeaderSection(), reader);
+			} else {
+				//Todo: dispose reader / add warning
+				return;
+			}
+
 			reader.Strict = false;
 
-			//while((elementInfo = reader.Next()) != null && Section.IsGlobalElement(elementInfo)) ;
 			while(reader.Next() && reader.DocElement != MatroskaDocType.Segment && reader.DocElement != MatroskaDocType.Info) {
 				if(reader.BaseStream.Position > 4 * 1024 * 1024) {
 					break;
 				}
 			}
 
-			if(reader.DocElement == MatroskaDocType.Segment) {
+			if(reader.DocElement != null && reader.DocElement == MatroskaDocType.Segment) {
 				Segment = CreateRead(new SegmentSection(), reader);
-			} else if(reader.DocElement == MatroskaDocType.Info) {
+			} else if(reader.DocElement != null && reader.DocElement == MatroskaDocType.Info) {
 				Segment = new SegmentSection();
 				Segment.ContinueRead(reader);
 			} else {

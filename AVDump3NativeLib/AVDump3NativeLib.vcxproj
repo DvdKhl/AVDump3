@@ -13,19 +13,19 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{7F854E9E-7824-47A3-B560-3901B8F59DCA}</ProjectGuid>
     <RootNamespace>AVDump3NativeLib</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -43,6 +43,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetExt>.dll</TargetExt>
+    <OutDir>$(ProjectDir)$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetExt>.dll</TargetExt>
@@ -58,8 +59,8 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <PostBuildEvent>
-      <Command>copy /Y "$(OutDir)*.dll" "$(SolutionDir)AVDump3CL\bin\$(ConfigurationName)\"
-copy /Y "$(OutDir)*.pdb" "$(SolutionDir)AVDump3CL\bin\$(ConfigurationName)\"
+      <Command>copy /Y "$(OutDir)*.dll" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(ConfigurationName)\netcoreapp2.2\"
+copy /Y "$(OutDir)*.pdb" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(ConfigurationName)\netcoreapp2.2\"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -79,12 +80,13 @@ copy /Y "$(OutDir)*.pdb" "$(SolutionDir)AVDump3CL\bin\$(ConfigurationName)\"
       <Profile>true</Profile>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(OutDir)*.dll" "$(SolutionDir)AVDump3CL\bin\$(ConfigurationName)\"
-copy /Y "$(OutDir)*.pdb" "$(SolutionDir)AVDump3CL\bin\$(ConfigurationName)\"
+      <Command>copy /Y "$(OutDir)*.dll" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(ConfigurationName)\netcoreapp2.2\"
+copy /Y "$(OutDir)*.pdb" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(ConfigurationName)\netcoreapp2.2\"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AVD3MirrorBuffer.c" />
     <ClCompile Include="AVD3NativeLibApi.c" />
     <ClCompile Include="CRC32.c" />
     <ClCompile Include="CRC32C.c" />

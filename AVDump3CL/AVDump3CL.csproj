@@ -1,17 +1,49 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
-    <Authors>DvdKhl</Authors>
-    <Version>3.0.0</Version>
-    <Company />
-    <PackageProjectUrl>https://github.com/DvdKhl/AVDump3</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/DvdKhl/AVDump3/blob/master/LICENSE.md</RepositoryUrl>
-    <StartupObject>AVDump3CL.Program</StartupObject>
     <ApplicationIcon>AVD3Icon.ico</ApplicationIcon>
-    <LangVersion>7.3</LangVersion>
+    <StartupObject>AVDump3CL.Program</StartupObject>
+    <AssemblyVersion>3.0.0.8000</AssemblyVersion>
+    <Version>3.0.0</Version>
+    <Company>extknot</Company>
+    <Authors>DvdKhl</Authors>
+    <Product>AVDump3</Product>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/DvdKhl/AVDump3</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/DvdKhl/AVDump3</RepositoryUrl>
+    <NeutralLanguage>en</NeutralLanguage>
+    <Copyright>Copyright © 2019 extknot</Copyright>
+    <Platforms>AnyCPU;x64</Platforms>
+    <FileVersion>3.0.0.8000</FileVersion>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <DebugType>full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AVDump3Lib\AVDump3Lib.csproj" />
@@ -30,6 +62,12 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Lang.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="DebugParams.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -1,7 +1,7 @@
 #include "AVD3NativeLibApi.h"
 
-void* CRC32CCreate(uint32_t *blockLength) {
-	*blockLength = 4;
+void* CRC32CCreate(uint32_t *blockSize) {
+	*blockSize = 4;
 
 	uint8_t *b = (uint8_t*)malloc(4);
 	CRC32CInit(b);

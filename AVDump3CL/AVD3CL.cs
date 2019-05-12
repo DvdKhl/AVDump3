@@ -4,6 +4,7 @@ using AVDump3Lib.Processing.StreamProvider;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -102,12 +103,11 @@ namespace AVDump3CL {
 		public Progress GetProgress() {
 			var blockConsumerProgress = new BlockConsumerProgress[bcBytesProcessed.Length];
 			foreach(var pair in bcNameIndexMap) {
-				var item = new BlockConsumerProgress();
-				item.Name = pair.Key;
-				item.BytesProcessed = bcBytesProcessed[pair.Value];
-				item.FilesProcessed = bcFilesProcessed[pair.Value];
-				//item.BufferFill = 1;
-				blockConsumerProgress[pair.Value] = item;
+				blockConsumerProgress[pair.Value] = new BlockConsumerProgress {
+					Name = pair.Key,
+					BytesProcessed = bcBytesProcessed[pair.Value],
+					FilesProcessed = bcFilesProcessed[pair.Value]
+				};
 			}
 
 			var bytesProcessed = this.bytesProcessed;
@@ -174,7 +174,7 @@ namespace AVDump3CL {
 		}
 
 		private void BlockConsumerFinished(IStreamConsumer s) {
-            var removed = blockStreamProgress.TryRemove(s.BlockStream, out StreamConsumerProgressInfo info);
+			var removed = blockStreamProgress.TryRemove(s.BlockStream, out _);
 
             if(s.RanToCompletion) {
 				foreach(var blockConsumer in s.BlockConsumers) {
@@ -196,6 +196,9 @@ namespace AVDump3CL {
 
 		public long TotalBytes { get; set; }
 		public int TotalFiles { get; set; }
+
+		private int displayUpdateCount;
+		private int displaySkipCount;
 
 		private string output;
 		private int maxBCCount;
@@ -230,8 +233,14 @@ namespace AVDump3CL {
 			}
 		}
 
+		private Stopwatch sw = new Stopwatch();
 		private void TimerCallback(object sender) {
-			if(!Monitor.TryEnter(timer)) return;
+			if (!Monitor.TryEnter(timer)) {
+				displaySkipCount++;
+				return;
+			}
+			sw.Restart();
+
 			Console.Write(output); dirty = true;
 			maxCursorPos = Math.Max(maxCursorPos, Console.CursorTop);
 			Console.SetCursorPosition(0, Math.Max(0, Console.CursorTop - sbLineCount));
@@ -242,8 +251,17 @@ namespace AVDump3CL {
 			}
 			sb.Length = 0;
 
-			Display(sb, state / (double)TicksInPeriod);
+			Display(sb, (state + 1) / (double)TicksInPeriod);
 			output = sb.ToString();
+
+			if(settings.ShowDisplayJitter) {
+				output += "\n" +
+					displayUpdateCount++.ToString("0000") + " " +
+					displaySkipCount.ToString("000") + " " +
+					sw.ElapsedMilliseconds.ToString("000000") + " " +
+					(state == 0 ? sw.ElapsedMilliseconds.ToString("000000") : "");
+				sbLineCount++;
+			}
 
 			state++;
 			state %= TicksInPeriod;
@@ -251,7 +269,7 @@ namespace AVDump3CL {
 			Monitor.Exit(timer);
 		}
 
-		public void Writeline(string line) {
+		public void Writeline(IEnumerable<string> lines) {
 			lock(timer) {
 				if(dirty) {
 					var clearLine = new string(' ', Console.BufferWidth - 1);
@@ -262,7 +280,9 @@ namespace AVDump3CL {
 					dirty = false;
 				}
 
-				Console.WriteLine(line);
+				foreach (var line in lines) {
+					Console.WriteLine(line);
+				}
 			}
 		}
 
@@ -273,8 +293,6 @@ namespace AVDump3CL {
 			consoleWidth = 79;
 
 			var barWidth = consoleWidth - 8 - 1 - 2 - 2;
-			var outputOn = DateTimeOffset.UtcNow;
-			var progressSpan = DateTimeOffset.UtcNow - outputOn;
 			var now = DateTimeOffset.UtcNow;
 
 			sbLineCount = 0;

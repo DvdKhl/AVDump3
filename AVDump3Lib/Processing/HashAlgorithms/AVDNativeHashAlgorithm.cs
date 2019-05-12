@@ -9,7 +9,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
         protected delegate void TransformHandler(IntPtr handle, byte* b, int length, byte lastBlock);
         protected delegate void FinalHandler(IntPtr handle, byte* hash);
 
-        [DllImport("AVDump3NativeLib.dll")]
+        [DllImport("AVDump3NativeLib")]
         private static extern void FreeHashObject(IntPtr handle);
 
         private readonly IntPtr handle;
@@ -17,18 +17,21 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
         private readonly TransformHandler transform;
         private readonly FinalHandler final;
 
-        protected AVDNativeHashAlgorithm(CreateHandler create, InitHandler init, TransformHandler transform, FinalHandler final) {
+        protected AVDNativeHashAlgorithm(CreateHandler create, InitHandler init, TransformHandler transform, FinalHandler final, int hashSize) {
             handle = create(out var blockSize);
             BlockSize = blockSize;
+			HashSize = hashSize;
 
-            this.init = init;
+
+			this.init = init;
             this.transform = transform;
             this.final = final;
         }
 
-        public override int BlockSize { get; }
+		public override int BlockSize { get; }
+		public int HashSize { get; }
 
-        public override void Initialize() => init(handle);
+		public override void Initialize() => init(handle);
 
         protected override unsafe void HashCore(ReadOnlySpan<byte> data) {
             fixed (byte* bPtr = &data[0]) {
@@ -36,12 +39,12 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
             }
         }
         public override ReadOnlySpan<byte> TransformFinalBlock(ReadOnlySpan<byte> data) {
-            var b = new byte[4];
-            fixed (byte* hashPtr = b, bPtr = data) {
+            var hash = new byte[HashSize];
+            fixed (byte* hashPtr = hash, bPtr = data) {
                 if(data.Length > 0) transform(handle, bPtr, data.Length, 1);
                 final(handle, hashPtr);
             }
-            return b;
+            return hash;
         }
 
         protected override void Dispose(bool disposing) {

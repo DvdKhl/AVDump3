@@ -237,15 +237,18 @@ namespace AVDump3CL {
             if(hasError) {
                 return;
             }
+
+
+			var linesToWrite = new List<string>(32);
             if(settings.Display.PrintHashes || settings.Display.PrintReports) {
-                cl.Writeline(fileName.Substring(0, Math.Min(fileName.Length, Console.WindowWidth - 1)));
+				linesToWrite.Add(fileName.Substring(0, Math.Min(fileName.Length, Console.WindowWidth - 1)));
             }
 
             if(settings.Display.PrintHashes) {
                 foreach(var bc in blockConsumers.OfType<HashCalculator>()) {
-                    cl.Writeline(bc.Name + " => " + BitConverter.ToString(bc.HashValue.ToArray()).Replace("-", ""));
+					linesToWrite.Add(bc.Name + " => " + BitConverter.ToString(bc.HashValue.ToArray()).Replace("-", ""));
                 }
-                cl.Writeline("");
+				linesToWrite.Add("");
             }
 
             var reportsFactories = reportingModule.ReportFactories.Where(x => settings.Reporting.Reports.Any(y => x.Name.Equals(y, StringComparison.OrdinalIgnoreCase))).ToArray();
@@ -258,12 +261,13 @@ namespace AVDump3CL {
 
                 foreach(var report in reports) {
                     if(settings.Display.PrintReports) {
-                        cl.Writeline(report.ReportToString() + "\n");
+						linesToWrite.Add(report.ReportToString() + "\n");
                     }
 
                     report.SaveToFile(Path.Combine(settings.Reporting.ReportDirectory, fileName + "." + report.FileExtension));
                 }
             }
+			cl.Writeline(linesToWrite);
 
             //if(UseNtfsAlternateStreams) {
             //	using(var altStreamHandle = NtfsAlternateStreams.SafeCreateFile(
