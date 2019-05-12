@@ -61,9 +61,9 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 
             while(!Buffer.IsProducionCompleted) {
                 Span<byte> writerSpan;
-                if((writerSpan = Buffer.ProducerBlock()).Length < 0) { //TODO
+                if((writerSpan = Buffer.ProducerBlock()).Length == 0) { //TODO
                     lock(producerLock) {
-                        while((writerSpan = Buffer.ProducerBlock()).Length < 0) { //TODO
+                        while(!Buffer.IsProducionCompleted && (writerSpan = Buffer.ProducerBlock()).Length == 0) { //TODO
                             Monitor.Wait(producerLock, 1000);
                             ct.ThrowIfCancellationRequested();
                             BufferOverrunCount++;

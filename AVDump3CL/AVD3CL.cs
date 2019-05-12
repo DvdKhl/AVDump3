@@ -115,7 +115,7 @@ namespace AVDump3CL {
 
 			var fileProgressCollection = new List<FileProgress>(blockStreamProgress.Count);
 			foreach(var info in blockStreamProgress.Values.ToArray()) {
-				var bufferLength = info.StreamConsumer.BlockStream.Length;
+				var bufferLength = info.StreamConsumer.BlockStream.BufferLength;
 				var bytesRead = (long[])info.BytesRead.Clone();
 				var bcfProgress = new KeyValuePair<string, long>[bytesRead.Length - 1];
 

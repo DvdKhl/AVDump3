@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace AVDump3Lib.Misc {
 	public static class Utils {
-		public static bool UsingMono { get; } = Type.GetType("Mono.Runtime") != null;
+		public static bool UsingWindows { get; } = Environment.OSVersion.Platform == PlatformID.Win32NT;
 
 		public static string ToBase32(byte[] input) {
 			if(input == null || input.Length == 0) {

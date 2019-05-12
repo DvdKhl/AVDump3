@@ -32,8 +32,8 @@ namespace AVDump3Lib.Processing.BlockBuffers {
             this.readerIndex = readerIndex;
 
             MaxReadLength = blockStream.BufferLength / 2;
-            SuggestedReadLength = MaxReadLength / 2;
-        }
+			SuggestedReadLength = MaxReadLength / 2;
+		}
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ReadOnlySpan<byte> GetBlock(int minBlockLength) => blockStream.GetBlock(readerIndex, minBlockLength);

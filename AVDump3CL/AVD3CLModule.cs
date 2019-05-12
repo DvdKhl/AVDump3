@@ -117,16 +117,32 @@ namespace AVDump3CL {
                     Console.WriteLine(blockConsumerFactory.Name.PadRight(14) + " - " + blockConsumerFactory.Description);
                 }
                 args.Cancel();
-            }
+
+			} else if(!settings.Processing.Consumers.Any()) {
+				var invalidBlockConsumerNames = settings.Processing.Consumers.Where(x => processingModule.BlockConsumerFactories.All(y => !y.Name.Equals(x))).ToArray();
+				if (invalidBlockConsumerNames.Any()) {
+					Console.WriteLine("Invalid BlockConsumers: " + string.Join(", ", invalidBlockConsumerNames));
+					args.Cancel();
+				}
+			}
+
+
             if(settings.Reporting.Reports == null) {
                 Console.WriteLine("Available Reports: ");
                 foreach(var reportFactory in reportingModule.ReportFactories) {
                     Console.WriteLine(reportFactory.Name.PadRight(14) + " - " + reportFactory.Description);
                 }
                 args.Cancel();
-            }
 
-            if(!string.IsNullOrEmpty(settings.FileDiscovery.DoneLogPath)) {
+			} else if(!settings.Reporting.Reports.Any()) {
+				var invalidReportNames = settings.Reporting.Reports.Where(x => reportingModule.ReportFactories.All(y => !y.Name.Equals(x))).ToArray();
+				if (invalidReportNames.Any()) {
+					Console.WriteLine("Invalid Report: " + string.Join(", ", invalidReportNames));
+					args.Cancel();
+				}
+			}
+
+			if (!string.IsNullOrEmpty(settings.FileDiscovery.DoneLogPath)) {
                 settings.FileDiscovery.SkipLogPath = settings.FileDiscovery.DoneLogPath;
                 settings.FileDiscovery.ProcessedLogPath = settings.FileDiscovery.DoneLogPath;
             }

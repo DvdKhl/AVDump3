@@ -19,8 +19,12 @@ namespace AVDump3CL {
 			//new PerformanceTest().PerformanceReport();
 			//return;
 
-			if(args.Length == 1 && args[0].Equals("DEBUG")) {
-				args = File.ReadLines("DebugParams.txt").Where(x => !x.StartsWith("//")).ToArray();
+			if (args.Length > 0 && args[0].Equals("FROMFILE")) {
+				if (args.Length < 2 || !File.Exists(args[1])) {
+					Console.Error.WriteLine("FROMFILE: File not found");
+					return;
+				}
+				args = File.ReadLines(args[1]).Where(x => !x.StartsWith("//")).ToArray();
 			}
 
 			clSettingsHandler = new CLSettingsHandler();
@@ -30,18 +34,19 @@ namespace AVDump3CL {
 
 			var pathsToProcess = new List<string>();
 			try {
-				if(!clSettingsHandler.ParseArgs(args, pathsToProcess)) {
-					if(!Utils.UsingMono) Console.Read();
+				if (!clSettingsHandler.ParseArgs(args, pathsToProcess)) {
+					if (Utils.UsingWindows) Console.Read();
 					return;
 				}
-			} catch(InvalidOperationException ex) {
+			} catch (Exception ex) {
+				Console.Error.WriteLine("Error while parsing commandline arguments:");
 				Console.Error.WriteLine(ex.Message);
 				return;
 			}
 
 			var moduleInitResult = moduleManagement.RaiseInitialized();
-			if(moduleInitResult.CancelStartup) {
-				if(!string.IsNullOrEmpty(moduleInitResult.Reason)) {
+			if (moduleInitResult.CancelStartup) {
+				if (!string.IsNullOrEmpty(moduleInitResult.Reason)) {
 					Console.WriteLine("Startup Cancel: " + moduleInitResult.Reason);
 				}
 				return;

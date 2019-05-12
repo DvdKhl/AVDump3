@@ -22,13 +22,14 @@ namespace AVDump3Lib.Processing.StreamProvider {
 
         public override void Flush() { }
 
-        public override int Read(byte[] buffer, int offset, int count) {
-            var bytesread = (int)Math.Min(count, Length - position);
-            position += bytesread;
-            return bytesread;
-        }
+		public override int Read(Span<byte> buffer) {
+			var bytesread = (int)Math.Min(buffer.Length, Length - position);
+			position += bytesread;
+			return bytesread;
+		}
+		public override int Read(byte[] buffer, int offset, int count) => Read(((Span<byte>)buffer).Slice(offset, count));
 
-        public override long Seek(long offset, SeekOrigin origin) { return 0; }
+		public override long Seek(long offset, SeekOrigin origin) { return 0; }
 
         public override void SetLength(long value) { }
 

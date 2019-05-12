@@ -96,7 +96,7 @@ namespace AVDump3Lib.Settings.CLArguments {
 
 
                     } catch(Exception ex) {
-                        throw new Exception("Property (" + entry.Group.Name + "." + entry.Property.Name + ") cold not be set", ex);
+                        throw new InvalidOperationException("Property (" + entry.Group.Name + "." + entry.Property.Name + ") could not be set", ex);
                     }
                 } else unnamedArgs.Add(args[i]);
             }
@@ -148,7 +148,7 @@ namespace AVDump3Lib.Settings.CLArguments {
                 PrintLine(argToString(prop).PadRight(descPad, ' ') + " | " + example + " (" + (defaultValue ?? "<null>") + ")");
                 if(detailed && !string.IsNullOrEmpty(description)) {
 					if(!string.IsNullOrEmpty(description)) {
-						PrintLine(Utils.UsingMono ? description : "▶8 " + description + "◀");
+						PrintLine(!Utils.UsingWindows ? description : "▶8 " + description + "◀");
 					}
                     Console.WriteLine();
                 }
