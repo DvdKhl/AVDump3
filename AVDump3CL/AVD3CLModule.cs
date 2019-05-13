@@ -75,6 +75,7 @@ namespace AVDump3CL {
                 settings.Diagnostics.SkipEnvironmentElement,
                 settings.Diagnostics.IncludePersonalData
             );
+			cl.Writeline("Error " + ex.GetBaseException().GetType() + ": " + ex.GetBaseException().Message);
 
             ExceptionThrown?.Invoke(this, new AVD3CLModuleExceptionEventArgs(exElem));
             //TODO Raise Event for modules to listen to
@@ -226,7 +227,7 @@ namespace AVDump3CL {
                     if(accept) acceptedFiles++;
                     return accept;
                 },
-                ex => Console.Error.WriteLine("Filediscovery: " + ex.Message)
+                ex => Console.WriteLine("Filediscovery: " + ex.Message)
             );
             cl.TotalFiles = spp.TotalFileCount;
             cl.TotalBytes = spp.TotalBytes;

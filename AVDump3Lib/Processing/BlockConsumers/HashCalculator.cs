@@ -9,8 +9,8 @@ namespace AVDump3Lib.Processing.BlockConsumers {
         public int ReadLength { get; }
         public ReadOnlyMemory<byte> HashValue;
 
-        public AVDHashAlgorithm HashAlgorithm { get; }
-        public HashCalculator(string name, IBlockStreamReader reader, AVDHashAlgorithm transform) : base(name, reader) {
+        public IAVDHashAlgorithm HashAlgorithm { get; }
+        public HashCalculator(string name, IBlockStreamReader reader, IAVDHashAlgorithm transform) : base(name, reader) {
             HashAlgorithm = transform;
 
             var length = ((reader.SuggestedReadLength / transform.BlockSize) + 1) * transform.BlockSize;
@@ -44,4 +44,7 @@ namespace AVDump3Lib.Processing.BlockConsumers {
             HashValue = HashAlgorithm.TransformFinalBlock(block.Slice(bytesProcessed, block.Length - bytesProcessed)).ToArray();
         }
     }
+
+
+
 }

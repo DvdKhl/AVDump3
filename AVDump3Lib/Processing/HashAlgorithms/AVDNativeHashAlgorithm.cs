@@ -41,7 +41,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
         public override ReadOnlySpan<byte> TransformFinalBlock(ReadOnlySpan<byte> data) {
             var hash = new byte[HashSize];
             fixed (byte* hashPtr = hash, bPtr = data) {
-                if(data.Length > 0) transform(handle, bPtr, data.Length, 1);
+                transform(handle, bPtr, data.Length, 1);
                 final(handle, hashPtr);
             }
             return hash;

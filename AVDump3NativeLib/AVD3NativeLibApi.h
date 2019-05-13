@@ -29,6 +29,12 @@ DLL_PUBLIC void SHA3Init(void* handle);
 DLL_PUBLIC void SHA3Transform(void* handle, uint8_t* b, int32_t length, uint8_t lastBlock);
 DLL_PUBLIC void SHA3Final(void* handle, uint8_t* b);
 
+DLL_PUBLIC void* MD4Create(uint32_t* blockSize);
+DLL_PUBLIC void MD4Init(void* handle);
+DLL_PUBLIC void MD4Transform(void* handle, uint8_t* b, int32_t length, uint8_t lastBlock);
+DLL_PUBLIC void MD4Final(void* handle, uint8_t* b);
+DLL_PUBLIC void MD4ComputeHash(uint8_t* b, int32_t length, uint32_t* hash);
+
 DLL_PUBLIC void FreeHashObject(void* obj);
 
 

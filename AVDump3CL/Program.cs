@@ -12,16 +12,13 @@ using System.Linq;
 
 namespace AVDump3CL {
 	class Program {
-
 		private static CLSettingsHandler clSettingsHandler;
 
 		static void Main(string[] args) {
-			//new PerformanceTest().PerformanceReport();
-			//return;
 
 			if (args.Length > 0 && args[0].Equals("FROMFILE")) {
 				if (args.Length < 2 || !File.Exists(args[1])) {
-					Console.Error.WriteLine("FROMFILE: File not found");
+					Console.WriteLine("FROMFILE: File not found");
 					return;
 				}
 				args = File.ReadLines(args[1]).Where(x => !x.StartsWith("//")).ToArray();
@@ -39,8 +36,8 @@ namespace AVDump3CL {
 					return;
 				}
 			} catch (Exception ex) {
-				Console.Error.WriteLine("Error while parsing commandline arguments:");
-				Console.Error.WriteLine(ex.Message);
+				Console.WriteLine("Error while parsing commandline arguments:");
+				Console.WriteLine(ex.Message);
 				return;
 			}
 

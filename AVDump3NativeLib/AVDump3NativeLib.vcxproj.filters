@@ -36,6 +36,9 @@
     <ClCompile Include="AVD3MirrorBuffer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MD4.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AVD3NativeLibApi.h">

@@ -83,7 +83,11 @@ namespace AVDump3Lib.Processing {
 
             try {
 				var cpuInstructions = RetrieveCPUInstructions();
-				if(cpuInstructions.HasFlag(CPUInstructions.SSE2)) {
+
+				addOrReplace(new BlockConsumerFactory("ED2KN", r => new HashCalculator("ED2KN", r, new Ed2kHashNAlgorithm())));
+				addOrReplace(new BlockConsumerFactory("MD4N", r => new HashCalculator("MD4N", r, new Md4NativeHashAlgorithm())));
+				addOrReplace(new BlockConsumerFactory("CRC32N", r => new HashCalculator("CRC32N", r, new Crc32NativeHashAlgorithm())));
+				if (cpuInstructions.HasFlag(CPUInstructions.SSE2)) {
 					addOrReplace(new BlockConsumerFactory("TIGER", r => new HashCalculator("TIGER", r, new TigerNativeHashAlgorithm())));
 					//addOrReplace(new BlockConsumerFactory("CRC32", r => new HashCalculator("CRC32", r, new Crc32NativeHashAlgorithm())));
 					addOrReplace(new BlockConsumerFactory("SHA3", r => new HashCalculator("SHA3", r, new SHA3NativeHashAlgorithm())));

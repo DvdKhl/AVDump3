@@ -55,7 +55,8 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 		}
 		public long Length => blockSource.Length;
 
-		private object consumerLock = new object(), producerLock = new object();
+		private readonly object consumerLock = new object();
+		private readonly object producerLock = new object();
 		private void Produce() {
             //Thread.CurrentThread.Priority = ThreadPriority.Lowest;
 
@@ -64,14 +65,17 @@ namespace AVDump3Lib.Processing.BlockBuffers {
                 if((writerSpan = Buffer.ProducerBlock()).Length == 0) { //TODO
                     lock(producerLock) {
                         while(!Buffer.IsProducionCompleted && (writerSpan = Buffer.ProducerBlock()).Length == 0) { //TODO
-                            Monitor.Wait(producerLock, 1000);
+                            Monitor.Wait(producerLock, 100);
                             ct.ThrowIfCancellationRequested();
                             BufferOverrunCount++;
                         }
                     }
                 }
 
-                var readBytes = blockSource.Read(writerSpan);
+				//Limit read chunks (Avoids bouncing between buffer underrun and overrun)
+				writerSpan = writerSpan.Slice(0, Math.Min(writerSpan.Length, 1 << 20)); //TODO Parameterfy
+
+				var readBytes = blockSource.Read(writerSpan);
                 progress?.Report(new BlockStreamProgress(this, -1, readBytes));
 
                 if(readBytes != writerSpan.Length) Buffer.CompleteProduction();
@@ -87,7 +91,7 @@ namespace AVDump3Lib.Processing.BlockBuffers {
             ReadOnlySpan<byte> readerSpan;
 
             if((readerSpan = Buffer.ConsumerBlock(consumerIndex)).Length < minBlockLength) {
-				if(Buffer.ConsumerCompleted(consumerIndex)) throw new InvalidOperationException("Cannot read block when EOS is reached");
+				if(Buffer.ConsumerCompleted(consumerIndex) && blockSource.Length != 0) throw new InvalidOperationException("Cannot read block when EOS is reached");
 				lock (consumerLock) {
 					while((readerSpan = Buffer.ConsumerBlock(consumerIndex)).Length < minBlockLength) {
                         if(Buffer.IsProducionCompleted) {
@@ -96,7 +100,7 @@ namespace AVDump3Lib.Processing.BlockBuffers {
                             break;
                         }
 
-						Monitor.Wait(consumerLock, 1000);
+						Monitor.Wait(consumerLock, 100);
 						ct.ThrowIfCancellationRequested();
 						BufferUnderrunCount++;
 					}

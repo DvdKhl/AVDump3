@@ -91,6 +91,7 @@ copy /Y "$(OutDir)*.pdb" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(Configur
     <ClCompile Include="CRC32.c" />
     <ClCompile Include="CRC32C.c" />
     <ClCompile Include="InstructionSupport.cpp" />
+    <ClCompile Include="MD4.c" />
     <ClCompile Include="SHA3.c" />
     <ClCompile Include="Tiger.c" />
   </ItemGroup>
