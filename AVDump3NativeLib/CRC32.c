@@ -486,7 +486,7 @@ uint32_t crc;
 const uint8_t *buf;
 int32_t len;
 {
-	if (buf == NULL) return 0UL;
+	if (buf == NULL) return crc;
 
 	int32_t endian = 1;
 	if (*((uint8_t*)(&endian))) return crc32_little(crc, buf, len);
@@ -595,5 +595,8 @@ void CRC32Transform(void* handle, uint8_t *b, int32_t length, uint8_t lastBlock)
 }
 
 void CRC32Final(void* handle, uint8_t *b) {
-	*((int32_t*)b) = *(int32_t*)handle;
+	*(b + 0) = *((int8_t*)handle + 3);
+	*(b + 1) = *((int8_t*)handle + 2);
+	*(b + 2) = *((int8_t*)handle + 1);
+	*(b + 3) = *((int8_t*)handle + 0);
 }

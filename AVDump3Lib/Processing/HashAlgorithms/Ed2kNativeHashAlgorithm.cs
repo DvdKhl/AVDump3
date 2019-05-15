@@ -1,8 +1,7 @@
-using System;
-using System.Security.Cryptography;
+﻿using System;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
-	public sealed class Ed2kHashAlgorithm : AVDHashAlgorithm {
+	public unsafe sealed class Ed2kNativeHashAlgorithm : AVDHashAlgorithm {
 
 		public bool BlueIsRed { get; private set; }
 		public ReadOnlyMemory<byte> RedHash { get; private set; }
@@ -14,24 +13,33 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		private byte[] nullMd4Hash = new byte[64];
 		private byte[] blockHashes = new byte[16 * 512]; //Good for ~4GB, increased if needed
 
-		private Md4HashAlgorithm md4;
-
-		public Ed2kHashAlgorithm() {
-			md4 = new Md4HashAlgorithm();
-			md4.ComputeHash(Span<byte>.Empty, nullMd4Hash);
+		public Ed2kNativeHashAlgorithm() {
+			fixed (byte* emptyPtr = Span<byte>.Empty)
+			fixed (byte* emptyHashPtr = nullMd4Hash) {
+				Md4NativeHashAlgorithm.MD4ComputeHash(emptyPtr, 0, emptyHashPtr);
+			}
 		}
 
-		protected override unsafe void HashCore(ReadOnlySpan<byte> data) {
+		protected override void HashCore(ReadOnlySpan<byte> data) {
 			if (blockHashes.Length < blockHashOffset + ((data.Length / BlockSize) + 2) * 16) {
 				Array.Resize(ref blockHashes, blockHashes.Length * 2);
 			}
 
 			int offset = 0;
-			Span<byte> hashes = blockHashes;
 			while (data.Length != offset) {
-				md4.ComputeHash(data.Slice(offset, BlockSize), hashes.Slice(blockHashOffset, 16));
-				blockHashOffset += 16;
+				AddBlockHash(data.Slice(offset, BlockSize));
 				offset += BlockSize;
+			}
+		}
+
+		private void AddBlockHash(ReadOnlySpan<byte> data) {
+			Md4Hash(data, ((Span<byte>)blockHashes).Slice(blockHashOffset));
+			blockHashOffset += 16;
+		}
+		public void Md4Hash(ReadOnlySpan<byte> data, Span<byte> hash) {
+			fixed (byte* dataPtr = data)
+			fixed (byte* hashPtr = hash) {
+				Md4NativeHashAlgorithm.MD4ComputeHash(dataPtr, data.Length, hashPtr);
 			}
 		}
 
@@ -43,12 +51,11 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			RedHash = null;
 			BlueHash = null;
 
-			Span<byte> hashes = blockHashes;
-			md4.ComputeHash(data, hashes.Slice(blockHashOffset, 16));
-			blockHashOffset += 16;
+			AddBlockHash(data);
 
+			Span<byte> hashes = blockHashes;
 			Span<byte> hashNoNull = new byte[16];
-			md4.ComputeHash(hashes.Slice(0, blockHashOffset), hashNoNull);
+			Md4Hash(hashes.Slice(0, blockHashOffset), hashNoNull);
 
 			//https://wiki.anidb.info/w/Ed2k-hash
 			ReadOnlySpan<byte> hash;
@@ -61,11 +68,11 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 				RedHash = BlueHash;
 
 			} else {
-				Span<byte> hashWithNull = new byte[16];
 				nullMd4Hash.CopyTo(hashes.Slice(blockHashOffset, 16));
 				blockHashOffset += 16;
-				md4.ComputeHash(hashes.Slice(0, blockHashOffset), hashWithNull);
 
+				Span<byte> hashWithNull = new byte[16];
+				Md4Hash(hashes.Slice(0, blockHashOffset), hashWithNull);
 
 				BlueHash = hashNoNull.ToArray();
 				RedHash = hashWithNull.ToArray();
@@ -76,8 +83,6 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		}
 
 		public override void Initialize() {
-			//Called when TransformFinalBlock is called in Mono (not in NET) !
-			md4.Initialize();
 		}
 	}
 }
