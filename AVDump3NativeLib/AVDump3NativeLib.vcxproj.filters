@@ -27,9 +27,6 @@
     <ClCompile Include="Tiger.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="InstructionSupport.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SHA3.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -37,6 +34,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MD4.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="InstructionSupport.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
