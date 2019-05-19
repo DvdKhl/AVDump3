@@ -7,9 +7,10 @@ using System.Threading;
 using System.Diagnostics;
 using System.Collections;
 using System.Runtime.InteropServices;
+using System.IO;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
-	public unsafe class TigerTreeHashAlgorithm : AVDHashAlgorithm {
+	public unsafe class TigerTreeHashAlgorithm : IAVDHashAlgorithm {
 		//Assumptions: We will never hash more than 2^64 bytes.
 		// => Max Tree Depth: TD = log_2(2^64 / 1024) + 1 = 55
 		// We only ever need to store two tiger hashes per level.
@@ -23,71 +24,149 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		private readonly AutoResetEvent[] blockHashersSync;
 
 		public const int BLOCKSIZE = 1024;
-		public override int BlockSize => BLOCKSIZE;
+		public int BlockSize => BLOCKSIZE * 2; //Due to optimizations the each passed data block needs to be twice the size of BLOCKSIZE (See Compress)
 
 		public TigerTreeHashAlgorithm(int threadCount) {
-			blockHashers = Enumerable.Range(0, threadCount).Select(x => new BlockHasher(x, threadCount)).ToArray();
+			blockHashers = Enumerable.Range(0, threadCount).Select(x => new BlockHasher(leaves, x, threadCount)).ToArray();
 			blockHashersSync = blockHashers.Select(x => x.WorkDoneSync).ToArray();
 		}
 
 
-		public override void Initialize() {
+		public void Initialize() {
 			leafCount = 0;
 			nodeCount = 0;
 			Array.Clear(nodes, 0, nodes.Length);
 			Array.Clear(leaves, 0, leaves.Length);
 		}
 
-		public override ReadOnlySpan<byte> TransformFinalBlock(ReadOnlySpan<byte> data) => throw new NotImplementedException();
-
-
-		private bool hasLastBlock;
-		protected override void HashCore(ReadOnlySpan<byte> data) {
-			if (hasLastBlock && data.Length != 0) throw new Exception();
-
-
+		public ReadOnlySpan<byte> TransformFinalBlock(ReadOnlySpan<byte> data) {
 			foreach (var blockHasher in blockHashers) {
-				blockHasher.ProcessData(ref data);
+				blockHasher.Finish();
 			}
-			WaitHandle.WaitAll(blockHashersSync);
 
+			if (data.Length >= 2048 || leafCount != 0) throw new Exception();
 
-			if ((data.Length & (BLOCKSIZE - 1)) != 0) {
+			if (data.Length != 0) {
 				fixed (byte* leavesPtr = leaves)
 				fixed (byte* dataPtr = data) {
+					var buffer = TigerNativeHashAlgorithm.TTHCreateBlock();
+					if (data.Length > 1024) {
+						TigerNativeHashAlgorithm.TTHBlockHash(dataPtr, buffer, leavesPtr);
+						leafCount++;
+					}
+
 					TigerNativeHashAlgorithm.TTHPartialBlockHash(
-						dataPtr + (data.Length - data.Length % BLOCKSIZE), 
-						data.Length % BLOCKSIZE,
-						leavesPtr + data.Length / BLOCKSIZE + 1
+						dataPtr + leafCount * 1024,
+						data.Length - leafCount * 1024,
+						buffer, leavesPtr + leafCount * 24
 					);
+					leafCount++;
+					AVDNativeHashAlgorithm.FreeHashObject((IntPtr)buffer);
+
+					if (leafCount > 1) Compress();
 				}
-				hasLastBlock = true;
 			}
 
-			Compress();
+
+			int nodesCopied = 0;
+			Span<byte> finalHashesSpan = new byte[24 * 3];
+			fixed (byte* finalHashesPtr = finalHashesSpan) {
+				Span<byte> leavesSpan = leaves;
+				Span<byte> nodeSpan = nodes;
+
+				for (int i = 0; i <= 55; i++) {
+					//for (int i = 55 - 1; i >= 0; i--) {
+					if ((nodeCount & (1L << i)) == 0) continue;
+
+					if (leafCount < 2) {
+						leavesSpan.Slice(0, 24).CopyTo(leavesSpan.Slice(24));
+						nodeSpan.Slice(i * 48, 24).CopyTo(leavesSpan);
+						leafCount++;
+
+					} else {
+						nodeSpan.Slice(i * 48, 24).CopyTo(nodeSpan.Slice((leafCount + nodesCopied - 2) * 48, 24));
+						nodesCopied++;
+					}
+				}
+				nodeCount = ~(-1 << nodesCopied);
+				Compress();
+				return nodeSpan.Slice(nodesCopied * 48, 24);
+
+				//var buffer = TigerNativeHashAlgorithm.TTHCreateNode();
+				//for (int i = 0; i <= 55; i++) {
+				//	if ((nodeCount & (1L << i)) == 0) continue;
+
+				//	var nodeHash = ((Span<byte>)nodes).Slice(i * 48, 24);
+				//	if (nodesCopied == 0) {
+				//		nodeHash.CopyTo(finalHashesSpan);
+
+				//	} else {
+				//		finalHashesSpan.Slice(0, 24).CopyTo(finalHashesSpan.Slice(24));
+				//		nodeHash.CopyTo(finalHashesSpan.Slice(48));
+				//		TigerNativeHashAlgorithm.TTHNodeHash(finalHashesPtr + 24, buffer, finalHashesPtr);
+				//	}
+				//	nodesCopied++;
+				//}
+
+				//if (leafCount > 0) {
+				//	var leafHash = ((Span<byte>)leaves).Slice(0, 24);
+				//	if (nodesCopied == 0) {
+				//		leafHash.CopyTo(finalHashesSpan);
+				//	} else {
+				//		finalHashesSpan.Slice(0, 24).CopyTo(finalHashesSpan.Slice(24));
+				//		leafHash.CopyTo(finalHashesSpan.Slice(48));
+				//		TigerNativeHashAlgorithm.TTHNodeHash(finalHashesPtr + 24, buffer, finalHashesPtr);
+				//	}
+				//}
+				//AVDNativeHashAlgorithm.FreeHashObject((IntPtr)buffer);
+			}
+			//return finalHashesSpan.Slice(0, 24);
 		}
 
+
+
+		public int TransformFullBlocks(ReadOnlySpan<byte> data) {
+			data = data.Slice(0, Math.Min(16 << 20, data.Length) & ~2047);
+
+			fixed (byte* dataPtr = data) {
+				foreach (var blockHasher in blockHashers) blockHasher.ProcessData(dataPtr, data.Length);
+				WaitHandle.WaitAll(blockHashersSync);
+			}
+			leafCount += data.Length >> 10;
+
+			Compress();
+
+			return data.Length;
+		}
+
+		private byte* compressBuffer = TigerNativeHashAlgorithm.TTHCreateNode();
 		private void Compress() {
 			var leafPairsProcessed = 0;
 
+			//Since we assume Only the last datablock may have an odd number of leaves
 			fixed (byte* leavesPtr = leaves)
 			fixed (byte* nodesPtr = nodes) {
 				while (leafCount > 1) {
 					var levelIsEmpty = (nodeCount & 1) == 0;
-					TigerNativeHashAlgorithm.TTHNodeHash(leavesPtr + leafPairsProcessed * 48, nodesPtr + (levelIsEmpty ? 0 : 24));
+					TigerNativeHashAlgorithm.TTHNodeHash(leavesPtr + leafPairsProcessed * 48, compressBuffer, nodesPtr + (levelIsEmpty ? 0 : 24));
 					leafPairsProcessed++;
 					leafCount -= 2;
 
 					var currentLevel = 0;
 					while (!levelIsEmpty) {
 						levelIsEmpty = (nodeCount & (2 << currentLevel)) == 0;
-						TigerNativeHashAlgorithm.TTHNodeHash(nodesPtr + currentLevel * 48, nodesPtr + (currentLevel + 1) * 48 + (levelIsEmpty ? 0 : 24));
+						TigerNativeHashAlgorithm.TTHNodeHash(nodesPtr + currentLevel * 48, compressBuffer, nodesPtr + (currentLevel + 1) * 48 + (levelIsEmpty ? 0 : 24));
+						currentLevel++;
 					}
 					nodeCount++;
 				}
 			}
 		}
 
+		public void Dispose() {
+			AVDNativeHashAlgorithm.FreeHashObject((IntPtr)compressBuffer);
+			compressBuffer = (byte*)0;
+		}
 
 		private class BlockHasher {
 			private readonly Thread hashThread;
@@ -107,7 +186,8 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 
 			public AutoResetEvent WorkDoneSync { get; }
 
-			public BlockHasher(int index, int count) {
+			public BlockHasher(byte[] leaves, int index, int count) {
+				this.leaves = leaves;
 				this.index = index;
 
 				nextBlockOffsetData = count * BLOCKSIZE;
@@ -120,12 +200,12 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 				hashThread.Start();
 			}
 
-			public void ProcessData(ref ReadOnlySpan<byte> data) {
-				fixed (byte* ptr = data) dataPtr = ptr;
+			public void ProcessData(byte* dataPtr, int length) {
+				this.dataPtr = dataPtr;
 
 				offsetLeaf = index * 24;
 				offsetData = index * BLOCKSIZE;
-				lengthData = data.Length - index * BLOCKSIZE;
+				lengthData = length - index * BLOCKSIZE;
 
 				doWorkSync.Set();
 			}
@@ -137,11 +217,13 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			}
 
 			void DoWork() {
+				var buffer = TigerNativeHashAlgorithm.TTHCreateBlock();
+
 				doWorkSync.WaitOne();
 				while (!threadJoin) {
 					fixed (byte* leavesPtr = leaves) {
 						while (lengthData >= BLOCKSIZE) {
-							TigerNativeHashAlgorithm.TTHBlockHash(dataPtr + offsetData, leavesPtr + offsetLeaf);
+							TigerNativeHashAlgorithm.TTHBlockHash(dataPtr + offsetData, buffer, leavesPtr + offsetLeaf);
 
 							offsetLeaf += nextBlockOffsetLeaf;
 							offsetData += nextBlockOffsetData;
@@ -151,207 +233,10 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 					WorkDoneSync.Set();
 					doWorkSync.WaitOne();
 				}
+				AVDNativeHashAlgorithm.FreeHashObject((IntPtr)buffer);
 			}
 
 		}
 
 	}
-}
-
-
-namespace AVDump2Lib.HashAlgorithms {
-
-
-
-	public class TTH : HashAlgorithm {
-		public const int BLOCKSIZE = 1024;
-		private static byte[] zeroArray = new byte[] { 0 };
-		private static byte[] oneArray = new byte[] { 1 };
-		private static byte[] emptyArray = new byte[0];
-
-		private Environment[] environments; private AutoResetEvent[] signals;
-
-		private ITigerForTTH nodeHasher, blockHasher;
-		private bool hasLastBlock;
-		private bool hasStarted;
-		private int threadCount;
-
-		private Queue<byte[]> blocks;
-		private LinkedList<byte[]> nods;
-		private LinkedList<LinkedListNode<byte[]>> levels;
-		private byte[] dataBlock;
-
-
-		public TTH(int threadCount) {
-			this.blocks = new Queue<byte[]>();
-			this.nods = new LinkedList<byte[]>();
-			this.levels = new LinkedList<LinkedListNode<byte[]>>();
-
-			//nodeHasher = new TigerThex();
-			//blockHasher = new TigerThex();
-			nodeHasher = new TTHTiger();
-			blockHasher = new TTHTiger();
-
-			this.threadCount = threadCount /*= 1*/;
-
-			signals = new AutoResetEvent[threadCount];
-			environments = new Environment[threadCount];
-			for (int i = 0; i < threadCount; i++) {
-				environments[i] = new Environment(i);
-				signals[i] = environments[i].WorkDone;
-			}
-		}
-
-		protected override void HashCore(byte[] array, int ibStart, int cbSize) {
-			if (!hasLastBlock && cbSize != 0) throw new Exception();
-			if (!hasStarted) { foreach (var e in environments) e.HashThread.Start(e); hasStarted = true; }
-
-			dataBlock = array;
-
-			foreach (var e in environments) {
-				e.Offset = ibStart;
-				e.Length = cbSize;
-				e.DoWork.Set();
-			}
-			WaitHandle.WaitAll(signals);
-
-
-			for (int i = 0; i < cbSize / BLOCKSIZE; i++) blocks.Enqueue(environments[i % threadCount].Blocks.Dequeue());
-
-			if ((cbSize & (BLOCKSIZE - 1)) != 0) {
-				ibStart += cbSize - (cbSize & (BLOCKSIZE - 1));
-				cbSize &= BLOCKSIZE - 1;
-
-				blocks.Enqueue(blockHasher.TTHFinalBlockHash(array, ibStart, cbSize));
-				hasLastBlock = false;
-			}
-
-			CompressBlocks();
-		}
-		private void DoWork(object obj) {
-			var e = (Environment)obj;
-			var envBlockSize = BLOCKSIZE * threadCount;
-			var envOffset = BLOCKSIZE * e.Index;
-
-			e.DoWork.WaitOne();
-			while (!e.ThreadJoin) {
-				e.Length -= envOffset;
-				e.Offset += envOffset;
-				while (e.Length >= BLOCKSIZE) {
-					e.Blocks.Enqueue(e.BlockHasher.TTHBlockHash(dataBlock, e.Offset));
-					e.Offset += envBlockSize;
-					e.Length -= envBlockSize;
-				}
-				e.WorkDone.Set();
-				e.DoWork.WaitOne();
-			}
-		}
-		private void CompressBlocks() {
-			if (levels.Last.Value == null && blocks.Count > 1) levels.Last.Value = nods.AddLast(nodeHasher.TTHNodeHash(blocks.Dequeue(), blocks.Dequeue()));
-			while (blocks.Count > 1) nods.AddLast(nodeHasher.TTHNodeHash(blocks.Dequeue(), blocks.Dequeue()));
-
-			var level = levels.Last;
-			LinkedListNode<LinkedListNode<byte[]>> nextLevel;
-			do {
-				while (!(level.Value == null || //Level has no nods
-				  (level.Value.Next == null) || //Level is at last node position (only one node available)
-				  ((nextLevel = GetNextLevel(level)) != null && level.Value.Next == nextLevel.Value))) //Level has only one node
-				{
-					level.Value.Value = nodeHasher.TTHNodeHash(level.Value.Value, level.Value.Next.Value);
-					nods.Remove(level.Value.Next);
-
-					if (level.Previous == null) { //New level Node
-						levels.AddFirst(level.Value);
-					} else if (level.Previous.Value == null) { //First node in higher level
-						level.Previous.Value = level.Value;
-					}
-
-					nextLevel = GetNextLevel(level);
-					if (level.Value.Next == null || (nextLevel != null && level.Value.Next == nextLevel.Value)) {
-						level.Value = null;
-					} else {
-						level.Value = level.Value.Next;
-					}
-				}
-
-			} while ((level = level.Previous) != null);
-		}
-		private static LinkedListNode<LinkedListNode<byte[]>> GetNextLevel(LinkedListNode<LinkedListNode<byte[]>> level) {
-			var nextLevel = level;
-			while ((nextLevel = nextLevel.Next) != null) if (nextLevel.Value != null) return nextLevel;
-			return null;
-		}
-
-		protected override byte[] HashFinal() {
-			foreach (var e in environments) {
-				e.ThreadJoin = true;
-				e.DoWork.Set();
-				e.HashThread.Join();
-				e.HashThread = null;
-			}
-
-			foreach (var block in blocks) nods.AddLast(block);
-			return nods.Count != 0 ? nods.Reverse().Aggregate((byte[] accumHash, byte[] hash) => nodeHasher.TTHNodeHash(hash, accumHash)) : blockHasher.ZeroArrayHash;
-		}
-
-		public override void Initialize() {
-			//nodeHasher.TTHInitialize();
-			//blockHasher.TTHInitialize();
-
-			this.blocks.Clear();
-			this.nods.Clear();
-			this.levels.Clear();
-
-			levels.AddFirst((LinkedListNode<byte[]>)null);
-
-			hasStarted = false;
-			hasLastBlock = true;
-
-			foreach (var e in environments) {
-				e.Blocks.Clear();
-				e.DoWork.Reset();
-				e.WorkDone.Reset();
-				e.ThreadJoin = false;
-				//e.BlockHasher.TTHInitialize();
-				e.HashThread = new Thread(DoWork);
-			}
-		}
-
-		private class Environment {
-			public Thread HashThread;
-			public bool ThreadJoin;
-			public int Index;
-
-			public ITigerForTTH BlockHasher = new TTHTiger();
-
-			public Queue<byte[]> Blocks;
-			public int Offset;
-			public int Length;
-
-			public AutoResetEvent WorkDone, DoWork;
-
-			public Environment(int index) {
-				DoWork = new AutoResetEvent(false);
-				WorkDone = new AutoResetEvent(false);
-
-				this.Index = index;
-
-				Blocks = new Queue<byte[]>();
-				//BlockHasher.TTHInitialize();
-			}
-		}
-
-		public interface ITigerForTTH {
-			//void TTHInitialize();
-			byte[] TTHBlockHash(byte[] array, int ibStart);
-			byte[] TTHFinalBlockHash(byte[] array, int ibStart, int cbSize);
-			byte[] TTHNodeHash(byte[] l, byte[] r);
-
-			byte[] ZeroArrayHash { get; }
-
-		}
-	}
-
-
-
 }

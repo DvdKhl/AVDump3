@@ -91,7 +91,9 @@ namespace AVDump3Lib.Processing.BlockBuffers {
             ReadOnlySpan<byte> readerSpan;
 
             if((readerSpan = Buffer.ConsumerBlock(consumerIndex)).Length < minBlockLength) {
-				if(Buffer.ConsumerCompleted(consumerIndex) && blockSource.Length != 0) throw new InvalidOperationException("Cannot read block when EOS is reached");
+				if (readerSpan.Length == 0 && Buffer.ConsumerCompleted(consumerIndex) && blockSource.Length != 0) {
+					throw new InvalidOperationException("Cannot read block when EOS is reached");
+				}
 				lock (consumerLock) {
 					while((readerSpan = Buffer.ConsumerBlock(consumerIndex)).Length < minBlockLength) {
                         if(Buffer.IsProducionCompleted) {

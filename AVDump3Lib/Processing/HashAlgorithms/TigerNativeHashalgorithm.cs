@@ -19,11 +19,15 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 
 
 		[DllImport("AVDump3NativeLib")]
-		public static extern void TTHNodeHash(byte* data, byte* hash);
+		public static extern byte* TTHCreateBlock();
 		[DllImport("AVDump3NativeLib")]
-		public static extern void TTHBlockHash(byte* data, byte* hash);
+		public static extern byte* TTHCreateNode();
 		[DllImport("AVDump3NativeLib")]
-		public static extern void TTHPartialBlockHash(byte* data, int length, byte* hash);
+		public static extern void TTHNodeHash(byte* data, byte* buffer, byte* hash);
+		[DllImport("AVDump3NativeLib")]
+		public static extern void TTHBlockHash(byte* data, byte* buffer, byte* hash);
+		[DllImport("AVDump3NativeLib")]
+		public static extern void TTHPartialBlockHash(byte* data, int length, byte* buffer, byte* hash);
 
 		public TigerNativeHashAlgorithm() : base(TigerCreate, TigerInit, TigerTransform, TigerFinal, 24) { }
         

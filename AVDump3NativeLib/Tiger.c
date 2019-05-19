@@ -653,11 +653,9 @@ const uint64_t table[4 * 256 + 3] =
 
 
 
-void TigerTransformBlock(uint64_t *digest, const uint64_t *X)
-{
+void TigerTransformBlock(uint64_t * digest, const uint64_t * X) {
 #if CRYPTOPP_BOOL_SSE2_ASM_AVAILABLE && (CRYPTOPP_BOOL_X86 || CRYPTOPP_BOOL_X32)
-	if (HasSSE2())
-	{
+	if (HasSSE2()) {
 #ifdef __GNUC__
 		__asm__ __volatile__
 		(
@@ -665,7 +663,7 @@ void TigerTransformBlock(uint64_t *digest, const uint64_t *X)
 			AS_PUSH_IF86(bx)
 #else
 #if _MSC_VER < 1300
-		const word64 *t = table;
+		const word64 * t = table;
 		AS2(mov		edx, t)
 #else
 		AS2(lea		edx, [table])
@@ -680,7 +678,7 @@ void TigerTransformBlock(uint64_t *digest, const uint64_t *X)
 			AS2(movq	mm7, [edx + 4 * 2048 + 0 * 8])
 			AS2(movq	mm6, [edx + 4 * 2048 + 1 * 8])
 			AS2(mov		ecx, esp)
-			AS2(and		esp, 0xfffffff0)
+			AS2(and esp, 0xfffffff0)
 			AS2(sub		esp, 8 * 8)
 			AS_PUSH_IF86(cx)
 
@@ -832,8 +830,7 @@ void TigerTransformBlock(uint64_t *digest, const uint64_t *X)
 			: "%ecx", "%edi", "memory", "cc"
 			);
 #endif
-	}
-	else
+	} else
 #endif
 	{
 		uint64_t a = digest[0];
@@ -896,26 +893,32 @@ void TigerTransformBlock(uint64_t *digest, const uint64_t *X)
 
 
 //========================================================================
-void* TigerCreate(uint32_t* blockSize) {
+void* TigerCreate(uint32_t * blockSize) {
 	*blockSize = 64;
 
-	uint8_t *b = (uint8_t*)malloc(sizeof(uint64_t) * 4);
+	uint8_t* b = (uint8_t*)malloc(sizeof(uint64_t) * 4);
 	TigerInit(b);
 	return b;
 }
 
-void TigerInit(void *handle) {
-	uint64_t *digest = (uint64_t*)handle;
+void TigerInitInternal(void* handle) {
+	uint64_t* digest = (uint64_t*)handle;
 	digest[0] = 0x0123456789ABCDEFULL;
 	digest[1] = 0xFEDCBA9876543210ULL;
 	digest[2] = 0xF096A5B4C3B2E187ULL;
+}
+
+void TigerInit(void* handle) {
+	TigerInitInternal(handle);
+	uint64_t* digest = (uint64_t*)handle;
 	digest[3] = 0;
 }
 
-void TigerTransform(void* handle, uint8_t *b, int32_t length, uint8_t lastBlock) {
-	uint64_t *word = (uint64_t*)b;
-	uint64_t *wordEnd = (uint64_t*)b + (length / (sizeof(uint64_t)) / 8) * 8;
-	uint64_t *digest = (uint64_t*)handle;
+
+void TigerTransform(void* handle, uint8_t * b, int32_t length, uint8_t lastBlock) {
+	uint64_t* word = (uint64_t*)b;
+	uint64_t* wordEnd = (uint64_t*)b + (length / (sizeof(uint64_t)) / 8) * 8;
+	uint64_t * digest = (uint64_t*)handle;
 	while (word != wordEnd) {
 		TigerTransformBlock(digest, word);
 		word += 8;
@@ -924,9 +927,9 @@ void TigerTransform(void* handle, uint8_t *b, int32_t length, uint8_t lastBlock)
 
 	if (lastBlock) {
 		uint32_t restLength = length % (sizeof(uint64_t) * 8);
-		uint64_t *lastBlock = (uint64_t*)malloc(sizeof(uint64_t) * 8);
+		uint64_t* lastBlock = (uint64_t*)malloc(sizeof(uint64_t) * 8);
 		for (size_t i = 0; i < 8; i++) lastBlock[i] = 0;
-		for (size_t i = 0; i < restLength; i++) ((uint8_t*)lastBlock)[i] = b[i];
+		for (size_t i = 0; i < restLength; i++) ((uint8_t*)lastBlock)[i] = ((uint8_t*)word)[i];
 		((uint8_t*)lastBlock)[restLength] = 0x01;
 
 		if (restLength + 8 >= sizeof(uint64_t) * 8) {
@@ -935,14 +938,63 @@ void TigerTransform(void* handle, uint8_t *b, int32_t length, uint8_t lastBlock)
 		}
 		lastBlock[7] = digest[3] << 3;
 		TigerTransformBlock(digest, lastBlock);
+		free(lastBlock);
 	}
 }
 
-void TigerFinal(void* handle, uint8_t *b) {
-	uint64_t *word = (uint64_t*)b;
-	uint64_t *digest = (uint64_t*)handle;
+void TigerFinal(void* handle, uint8_t * b) {
+	uint64_t* word = (uint64_t*)b;
+	uint64_t* digest = (uint64_t*)handle;
 
 	word[0] = digest[0];
 	word[1] = digest[1];
 	word[2] = digest[2];
+}
+
+
+void TTHNodeHash(uint8_t * data, uint8_t * buffer, uint8_t * hash) {
+	memcpy(buffer + 1, data, 48);
+
+	TigerInitInternal(hash);
+	TigerTransformBlock(hash, buffer);
+}
+void TTHBlockHash(uint8_t * data, uint8_t * buffer, uint8_t * hash) {
+	memcpy(buffer + 1, data, 1024);
+
+	TigerInitInternal(hash);
+
+	for (size_t i = 0; i < 17; i++) {
+		TigerTransformBlock(hash, buffer + i * 64);
+	}
+
+}
+void TTHPartialBlockHash(uint8_t * data, uint32_t length, uint8_t * buffer, uint8_t * hash) {
+	buffer[1025] = 0;
+	memcpy(buffer + 1, data, length);
+
+	uint32_t dummy;
+	uint64_t* digest = TigerCreate(&dummy);
+
+	buffer[length + 1] = 1;
+	TigerInitInternal(digest);
+	TigerTransform(digest, buffer, length + 1, 1);
+
+	TigerFinal(digest, hash);
+	buffer[1025] = 1;
+}
+
+uint8_t* TTHCreateBlock() {
+	uint8_t* b = (uint8_t*)calloc(1 + 1024 + 63, sizeof(uint8_t));
+	b[0] = 0;
+	b[1025] = 1;
+	*((uint64_t*)(b + 1024 + 64 - 8)) = 1025*8;
+	return b;
+}
+
+uint8_t* TTHCreateNode() {
+	uint8_t* b = (uint8_t*)calloc(1 + 48 + 15, sizeof(uint8_t));
+	b[0] = 1;
+	b[49] = 1;
+	*((uint64_t*)(b + 64 - 8)) = 49*8;
+	return b;
 }

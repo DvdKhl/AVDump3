@@ -174,7 +174,7 @@ namespace AVDump3CL {
 		}
 
 		private void BlockConsumerFinished(IStreamConsumer s) {
-			var removed = blockStreamProgress.TryRemove(s.BlockStream, out _);
+			blockStreamProgress.TryRemove(s.BlockStream, out _);
 
 			if (s.RanToCompletion) {
 				foreach (var blockConsumer in s.BlockConsumers) {
@@ -191,8 +191,10 @@ namespace AVDump3CL {
 	}
 
 	public sealed class AVD3CL : IDisposable {
-		private Func<BytesReadProgress.Progress> getProgress;
-		private DisplaySettings settings;
+		private readonly Func<BytesReadProgress.Progress> getProgress;
+		private readonly DisplaySettings settings;
+		private readonly int TicksInPeriod = 5;
+		private readonly StringBuilder sb;
 
 		public long TotalBytes { get; set; }
 		public int TotalFiles { get; set; }
@@ -205,11 +207,9 @@ namespace AVDump3CL {
 		private int maxFCount;
 		private int maxCursorPos;
 		private Timer timer;
-		private int TicksInPeriod = 5;
 		private int state;
 		private int sbLineCount;
 		private bool dirty;
-		private StringBuilder sb;
 		private BytesReadProgress.Progress curP, prevP;
 
 		public AVD3CL(DisplaySettings settings, Func<BytesReadProgress.Progress> getProgress) {
@@ -233,7 +233,7 @@ namespace AVDump3CL {
 			}
 		}
 
-		private Stopwatch sw = new Stopwatch();
+		private readonly Stopwatch sw = new Stopwatch();
 		private void TimerCallback(object sender) {
 			if (!Monitor.TryEnter(timer)) {
 				displaySkipCount++;
@@ -290,7 +290,6 @@ namespace AVDump3CL {
 		}
 
 		private void Display(StringBuilder sb, double relPos) {
-
 			var sbLength = 0;
 			var consoleWidth = Console.BufferWidth - 1;
 			consoleWidth = 79;

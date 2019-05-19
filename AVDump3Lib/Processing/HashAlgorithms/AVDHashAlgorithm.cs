@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Cryptography;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
     public interface IAVDHashAlgorithm : IDisposable {
@@ -38,4 +39,27 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
         }
         #endregion
     }
+
+	public class AVDHashAlgorithmIncrmentalHashAdapter : AVDHashAlgorithm {
+		public override int BlockSize { get; }
+		public IncrementalHash Hash { get; }
+
+		public AVDHashAlgorithmIncrmentalHashAdapter(HashAlgorithmName hashAlgorithmName, int blockSize) {
+			Hash = IncrementalHash.CreateHash(hashAlgorithmName);
+			BlockSize = blockSize;
+		}
+
+		public override void Initialize() => Hash.GetHashAndReset();
+		public override ReadOnlySpan<byte> TransformFinalBlock(ReadOnlySpan<byte> data) {
+			Hash.AppendData(data);
+			return Hash.GetHashAndReset();
+		}
+		protected override void Dispose(bool disposing) {
+			Hash.Dispose();
+			base.Dispose(disposing);
+		}
+
+		protected override void HashCore(ReadOnlySpan<byte> data) => Hash.AppendData(data);
+
+	}
 }

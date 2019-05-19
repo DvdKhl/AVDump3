@@ -38,6 +38,7 @@ char* CreateMirrorBuffer(uint32_t minLength, AVD3MirrorBufferCreateHandle* handl
 	for (size_t i = 0; i < length; i++) {
 		data[i] = (char)i;
 		if (data[i] != mirror[i]) return "Data Mirroring failed";
+		data[i] = 0;
 	}
 
 	handle->fileHandle = 0;
@@ -95,6 +96,7 @@ char* CreateMirrorBuffer(uint32_t minLength, AVD3MirrorBufferCreateHandle * hand
 		if (data[i] != mirror[i]) {
 			return "Data Mirroring failed";
 		}
+		data[i] = 0;
 	}
 	handle->fileHandle = fileMappingHandle;
 	handle->baseAddress = data;

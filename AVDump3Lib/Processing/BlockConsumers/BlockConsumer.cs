@@ -3,7 +3,7 @@ using System;
 using System.Threading;
 
 namespace AVDump3Lib.Processing.BlockConsumers {
-	public interface IBlockConsumer {
+	public interface IBlockConsumer : IDisposable {
 		string Name { get; }
 		Exception Exception { get; }
 		void ProcessBlocks(CancellationToken ct);
@@ -39,5 +39,6 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 		}
 
 		protected abstract void DoWork(CancellationToken ct);
+		public virtual void Dispose() { }
 	}
 }

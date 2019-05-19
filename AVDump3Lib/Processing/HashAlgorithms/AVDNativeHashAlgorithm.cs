@@ -10,7 +10,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
         protected delegate void FinalHandler(IntPtr handle, byte* hash);
 
         [DllImport("AVDump3NativeLib")]
-        private static extern void FreeHashObject(IntPtr handle);
+        public static extern void FreeHashObject(IntPtr handle);
 
         private readonly IntPtr handle;
         private readonly InitHandler init;
@@ -52,5 +52,9 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
             base.Dispose(disposing);
         }
 
+		public ReadOnlySpan<byte> ComputeHash(ReadOnlySpan<byte> data) {
+			var bytesProcessed = TransformFullBlocks(data);
+			return TransformFinalBlock(data.Slice(bytesProcessed));
+		}
     }
 }

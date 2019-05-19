@@ -23,6 +23,12 @@ DLL_PUBLIC void* TigerCreate(uint32_t* blockSize);
 DLL_PUBLIC void TigerInit(void* handle);
 DLL_PUBLIC void TigerTransform(void* handle, uint8_t* b, int32_t length, uint8_t lastBlock);
 DLL_PUBLIC void TigerFinal(void* handle, uint8_t* b);
+DLL_PUBLIC void TTHNodeHash(uint8_t* data, uint8_t* buffer, uint8_t* hash);
+DLL_PUBLIC void TTHBlockHash(uint8_t* data, uint8_t* buffer, uint8_t* hash);
+DLL_PUBLIC void TTHPartialBlockHash(uint8_t * data, uint32_t length, uint8_t * buffer, uint8_t * hash);
+DLL_PUBLIC uint8_t* TTHCreateBlock();
+DLL_PUBLIC uint8_t* TTHCreateNode();
+
 
 DLL_PUBLIC void* SHA3Create(uint32_t* blockSize);
 DLL_PUBLIC void SHA3Init(void* handle);
