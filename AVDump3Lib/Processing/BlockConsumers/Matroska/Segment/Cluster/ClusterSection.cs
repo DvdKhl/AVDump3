@@ -91,7 +91,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster {
 					double maxDiff;
 
 					int frames = oldTC.frames;
-					long trackSize = mkvTrack.CodecPrivate.Length + oldTC.size;
+					long trackSize = (mkvTrack.CodecPrivate?.Length ?? 0) + oldTC.size;
 
 					var sampleRateHistogram = new Dictionary<double, int>();
 					var bitRateHistogram = new Dictionary<double, int>();

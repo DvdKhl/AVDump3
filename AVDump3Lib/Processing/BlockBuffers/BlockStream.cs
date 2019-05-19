@@ -7,11 +7,11 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 	public interface IBlockStream {
 		void CompleteConsumption(int consumerIndex);
 		bool Advance(int consumerIndex, int length);
-        ReadOnlySpan<byte> GetBlock(int consumerIndex, int minBlockLength);
+		ReadOnlySpan<byte> GetBlock(int consumerIndex, int minBlockLength);
 
 		Task Produce(IProgress<BlockStreamProgress> progress, CancellationToken ct);
 		long Length { get; }
-        int BufferLength { get; }
+		int BufferLength { get; }
 		int BufferUnderrunCount { get; }
 		int BufferOverrunCount { get; }
 	}
@@ -37,16 +37,16 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 
 		public int BufferUnderrunCount { get; private set; }
 		public int BufferOverrunCount { get; private set; }
-        public int BufferLength => Buffer.Length;
+		public int BufferLength => Buffer.Length;
 
-        public BlockStream(IBlockSource blockSource, ICircularBuffer buffer) {
+		public BlockStream(IBlockSource blockSource, ICircularBuffer buffer) {
 			this.blockSource = blockSource ?? throw new ArgumentNullException(nameof(blockSource));
 
 			Buffer = buffer;
 		}
 
-        public Task Produce(IProgress<BlockStreamProgress> progress, CancellationToken ct) {
-			if(hasStarted) throw new InvalidOperationException("Has already started once");
+		public Task Produce(IProgress<BlockStreamProgress> progress, CancellationToken ct) {
+			if (hasStarted) throw new InvalidOperationException("Has already started once");
 			hasStarted = true;
 
 			this.ct = ct;
@@ -58,49 +58,49 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 		private readonly object consumerLock = new object();
 		private readonly object producerLock = new object();
 		private void Produce() {
-            //Thread.CurrentThread.Priority = ThreadPriority.Lowest;
+			//Thread.CurrentThread.Priority = ThreadPriority.Lowest; //TODO: Parameterfy
 
-            while(!Buffer.IsProducionCompleted) {
-                Span<byte> writerSpan;
-                if((writerSpan = Buffer.ProducerBlock()).Length == 0) { //TODO
-                    lock(producerLock) {
-                        while(!Buffer.IsProducionCompleted && (writerSpan = Buffer.ProducerBlock()).Length == 0) { //TODO
-                            Monitor.Wait(producerLock, 100);
-                            ct.ThrowIfCancellationRequested();
-                            BufferOverrunCount++;
-                        }
-                    }
-                }
+			while (!Buffer.IsProducionCompleted) {
+				Span<byte> writerSpan;
+				if ((writerSpan = Buffer.ProducerBlock()).Length < 1 << 20) {//TODO: Parameterfy
+					lock (producerLock) {
+						while (!Buffer.IsProducionCompleted && (writerSpan = Buffer.ProducerBlock()).Length == 1 << 20) {
+							Monitor.Wait(producerLock, 100);
+							ct.ThrowIfCancellationRequested();
+							BufferOverrunCount++;
+						}
+					}
+				}
 
-				//Limit read chunks (Avoids bouncing between buffer underrun and overrun)
-				writerSpan = writerSpan.Slice(0, Math.Min(writerSpan.Length, 1 << 20)); //TODO Parameterfy
+				//Limit read chunk length (Avoids bouncing between buffer underrun and overrun)
+				writerSpan = writerSpan.Slice(0, Math.Min(writerSpan.Length, 8 << 20)); //TODO Parameterfy
 
 				var readBytes = blockSource.Read(writerSpan);
-                progress?.Report(new BlockStreamProgress(this, -1, readBytes));
+				progress?.Report(new BlockStreamProgress(this, -1, readBytes));
 
-                if(readBytes != writerSpan.Length) Buffer.CompleteProduction();
-                Buffer.ProducerAdvance(readBytes);
-                lock(consumerLock) Monitor.PulseAll(consumerLock);
-            }
+				if (readBytes != writerSpan.Length) Buffer.CompleteProduction();
+				Buffer.ProducerAdvance(readBytes);
+				lock (consumerLock) Monitor.PulseAll(consumerLock);
+			}
 		}
 
 
 		public void CompleteConsumption(int consumerIndex) { Buffer.CompleteConsumption(consumerIndex); }
 
 		public ReadOnlySpan<byte> GetBlock(int consumerIndex, int minBlockLength) {
-            ReadOnlySpan<byte> readerSpan;
+			ReadOnlySpan<byte> readerSpan;
 
-            if((readerSpan = Buffer.ConsumerBlock(consumerIndex)).Length < minBlockLength) {
+			if ((readerSpan = Buffer.ConsumerBlock(consumerIndex)).Length < minBlockLength) {
 				if (readerSpan.Length == 0 && Buffer.ConsumerCompleted(consumerIndex) && blockSource.Length != 0) {
 					throw new InvalidOperationException("Cannot read block when EOS is reached");
 				}
 				lock (consumerLock) {
-					while((readerSpan = Buffer.ConsumerBlock(consumerIndex)).Length < minBlockLength) {
-                        if(Buffer.IsProducionCompleted) {
-                            //We have to get the span again since the producer could have loaded the last data between the previous two statements
-                            readerSpan = Buffer.ConsumerBlock(consumerIndex); 
-                            break;
-                        }
+					while ((readerSpan = Buffer.ConsumerBlock(consumerIndex)).Length < minBlockLength) {
+						if (Buffer.IsProducionCompleted) {
+							//We have to get the span again since the producer could have loaded the last data between the previous two statements
+							readerSpan = Buffer.ConsumerBlock(consumerIndex);
+							break;
+						}
 
 						Monitor.Wait(consumerLock, 100);
 						ct.ThrowIfCancellationRequested();
@@ -108,11 +108,11 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 					}
 				}
 			}
-            return readerSpan;
+			return readerSpan;
 		}
 
 		public bool Advance(int consumerIndex, int length) {
-            Buffer.ConsumerAdvance(consumerIndex, length);
+			Buffer.ConsumerAdvance(consumerIndex, length);
 			progress?.Report(new BlockStreamProgress(this, consumerIndex, length));
 
 			lock (producerLock) Monitor.Pulse(producerLock);

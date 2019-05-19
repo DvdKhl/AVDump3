@@ -3,7 +3,6 @@
     "AVDump3CL": {
       "commandName": "Project",
       "commandLineArgs": "FROMFILE DebugParams.txt",
-	  "nativeDebugging" : true
     }
   }
 }

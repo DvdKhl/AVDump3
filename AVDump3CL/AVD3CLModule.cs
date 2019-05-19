@@ -119,10 +119,10 @@ namespace AVDump3CL {
                 }
                 args.Cancel();
 
-			} else if(!settings.Processing.Consumers.Any()) {
+			} else if(settings.Processing.Consumers.Any()) {
 				var invalidBlockConsumerNames = settings.Processing.Consumers.Where(x => processingModule.BlockConsumerFactories.All(y => !y.Name.Equals(x))).ToArray();
 				if (invalidBlockConsumerNames.Any()) {
-					Console.WriteLine("Invalid BlockConsumers: " + string.Join(", ", invalidBlockConsumerNames));
+					Console.WriteLine("Invalid BlockConsumer(s): " + string.Join(", ", invalidBlockConsumerNames));
 					args.Cancel();
 				}
 			}
@@ -135,7 +135,7 @@ namespace AVDump3CL {
                 }
                 args.Cancel();
 
-			} else if(!settings.Reporting.Reports.Any()) {
+			} else if(settings.Reporting.Reports.Any()) {
 				var invalidReportNames = settings.Reporting.Reports.Where(x => reportingModule.ReportFactories.All(y => !y.Name.Equals(x))).ToArray();
 				if (invalidReportNames.Any()) {
 					Console.WriteLine("Invalid Report: " + string.Join(", ", invalidReportNames));
@@ -207,13 +207,17 @@ namespace AVDump3CL {
 
         private IStreamProvider CreateFileStreamProvider(string[] paths) {
             IStreamProvider sp;
-            var fileDiscoveryOn = DateTimeOffset.UtcNow;
-            var acceptedFiles = 0;
+
+			var acceptedFiles = 0;
+			var acceptedFileCountCursorTop = Console.CursorTop++;
+			var fileDiscoveryOn = DateTimeOffset.UtcNow;
             var spp = new StreamFromPathsProvider(settings.FileDiscovery.Concurrent, paths, true,
                 path => {
                     if(fileDiscoveryOn.AddSeconds(1) < DateTimeOffset.UtcNow) {
-                        Console.WriteLine("Accepted files: " + acceptedFiles);
-                        Console.CursorTop--;
+						var currentCursorTop = Console.CursorTop;
+						Console.CursorTop = acceptedFileCountCursorTop;
+						Console.WriteLine("Accepted files: " + acceptedFiles);
+                        Console.CursorTop = currentCursorTop;
                         fileDiscoveryOn = DateTimeOffset.UtcNow;
                     }
 
@@ -229,6 +233,8 @@ namespace AVDump3CL {
                 },
                 ex => Console.WriteLine("Filediscovery: " + ex.Message)
             );
+			Console.WriteLine();
+
             cl.TotalFiles = spp.TotalFileCount;
             cl.TotalBytes = spp.TotalBytes;
 

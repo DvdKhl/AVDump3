@@ -48,7 +48,9 @@ namespace AVDump3Lib.Settings.CLArguments {
         }
 
         public bool ParseArgs(string[] args, ICollection<string> unnamedArgs) {
-            if(args.Length == 0 || args[0].ToLower().Equals("--Help".ToLower())) {
+			args = args.Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
+
+			if (args.Length == 0 || args[0].ToLower().Equals("--Help".ToLower())) {
                 if(args.Length == 2) PrintHelpTopic(args[1], true); else PrintHelp(true);
                 return false;
             }

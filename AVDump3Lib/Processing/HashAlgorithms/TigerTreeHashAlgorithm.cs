@@ -31,7 +31,6 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			blockHashersSync = blockHashers.Select(x => x.WorkDoneSync).ToArray();
 		}
 
-
 		public void Initialize() {
 			leafCount = 0;
 			nodeCount = 0;
@@ -90,37 +89,9 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 				}
 				nodeCount = ~(-1 << nodesCopied);
 				Compress();
+
 				return nodeSpan.Slice(nodesCopied * 48, 24);
-
-				//var buffer = TigerNativeHashAlgorithm.TTHCreateNode();
-				//for (int i = 0; i <= 55; i++) {
-				//	if ((nodeCount & (1L << i)) == 0) continue;
-
-				//	var nodeHash = ((Span<byte>)nodes).Slice(i * 48, 24);
-				//	if (nodesCopied == 0) {
-				//		nodeHash.CopyTo(finalHashesSpan);
-
-				//	} else {
-				//		finalHashesSpan.Slice(0, 24).CopyTo(finalHashesSpan.Slice(24));
-				//		nodeHash.CopyTo(finalHashesSpan.Slice(48));
-				//		TigerNativeHashAlgorithm.TTHNodeHash(finalHashesPtr + 24, buffer, finalHashesPtr);
-				//	}
-				//	nodesCopied++;
-				//}
-
-				//if (leafCount > 0) {
-				//	var leafHash = ((Span<byte>)leaves).Slice(0, 24);
-				//	if (nodesCopied == 0) {
-				//		leafHash.CopyTo(finalHashesSpan);
-				//	} else {
-				//		finalHashesSpan.Slice(0, 24).CopyTo(finalHashesSpan.Slice(24));
-				//		leafHash.CopyTo(finalHashesSpan.Slice(48));
-				//		TigerNativeHashAlgorithm.TTHNodeHash(finalHashesPtr + 24, buffer, finalHashesPtr);
-				//	}
-				//}
-				//AVDNativeHashAlgorithm.FreeHashObject((IntPtr)buffer);
 			}
-			//return finalHashesSpan.Slice(0, 24);
 		}
 
 

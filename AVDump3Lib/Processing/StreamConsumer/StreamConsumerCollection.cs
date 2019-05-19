@@ -112,7 +112,13 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 					}
 				} while (retry);
 
-				tcs.SetResult(streamConsumer?.BlockConsumers ?? new IBlockConsumer[0]);
+				try {
+					tcs.SetResult(streamConsumer?.BlockConsumers ?? new IBlockConsumer[0]);
+				} catch (Exception ex) {
+					throw new StreamConsumerCollectionException("After stream processing exception", ex);
+				}
+
+
 			} catch (Exception ex) {
 				throw;
 				//TODO

@@ -19,8 +19,12 @@ namespace AVDump3Lib.Misc {
 		}
 
 		public static void Traverse(IEnumerable<string> fileSystemEntries, bool includeSubFolders, Action<string> onFile, Action<Exception> onError) {
-			foreach(var filePath in fileSystemEntries.Where(path => File.Exists(path))) {
-				try { onFile(filePath); } catch(Exception ex) { onError?.Invoke(ex); }
+			foreach (var path in fileSystemEntries.Where(path => !Directory.Exists(path) && !File.Exists(path))) {
+				onError?.Invoke(new Exception("Path not found: " + path));
+			}
+
+			foreach (var filePath in fileSystemEntries.Where(path => File.Exists(path))) {
+				try { onFile(filePath); } catch (Exception ex) { onError?.Invoke(ex); }
 			}
 
 			TraverseDirectories(fileSystemEntries.Where(path => Directory.Exists(path)), includeSubFolders, onFile, onError);
