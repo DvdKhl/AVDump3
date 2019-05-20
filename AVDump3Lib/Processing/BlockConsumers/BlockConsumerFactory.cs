@@ -7,7 +7,7 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 		IBlockConsumer Create(IBlockStreamReader reader);
 	}
 
-	public delegate IBlockConsumer CreateBlockConsumer(IBlockStreamReader reader);
+	public delegate IBlockConsumer CreateBlockConsumer(string name, IBlockStreamReader reader);
 
 	public class BlockConsumerFactory : IBlockConsumerFactory {
 		private CreateBlockConsumer createBlockConsumer;
@@ -26,7 +26,7 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 		public string Name { get; }
 
 		public IBlockConsumer Create(IBlockStreamReader reader) {
-			return createBlockConsumer(reader);
+			return createBlockConsumer(Name, reader);
 		}
 	}
 }

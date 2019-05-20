@@ -298,7 +298,7 @@ void detectX86Features()
 }
 
 
-uint64_t RetrieveCPUInstructions() {
+uint64_t RetrieveCPUInstructionsOld() {
 	if (!g_x86DetectionDone) detectX86Features();
 	return
 		(g_hasMMX         ? 1 <<  0 : 0) |

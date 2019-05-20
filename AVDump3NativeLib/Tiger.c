@@ -956,7 +956,7 @@ void TTHNodeHash(uint8_t * data, uint8_t * buffer, uint8_t * hash) {
 	memcpy(buffer + 1, data, 48);
 
 	TigerInitInternal(hash);
-	TigerTransformBlock(hash, buffer);
+	TigerTransformBlock((uint64_t*)hash, (uint64_t*)buffer);
 }
 void TTHBlockHash(uint8_t * data, uint8_t * buffer, uint8_t * hash) {
 	memcpy(buffer + 1, data, 1024);
@@ -964,7 +964,7 @@ void TTHBlockHash(uint8_t * data, uint8_t * buffer, uint8_t * hash) {
 	TigerInitInternal(hash);
 
 	for (size_t i = 0; i < 17; i++) {
-		TigerTransformBlock(hash, buffer + i * 64);
+		TigerTransformBlock((uint64_t*)hash, (uint64_t*)(buffer + i * 64));
 	}
 
 }

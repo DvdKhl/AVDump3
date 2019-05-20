@@ -1,8 +1,8 @@
+#define _GNU_SOURCE
 #include "AVD3NativeLibApi.h"
 
 #ifdef __unix__
 
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <assert.h>
 #include <fcntl.h>
@@ -24,10 +24,10 @@ char* CreateMirrorBuffer(uint32_t minLength, AVD3MirrorBufferCreateHandle* handl
 	success = ftruncate(fd, length);
 	if (success != 0) return "ftruncate returned non-zero";
 
-	char* data = mmap(0, length * 2, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+	uint8_t* data = mmap(0, length * 2, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 	if (data == (void*)-1)return "mmap (first) returned -1";
 
-	char* mirror = mmap(data + length, length, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, fd, 0);
+	uint8_t* mirror = mmap(data + length, length, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, fd, 0);
 	if (mirror == (void*)-1) {
 		if (munmap(data, length) != 0) return "munmap returned non-zero";
 		return "mmap (second) returned -1";
@@ -36,7 +36,7 @@ char* CreateMirrorBuffer(uint32_t minLength, AVD3MirrorBufferCreateHandle* handl
 	close(fd);
 
 	for (size_t i = 0; i < length; i++) {
-		data[i] = (char)i;
+		data[i] = (uint8_t)i;
 		if (data[i] != mirror[i]) return "Data Mirroring failed";
 		data[i] = 0;
 	}

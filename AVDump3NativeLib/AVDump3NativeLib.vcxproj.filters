@@ -36,7 +36,7 @@
     <ClCompile Include="MD4.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="InstructionSupport.c">
+    <ClCompile Include="InstructionCheck.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
