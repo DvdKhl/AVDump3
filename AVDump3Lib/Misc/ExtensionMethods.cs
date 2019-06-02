@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 
 namespace AVDump3Lib.Misc {
 	public static class ExtensionMethods {
@@ -51,6 +53,27 @@ namespace AVDump3Lib.Misc {
 
 		public static string Truncate(this string value, int maxLength) {
 			return (value ?? "").Length <= maxLength ? value : value.Substring(0, maxLength);
+		}
+
+		public static void Sort(this XElement source, Comparison<XElement> comparison) {
+			//Make sure there is a valid source
+			if(source == null) throw new ArgumentNullException("source");
+
+			//Sort attributes if needed
+			//if(bSortAttributes) {
+			//	List<XAttribute> sortedAttributes = source.Attributes().OrderBy(a => a.ToString()).ToList();
+			//	sortedAttributes.ForEach(a => a.Remove());
+			//	sortedAttributes.ForEach(a => source.Add(a));
+			//}
+
+			//Sort the children IF any exist
+			var sortedChildren = source.Elements().ToList();
+			sortedChildren.Sort(comparison);
+			if(source.HasElements) {
+				source.RemoveNodes();
+				//sortedChildren.ForEach(c => c.Sort());
+				sortedChildren.ForEach(c => source.Add(c));
+			}
 		}
 	}
 

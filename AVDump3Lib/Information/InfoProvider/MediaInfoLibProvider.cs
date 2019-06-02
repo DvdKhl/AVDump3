@@ -193,8 +193,10 @@ namespace AVDump3Lib.Information.InfoProvider {
 					Add(stream, MediaStream.LanguageType, () => streamGet("Language"));
 					Add(stream, MediaStream.DurationType, () => streamGet("Duration"), s => TimeSpan.FromSeconds(s.ToInvDouble() / 1000), (Func<string, string>)splitTakeFirst);
 					Add(stream, MediaStream.BitrateType, () => streamGet("BitRate").ToInvDouble());
-					Add(stream, MediaStream.ContainerCodecIdType, () => streamGet("CodecID"));
+					Add(stream, MediaStream.ContainerCodecIdWithCodecPrivateType, () => streamGet("CodecID"));
 					Add(stream, MediaStream.CodecIdType, () => streamGet("Format"));
+					Add(stream, MediaStream.CodecAdditionalFeaturesType, () => streamGet("Format_AdditionalFeatures"));
+					Add(stream, MediaStream.CodecCommercialIdType, () => streamGet("Format_Commercial"));
 					Add(stream, MediaStream.CodecProfileType, () => streamGet("Format_Profile"));
 					Add(stream, MediaStream.CodecVersionType, () => streamGet("Format_Version"));
 					Add(stream, MediaStream.CodecNameType, () => streamGet("Format-Info"));

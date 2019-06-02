@@ -3,8 +3,10 @@ using AVDump3Lib.Information.MetaInfo.Core;
 using AVDump3Lib.Processing.BlockConsumers.Matroska;
 using AVDump3Lib.Reporting.Core;
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.Linq;
 
@@ -14,13 +16,15 @@ namespace AVDump3Lib.Reporting.Reports {
 
 		public MatroskaReport(FileMetaInfo fileMetaInfo) {
 			Report = new XDocument();
+			var rootElem = new XElement("File");
+			Report.Add(rootElem);
 
 			var matroskaFile = fileMetaInfo.Providers.OfType<MatroskaProvider>().SingleOrDefault()?.MFI;
 			if(matroskaFile == null) {
 				return;
 			}
 
-
+			
 
 			void traverse(XElement parent, Section section) {
 				foreach(var item in section) {
@@ -31,14 +35,22 @@ namespace AVDump3Lib.Reporting.Reports {
 						traverse(child, childSection);
 
 					} else {
-						if(item.Value != null) child.Value = item.Value.ToString();
+						if(item.Value != null) {
+
+							if(item.Value is byte[] b) {
+								child.Add(new XAttribute("Size", b.Length));
+								if(b.Length > 0) {
+									child.Value = BitConverter.ToString(b, 0, Math.Min(1024, b.Length)).Replace("-", "") + (b.Length > 1024 ? "..." : "");
+								}
+							} else {
+								child.Value = item.Value.ToString();
+							}
+						}
 					}
 				}
 
 			}
 
-			var rootElem = new XElement("File");
-			Report.Add(rootElem);
 			traverse(rootElem, matroskaFile);
 
 		}

@@ -3,6 +3,7 @@ using BXmlLib;
 using BXmlLib.DataSource;
 using BXmlLib.DocTypes.Matroska;
 using System;
+using System.Buffers.Binary;
 using System.Threading;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
@@ -13,6 +14,11 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 
 
 		protected override void DoWork(CancellationToken ct) {
+			if(Reader.Length < 4 || BinaryPrimitives.ReadUInt32BigEndian(Reader.GetBlock(4)) != 0x1A45DFA3U) {
+				return;
+			}
+
+
 			IBXmlDataSource dataSrc = new AVDEbmlBlockDataSource(Reader);
 			using(var cts = new CancellationTokenSource())
 			using(ct.Register(() => cts.Cancel())) {

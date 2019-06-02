@@ -37,6 +37,7 @@ namespace AVDump3Lib.Information.MetaInfo {
 		public static readonly MetaInfoItemType<string> FileExtensionType = new MetaInfoItemType<string>("FileExtension");
 		public static readonly MetaInfoItemType<string> SuggestedFileExtensionType = new MetaInfoItemType<string>("SuggestedFileExtension");
 		public static readonly MetaInfoItemType<List<TargetedTag>> TagsType = new MetaInfoItemType<List<TargetedTag>>("Tags");
+		public static readonly MetaInfoItemType<long> AttachmentsSizeType = new MetaInfoItemType<long>("AttachmentSize");
 
 
 		public static readonly MetaInfoContainerType MediaStreamType = new MetaInfoContainerType("MediaStream");
@@ -62,7 +63,10 @@ namespace AVDump3Lib.Information.MetaInfo {
 		public static readonly MetaInfoItemType<string> CodecIdType = new MetaInfoItemType<string>("CodecId");
 		public static readonly MetaInfoItemType<string> CodecProfileType = new MetaInfoItemType<string>("CodecProfile");
 		public static readonly MetaInfoItemType<string> CodecVersionType = new MetaInfoItemType<string>("CodecVersion");
+		public static readonly MetaInfoItemType<string> CodecAdditionalFeaturesType = new MetaInfoItemType<string>("CodecAdditionalFeatures");
+		public static readonly MetaInfoItemType<string> CodecCommercialIdType = new MetaInfoItemType<string>("CodecCommercialId");
 		public static readonly MetaInfoItemType<string> ContainerCodecIdType = new MetaInfoItemType<string>("ContainerCodecId");
+		public static readonly MetaInfoItemType<string> ContainerCodecIdWithCodecPrivateType = new MetaInfoItemType<string>("ContainerCodecIdWithCodecPrivate");
 		public static readonly MetaInfoItemType<string> ContainerCodecNameType = new MetaInfoItemType<string>("ContainerCodecName");
 		public static readonly MetaInfoItemType<string> CodecNameType = new MetaInfoItemType<string>("CodecName");
 		public static readonly MetaInfoItemType<int> ColorDepth = new MetaInfoItemType<int>("ColorDepth");
@@ -181,8 +185,8 @@ namespace AVDump3Lib.Information.MetaInfo {
 
 	#region Attachment
 	public class Attachment {
-		public static readonly MetaInfoItemType<int> IdType = new MetaInfoItemType<int>("Id");
-		public static readonly MetaInfoItemType<int> SizeType = new MetaInfoItemType<int>("Size", "bytes");
+		public static readonly MetaInfoItemType<long> IdType = new MetaInfoItemType<long>("Id");
+		public static readonly MetaInfoItemType<long> SizeType = new MetaInfoItemType<long>("Size", "bytes");
 		public static readonly MetaInfoItemType<string> DescriptionType = new MetaInfoItemType<string>("Description");
 		public static readonly MetaInfoItemType<string> NameType = new MetaInfoItemType<string>("Name");
 		public static readonly MetaInfoItemType<string> TypeType = new MetaInfoItemType<string>("Type");

@@ -17,8 +17,6 @@ namespace AVDump3Lib.Information.InfoProvider {
 	public class MatroskaProvider : MediaProvider {
 		public MatroskaFile MFI { get; private set; }
 
-
-
 		private double CalcDeviation(ReadOnlyCollection<ClusterSection.SampleRateCountPair> histogram) {
 			var count = histogram.Sum(i => i.Count);
 			var sqrSum = histogram.Sum(i => i.SampleRate * i.SampleRate);
@@ -57,6 +55,17 @@ namespace AVDump3Lib.Information.InfoProvider {
 			var mkvTags = MFI.Segment.Tags.Count != 0 ? MFI.Segment.Tags.MaxBy(t => t.Items.Count) : null;
 			if(mkvTags != null) PopulateTags(mkvTags);
 
+			Add(AttachmentsSizeType, MFI.Segment.Attachments?.SectionSize ?? 0);
+			if(MFI.Segment.Attachments != null) {
+				foreach(var attachment in MFI.Segment.Attachments.Items) {
+					var attachments = new MetaInfoContainer(attachment.FileUId, AttachmentType);
+					Add(attachments, Attachment.IdType, (long)attachment.FileUId);
+					Add(attachments, Attachment.SizeType, attachment.SectionSize);
+					Add(attachments, Attachment.TypeType, attachment.FileMimeType);
+					Add(attachments, Attachment.DescriptionType, attachment.FileDescription);
+					AddNode(attachments);
+				}
+			}
 
 			if(MFI.Segment.Chapters != null) {
 				foreach(var edition in MFI.Segment.Chapters.Items) PopulateChapters(edition);
@@ -121,6 +130,8 @@ namespace AVDump3Lib.Information.InfoProvider {
 			var trackIndex = 0;
 
 			MetaInfoContainer stream;
+			var trackInfo = MFI.Segment.Cluster.Tracks[(int)track.TrackNumber.Value].TrackInfo;
+
 			switch(track.TrackType) {
 				case TrackEntrySection.Types.Video:
 					stream = new MetaInfoContainer(track.TrackUId ?? (ulong)Nodes.Count(x => x.Type == VideoStreamType), VideoStreamType);
@@ -139,6 +150,8 @@ namespace AVDump3Lib.Information.InfoProvider {
 					Add(stream, VideoStream.PixelAspectRatioType, (track.Video.DisplayWidth / (double)track.Video.DisplayHeight) / (track.Video.PixelWidth / (double)track.Video.PixelHeight));
 					Add(stream, VideoStream.DisplayAspectRatioType, track.Video.DisplayWidth / (double)track.Video.DisplayHeight);
 
+					Add(stream, MediaStream.SampleCountType, trackInfo?.SampleCount);
+
 					Add(stream, VideoStream.StereoModeType, Convert(track.Video.StereoMode));
 					//Add(stream, VideoStream.StereoModeType, Convert(track.Video.OldStereoMode));
 
@@ -153,6 +166,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 					Add(stream, AudioStream.ChannelCountType, (int?)track.Audio.ChannelCount);
 					Add(stream, MediaStream.OutputSampleRateType, track.Audio.OutputSamplingFrequency);
 					Add(stream, MediaStream.StatedSampleRateType, track.Audio.SamplingFrequency);
+					if(trackInfo != null) Add(stream, MediaStream.SampleCountType, ((long)(trackInfo.TrackLength.Ticks * track.Audio.SamplingFrequency) / 10000000));
 					break;
 
 				case TrackEntrySection.Types.Subtitle:
@@ -168,10 +182,9 @@ namespace AVDump3Lib.Information.InfoProvider {
 					break;
 			}
 
-			var trackInfo = MFI.Segment.Cluster.Tracks[(int)track.TrackNumber.Value].TrackInfo;
 			if(trackInfo != null) {
-				Add(stream, MediaStream.SampleCountType, trackInfo.SampleCount);
 				Add(stream, MediaStream.SampleRateHistogramType, trackInfo.SampleRateHistogram.Select(x => new SampleRateCountPair(x.SampleRate, x.Count)).ToList());
+
 				Add(stream, MediaStream.AverageSampleRateType, trackInfo.AverageSampleRate);
 				Add(stream, MediaStream.MinSampleRateType, trackInfo.MinSampleRate);
 				Add(stream, MediaStream.MaxSampleRateType, trackInfo.MaxSampleRate);

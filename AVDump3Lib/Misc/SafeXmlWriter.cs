@@ -7,12 +7,24 @@ using System.Threading.Tasks;
 using System.Xml;
 
 namespace AVDump3Lib.Misc {
-	public class SafeXmlWriter : XmlTextWriter {
-		bool lowerCaseElements;
+	public sealed class StringWriterWithEncoding : StringWriter {
+		private readonly Encoding encoding;
 
-		public SafeXmlWriter(TextWriter tw, Formatting formatting = Formatting.Indented, bool lowerCaseElements = false) : base(tw) { Formatting = formatting; this.lowerCaseElements = lowerCaseElements; }
-		public SafeXmlWriter(Stream stream, Encoding encoding, Formatting formatting = Formatting.Indented, bool lowerCaseElements = false) : base(stream, encoding) { Formatting = formatting; this.lowerCaseElements = lowerCaseElements; }
-		public SafeXmlWriter(string filename, Encoding encoding, Formatting formatting = Formatting.Indented, bool lowerCaseElements = false) : base(filename, encoding) { Formatting = formatting; this.lowerCaseElements = lowerCaseElements; }
+		public StringWriterWithEncoding(Encoding encoding) {
+			this.encoding = encoding ?? throw new ArgumentNullException(nameof(encoding));
+		}
+
+		public override Encoding Encoding {
+			get { return encoding; }
+		}
+	}
+
+	public class SafeXmlWriter : XmlTextWriter {
+		bool lowerCaseElements = false;
+
+		public SafeXmlWriter(TextWriter tw) : base(tw) { Formatting = Formatting.Indented; }
+		public SafeXmlWriter(string filename, Encoding encoding) : base(filename, encoding) { Formatting = Formatting.Indented; }
+		public SafeXmlWriter(Stream stream, Encoding encoding) : base(stream, encoding) { Formatting = Formatting.Indented; }
 
 
 

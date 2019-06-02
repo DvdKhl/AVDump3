@@ -7,7 +7,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Attachments {
 		public string FileDescription { get; private set; }
 		public string FileName { get; private set; }
 		public string FileMimeType { get; private set; }
-		public ulong? FileUId { get; private set; }
+		public ulong FileUId { get; private set; }
 		public ulong FileDataSize { get; private set; }
 
 		protected override bool ProcessElement(IBXmlReader reader) {

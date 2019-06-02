@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace AVDump3Lib.Reporting.Core {
 	public interface IReport {
 		string FileExtension { get; }
-		string ReportToString();
-		void SaveToFile(string filePath);
+		string ReportToString(Encoding encoding);
+		void SaveToFile(string filePath, Encoding encoding);
 	}
 }

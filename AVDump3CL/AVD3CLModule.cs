@@ -296,10 +296,10 @@ namespace AVDump3CL {
 
 				foreach(var reportItem in reportItems) {
 					if(settings.Display.PrintReports) {
-						linesToWrite.Add(reportItem.Report.ReportToString() + "\n");
+						linesToWrite.Add(reportItem.Report.ReportToString(Encoding.UTF8) + "\n");
 					}
 
-					reportItem.Report.SaveToFile(Path.Combine(settings.Reporting.ReportDirectory, $"{fileName}.{reportItem.Name}.{reportItem.Report.FileExtension}"));
+					reportItem.Report.SaveToFile(Path.Combine(settings.Reporting.ReportDirectory, $"{fileName}.{reportItem.Name}.{reportItem.Report.FileExtension}"), Encoding.UTF8);
 				}
 			}
 			cl.Writeline(linesToWrite);

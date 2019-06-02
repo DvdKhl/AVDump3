@@ -27,7 +27,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 	public delegate MetaDataProvider CreateInfoProvider(InfoProviderSetup reader);
 
 	public class InfoProviderFactory : IInfoProviderFactory {
-		private CreateInfoProvider createInfoProvider;
+		private readonly CreateInfoProvider createInfoProvider;
 
 
 		public InfoProviderFactory(Type providerType, CreateInfoProvider createInfoProvider) {
