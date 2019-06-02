@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 
 namespace AVDump3Lib.Misc {
-    public static class ExtensionMethods {
+	public static class ExtensionMethods {
 		#region Invariant String<->Type Conversion Extensions
 		public static double ToInvDouble(this string s) { return double.Parse(s, CultureInfo.InvariantCulture); }
 		public static double ToInvDouble(this string s, double defVal) { double val; if(double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
@@ -17,15 +17,15 @@ namespace AVDump3Lib.Misc {
 		public static float ToInvFloat(this string s, NumberStyles style, float defVal) { float val; if(float.TryParse(s, style, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
 		public static string ToInvString(this float s) { return s.ToString(CultureInfo.InvariantCulture); }
 
-        public static long ToInvInt64(this string s) { return long.Parse(s, CultureInfo.InvariantCulture); }
-        public static long ToInvInt64(this string s, long defVal) { long val; if(long.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
-        public static string ToInvString(this long v) { return v.ToString(CultureInfo.InvariantCulture); }
+		public static long ToInvInt64(this string s) { return long.Parse(s, CultureInfo.InvariantCulture); }
+		public static long ToInvInt64(this string s, long defVal) { long val; if(long.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
+		public static string ToInvString(this long v) { return v.ToString(CultureInfo.InvariantCulture); }
 
-        public static ulong ToInvUInt64(this string s) { return ulong.Parse(s, CultureInfo.InvariantCulture); }
-        public static ulong ToInvUInt64(this string s, ulong defVal) { ulong val; if(ulong.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
-        public static string ToInvString(this ulong v) { return v.ToString(CultureInfo.InvariantCulture); }
+		public static ulong ToInvUInt64(this string s) { return ulong.Parse(s, CultureInfo.InvariantCulture); }
+		public static ulong ToInvUInt64(this string s, ulong defVal) { ulong val; if(ulong.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
+		public static string ToInvString(this ulong v) { return v.ToString(CultureInfo.InvariantCulture); }
 
-        public static int ToInvInt32(this string s) { return int.Parse(s, CultureInfo.InvariantCulture); }
+		public static int ToInvInt32(this string s) { return int.Parse(s, CultureInfo.InvariantCulture); }
 		public static int ToInvInt32(this string s, int defVal) { int val; if(int.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
 		public static string ToInvString(this int v) { return v.ToString(CultureInfo.InvariantCulture); }
 
@@ -39,10 +39,10 @@ namespace AVDump3Lib.Misc {
 		public static string ToInvString(this DateTime v) { return v.ToString(CultureInfo.InvariantCulture); }
 		#endregion
 
-        //public static TResult OnNotNullReturn<TResult, TSource>(this TSource? n, Func<TSource, TResult> transform) where TSource : struct {
-        //    return n.HasValue ? transform(n.Value) : default(TResult);
-        //}
-        public static TResult OnNotNullReturn<TResult, TSource>(this TSource n, Func<TSource, TResult> transform) {
+		//public static TResult OnNotNullReturn<TResult, TSource>(this TSource? n, Func<TSource, TResult> transform) where TSource : struct {
+		//    return n.HasValue ? transform(n.Value) : default(TResult);
+		//}
+		public static TResult OnNotNullReturn<TResult, TSource>(this TSource n, Func<TSource, TResult> transform) {
 			return n != null ? transform(n) : default(TResult);
 		}
 
@@ -70,27 +70,27 @@ namespace AVDump3Lib.Misc {
 		public static string ToBase32String(byte[] inArray, string symbols = Base32) {
 			if(inArray == null) return null;
 
-			int len = inArray.Length;
+			var len = inArray.Length;
 			// divide the input into 40-bit groups, so let's see, 
 			// how many groups of 5 bytes can we get out of it?
-			int numberOfGroups = len / 5;
+			var numberOfGroups = len / 5;
 			// and how many remaining bytes are there?
-			int numberOfRemainingBytes = len - 5 * numberOfGroups;
+			var numberOfRemainingBytes = len - 5 * numberOfGroups;
 
 			// after this, we're gonna split it into eight 5 bit
 			// values. 
-			StringBuilder sb = new StringBuilder();
+			var sb = new StringBuilder();
 			//int resultLen = 4*((len + 2)/3);
 			//StringBuffer result = new StringBuffer(resultLen);
 
 			// Translate all full groups from byte array elements to Base64
-			int byteIndexer = 0;
-			for(int i = 0;i < numberOfGroups;i++) {
-				byte b0 = inArray[byteIndexer++];
-				byte b1 = inArray[byteIndexer++];
-				byte b2 = inArray[byteIndexer++];
-				byte b3 = inArray[byteIndexer++];
-				byte b4 = inArray[byteIndexer++];
+			var byteIndexer = 0;
+			for(var i = 0; i < numberOfGroups; i++) {
+				var b0 = inArray[byteIndexer++];
+				var b1 = inArray[byteIndexer++];
+				var b2 = inArray[byteIndexer++];
+				var b3 = inArray[byteIndexer++];
+				var b4 = inArray[byteIndexer++];
 
 				// first 5 bits from byte 0
 				sb.Append(symbols[b0 >> 3]);
@@ -112,7 +112,7 @@ namespace AVDump3Lib.Misc {
 
 			// Now, is there any remaining bytes?
 			if(numberOfRemainingBytes > 0) {
-				byte b0 = inArray[byteIndexer++];
+				var b0 = inArray[byteIndexer++];
 				// as usual, get the first 5 bits
 				sb.Append(symbols[b0 >> 3]);
 				// now let's see, depending on the 
@@ -125,7 +125,7 @@ namespace AVDump3Lib.Misc {
 						//						sb.Append("======");
 						break;
 					case 2:
-						byte b1 = inArray[byteIndexer++];
+						var b1 = inArray[byteIndexer++];
 						sb.Append(symbols[(b0 << 2) & 0x1F | (b1 >> 6)]);
 						sb.Append(symbols[(b1 >> 1) & 0x1F]);
 						sb.Append(symbols[(b1 << 4) & 0x1F]);
@@ -133,7 +133,7 @@ namespace AVDump3Lib.Misc {
 						break;
 					case 3:
 						b1 = inArray[byteIndexer++];
-						byte b2 = inArray[byteIndexer++];
+						var b2 = inArray[byteIndexer++];
 						sb.Append(symbols[(b0 << 2) & 0x1F | (b1 >> 6)]);
 						sb.Append(symbols[(b1 >> 1) & 0x1F]);
 						sb.Append(symbols[(b1 << 4) & 0x1F | (b2 >> 4)]);
@@ -143,7 +143,7 @@ namespace AVDump3Lib.Misc {
 					case 4:
 						b1 = inArray[byteIndexer++];
 						b2 = inArray[byteIndexer++];
-						byte b3 = inArray[byteIndexer++];
+						var b3 = inArray[byteIndexer++];
 						sb.Append(symbols[(b0 << 2) & 0x1F | (b1 >> 6)]);
 						sb.Append(symbols[(b1 >> 1) & 0x1F]);
 						sb.Append(symbols[(b1 << 4) & 0x1F | (b2 >> 4)]);

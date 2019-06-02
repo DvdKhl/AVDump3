@@ -13,7 +13,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		[DllImport("AVDump3NativeLib")]
 		private static extern void TigerInit(IntPtr handle);
 		[DllImport("AVDump3NativeLib")]
-		private static extern void TigerTransform (IntPtr handle, byte* b, int length, byte lastBlock);
+		private static extern void TigerTransform(IntPtr handle, byte* b, int length, byte lastBlock);
 		[DllImport("AVDump3NativeLib")]
 		private static extern void TigerFinal(IntPtr handle, byte* hash);
 
@@ -30,6 +30,6 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		public static extern void TTHPartialBlockHash(byte* data, int length, byte* buffer, byte* hash);
 
 		public TigerNativeHashAlgorithm() : base(TigerCreate, TigerInit, TigerTransform, TigerFinal, 24) { }
-        
+
 	}
 }

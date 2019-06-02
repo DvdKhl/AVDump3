@@ -3,7 +3,7 @@ using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
-    public class ContentEncryptionSection : Section {
+	public class ContentEncryptionSection : Section {
 		private EncAlgos? contentEncAlgo;
 		private SigAlgos? contentSigAlgo;
 		private SigHashAlgos? contentSigHashAlgo;

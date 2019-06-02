@@ -18,6 +18,6 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		[DllImport("AVDump3NativeLib")]
 		private unsafe static extern void SHA3Final(IntPtr handle, byte* hash);
 
-        public SHA3NativeHashAlgorithm() : base(SHA3Create, SHA3Init, SHA3Transform, SHA3Final, -1) { } //TODO
-    }
+		public SHA3NativeHashAlgorithm() : base(SHA3Create, SHA3Init, SHA3Transform, SHA3Final, -1) { } //TODO
+	}
 }

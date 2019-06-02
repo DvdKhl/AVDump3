@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
-    public class ContentEncodingSection : Section {
+	public class ContentEncodingSection : Section {
 		private ulong? contentEncodingOrder;
 		private CEScopes? contentEncodingScope;
 		private CETypes? contentEncodingType;

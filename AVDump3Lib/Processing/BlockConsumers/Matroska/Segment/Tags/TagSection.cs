@@ -3,7 +3,7 @@ using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tags {
-    public class TagSection : Section {
+	public class TagSection : Section {
 		public TargetsSection Targets { get; private set; }
 		public EbmlList<SimpleTagSection> SimpleTags { get; private set; }
 

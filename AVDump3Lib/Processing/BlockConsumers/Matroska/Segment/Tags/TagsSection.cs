@@ -1,9 +1,9 @@
-using System.Collections.Generic;
 using BXmlLib;
 using BXmlLib.DocTypes.Matroska;
+using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tags {
-    public class TagsSection : Section {
+	public class TagsSection : Section {
 		public EbmlList<TagSection> Items { get; private set; }
 
 		public TagsSection() { Items = new EbmlList<TagSection>(); }

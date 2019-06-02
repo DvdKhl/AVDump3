@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
-    public class EditionEntrySection : Section {
+	public class EditionEntrySection : Section {
 		private bool? hidden, ordered, def;
 
 		public ulong? EditionUId { get; private set; }

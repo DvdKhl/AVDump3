@@ -5,24 +5,24 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace AVDump3Lib.Information.MetaInfo.Core {
-    public class CompositeMetaDataProvider : MetaDataProvider {
-        public CompositeMetaDataProvider(string name, IEnumerable<MetaDataProvider> providers) : base(name, providers.First().Type) {
+	public class CompositeMetaDataProvider : MetaDataProvider {
+		public CompositeMetaDataProvider(string name, IEnumerable<MetaDataProvider> providers) : base(name, providers.First().Type) {
 			ChooseFrom(providers, this);
 		}
-		
+
 		private static void ChooseFrom(IEnumerable<MetaInfoContainer> sources, MetaInfoContainer dest) {
-            var type = sources.First().Type;
-            var id = sources.First().Id;
+			var type = sources.First().Type;
+			var id = sources.First().Id;
 
-            if(sources.Any(x => x.Type != type || x.Id != id)) {
-                throw new InvalidOperationException();
-            }
+			if(sources.Any(x => x.Type != type || x.Id != id)) {
+				throw new InvalidOperationException();
+			}
 
-            foreach(var container in sources) {
-                foreach(var item in container.Items) {
+			foreach(var container in sources) {
+				foreach(var item in container.Items) {
 					dest.Add(item);
-                }
-            }
+				}
+			}
 
 			foreach(var group in from source in sources
 								 from container in source.Nodes
@@ -33,6 +33,6 @@ namespace AVDump3Lib.Information.MetaInfo.Core {
 
 				dest.AddNode(subContainer);
 			}
-        }
-    }
+		}
+	}
 }

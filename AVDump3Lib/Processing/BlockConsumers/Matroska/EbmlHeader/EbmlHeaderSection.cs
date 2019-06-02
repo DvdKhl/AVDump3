@@ -3,7 +3,7 @@ using BXmlLib.DocTypes.Ebml;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.EbmlHeader {
-    public class EbmlHeaderSection : Section {
+	public class EbmlHeaderSection : Section {
 		private ulong? ebmlVersion;
 		private ulong? ebmlReadVersion;
 		private ulong? ebmlMaxIdLength;

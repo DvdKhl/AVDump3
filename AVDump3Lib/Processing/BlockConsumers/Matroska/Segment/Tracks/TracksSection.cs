@@ -5,12 +5,12 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
-    public class TracksSection : Section {
+	public class TracksSection : Section {
 		public EbmlList<TrackEntrySection> Items { get; private set; }
 
 		public TrackEntrySection this[TrackEntrySection.Types type, int index] {
 			get {
-				for(int i = 0;i < Items.Count;i++) if(Items[i].TrackType == type && index-- == 0) return Items[i];
+				for(var i = 0; i < Items.Count; i++) if(Items[i].TrackType == type && index-- == 0) return Items[i];
 				throw new Exception("Index out of range");
 			}
 		}

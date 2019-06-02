@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 
 namespace AVDump3Lib.Information.MetaInfo.Core {
-    public class FileMetaInfo {
+	public class FileMetaInfo {
 		public ReadOnlyCollection<MetaDataProvider> Providers { get; private set; }
 		public ReadOnlyCollection<MetaDataProvider> CondensedProviders { get; private set; }
 

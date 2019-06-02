@@ -17,7 +17,8 @@ namespace AVDump3Lib.Reporting {
 		public AVD3ReportingModule() {
 			reportFactories = new List<IReportFactory> {
 				new ReportFactory("AVD3Report", fileMetaInfo => new AVD3Report(fileMetaInfo)),
-				//new ReportFactory("AniDBReport", fileMetaInfo => new AniDBReport(fileMetaInfo))
+				new ReportFactory("MediaInfoXmlReport", fileMetaInfo => new MediaInfoLibXmlReport(fileMetaInfo.FileInfo.FullName)),
+				new ReportFactory("MatroskaReport", fileMetaInfo => new MatroskaReport(fileMetaInfo))
 			};
 
 			ReportFactories = reportFactories.AsReadOnly();

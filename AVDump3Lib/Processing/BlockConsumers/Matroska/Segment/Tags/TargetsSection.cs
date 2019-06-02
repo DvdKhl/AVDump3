@@ -3,7 +3,7 @@ using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tags {
-    public class TargetsSection : Section {
+	public class TargetsSection : Section {
 		private ulong? targetTypeValue;
 		private EbmlList<ulong> trackUId, editionUId, chapterUId, attachmentUId;
 
@@ -37,8 +37,8 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tags {
 				chapterUId.Add((ulong)reader.RetrieveValue());
 			} else if(reader.DocElement == MatroskaDocType.TagAttachmentUID) {
 				attachmentUId.Add((ulong)reader.RetrieveValue());
-			//} else if(reader.DocElement == MatroskaDocType.SimpleTag) {
-			//	Section.CreateReadAdd(new SimpleTagSection(), reader, SimpleTags);
+				//} else if(reader.DocElement == MatroskaDocType.SimpleTag) {
+				//	Section.CreateReadAdd(new SimpleTagSection(), reader, SimpleTags);
 			} else return false;
 
 			return true;

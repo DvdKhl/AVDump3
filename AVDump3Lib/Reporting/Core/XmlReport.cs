@@ -9,28 +9,28 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace AVDump3Lib.Reporting.Core {
-    public abstract class XmlReport : IReport {
-        protected abstract XDocument Report { get; }
+	public abstract class XmlReport : IReport {
+		protected abstract XDocument Report { get; }
 
 
-        public string FileExtension { get; } = "xml";
+		public string FileExtension { get; } = "xml";
 
-        public string ReportToString() {
-            using(var textWriter = new StringWriter())
-            using(var safeXmlWriter = new SafeXmlWriter(textWriter)) {
-                Report.WriteTo(safeXmlWriter);
-                return textWriter.ToString();
-            }
-        }
+		public string ReportToString() {
+			using(var textWriter = new StringWriter())
+			using(var safeXmlWriter = new SafeXmlWriter(textWriter)) {
+				Report.WriteTo(safeXmlWriter);
+				return textWriter.ToString();
+			}
+		}
 
-        public XDocument ReportToXml() { return new XDocument(Report); }
+		public XDocument ReportToXml() { return new XDocument(Report); }
 
-        public void SaveToFile(string filePath) {
-            Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+		public void SaveToFile(string filePath) {
+			Directory.CreateDirectory(Path.GetDirectoryName(filePath));
 
-            using(var safeXmlWriter = new SafeXmlWriter(filePath, Encoding.UTF8)) {
-                Report.WriteTo(safeXmlWriter);
-            }
-        }
-    }
+			using(var safeXmlWriter = new SafeXmlWriter(filePath, Encoding.UTF8)) {
+				Report.WriteTo(safeXmlWriter);
+			}
+		}
+	}
 }

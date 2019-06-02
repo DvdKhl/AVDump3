@@ -27,7 +27,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 			if(data == null) data = new byte[page.Data.Length * 5];
 			else if(data.Length - dataLength < page.Data.Length) Array.Resize(ref data, data.Length * 2);
 
-            page.Data.CopyTo(((Span<byte>)data).Slice(dataLength));
+			page.Data.CopyTo(((Span<byte>)data).Slice(dataLength));
 			dataLength += page.Data.Length;
 
 
@@ -61,7 +61,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 			ch.Vendor = System.Text.Encoding.UTF8.GetString(b, offset, length); offset += length;
 			count = BitConverter.ToInt32(b, offset); offset += 4;
 
-			for(int i = 0; i < count; i++) {
+			for(var i = 0; i < count; i++) {
 				length = BitConverter.ToInt32(b, offset);
 				offset += 4;
 
@@ -87,7 +87,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 		private Comment() { Value = new Collection<string>(); }
 
 		public static Comment Parse(string commentStr) {
-			int pos = commentStr.IndexOf('=');
+			var pos = commentStr.IndexOf('=');
 			Comment comment;
 			if(pos < 0) {
 				comment = new Comment { Key = "undefined" };

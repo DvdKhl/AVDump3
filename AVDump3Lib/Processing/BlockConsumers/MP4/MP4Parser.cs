@@ -1,4 +1,7 @@
 ﻿using AVDump3Lib.Processing.BlockBuffers;
+using BXmlLib;
+using BXmlLib.DataSource;
+using BXmlLib.DocTypes.MP4;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,21 +11,26 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace AVDump3Lib.Processing.BlockConsumers.MP4 {
-	//public class MP4Parser : BlockConsumer {
-	//	public MP4Parser(string name, IBlockStreamReader reader) : base(name, reader) { }
+	public class MP4Parser : BlockConsumer {
+		public MP4Node RootBox { get; private set; }
 
-	//	protected override void DoWork(CancellationToken ct) {
-	//		var dataSrc = new MP4BlockDataSource(Reader);
-	//		using(var cts = new CancellationTokenSource())
-	//		using(ct.Register(() => cts.Cancel())) {
-	//			var matroskaDocType = new MP4DocType();
-	//			var reader = new EBMLReader(dataSrc, matroskaDocType);
+		public MP4Parser(string name, IBlockStreamReader reader) : base(name, reader) { }
 
-	//			ElementInfo elem;
-	//			while((elem = reader.Next()) != null) {
-	//				File.WriteAllText("MP4Test.txt", elem.ToString() + "\n");
-	//			}
-	//		}
-	//	}
-	//}
+		protected override void DoWork(CancellationToken ct) {
+			IBXmlDataSource dataSrc = new AVDMP4BlockDataSource(Reader);
+			using(var cts = new CancellationTokenSource())
+			using(ct.Register(() => cts.Cancel())) {
+				var matroskaDocType = new MP4DocType(); //(MatroskaVersion.V3);
+				var bxmlReader = new BXmlReader(dataSrc, matroskaDocType);
+
+				try {
+					RootBox = MP4Node.Read(bxmlReader, Reader.Length);
+
+				} catch(Exception ex) {
+					//TODO: Only ignore excpetion when it is not a matroska file
+				}
+
+			}
+		}
+	}
 }

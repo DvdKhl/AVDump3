@@ -7,15 +7,15 @@ using System.Linq;
 using System.Threading;
 
 namespace AVDump3Lib.Processing.StreamProvider {
-    public class PathPartitions {
-        public int ConcurrentCount { get; private set; }
-        public ReadOnlyCollection<PathPartition> Partitions { get; private set; }
+	public class PathPartitions {
+		public int ConcurrentCount { get; private set; }
+		public ReadOnlyCollection<PathPartition> Partitions { get; private set; }
 
-        public PathPartitions(int concurrentCount, IEnumerable<PathPartition> partitions) {
-            ConcurrentCount = concurrentCount;
-            Partitions = Array.AsReadOnly(partitions.ToArray());
-        }
-    }
+		public PathPartitions(int concurrentCount, IEnumerable<PathPartition> partitions) {
+			ConcurrentCount = concurrentCount;
+			Partitions = Array.AsReadOnly(partitions.ToArray());
+		}
+	}
 
 	public class PathPartition {
 		public string Path { get; }

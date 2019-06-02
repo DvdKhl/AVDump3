@@ -135,6 +135,17 @@ namespace AVDump3CL {
 			set { SetValue(BufferLengthProperty, value); }
 		}
 
+		public SettingsProperty ProducerMinReadLengthProperty { get; }
+		public int ProducerMinReadLength {
+			get { return (int)GetValue(ProducerMinReadLengthProperty); }
+			set { SetValue(ProducerMinReadLengthProperty, value); }
+		}
+		public SettingsProperty ProducerMaxReadLengthProperty { get; }
+		public int ProducerMaxReadLength {
+			get { return (int)GetValue(ProducerMaxReadLengthProperty); }
+			set { SetValue(ProducerMaxReadLengthProperty, value); }
+		}
+
 
 		[CLNames("PBExit")]
 		public SettingsProperty PauseBeforeExitProperty { get; }
@@ -150,16 +161,25 @@ namespace AVDump3CL {
 			set { SetValue(ConsumersProperty, value); }
 		}
 
+		public SettingsProperty PrintAvailableSIMDsProperty { get; }
+		public bool PrintAvailableSIMDs {
+			get { return (bool)GetValue(PrintAvailableSIMDsProperty); }
+			set { SetValue(PrintAvailableSIMDsProperty, value); }
+		}
+
 		public ProcessingSettings() {
 			Name = "Processing";
 			ResourceManager = Lang.ResourceManager;
 			BufferLengthProperty = Register(nameof(BufferLength), 64 << 20);
+			ProducerMinReadLengthProperty = Register(nameof(ProducerMinReadLength), 1 << 20);
+			ProducerMaxReadLengthProperty = Register(nameof(ProducerMaxReadLength), 8 << 20);
 			ConsumersProperty = Register(nameof(Consumers), Array.AsReadOnly(new string[0]));
+			PrintAvailableSIMDsProperty = Register(nameof(PrintAvailableSIMDs), false);
 			PauseBeforeExitProperty = Register(nameof(PauseBeforeExit), false);
 		}
 
 		string ICLConvert.ToCLString(SettingsProperty property, object obj) {
-			if(property == BufferLengthProperty) {
+			if(property == BufferLengthProperty || property == ProducerMinReadLengthProperty || property == ProducerMaxReadLengthProperty) {
 				var value = (int)obj;
 				return (value >> 20).ToString();
 
@@ -172,7 +192,7 @@ namespace AVDump3CL {
 		}
 
 		object ICLConvert.FromCLString(SettingsProperty property, string str) {
-			if(property == BufferLengthProperty) {
+			if(property == BufferLengthProperty || property == ProducerMinReadLengthProperty || property == ProducerMaxReadLengthProperty) {
 				return int.Parse(str) << 20;
 
 			} else if(property == ConsumersProperty) {

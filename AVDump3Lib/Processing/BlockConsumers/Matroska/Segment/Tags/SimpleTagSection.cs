@@ -1,10 +1,11 @@
 using BXmlLib;
 using BXmlLib.DocTypes.Matroska;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tags {
-    public class SimpleTagSection : Section {
+	public class SimpleTagSection : Section {
 		private string tagLanguage;
 		private bool? tagdefault;
 		private byte[] tagBinary;
@@ -16,7 +17,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tags {
 		public string TagLanguage { get { return tagLanguage ?? "und"; } } //Def: und
 		public string TagString { get; private set; }
 		public bool TagDefault { get { return tagdefault.GetValueOrDefault(true); } } //Def: True
-		public byte[] TagBinary { get { return tagBinary.ToArray(); } }
+		public byte[] TagBinary { get { return tagBinary?.ToArray() ?? Array.Empty<byte>(); } }
 
 		public SimpleTagSection() { SimpleTags = new EbmlList<SimpleTagSection>(); }
 

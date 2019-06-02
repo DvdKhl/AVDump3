@@ -21,12 +21,12 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		}
 
 		protected override void HashCore(ReadOnlySpan<byte> data) {
-			if (blockHashes.Length < blockHashOffset + ((data.Length / BlockSize) + 2) * 16) {
+			if(blockHashes.Length < blockHashOffset + ((data.Length / BlockSize) + 2) * 16) {
 				Array.Resize(ref blockHashes, blockHashes.Length * 2);
 			}
 
-			int offset = 0;
-			while (data.Length != offset) {
+			var offset = 0;
+			while(data.Length != offset) {
 				AddBlockHash(data.Slice(offset, BlockSize));
 				offset += BlockSize;
 			}
@@ -60,7 +60,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			//https://wiki.anidb.info/w/Ed2k-hash
 			ReadOnlySpan<byte> hash;
 			BlueIsRed = false;
-			if (data.Length != 0) {
+			if(data.Length != 0) {
 				//Data is not multiple of BlockLength (Common case)
 				BlueIsRed = true;
 				hash = hashNoNull;

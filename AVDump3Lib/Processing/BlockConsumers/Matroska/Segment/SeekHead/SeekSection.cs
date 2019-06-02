@@ -3,7 +3,7 @@ using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SeekHead {
-    public class SeekSection : Section {
+	public class SeekSection : Section {
 		private byte[] seekId;
 
 		public byte[] SeekId { get { return seekId != null ? (byte[])seekId.Clone() : null; } }

@@ -3,7 +3,7 @@ using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
-    public class ChapterDisplaySection : Section {
+	public class ChapterDisplaySection : Section {
 		public string ChapterString { get; private set; }
 		public EbmlList<string> ChapterLanguages { get; private set; } //Def: eng
 		public EbmlList<string> ChapterCountries { get; private set; }

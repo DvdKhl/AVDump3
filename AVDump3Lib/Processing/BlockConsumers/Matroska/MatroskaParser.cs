@@ -1,12 +1,9 @@
-using System;
-using System.IO;
-using System.Threading;
 using AVDump3Lib.Processing.BlockBuffers;
-using AVDump3Lib.Processing.BlockConsumers.Matroska.EbmlHeader;
-using AVDump3Lib.Processing.StreamConsumer;
 using BXmlLib;
 using BXmlLib.DataSource;
 using BXmlLib.DocTypes.Matroska;
+using System;
+using System.Threading;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 	public class MatroskaParser : BlockConsumer {
@@ -22,21 +19,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 				var matroskaDocType = new MatroskaDocType(); //(MatroskaVersion.V3);
 				var bxmlReader = new BXmlReader(dataSrc, matroskaDocType);
 
-				//var updateTask = Task.Factory.StartNew(() => {
-				//	long oldProcessedBytes = 0;
-				//	int timerRes = 40, ttl = 10000, ticks = ttl / timerRes;
-				//	while(IsRunning) {
-				//		ProcessedBytes = dataSrc.Position; //TODO: Check for dispose
-				//
-				//		Thread.Sleep(timerRes); ticks--;
-				//		if(oldProcessedBytes != ProcessedBytes) ticks = ttl / timerRes; else if(ticks == 0) cts.Cancel();
-				//		oldProcessedBytes = ProcessedBytes;
-				//	}
-				//}, ct, TaskCreationOptions.LongRunning, TaskScheduler.Current);
-
-
 				var matroskaFile = new MatroskaFile(Reader.Length);
-
 				try {
 					matroskaFile.Parse(bxmlReader, cts.Token);
 

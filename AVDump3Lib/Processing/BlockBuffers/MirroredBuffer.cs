@@ -34,7 +34,7 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 
 		public MirroredBuffer(int length) {
 			var result = Marshal.PtrToStringAnsi(CreateMirrorBuffer(length, out handle));
-			if (!string.IsNullOrEmpty(result)) {
+			if(!string.IsNullOrEmpty(result)) {
 				throw new Exception();
 			}
 
@@ -51,8 +51,8 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 		#region IDisposable Support
 		private bool disposedValue = false;
 		protected virtual void Dispose(bool disposing) {
-			if (!disposedValue) {
-				if (disposing) {
+			if(!disposedValue) {
+				if(disposing) {
 					//Handle = IntPtr.Zero;
 					//Data = (byte*)0;
 				}

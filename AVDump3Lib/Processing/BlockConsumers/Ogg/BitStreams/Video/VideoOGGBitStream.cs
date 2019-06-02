@@ -1,5 +1,5 @@
 namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
-    public abstract class VideoOGGBitStream : OGGBitStream {
+	public abstract class VideoOGGBitStream : OGGBitStream {
 		public VideoOGGBitStream(bool isOfficiallySupported) : base(isOfficiallySupported) { }
 
 		public int FrameCount { get; protected set; }

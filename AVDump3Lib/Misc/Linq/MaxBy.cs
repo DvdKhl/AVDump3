@@ -66,15 +66,15 @@ namespace AVDump3Lib.Misc.Linq {
 			source.ThrowIfNull("source");
 			selector.ThrowIfNull("selector");
 			comparer.ThrowIfNull("comparer");
-			using(IEnumerator<TSource> sourceIterator = source.GetEnumerator()) {
+			using(var sourceIterator = source.GetEnumerator()) {
 				if(!sourceIterator.MoveNext()) {
 					throw new InvalidOperationException("Sequence was empty");
 				}
-				TSource max = sourceIterator.Current;
-				TKey maxKey = selector(max);
+				var max = sourceIterator.Current;
+				var maxKey = selector(max);
 				while(sourceIterator.MoveNext()) {
-					TSource candidate = sourceIterator.Current;
-					TKey candidateProjected = selector(candidate);
+					var candidate = sourceIterator.Current;
+					var candidateProjected = selector(candidate);
 					if(comparer.Compare(candidateProjected, maxKey) > 0) {
 						max = candidate;
 						maxKey = candidateProjected;

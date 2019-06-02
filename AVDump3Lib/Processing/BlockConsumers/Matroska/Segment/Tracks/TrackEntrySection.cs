@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
-    public class TrackEntrySection : Section {
+	public class TrackEntrySection : Section {
 		private bool? enabled, def, forced, lacing;
 		private string language;
 		private ulong? minCache;

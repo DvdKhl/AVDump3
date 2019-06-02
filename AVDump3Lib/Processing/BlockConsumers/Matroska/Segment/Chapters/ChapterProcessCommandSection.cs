@@ -3,7 +3,7 @@ using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
-    public class ChapterProcessCommandSection : Section {
+	public class ChapterProcessCommandSection : Section {
 		public ProcessTime? ChapterProcessTime { get; private set; }
 		//ChapProcessData
 

@@ -3,7 +3,7 @@ using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cues {
-    public class CueTrackPositionsSection : Section {
+	public class CueTrackPositionsSection : Section {
 		public EbmlList<CueReferenceSection> CueReferences { get; private set; }
 
 		private ulong? cueBlockNumber;

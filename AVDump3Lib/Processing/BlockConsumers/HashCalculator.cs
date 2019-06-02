@@ -1,6 +1,7 @@
 using AVDump3Lib.Processing.BlockBuffers;
 using AVDump3Lib.Processing.HashAlgorithms;
 using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Threading;
 
@@ -14,9 +15,9 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 			HashAlgorithm = transform;
 
 			var length = ((reader.SuggestedReadLength / transform.BlockSize) + 1) * transform.BlockSize;
-			if (length > reader.MaxReadLength) {
+			if(length > reader.MaxReadLength) {
 				length -= transform.BlockSize;
-				if (length == 0) {
+				if(length == 0) {
 					throw new Exception("Min/Max BlockLength too restrictive") {
 						Data = {
 							{ "TransformName", Name },
@@ -39,7 +40,7 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 
 				block = Reader.GetBlock(ReadLength);
 				bytesProcessed = HashAlgorithm.TransformFullBlocks(block);
-			} while (Reader.Advance(bytesProcessed) && bytesProcessed != 0);
+			} while(Reader.Advance(bytesProcessed) && bytesProcessed != 0);
 
 			var lastBytes = block.Length - bytesProcessed;
 

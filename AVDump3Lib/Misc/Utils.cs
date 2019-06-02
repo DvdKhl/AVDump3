@@ -14,13 +14,13 @@ namespace AVDump3Lib.Misc {
 				throw new ArgumentNullException("input");
 			}
 
-			int charCount = (int)Math.Ceiling(input.Length / 5d) * 8;
-			char[] returnArray = new char[charCount];
+			var charCount = (int)Math.Ceiling(input.Length / 5d) * 8;
+			var returnArray = new char[charCount];
 
 			byte nextChar = 0, bitsRemaining = 5;
-			int arrayIndex = 0;
+			var arrayIndex = 0;
 
-			foreach(byte b in input) {
+			foreach(var b in input) {
 				nextChar = (byte)(nextChar | (b >> (8 - bitsRemaining)));
 				returnArray[arrayIndex++] = ToBase32Sub(nextChar);
 

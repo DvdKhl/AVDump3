@@ -22,7 +22,7 @@ namespace AVDump3Lib.Information.MetaInfo.Core {
 		public IReadOnlyDictionary<string, string> Notes { get; private set; }
 		public MetaDataProvider Provider { get; private set; }
 
-        protected abstract object GetValue();
+		protected abstract object GetValue();
 		protected MetaInfoItem(MetaInfoItemType type, MetaDataProvider provider, IReadOnlyDictionary<string, string> notes) {
 			Type = type;
 			Provider = provider;

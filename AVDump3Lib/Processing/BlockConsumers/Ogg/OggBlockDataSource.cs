@@ -38,22 +38,22 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 
 		private static uint OggS = BitConverter.ToUInt32(new[] { (byte)'O', (byte)'g', (byte)'g', (byte)'S' });
 		public bool SeekPastSyncBytes(bool strict) {
-			while (true) {
+			while(true) {
 				var offset = 0;//TODO rewrite
 				var block = MemoryMarshal.Cast<byte, uint>(reader.GetBlock(reader.SuggestedReadLength & ~0xF)); //Max Page size    
-				while (offset < block.Length) {
-					if (block[offset++] == OggS) {
+				while(offset < block.Length) {
+					if(block[offset++] == OggS) {
 						reader.Advance(offset * 4);
 						return true;
 					}
 				}
-				if (reader.Advance(block.Length * 4 - 8)) break;
+				if(reader.Advance(block.Length * 4 - 8)) break;
 			}
 			return false;
 		}
 
 		public bool ReadOggPage(ref OggPage page) {
-			if (!SeekPastSyncBytes(false)) return false;
+			if(!SeekPastSyncBytes(false)) return false;
 
 			var block = reader.GetBlock(23 + 256 * 256);
 
@@ -70,16 +70,16 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 			var offset = 0;
 			var dataLength = 0;
 			var packetOffsets = new List<int>();
-			while (segmentCount != 0) {
+			while(segmentCount != 0) {
 				dataLength += block[23 + offset];
 
-				if (block[23 + offset] != 255) packetOffsets.Add(dataLength);
+				if(block[23 + offset] != 255) packetOffsets.Add(dataLength);
 
 				offset++;
 				segmentCount--;
 			}
 			page.PacketOffsets = packetOffsets.ToArray();
-			if (block[23 + offset - 1] == 255) page.Flags |= PageFlags.SpanAfter;
+			if(block[23 + offset - 1] == 255) page.Flags |= PageFlags.SpanAfter;
 
 			//reader.BytesRead + 23 + offset;
 			page.Data = block.Slice(23 + offset, dataLength);

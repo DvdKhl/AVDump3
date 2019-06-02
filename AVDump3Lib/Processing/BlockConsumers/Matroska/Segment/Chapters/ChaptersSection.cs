@@ -1,9 +1,9 @@
-using System.Collections.Generic;
 using BXmlLib;
 using BXmlLib.DocTypes.Matroska;
+using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
-    public class ChaptersSection : Section {
+	public class ChaptersSection : Section {
 		public EbmlList<EditionEntrySection> Items { get; private set; }
 
 		public ChaptersSection() { Items = new EbmlList<EditionEntrySection>(); }

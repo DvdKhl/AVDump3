@@ -9,26 +9,23 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 	public class OggFile {
 		public long FileSize { get; private set; }
 		public long Overhead { get; private set; }
-		public IEnumerable<OGGBitStream> Bitstreams { get { return bitStreams.Values; } }
+		public IEnumerable<OGGBitStream> Bitstreams => bitStreams.Values;
 
-		private Dictionary<uint, OGGBitStream> bitStreams = new Dictionary<uint, OGGBitStream>();
+		private readonly Dictionary<uint, OGGBitStream> bitStreams = new Dictionary<uint, OGGBitStream>();
 
+		public void ProcessOggPage(ref OggPage page) {
+			Overhead += 27 + page.SegmentCount;
 
+			if(bitStreams.TryGetValue(page.StreamId, out var bitStream)) {
+				bitStream.ProcessPage(ref page);
 
-        public void ProcessOggPage(ref OggPage page) {
-            Overhead += 27 + page.SegmentCount;
+			} else if(page.Flags.HasFlag(PageFlags.Header)) {
+				bitStream = OGGBitStream.ProcessBeginPage(ref page);
+				bitStreams.Add(bitStream.Id, bitStream);
 
-            OGGBitStream bitStream = null;
-            if(bitStreams.TryGetValue(page.StreamId, out bitStream)) {
-                bitStream.ProcessPage(ref page);
-
-            } else if(page.Flags.HasFlag(PageFlags.Header)) {
-                bitStream = OGGBitStream.ProcessBeginPage(ref page);
-                bitStreams.Add(bitStream.Id, bitStream);
-
-            } else {
-                Overhead += page.Data.Length;
-            }
-        }
-    }
+			} else {
+				Overhead += page.Data.Length;
+			}
+		}
+	}
 }

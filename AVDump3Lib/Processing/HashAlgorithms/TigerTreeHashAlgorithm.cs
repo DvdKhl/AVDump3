@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Security.Cryptography;
-using System.Threading;
-using System.Diagnostics;
 using System.Collections;
-using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
 	public unsafe class TigerTreeHashAlgorithm : IAVDHashAlgorithm {
@@ -39,17 +39,17 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		}
 
 		public ReadOnlySpan<byte> TransformFinalBlock(ReadOnlySpan<byte> data) {
-			foreach (var blockHasher in blockHashers) {
+			foreach(var blockHasher in blockHashers) {
 				blockHasher.Finish();
 			}
 
-			if (data.Length >= 2048 || leafCount != 0) throw new Exception();
+			if(data.Length >= 2048 || leafCount != 0) throw new Exception();
 
-			if (data.Length != 0) {
+			if(data.Length != 0) {
 				fixed (byte* leavesPtr = leaves)
 				fixed (byte* dataPtr = data) {
 					var buffer = TigerNativeHashAlgorithm.TTHCreateBlock();
-					if (data.Length > 1024) {
+					if(data.Length > 1024) {
 						TigerNativeHashAlgorithm.TTHBlockHash(dataPtr, buffer, leavesPtr);
 						leafCount++;
 					}
@@ -62,22 +62,22 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 					leafCount++;
 					AVDNativeHashAlgorithm.FreeHashObject((IntPtr)buffer);
 
-					if (leafCount > 1) Compress();
+					if(leafCount > 1) Compress();
 				}
 			}
 
 
-			int nodesCopied = 0;
+			var nodesCopied = 0;
 			Span<byte> finalHashesSpan = new byte[24 * 3];
 			fixed (byte* finalHashesPtr = finalHashesSpan) {
 				Span<byte> leavesSpan = leaves;
 				Span<byte> nodeSpan = nodes;
 
-				for (int i = 0; i <= 55; i++) {
+				for(var i = 0; i <= 55; i++) {
 					//for (int i = 55 - 1; i >= 0; i--) {
-					if ((nodeCount & (1L << i)) == 0) continue;
+					if((nodeCount & (1L << i)) == 0) continue;
 
-					if (leafCount < 2) {
+					if(leafCount < 2) {
 						leavesSpan.Slice(0, 24).CopyTo(leavesSpan.Slice(24));
 						nodeSpan.Slice(i * 48, 24).CopyTo(leavesSpan);
 						leafCount++;
@@ -100,7 +100,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			data = data.Slice(0, Math.Min(16 << 20, data.Length) & ~2047);
 
 			fixed (byte* dataPtr = data) {
-				foreach (var blockHasher in blockHashers) blockHasher.ProcessData(dataPtr, data.Length);
+				foreach(var blockHasher in blockHashers) blockHasher.ProcessData(dataPtr, data.Length);
 				WaitHandle.WaitAll(blockHashersSync);
 			}
 			leafCount += data.Length >> 10;
@@ -117,14 +117,14 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			//Since we assume Only the last datablock may have an odd number of leaves
 			fixed (byte* leavesPtr = leaves)
 			fixed (byte* nodesPtr = nodes) {
-				while (leafCount > 1) {
+				while(leafCount > 1) {
 					var levelIsEmpty = (nodeCount & 1) == 0;
 					TigerNativeHashAlgorithm.TTHNodeHash(leavesPtr + leafPairsProcessed * 48, compressBuffer, nodesPtr + (levelIsEmpty ? 0 : 24));
 					leafPairsProcessed++;
 					leafCount -= 2;
 
 					var currentLevel = 0;
-					while (!levelIsEmpty) {
+					while(!levelIsEmpty) {
 						levelIsEmpty = (nodeCount & (2 << currentLevel)) == 0;
 						TigerNativeHashAlgorithm.TTHNodeHash(nodesPtr + currentLevel * 48, compressBuffer, nodesPtr + (currentLevel + 1) * 48 + (levelIsEmpty ? 0 : 24));
 						currentLevel++;
@@ -191,9 +191,9 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 				var buffer = TigerNativeHashAlgorithm.TTHCreateBlock();
 
 				doWorkSync.WaitOne();
-				while (!threadJoin) {
+				while(!threadJoin) {
 					fixed (byte* leavesPtr = leaves) {
-						while (lengthData >= BLOCKSIZE) {
+						while(lengthData >= BLOCKSIZE) {
 							TigerNativeHashAlgorithm.TTHBlockHash(dataPtr + offsetData, buffer, leavesPtr + offsetLeaf);
 
 							offsetLeaf += nextBlockOffsetLeaf;

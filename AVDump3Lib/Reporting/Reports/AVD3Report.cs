@@ -9,66 +9,66 @@ using System.Text;
 using System.Xml.Linq;
 
 namespace AVDump3Lib.Reporting.Reports {
-    public class AVD3Report : XmlReport {
-        protected override XDocument Report { get; }
+	public class AVD3Report : XmlReport {
+		protected override XDocument Report { get; }
 
 
-        public AVD3Report(FileMetaInfo fileMetaInfo) {
-            var xDoc = new XDocument();
-            var rootElem = new XElement("FileInfo");
-            xDoc.Add(rootElem);
+		public AVD3Report(FileMetaInfo fileMetaInfo) {
+			var xDoc = new XDocument();
+			var rootElem = new XElement("FileInfo");
+			xDoc.Add(rootElem);
 
-            rootElem.Add(new XElement("Path", fileMetaInfo.FileInfo.FullName));
-            rootElem.Add(new XElement("Size", fileMetaInfo.FileInfo.Length));
+			rootElem.Add(new XElement("Path", fileMetaInfo.FileInfo.FullName));
+			rootElem.Add(new XElement("Size", fileMetaInfo.FileInfo.Length));
 
-            foreach(var provider in fileMetaInfo.CondensedProviders) {
-                rootElem.Add(BuildReportMedia(provider));
-            }
+			foreach(var provider in fileMetaInfo.CondensedProviders) {
+				rootElem.Add(BuildReportMedia(provider));
+			}
 
-            Report = xDoc;
-        }
+			Report = xDoc;
+		}
 
 		private static string GetDisplayTypeName(Type type) {
-			if (type == typeof(ReadOnlyMemory<byte>)) {
+			if(type == typeof(ReadOnlyMemory<byte>)) {
 				return "Binary";
 			} else {
 				return type.Name;
 			}
 		}
 
-        public XElement BuildReportMedia(MetaInfoContainer container) {
-            var rootElem = new XElement(container.Type?.Name ?? container.GetType().Name);
+		public XElement BuildReportMedia(MetaInfoContainer container) {
+			var rootElem = new XElement(container.Type?.Name ?? container.GetType().Name);
 
-            foreach(var item in container.Items) {
-                object valueStr;
-                if(item.Type.ValueType == typeof(byte[])) {
-                    valueStr = BitConverter.ToString((byte[])item.Value).Replace("-", "");
-				} else if (item.Value is ReadOnlyMemory<byte>) {
+			foreach(var item in container.Items) {
+				object valueStr;
+				if(item.Type.ValueType == typeof(byte[])) {
+					valueStr = BitConverter.ToString((byte[])item.Value).Replace("-", "");
+				} else if(item.Value is ReadOnlyMemory<byte>) {
 					valueStr = BitConverter.ToString(((ReadOnlyMemory<byte>)item.Value).ToArray()).Replace("-", "");
-				} else if (item.Value is ICollection) {
+				} else if(item.Value is ICollection) {
 					var values = new List<XElement>();
-                    foreach(var itemValue in (IEnumerable)item.Value) {
-                        values.Add(new XElement("Item", itemValue));
-                    }
-                    valueStr = values;
+					foreach(var itemValue in (IEnumerable)item.Value) {
+						values.Add(new XElement("Item", itemValue));
+					}
+					valueStr = values;
 
-                } else {
-                    valueStr = item.Value.ToString();
-                }
+				} else {
+					valueStr = item.Value.ToString();
+				}
 
-                rootElem.Add(new XElement(item.Type.Key,
-                    new XAttribute("p", item.Provider.Name),
-                    new XAttribute("t", GetDisplayTypeName(item.Type.ValueType)),
-                    new XAttribute("u", item.Type.Unit ?? "Unknown"),
-                    valueStr
-                ));
-            }
+				rootElem.Add(new XElement(item.Type.Key,
+					new XAttribute("p", item.Provider.Name),
+					new XAttribute("t", GetDisplayTypeName(item.Type.ValueType)),
+					new XAttribute("u", item.Type.Unit ?? "Unknown"),
+					valueStr
+				));
+			}
 
-            foreach(var node in container.Nodes) {
-                rootElem.Add(BuildReportMedia(node));
-            }
+			foreach(var node in container.Nodes) {
+				rootElem.Add(BuildReportMedia(node));
+			}
 
-            return rootElem;
-        }
-    }
+			return rootElem;
+		}
+	}
 }

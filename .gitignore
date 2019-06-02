@@ -261,3 +261,4 @@ __pycache__/
 *.pyc
 /AVDump3CL/DebugParams.txt
 *.gch
+/AVDump3NativeLib/AVDump3NativeLib.so

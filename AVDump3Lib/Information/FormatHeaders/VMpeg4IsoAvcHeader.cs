@@ -28,18 +28,18 @@ namespace AVDump3Lib.Information.FormatHeaders {
 			header.NALULengthSizeMinus1 = (byte)(b[4] & 0x3);
 			header.ReservedD = (byte)((b[5] & 0xE0) >> 5);
 
-			int pos = 6;
-			byte count = (byte)(b[5] & 0x1F);
+			var pos = 6;
+			var count = (byte)(b[5] & 0x1F);
 			header.SequenceParameterSets = GetSet(b, count, ref pos); count = b[pos++];
 			header.PictureParameterSets = GetSet(b, count, ref pos);
 
 			return header;
 		}
 		private static IEnumerable<string> GetSet(byte[] b, byte count, ref int pos) {
-            short size;
+			short size;
 
 			var sets = new string[count];
-			for(int i = 0;i < count;i++) {
+			for(var i = 0; i < count; i++) {
 				size = (short)((b[pos] << 8) + b[pos + 1]); pos += 2;
 				sets[i] = System.Text.Encoding.ASCII.GetString(b, pos, size);
 				pos += size;

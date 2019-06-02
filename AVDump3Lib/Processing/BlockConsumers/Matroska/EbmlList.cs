@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
-    public class EbmlList<T> : IList<T> {
+	public class EbmlList<T> : IList<T> {
 		protected List<T> items;
 
 		public EbmlList() : this(new T[0]) { }
@@ -13,7 +13,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 
 		protected internal void Add(T item) { items.Add(item); }
 		protected internal EbmlList<T> DeepClone(Func<T, T> cloneFunc) {
-			EbmlList<T> clone = new EbmlList<T>();
+			var clone = new EbmlList<T>();
 			foreach(var item in items) clone.Add(cloneFunc(item));
 			return clone;
 		}

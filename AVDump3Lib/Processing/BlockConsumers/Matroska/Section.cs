@@ -1,12 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Collections;
 using BXmlLib;
 using BXmlLib.DocType;
 using BXmlLib.DocTypes.Ebml;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
-    public abstract class Section : IEnumerable<KeyValuePair<string, object>> {
+	public abstract class Section : IEnumerable<KeyValuePair<string, object>> {
 		public long? SectionSize { get; protected set; }
 
 		internal void Read(IBXmlReader reader) {

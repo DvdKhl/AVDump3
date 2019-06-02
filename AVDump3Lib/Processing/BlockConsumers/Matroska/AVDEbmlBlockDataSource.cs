@@ -6,7 +6,7 @@ using System.Text;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 	public class AVDEbmlBlockDataSource : EbmlBlockDataSource {
-		private IBlockStreamReader reader;
+		private readonly IBlockStreamReader reader;
 		private int offset;
 
 		public AVDEbmlBlockDataSource(IBlockStreamReader reader) => this.reader = reader;
@@ -23,10 +23,10 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 
 		protected override void Advance(int length) {
 			offset += length;
-			if (offset >= reader.MaxReadLength) CommitPosition();
+			if(offset >= reader.SuggestedReadLength) CommitPosition();
 			IsEndOfStream = reader.Length == reader.BytesRead + offset;
 		}
 
-		protected override ReadOnlySpan<byte> Data(int minLength) => reader.GetBlock(minLength).Slice(offset);
+		protected override ReadOnlySpan<byte> GetDataBlock(int minLength) => reader.GetBlock(minLength).Slice(offset);
 	}
 }

@@ -34,9 +34,10 @@ namespace AVDump3Lib.Information.InfoProvider {
 				return;
 			}
 
-            Add(FileSizeType, MFI.SectionSize.Value);
-            Add(CreationDateType, MFI.Segment.SegmentInfo.ProductionDate);
-            Add(DurationType, MFI.Segment.SegmentInfo.Duration.OnNotNullReturn(x => x * MFI.Segment.SegmentInfo.TimecodeScale / 1000000000d));
+			Add(FileSizeType, MFI.SectionSize.Value);
+			Add(ContainerVersionType, $"DocType={MFI.EbmlHeader.DocType} DocTypeVersion={MFI.EbmlHeader.DocTypeVersion}");
+			Add(CreationDateType, MFI.Segment.SegmentInfo.ProductionDate);
+			Add(DurationType, MFI.Segment.SegmentInfo.Duration.OnNotNullReturn(x => x * MFI.Segment.SegmentInfo.TimecodeScale / 1000000000d));
 
 			Add(WritingAppType, MFI.Segment.SegmentInfo.WritingApp);
 			Add(MuxingAppType, MFI.Segment.SegmentInfo.MuxingApp);
@@ -49,7 +50,9 @@ namespace AVDump3Lib.Information.InfoProvider {
 				Add(SuggestedFileExtensionType, "mks");
 			}
 
-			foreach(var track in MFI.Segment.Tracks.Items) PopulateTrack(track);
+			foreach(var track in MFI.Segment.Tracks.Items) {
+				PopulateTrack(track);
+			}
 
 			var mkvTags = MFI.Segment.Tags.Count != 0 ? MFI.Segment.Tags.MaxBy(t => t.Items.Count) : null;
 			if(mkvTags != null) PopulateTags(mkvTags);
@@ -63,8 +66,8 @@ namespace AVDump3Lib.Information.InfoProvider {
 		private void PopulateChapters(EditionEntrySection edition) {
 			var chapters = new MetaInfoContainer(edition.EditionUId ?? (ulong)Nodes.Count(x => x.Type == ChaptersType), ChaptersType);
 
-            Add(chapters, Chapters.IdType, (int?)edition.EditionUId);
-            Add(chapters, Chapters.IsHiddenType, edition.EditionFlags.HasFlag(EditionEntrySection.Options.Hidden));
+			Add(chapters, Chapters.IdType, (int?)edition.EditionUId);
+			Add(chapters, Chapters.IsHiddenType, edition.EditionFlags.HasFlag(EditionEntrySection.Options.Hidden));
 			Add(chapters, Chapters.IsDefaultType, edition.EditionFlags.HasFlag(EditionEntrySection.Options.Default));
 			Add(chapters, Chapters.IsOrderedType, edition.EditionFlags.HasFlag(EditionEntrySection.Options.Ordered));
 
@@ -74,9 +77,9 @@ namespace AVDump3Lib.Information.InfoProvider {
 		}
 		private void PopulateChaptersSub(ChapterAtomSection atom, MetaInfoContainer chapters) {
 			var chapter = new MetaInfoContainer(atom.ChapterUId ?? (ulong)chapters.Nodes.Count(x => x.Type == Chapters.ChapterType), Chapters.ChapterType);
-            chapters.AddNode(chapter);
+			chapters.AddNode(chapter);
 
-            Add(chapter, Chapter.IdType, (int?)atom.ChapterUId);
+			Add(chapter, Chapter.IdType, (int?)atom.ChapterUId);
 			Add(chapter, Chapter.IdStringType, atom.ChapterStringUId);
 			Add(chapter, Chapter.TimeStartType, atom.ChapterTimeStart / 1000000000d);
 			Add(chapter, Chapter.TimeEndType, atom.ChapterTimeEnd.OnNotNullReturn(v => v / 1000000000d));
@@ -104,7 +107,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 				targets = targets.Concat(from attachmentId in mkvTag.Targets.AttachmentUIds select new Target(TagTarget.Attachment, (long)attachmentId));
 
 				var tag = new TargetedTag(targets, mkvTag.SimpleTags.Select(simpleTag => PopulateTagsSub(simpleTag)));
-                tags.Add(tag);
+				tags.Add(tag);
 			}
 			Add(TagsType, tags);
 		}
@@ -112,13 +115,17 @@ namespace AVDump3Lib.Information.InfoProvider {
 			return new Tag(tag.TagName, (object)tag.TagString ?? tag.TagBinary, tag.TagLanguage, tag.TagDefault, tag.SimpleTags.Select(simpleTag => PopulateTagsSub(simpleTag)));
 		}
 
-		private void PopulateTrack(TrackEntrySection track) {
 
-            MetaInfoContainer stream;
+		private int[] indeces = new int[4];
+		private void PopulateTrack(TrackEntrySection track) {
+			var trackIndex = 0;
+
+			MetaInfoContainer stream;
 			switch(track.TrackType) {
 				case TrackEntrySection.Types.Video:
 					stream = new MetaInfoContainer(track.TrackUId ?? (ulong)Nodes.Count(x => x.Type == VideoStreamType), VideoStreamType);
 					AddNode(stream);
+					trackIndex = indeces[0]++;
 
 					Add(stream, VideoStream.AspectRatioBehaviorType, Convert(track.Video.AspectRatioType));
 					Add(stream, VideoStream.ColorSpaceType, track.Video.ColorSpace.OnNotNullReturn(x => BitConverter.ToInt32(x, 0)));
@@ -140,6 +147,8 @@ namespace AVDump3Lib.Information.InfoProvider {
 				case TrackEntrySection.Types.Audio:
 					stream = new MetaInfoContainer(track.TrackUId ?? (ulong)Nodes.Count(x => x.Type == AudioStreamType), AudioStreamType);
 					AddNode(stream);
+					trackIndex = indeces[1]++;
+
 					Add(stream, AudioStream.BitDepthType, (int?)track.Audio.BitDepth);
 					Add(stream, AudioStream.ChannelCountType, (int?)track.Audio.ChannelCount);
 					Add(stream, MediaStream.OutputSampleRateType, track.Audio.OutputSamplingFrequency);
@@ -149,11 +158,13 @@ namespace AVDump3Lib.Information.InfoProvider {
 				case TrackEntrySection.Types.Subtitle:
 					stream = new MetaInfoContainer(track.TrackUId ?? (ulong)Nodes.Count(x => x.Type == SubtitleStreamType), SubtitleStreamType);
 					AddNode(stream);
+					trackIndex = indeces[2]++;
 					break;
 
 				default:
 					stream = new MetaInfoContainer(track.TrackUId ?? (ulong)Nodes.Count(x => x.Type == MediaStreamType), MediaStreamType);
 					AddNode(stream);
+					trackIndex = indeces[3]++;
 					break;
 			}
 
@@ -168,6 +179,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 				Add(stream, MediaStream.SampleRateVarianceType, CalcDeviation(trackInfo.SampleRateHistogram));
 			}
 
+			Add(stream, MediaStream.IndexType, trackIndex);
 			Add(stream, MediaStream.IdType, track.TrackUId);
 			Add(stream, MediaStream.IsDefaultType, track.TrackFlags.HasFlag(TrackEntrySection.Options.Default));
 			Add(stream, MediaStream.IsEnabledType, track.TrackFlags.HasFlag(TrackEntrySection.Options.Enabled));
@@ -175,17 +187,21 @@ namespace AVDump3Lib.Information.InfoProvider {
 			Add(stream, MediaStream.IsOverlayType, track.TrackOverlay.Count != 0);
 			Add(stream, MediaStream.LanguageType, track.Language);
 			Add(stream, MediaStream.TitleType, track.Name);
-			Add(stream, MediaStream.CodecIdType, track.CodecId);
-			Add(stream, MediaStream.CodecNameType, track.CodecName);
+			Add(stream, MediaStream.ContainerCodecIdType, track.CodecId);
+			Add(stream, MediaStream.ContainerCodecNameType, track.CodecName);
 			if(MFI.Segment.Cues != null) Add(stream, MediaStream.CueCountType, MFI.Segment.Cues.CuePoints.Count(cp => cp.CueTrackPositions.Any(p => p.CueTrack == track.TrackUId)));
 
-			if(track.CodecPrivate != null && "V_MS/VFW/FOURCC".Equals(track.CodecId) && track.CodecPrivate.Length >= BitmapInfoHeader.LENGTH) {
-				var header = new BitmapInfoHeader(track.CodecPrivate);
-				Add(stream, MediaStream.CodecIdType, header.FourCC);
-			}
-			if(track.CodecPrivate != null && "A_MS/ACM".Equals(track.CodecId) && track.CodecPrivate.Length >= WaveFormatEx.LENGTH) {
-				var header = new WaveFormatEx(track.CodecPrivate);
-				Add(stream, MediaStream.CodecIdType, header.TwoCC);
+			if(track.CodecPrivate != null) {
+				Add(stream, MediaStream.CodecPrivateSizeType, track.CodecPrivate.Length);
+
+				if("V_MS/VFW/FOURCC".Equals(track.CodecId) && track.CodecPrivate.Length >= BitmapInfoHeader.LENGTH) {
+					var header = new BitmapInfoHeader(track.CodecPrivate);
+					Add(stream, MediaStream.ContainerCodecIdType, header.FourCC);
+				}
+				if("A_MS/ACM".Equals(track.CodecId) && track.CodecPrivate.Length >= WaveFormatEx.LENGTH) {
+					var header = new WaveFormatEx(track.CodecPrivate);
+					Add(stream, MediaStream.ContainerCodecIdType, header.TwoCC);
+				}
 			}
 
 			if(trackInfo != null) {

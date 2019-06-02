@@ -2,6 +2,7 @@
 using AVDump3Lib.Processing.BlockConsumers;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -39,11 +40,11 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 
 		public void ConsumeStream(IProgress<BlockStreamProgress> progress, CancellationToken ct) {
 			if(blockConsumers.Any()) {
-				Task[] tasks = new Task[blockConsumers.Length + 1];
+				var tasks = new Task[blockConsumers.Length + 1];
 				tasks[tasks.Length - 1] = BlockStream.Produce(progress, ct);
 
-				for(int i = 0; i < blockConsumers.Length; i++) {
-					int consumerIndex = i;
+				for(var i = 0; i < blockConsumers.Length; i++) {
+					var consumerIndex = i;
 
 					tasks[consumerIndex] = Task.Factory.StartNew(
 						() => blockConsumers[consumerIndex].ProcessBlocks(ct),

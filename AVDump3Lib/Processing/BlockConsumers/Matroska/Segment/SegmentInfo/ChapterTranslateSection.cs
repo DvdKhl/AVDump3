@@ -3,7 +3,7 @@ using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SegmentInfo {
-    public class ChapterTranslateSection : Section {
+	public class ChapterTranslateSection : Section {
 		private byte[] id;
 
 		public EbmlList<ulong> EditionUId { get; private set; }

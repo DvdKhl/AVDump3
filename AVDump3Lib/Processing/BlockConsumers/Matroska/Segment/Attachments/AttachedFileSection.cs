@@ -3,7 +3,7 @@ using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Attachments {
-    public class AttachedFileSection : Section {
+	public class AttachedFileSection : Section {
 		public string FileDescription { get; private set; }
 		public string FileName { get; private set; }
 		public string FileMimeType { get; private set; }

@@ -3,7 +3,7 @@ using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
-    public class ContentCompressionSection : Section {
+	public class ContentCompressionSection : Section {
 		private CompAlgos? contentCompAlgo;
 
 		public CompAlgos ContentCompAlgo { get { return contentCompAlgo ?? CompAlgos.zlib; } }

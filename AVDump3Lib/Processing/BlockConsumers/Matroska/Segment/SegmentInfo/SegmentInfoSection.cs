@@ -1,10 +1,10 @@
-using System;
-using System.Collections.Generic;
 using BXmlLib;
 using BXmlLib.DocTypes.Matroska;
+using System;
+using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SegmentInfo {
-    public class SegmentInfoSection : Section {
+	public class SegmentInfoSection : Section {
 		private ulong? timecodeScale;
 		private EbmlList<byte[]> segmentFamily;
 		private byte[] segmentUId, prevUId, nextUId;

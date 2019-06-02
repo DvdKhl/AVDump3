@@ -3,6 +3,7 @@ using AVDump3Lib.Processing.BlockConsumers;
 using AVDump3Lib.Processing.StreamProvider;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,9 +23,9 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 	public class StreamConsumerCollection : IStreamConsumerCollection {
 		public event EventHandler<ConsumingStreamEventArgs> ConsumingStream;
 
-		private IStreamConsumerFactory streamConsumerFactory;
-		private IStreamProvider streamProvider;
-		private object isRunningSyncRoot = new object();
+		private readonly IStreamConsumerFactory streamConsumerFactory;
+		private readonly IStreamProvider streamProvider;
+		private readonly object isRunningSyncRoot = new object();
 
 
 		public StreamConsumerCollection(IStreamConsumerFactory streamConsumerFactory, IStreamProvider streamProvider) {
@@ -35,16 +36,16 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 		public bool IsRunning { get; private set; }
 
 		public void ConsumeStreams(CancellationToken ct, IBytesReadProgress progress) {
-			lock (isRunningSyncRoot) {
-				if (IsRunning) throw new InvalidOperationException();
+			lock(isRunningSyncRoot) {
+				if(IsRunning) throw new InvalidOperationException();
 				IsRunning = true;
 			}
 
-			using (var cts = new CancellationTokenSource())
-			using (var counter = new CountdownEvent(1))
-			using (ct.Register(() => cts.Cancel())) {
+			using(var cts = new CancellationTokenSource())
+			using(var counter = new CountdownEvent(1))
+			using(ct.Register(() => cts.Cancel())) {
 				Exception firstChanceException = null;
-				foreach (var providedStream in streamProvider.GetConsumingEnumerable(ct)) {
+				foreach(var providedStream in streamProvider.GetConsumingEnumerable(ct)) {
 					ct.ThrowIfCancellationRequested();
 
 					counter.AddCount();
@@ -53,23 +54,23 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 					}, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current).ContinueWith(t => {
 						providedStream.Dispose();
 						counter.Signal();
-						if (t.IsFaulted) {
-							if (firstChanceException == null) firstChanceException = t.Exception.Flatten();
+						if(t.IsFaulted) {
+							if(firstChanceException == null) firstChanceException = t.Exception.Flatten();
 							cts.Cancel();
 						}
 					});
-					if (firstChanceException != null) break;
+					if(firstChanceException != null) break;
 				}
 
 				counter.Signal();
 				counter.Wait(ct);
 
-				if (firstChanceException != null) {
+				if(firstChanceException != null) {
 					throw firstChanceException;
 				}
 			}
 
-			lock (isRunningSyncRoot) IsRunning = false;
+			lock(isRunningSyncRoot) IsRunning = false;
 		}
 		private void ConsumeStream(ProvidedStream providedStream, IBytesReadProgress progress, CancellationToken ct) {
 			var tcs = new TaskCompletionSource<IReadOnlyCollection<IBlockConsumer>>();
@@ -79,7 +80,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 			//Thread.CurrentThread.Priority = ThreadPriority.Highest;
 
 			bool retry;
-			int retryCount = 0;
+			var retryCount = 0;
 			IStreamConsumer streamConsumer = null;
 			try {
 				do {
@@ -88,7 +89,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 					streamConsumer = streamConsumerFactory.Create(providedStream.Stream);
 					try {
 
-						if (streamConsumer != null) {
+						if(streamConsumer != null) {
 							progress?.Register(providedStream, streamConsumer);
 							streamConsumer.ConsumeStream(progress, ct);
 						} else {
@@ -96,35 +97,36 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 						}
 
 
-					} catch (StreamConsumerException ex) {
+					} catch(StreamConsumerException ex) {
 						ex.Data.Add("StreamTag", new SensitiveData(providedStream.Tag));
 
 						var e = new StreamConsumerExceptionEventArgs(ex, retryCount++);
 						eventArgs.RaiseOnException(this, e);
-						if (!e.IsHandled) {
+						if(!e.IsHandled) {
 							throw new StreamConsumerCollectionException("Refused to handle StreamConsumerException", ex);
 						} else {
 							retry = e.Retry;
 						}
 
-					} catch (Exception ex) {
+					} catch(Exception ex) {
 						throw new StreamConsumerCollectionException("Unhandled exception in StreamConsumerCollectionException", ex);
 					}
-				} while (retry);
+				} while(retry);
 
 				try {
 					tcs.SetResult(streamConsumer?.BlockConsumers ?? new IBlockConsumer[0]);
-				} catch (Exception ex) {
+				} catch(Exception ex) {
 					throw new StreamConsumerCollectionException("After stream processing exception", ex);
 				}
 
 
-			} catch (Exception ex) {
+			} catch(Exception ex) {
+				Console.WriteLine(ex.Message);
 				throw;
 				//TODO
 			} finally {
 				var blockConsumers = streamConsumer?.BlockConsumers ?? new IBlockConsumer[0];
-				foreach (var blockConsumer in blockConsumers) blockConsumer.Dispose();
+				foreach(var blockConsumer in blockConsumers) blockConsumer.Dispose();
 			}
 		}
 

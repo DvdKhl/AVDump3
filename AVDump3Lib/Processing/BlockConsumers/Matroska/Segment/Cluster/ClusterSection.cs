@@ -26,8 +26,8 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster {
 
 		protected override bool ProcessElement(IBXmlReader reader) {
 			if(reader.DocElement == MatroskaDocType.SimpleBlock || reader.DocElement == MatroskaDocType.Block) {
-                MatroskaDocType.RetrieveMatroskaBlock(reader, out MatroskaBlock matroskaBlock);
-                Track track;
+				MatroskaDocType.RetrieveMatroskaBlock(reader, out var matroskaBlock);
+				Track track;
 				if(
 					!Tracks.TryGetValue(matroskaBlock.TrackNumber, out track) &&
 					!Tracks.TryGetValue(~matroskaBlock.TrackNumber, out track)
@@ -82,7 +82,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster {
 					Timecodes.Sort();
 
 
-					double[] rate = new double[3];
+					var rate = new double[3];
 					double? minSampleRate = null, maxSampleRate = null;
 
 					var oldTC = Timecodes.FirstOrDefault();
