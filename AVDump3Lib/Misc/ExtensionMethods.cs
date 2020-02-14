@@ -45,7 +45,7 @@ namespace AVDump3Lib.Misc {
 		//    return n.HasValue ? transform(n.Value) : default(TResult);
 		//}
 		public static TResult OnNotNullReturn<TResult, TSource>(this TSource n, Func<TSource, TResult> transform) {
-			return n != null ? transform(n) : default(TResult);
+			return n != null ? transform(n) : default;
 		}
 
 		public static void OnNotNull<TSource>(this TSource n, Action<TSource> transform) { if(n != null) transform(n); }

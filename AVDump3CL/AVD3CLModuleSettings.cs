@@ -156,8 +156,8 @@ namespace AVDump3CL {
 
 		[CLNames("Cons")]
 		public SettingsProperty ConsumersProperty { get; }
-		public ReadOnlyCollection<string> Consumers {
-			get { return (ReadOnlyCollection<string>)GetValue(ConsumersProperty); }
+		public IReadOnlyCollection<string> Consumers {
+			get { return (IReadOnlyCollection<string>)GetValue(ConsumersProperty); }
 			set { SetValue(ConsumersProperty, value); }
 		}
 
@@ -173,7 +173,7 @@ namespace AVDump3CL {
 			BufferLengthProperty = Register(nameof(BufferLength), 64 << 20);
 			ProducerMinReadLengthProperty = Register(nameof(ProducerMinReadLength), 1 << 20);
 			ProducerMaxReadLengthProperty = Register(nameof(ProducerMaxReadLength), 8 << 20);
-			ConsumersProperty = Register(nameof(Consumers), Array.AsReadOnly(new string[0]));
+			ConsumersProperty = Register(nameof(Consumers), Array.Empty<string>());
 			PrintAvailableSIMDsProperty = Register(nameof(PrintAvailableSIMDs), false);
 			PauseBeforeExitProperty = Register(nameof(PauseBeforeExit), false);
 		}
@@ -184,7 +184,7 @@ namespace AVDump3CL {
 				return (value >> 20).ToString();
 
 			} else if(property == ConsumersProperty) {
-				var lst = (ReadOnlyCollection<string>)obj;
+				var lst = (IReadOnlyCollection<string>)obj;
 				//A bit odd at first, but with this we make Consumers==null the special case (i.e. list the consumers)
 				return obj != null ? (lst.Count == 0 ? null : string.Join(",", lst)) : "";
 			}

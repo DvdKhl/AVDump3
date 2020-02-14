@@ -21,9 +21,11 @@ namespace AVDump3Lib.Information.MetaInfo {
 		public static readonly MetaInfoItemType<string> ContainerVersionType = new MetaInfoItemType<string>("ContainerVersion");
 
 		public static readonly MetaInfoItemType<ReadOnlyMemory<byte>> IdType = new MetaInfoItemType<ReadOnlyMemory<byte>>("Id");
+		public static readonly MetaInfoItemType<ReadOnlyMemory<byte>> RelationIdType = new MetaInfoItemType<ReadOnlyMemory<byte>>("RelationId");
 		public static readonly MetaInfoItemType<ReadOnlyMemory<byte>> NextIdType = new MetaInfoItemType<ReadOnlyMemory<byte>>("NextId");
 		public static readonly MetaInfoItemType<ReadOnlyMemory<byte>> PreviousIdType = new MetaInfoItemType<ReadOnlyMemory<byte>>("PreviousId");
-		public static readonly MetaInfoItemType<ReadOnlyMemory<byte>> RelationIdType = new MetaInfoItemType<ReadOnlyMemory<byte>>("RelationId");
+		public static readonly MetaInfoItemType<string> NextFileNameType = new MetaInfoItemType<string>("NextFileName");
+		public static readonly MetaInfoItemType<string> PreviousFileNameType = new MetaInfoItemType<string>("PreviousName");
 
 		public static readonly MetaInfoItemType<long> TimecodeScaleType = new MetaInfoItemType<long>("TimecodeScale");
 		public static readonly MetaInfoItemType<double> DurationType = new MetaInfoItemType<double>("Duration", "s");
@@ -69,7 +71,6 @@ namespace AVDump3Lib.Information.MetaInfo {
 		public static readonly MetaInfoItemType<string> ContainerCodecIdWithCodecPrivateType = new MetaInfoItemType<string>("ContainerCodecIdWithCodecPrivate");
 		public static readonly MetaInfoItemType<string> ContainerCodecNameType = new MetaInfoItemType<string>("ContainerCodecName");
 		public static readonly MetaInfoItemType<string> CodecNameType = new MetaInfoItemType<string>("CodecName");
-		public static readonly MetaInfoItemType<int> ColorDepth = new MetaInfoItemType<int>("ColorDepth");
 		public static readonly MetaInfoItemType<DateTime> CreationDateType = new MetaInfoItemType<DateTime>("CreationDate");
 		public static readonly MetaInfoItemType<DateTime> ModificationDateType = new MetaInfoItemType<DateTime>("ModificationDate");
 

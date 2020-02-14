@@ -54,7 +54,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 				Add(stream, MediaStream.SizeType, bitStream.Size);
 				Add(stream, MediaStream.DurationType, duration);
 				Add(stream, MediaStream.ContainerCodecNameType, bitStream.CodecName);
-				Add(stream, MediaStream.BitrateType, bitStream.Size / duration.TotalSeconds);
+				Add(stream, MediaStream.BitrateType, bitStream.Size * 8 / duration.TotalSeconds);
 
 				if(bitStream is IVorbisComment) {
 					var track = (IVorbisComment)bitStream;

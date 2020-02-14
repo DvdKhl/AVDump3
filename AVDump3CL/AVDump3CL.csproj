@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <ApplicationIcon>AVD3Icon.ico</ApplicationIcon>
     <StartupObject>AVDump3CL.Program</StartupObject>
     <AssemblyVersion>3.0.0.8005</AssemblyVersion>
@@ -14,7 +14,7 @@
     <PackageProjectUrl>https://github.com/DvdKhl/AVDump3</PackageProjectUrl>
     <RepositoryUrl>https://github.com/DvdKhl/AVDump3</RepositoryUrl>
     <NeutralLanguage>en</NeutralLanguage>
-    <Copyright>Copyright © 2019 extknot</Copyright>
+    <Copyright>Copyright © 2020 extknot</Copyright>
     <Platforms>AnyCPU;x64</Platforms>
     <FileVersion>3.0.0.8005</FileVersion>
   </PropertyGroup>

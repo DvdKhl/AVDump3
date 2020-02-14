@@ -37,6 +37,14 @@ namespace AVDump3Lib.Information.InfoProvider {
 			Add(CreationDateType, MFI.Segment.SegmentInfo.ProductionDate);
 			Add(DurationType, MFI.Segment.SegmentInfo.Duration.OnNotNullReturn(x => x * MFI.Segment.SegmentInfo.TimecodeScale / 1000000000d));
 
+
+			Add(IdType, MFI.Segment.SegmentInfo.SegmentUId);
+			Add(PreviousIdType, MFI.Segment.SegmentInfo.PreviousUId);
+			Add(NextIdType, MFI.Segment.SegmentInfo.NextUId);
+			Add(PreviousFileNameType, MFI.Segment.SegmentInfo.PreviousFilename);
+			Add(NextFileNameType, MFI.Segment.SegmentInfo.NextFilename);
+
+
 			Add(WritingAppType, MFI.Segment.SegmentInfo.WritingApp);
 			Add(MuxingAppType, MFI.Segment.SegmentInfo.MuxingApp);
 

@@ -53,7 +53,7 @@ namespace AVDump3Lib.Reporting.Reports {
 					valueStr = values;
 
 				} else {
-					valueStr = item.Value.ToString();
+					valueStr = item.Value?.ToString();
 				}
 
 				rootElem.Add(new XElement(item.Type.Key,
