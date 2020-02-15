@@ -33,13 +33,13 @@ namespace AVDump3Lib.Misc {
 		public static void TraverseDirectories(IEnumerable<string> directoryPaths, bool includeSubFolders, Action<string> onFile, Action<Exception> onError) {
 			foreach(var directoryPath in directoryPaths) {
 				try {
-					foreach(var filePath in Directory.EnumerateFiles(directoryPath)) {
+					foreach(var filePath in Directory.EnumerateFiles(directoryPath).OrderBy(x => x)) {
 						try {
 							onFile(filePath);
 						} catch(Exception ex) { onError?.Invoke(ex); }
 					}
 
-					if(includeSubFolders) TraverseDirectories(Directory.EnumerateDirectories(directoryPath), includeSubFolders, onFile, onError);
+					if(includeSubFolders) TraverseDirectories(Directory.EnumerateDirectories(directoryPath).OrderBy(x => x), includeSubFolders, onFile, onError);
 
 				} catch(UnauthorizedAccessException ex) {
 					if(!Directory.Exists("Error")) Directory.CreateDirectory("Error");
