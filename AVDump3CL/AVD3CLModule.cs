@@ -194,10 +194,10 @@ namespace AVDump3CL {
 
 				streamConsumerCollection.ConsumingStream += ConsumingStream;
 
-				ConsoleCancelEventHandler cancelKeyHandler = (s, e) => {
+				void cancelKeyHandler(object s, ConsoleCancelEventArgs e) {
 					e.Cancel = true;
 					cts.Cancel();
-				};
+				}
 				Console.CancelKeyPress += cancelKeyHandler;
 				Console.CursorVisible = false;
 				try {
@@ -227,10 +227,10 @@ namespace AVDump3CL {
 			var spp = new StreamFromPathsProvider(settings.FileDiscovery.Concurrent, paths, true,
 				path => {
 					if(fileDiscoveryOn.AddSeconds(1) < DateTimeOffset.UtcNow) {
-						var currentCursorTop = Console.CursorTop;
-						Console.CursorTop = acceptedFileCountCursorTop;
+						//var currentCursorTop = Console.CursorTop;
+						//Console.CursorTop = acceptedFileCountCursorTop;
 						Console.WriteLine("Accepted files: " + acceptedFiles);
-						Console.CursorTop = currentCursorTop;
+						//Console.CursorTop = currentCursorTop;
 						fileDiscoveryOn = DateTimeOffset.UtcNow;
 					}
 
@@ -276,7 +276,7 @@ namespace AVDump3CL {
 
 			var linesToWrite = new List<string>(32);
 			if(settings.Display.PrintHashes || settings.Display.PrintReports) {
-				linesToWrite.Add(fileName.Substring(0, Math.Min(fileName.Length, Console.WindowWidth - 1)));
+				linesToWrite.Add(fileName);
 			}
 
 			if(settings.Display.PrintHashes) {

@@ -265,10 +265,17 @@ namespace AVDump3CL {
 			get { return (bool)GetValue(HideTotalProgressProperty); }
 			set { SetValue(HideTotalProgressProperty, value); }
 		}
+
 		public SettingsProperty ShowDisplayJitterProperty { get; }
 		public bool ShowDisplayJitter {
 			get { return (bool)GetValue(ShowDisplayJitterProperty); }
 			set { SetValue(ShowDisplayJitterProperty, value); }
+		}
+
+		public SettingsProperty ForwardConsoleCursorOnlyProperty { get; }
+		public bool ForwardConsoleCursorOnly {
+			get { return (bool)GetValue(ForwardConsoleCursorOnlyProperty); }
+			set { SetValue(ForwardConsoleCursorOnlyProperty, value); }
 		}
 
 		public SettingsProperty PrintHashesProperty { get; }
@@ -291,6 +298,7 @@ namespace AVDump3CL {
 			HideFileProgressProperty = Register(nameof(HideFileProgress), false);
 			HideTotalProgressProperty = Register(nameof(HideTotalProgress), false);
 			ShowDisplayJitterProperty = Register(nameof(ShowDisplayJitter), false);
+			ForwardConsoleCursorOnlyProperty = Register(nameof(ForwardConsoleCursorOnly), false);
 			PrintHashesProperty = Register(nameof(PrintHashes), false);
 			PrintReportsProperty = Register(nameof(PrintReports), false);
 		}
