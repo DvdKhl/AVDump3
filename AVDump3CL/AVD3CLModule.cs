@@ -289,17 +289,22 @@ namespace AVDump3CL {
 			var reportsFactories = reportingModule.ReportFactories.Where(x => settings.Reporting.Reports.Any(y => x.Name.Equals(y, StringComparison.OrdinalIgnoreCase))).ToArray();
 			if(reportsFactories.Length != 0) {
 				var infoSetup = new InfoProviderSetup(filePath, blockConsumers);
-				var infoProviders = informationModule.InfoProviderFactories.Select(x => x.Create(infoSetup));
 
-				var fileMetaInfo = new FileMetaInfo(new FileInfo(filePath), infoProviders);
-				var reportItems = reportsFactories.Select(x => new { x.Name, Report = x.Create(fileMetaInfo) });
+				try {
+					var infoProviders = informationModule.InfoProviderFactories.Select(x => x.Create(infoSetup));
 
-				foreach(var reportItem in reportItems) {
-					if(settings.Display.PrintReports) {
-						linesToWrite.Add(reportItem.Report.ReportToString(Encoding.UTF8) + "\n");
+					var fileMetaInfo = new FileMetaInfo(new FileInfo(filePath), infoProviders);
+					var reportItems = reportsFactories.Select(x => new { x.Name, Report = x.Create(fileMetaInfo) });
+
+					foreach(var reportItem in reportItems) {
+						if(settings.Display.PrintReports) {
+							linesToWrite.Add(reportItem.Report.ReportToString(Encoding.UTF8) + "\n");
+						}
+						reportItem.Report.SaveToFile(Path.Combine(settings.Reporting.ReportDirectory, $"{fileName}.{reportItem.Name}.{reportItem.Report.FileExtension}"), Encoding.UTF8);
 					}
 
-					reportItem.Report.SaveToFile(Path.Combine(settings.Reporting.ReportDirectory, $"{fileName}.{reportItem.Name}.{reportItem.Report.FileExtension}"), Encoding.UTF8);
+				} catch(Exception ex) {
+					OnException(new AVD3CLException("GeneratingReports", ex));
 				}
 			}
 			cl.Writeline(linesToWrite);

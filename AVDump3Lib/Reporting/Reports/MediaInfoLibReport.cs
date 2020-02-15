@@ -34,12 +34,12 @@ namespace AVDump3Lib.Reporting.Reports {
 						node.Add(subNode);
 
 						for(var j = 0; j < entryCount; j++) {
-							name = mediaInfo.Get(streamKind, i, j, InfoTypes.Name).Replace("/", "-").Replace("(", "").Replace(")", "").Replace(" ", "_");
+							name = mediaInfo.Get(j, streamKind, i, InfoTypes.Name).Replace("/", "-").Replace("(", "").Replace(")", "").Replace(" ", "_");
 							if(name.Equals("Chapters_Pos_End") || name.Equals("Chapters_Pos_Begin") || name.Contains("-String")) continue;
 							if(name.Equals("Bits-Pixel*Frame")) name = "BitsPerPixel";
 
-							text = mediaInfo.Get(streamKind, i, j, InfoTypes.Text);
-							measure = mediaInfo.Get(streamKind, i, j, InfoTypes.Measure).Trim();
+							text = mediaInfo.Get(j, streamKind, i, InfoTypes.Text);
+							measure = mediaInfo.Get(j, streamKind, i, InfoTypes.Measure).Trim();
 
 							if(name.IndexOfAny(new char[] { ')', ':' }) < 0 && !string.IsNullOrEmpty(text)) {
 								subNode.Add(new XElement(name, text, new XAttribute("Unit", measure)));
@@ -52,11 +52,11 @@ namespace AVDump3Lib.Reporting.Reports {
 							int indexEnd;
 							XElement chapterNode;
 
-							if(int.TryParse(mediaInfo.Get(streamKind, i, "Chapters_Pos_Begin"), out indexStart) && int.TryParse(mediaInfo.Get(streamKind, i, "Chapters_Pos_End"), out indexEnd)) {
+							if(int.TryParse(mediaInfo.Get("Chapters_Pos_Begin", streamKind, i), out indexStart) && int.TryParse(mediaInfo.Get("Chapters_Pos_End", streamKind, i), out indexEnd)) {
 								chapterNode = new XElement("Chapters");
 								subNode.Add(chapterNode);
 								for(; indexStart < indexEnd; indexStart++) {
-									chapterNode.Add(new XElement("Chapter", mediaInfo.Get(streamKind, i, indexStart, InfoTypes.Text), new XAttribute("TimeStamp", mediaInfo.Get(streamKind, i, indexStart, InfoTypes.Name))));
+									chapterNode.Add(new XElement("Chapter", mediaInfo.Get(indexStart, streamKind, i, InfoTypes.Text), new XAttribute("TimeStamp", mediaInfo.Get(indexStart, streamKind, i, InfoTypes.Name))));
 								}
 							}
 						}
