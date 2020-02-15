@@ -194,7 +194,8 @@ namespace AVDump3CL {
 		private readonly Func<BytesReadProgress.Progress> getProgress;
 		private readonly DisplaySettings settings;
 		private readonly int TicksInPeriod = 5;
-		private readonly StringBuilder sb;
+		private readonly StringBuilder sb = new StringBuilder();
+		private readonly List<string> toWrite = new List<string>();
 
 		public long TotalBytes { get; set; }
 		public int TotalFiles { get; set; }
@@ -209,13 +210,11 @@ namespace AVDump3CL {
 		private Timer timer;
 		private int state;
 		private int sbLineCount;
-		private bool dirty;
 		private BytesReadProgress.Progress curP, prevP;
 
 		public AVD3CL(DisplaySettings settings, Func<BytesReadProgress.Progress> getProgress) {
 			this.settings = settings;
 			this.getProgress = getProgress;
-			sb = new StringBuilder();
 		}
 
 
@@ -228,7 +227,7 @@ namespace AVDump3CL {
 			Thread.Sleep(2 * TicksInPeriod * 100);
 			timer.Change(Timeout.Infinite, Timeout.Infinite);
 			lock(timer) {
-				Console.SetCursorPosition(0, maxCursorPos);
+				if(!settings.ForwardConsoleCursorOnly) Console.SetCursorPosition(0, maxCursorPos);
 				Console.WriteLine();
 			}
 		}
@@ -241,56 +240,61 @@ namespace AVDump3CL {
 			}
 			sw.Restart();
 
-			Console.Write(output); dirty = true;
-			maxCursorPos = Math.Max(maxCursorPos, Console.CursorTop);
-			Console.SetCursorPosition(0, Math.Max(0, Console.CursorTop - sbLineCount));
+			Console.Write(output);
 
-			if(state == 0) {
-				prevP = curP;
-				curP = getProgress();
-			}
 			sb.Length = 0;
 
-			Display(sb, (state + 1) / (double)TicksInPeriod);
-			output = sb.ToString();
-
-			if(settings.ShowDisplayJitter) {
-				output += "\n" +
-					displayUpdateCount++.ToString("0000") + " " +
-					displaySkipCount.ToString("000") + " " +
-					sw.ElapsedMilliseconds.ToString("000000") + " " +
-					(state == 0 ? sw.ElapsedMilliseconds.ToString("000000") : "");
-				sbLineCount++;
+			string[] toWrite;
+			lock(this.toWrite) {
+				toWrite = this.toWrite.ToArray();
+				this.toWrite.Clear();
+			}
+			var consoleWidth = Console.BufferWidth - 1;
+			foreach(var line in toWrite) {
+				var sbLength = sb.Length;
+				sb.Append(line).Append(' ', consoleWidth - (sb.Length - sbLength)).AppendLine();
 			}
 
-			state++;
-			state %= TicksInPeriod;
+			if(!settings.ForwardConsoleCursorOnly) {
+				if(state == 0) {
+					prevP = curP;
+					curP = getProgress();
+				}
+
+				maxCursorPos = Math.Max(maxCursorPos, Console.CursorTop);
+				Console.SetCursorPosition(0, Math.Max(0, Console.CursorTop - sbLineCount));
+
+				Display(sb, (state + 1) / (double)TicksInPeriod);
+
+				if(settings.ShowDisplayJitter) {
+					sb.AppendLine();
+					sb.Append(
+						displayUpdateCount++.ToString("0000") + " " +
+						displaySkipCount.ToString("000") + " " +
+						sw.ElapsedMilliseconds.ToString("000000") + " " +
+						(state == 0 ? sw.ElapsedMilliseconds.ToString("000000") : "")
+					);
+					sbLineCount++;
+				}
+
+				state++;
+				state %= TicksInPeriod;
+			}
+
+			output = sb.ToString();
 
 			Monitor.Exit(timer);
 		}
 
 		public void Writeline(string line) {
-			Writeline(new[] { line });
+			lock(toWrite) toWrite.Add(line);
 		}
-		public void Writeline(IEnumerable<string> lines) {
-			lock(timer) {
-				if(dirty) {
-					var clearLine = new string(' ', Console.BufferWidth - 1);
-					for(var i = 0; i < sbLineCount; i++) {
-						Console.WriteLine(clearLine);
-					}
-					Console.SetCursorPosition(0, Console.CursorTop - sbLineCount);
-					dirty = false;
-				}
-
-				foreach(var line in lines) {
-					Console.WriteLine(line);
-				}
-			}
+		public void Writeline(IReadOnlyList<string> lines) {
+			lock(toWrite) toWrite.AddRange(lines);
 		}
 
 		private void Display(StringBuilder sb, double relPos) {
-			var sbLength = 0;
+			var sbLength = sb.Length;
 			var consoleWidth = Console.BufferWidth - 1;
 			consoleWidth = 79;
 
@@ -298,7 +302,6 @@ namespace AVDump3CL {
 			var now = DateTimeOffset.UtcNow;
 
 			sbLineCount = 0;
-			sb.Length = 0;
 			sbLineCount++;
 			sb.Append('-', consoleWidth).AppendLine();
 
@@ -340,10 +343,12 @@ namespace AVDump3CL {
 			int speed, curFCount = 0;
 			if(!settings.HideFileProgress) {
 				barWidth = consoleWidth - 21;
-				foreach(var item in from cur in curP.FileProgressCollection
-									join prev in prevP.FileProgressCollection on cur.FilePath equals prev.FilePath
-									orderby cur.StartedOn
-									select new { cur, prev }
+				foreach(var item in
+					from cur in curP.FileProgressCollection
+					join prev in prevP.FileProgressCollection on cur.FilePath equals prev.FilePath into PrevGJ
+					from prev in PrevGJ.DefaultIfEmpty()
+					orderby cur.StartedOn
+					select new { cur, prev = prev ?? cur }
 				) {
 					var fileName = Path.GetFileName(item.cur.FilePath);
 					curFCount++;
