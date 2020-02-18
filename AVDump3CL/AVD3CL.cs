@@ -351,7 +351,7 @@ namespace AVDump3CL {
 			double prevSpeed, curSpeed;
 			int speed, curFCount = 0;
 			if(!settings.HideFileProgress) {
-				barWidth = consoleWidth - 21;
+				barWidth = consoleWidth - 22;
 				foreach(var item in
 					from cur in curP.FileProgressCollection
 					join prev in prevP.FileProgressCollection on cur.Id equals prev.Id into PrevGJ
@@ -375,12 +375,16 @@ namespace AVDump3CL {
 					curSpeed = (int)((item.cur.BytesProcessed >> 20) / (now - item.cur.StartedOn).TotalSeconds);
 					speed = (int)(prevSpeed + relPos * (curSpeed - prevSpeed));
 
+					var withWriterLock = item.cur.WriterLockCount > item.prev.WriterLockCount;
+					var withReaderLock = item.cur.ReaderLockCount > item.prev.ReaderLockCount;
+					var lockSign = withReaderLock ? (withWriterLock ? '*' : '-') : (withWriterLock ? '+' : ' ');
+
 					sbLength = sb.Length;
 					sb.Append(fileName, 0, Math.Min(barWidth, fileName.Length));
 					//sb.Append("RL=").Append(item.cur.ReaderLockCount).Append(" WL=").Append(item.cur.WriterLockCount);
 					sb.Append(' ', barWidth - (sb.Length - sbLength));
 
-					sb.Append('[').Append('#', barPosition).Append(' ', 10 - barPosition).Append("] ");
+					sb.Append(lockSign).Append('[').Append('#', barPosition).Append(' ', 10 - barPosition).Append("] ");
 
 					sb.Append(Math.Min(999, speed)).Append("MiB/s");
 
