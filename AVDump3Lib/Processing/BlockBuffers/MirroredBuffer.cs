@@ -13,7 +13,7 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 	}
 
 	public unsafe class MirroredBuffer : IMirroredBuffer {
-		#region WinAPI
+		#region NativeApi
 		[StructLayout(LayoutKind.Sequential)]
 		private struct AVD3MirrorBufferCreateHandle {
 			public IntPtr fileHandle;
@@ -25,7 +25,6 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 
 		[DllImport("AVDump3NativeLib")]
 		private static extern IntPtr FreeMirrorBuffer(ref AVD3MirrorBufferCreateHandle handle);
-
 		#endregion
 
 		private AVD3MirrorBufferCreateHandle handle;
@@ -35,7 +34,7 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 		public MirroredBuffer(int length) {
 			var result = Marshal.PtrToStringAnsi(CreateMirrorBuffer(length, out handle));
 			if(!string.IsNullOrEmpty(result)) {
-				throw new Exception();
+				throw new Exception(result);
 			}
 
 			Data = (byte*)handle.baseAddress;

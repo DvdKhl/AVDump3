@@ -20,7 +20,7 @@ namespace AVDump3Lib.Misc {
 	}
 
 	public class SafeXmlWriter : XmlTextWriter {
-		bool lowerCaseElements = false;
+		private readonly bool lowerCaseElements = false;
 
 		public SafeXmlWriter(TextWriter tw) : base(tw) { Formatting = Formatting.Indented; }
 		public SafeXmlWriter(string filename, Encoding encoding) : base(filename, encoding) { Formatting = Formatting.Indented; }
@@ -28,7 +28,7 @@ namespace AVDump3Lib.Misc {
 
 
 
-		private StringBuilder sb = new StringBuilder();
+		private readonly StringBuilder sb = new StringBuilder();
 		public override void WriteString(string text) {
 			foreach(var character in text) if(IsLegalXmlChar(character)) sb.Append(character);
 			base.WriteString(sb.ToString());
