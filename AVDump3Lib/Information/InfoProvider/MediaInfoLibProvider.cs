@@ -263,6 +263,10 @@ namespace AVDump3Lib.Information.InfoProvider {
 							Add(stream, VideoStream.DisplayAspectRatioType, () => streamGet("DisplayAspectRatio").ToInvDouble());
 							Add(stream, VideoStream.ColorBitDepthType, () => streamGet("BitDepth").ToInvInt32());
 
+							Add(stream, MediaStream.AverageSampleRateType, () => streamGet("FrameRate_Mode").Equals("VFR", StringComparison.OrdinalIgnoreCase) ? streamGet("FrameRate").ToInvDouble() : default);
+							Add(stream, MediaStream.MaxSampleRateType, () => streamGet("FrameRate_Maximum").ToInvDouble());
+							Add(stream, MediaStream.MinSampleRateType, () => streamGet("FrameRate_Minimum").ToInvDouble());
+
 							Add(stream, VideoStream.IsInterlacedType, () => streamGet("ScanType").Equals("Interlaced"));
 							Add(stream, VideoStream.HasVariableFrameRateType, () => streamGet("FrameRate_Mode").Equals("VFR", StringComparison.OrdinalIgnoreCase));
 							Add(stream, VideoStream.ChromaSubsamplingType, () => new ChromeSubsampling(streamGet("ChromaSubsampling")));
@@ -311,7 +315,62 @@ namespace AVDump3Lib.Information.InfoProvider {
 			}
 
 			AddSuggestedFileExtension(mil, hasAudio, hasVideo, hasSubtitle);
+
+			var menuStreamCount = mil.GetCount(MediaInfoLibNativeMethods.StreamTypes.Menu);
+			for(var i = 0; i < menuStreamCount; i++) {
+				PopulateChapters(mil, i);
+			}
 		}
+
+		private void PopulateChapters(MediaInfoLibNativeMethods mil, int streamIndex) {
+			var menuType = MediaInfoLibNativeMethods.StreamTypes.Menu;
+			var chapters = new MetaInfoContainer((ulong)streamIndex, ChaptersType);
+
+			static ulong conv(string str) {
+				var timeParts = str.Split(new char[] { ':', '.' }).Select(s => ulong.Parse(s.Trim())).ToArray();
+				return (((timeParts[0] * 60 + timeParts[1]) * 60 + timeParts[2]) * 1000 + timeParts[3]) * 1000000;
+			}
+
+			var format = mil.Get("Format", menuType, streamIndex);
+			var languageChapters = mil.Get("Language", menuType, streamIndex);
+			Add(chapters, Chapters.FormatType, (format + " -- " + (string.IsNullOrEmpty(format) ? "nero" : "mov")).Trim());
+
+			var entryCount = mil.GetCount(MediaInfoLibNativeMethods.StreamTypes.Menu, streamIndex);
+			if(int.TryParse(mil.Get("Chapters_Pos_Begin", menuType, streamIndex), out var indexStart) && int.TryParse(mil.Get("Chapters_Pos_End", menuType, streamIndex), out var indexEnd)) {
+
+				//MIL Offset Bug workaround
+				var offsetFixTries = 20;
+				while(offsetFixTries-- > 0 && !mil.Get(indexStart, menuType, streamIndex, MediaInfoLibNativeMethods.InfoTypes.Name).Split('-').All(x => x.Contains(':'))) {
+					indexStart++;
+					indexEnd++;
+				}
+				if(offsetFixTries == 0) {
+					return;
+				}
+
+				for(; indexStart < indexEnd; indexStart++) {
+					var chapter = new MetaInfoContainer((ulong)indexStart, Chapters.ChapterType);
+					chapters.AddNode(chapter);
+
+					var timeStamps = mil.Get(indexStart, menuType, streamIndex, MediaInfoLibNativeMethods.InfoTypes.Name).Split('-');
+					var timeStamp = conv(timeStamps[0].Trim());
+
+					Add(chapter, Chapter.TimeStartType, timeStamp / 1000d);
+					//Add(chapter, Chapter.TimeEndType, );
+
+					var languageTitle = mil.Get(indexStart, menuType, streamIndex);
+					var language = languageTitle.Substring(0, 4).Contains(':') ?  languageTitle.Substring(0, languageTitle.IndexOf(':'))  : "";
+					var title = languageTitle.Substring(string.IsNullOrEmpty(language) ? 0 : language.Length + 1);
+
+					if(string.IsNullOrEmpty(language)) language = languageChapters;
+
+					Add(chapter, Chapter.TitleType, new ChapterTitle(title, string.IsNullOrEmpty(language) ? Array.Empty<string>() : new[] { language }, Array.Empty<string>()));
+				}
+			}
+
+			AddNode(chapters);
+		}
+
 
 		private void AddSuggestedFileExtension(MediaInfoLibNativeMethods mil, bool hasAudio, bool hasVideo, bool hasSubtitle) {
 			var milInfo = (mil.Get("Format/Extensions") ?? "").ToLowerInvariant();
@@ -359,6 +418,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 			using var mil = new MediaInfoLibNativeMethods();
 			if(File.Exists(filePath)) {
 				var retVal = mil.Open(filePath);
+
 				if(retVal == 1) {
 					Populate(mil);
 				} else {

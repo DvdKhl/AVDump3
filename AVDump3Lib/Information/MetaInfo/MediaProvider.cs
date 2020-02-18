@@ -212,6 +212,7 @@ namespace AVDump3Lib.Information.MetaInfo {
 	#region Chapters
 	public class Chapters {
 		public static readonly MetaInfoItemType<int> IdType = new MetaInfoItemType<int>("Id");
+		public static readonly MetaInfoItemType<string> FormatType = new MetaInfoItemType<string>("Format");
 		public static readonly MetaInfoItemType<bool> IsHiddenType = new MetaInfoItemType<bool>("IsHidden");
 		public static readonly MetaInfoItemType<bool> IsDefaultType = new MetaInfoItemType<bool>("IsDefault");
 		public static readonly MetaInfoItemType<bool> IsOrderedType = new MetaInfoItemType<bool>("IsOrdered");
