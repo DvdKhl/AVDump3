@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Xml.Linq;
@@ -53,7 +54,7 @@ namespace AVDump3CL {
 
 		private HashSet<string> filePathsToSkip;
 
-		private AVD3CLModuleSettings settings = new AVD3CLModuleSettings();
+		private readonly AVD3CLModuleSettings settings = new AVD3CLModuleSettings();
 
 		private IAVD3ProcessingModule processingModule;
 		private IAVD3InformationModule informationModule;
@@ -65,8 +66,11 @@ namespace AVDump3CL {
 		}
 
 		private void UnhandleException(object sender, UnhandledExceptionEventArgs e) {
-			var wrapEx = new AVD3CLException("Unhandled AppDomain wide Exception",
-				e.ExceptionObject as Exception ?? new Exception("Non Exception Type: " + e.ExceptionObject.ToString()));
+			var wrapEx = new AVD3CLException(
+				"Unhandled AppDomain wide Exception",
+				e.ExceptionObject as Exception ?? new Exception("Non Exception Type: " + e.ExceptionObject.ToString())
+			);
+
 			OnException(wrapEx);
 		}
 
@@ -75,19 +79,20 @@ namespace AVDump3CL {
 				settings.Diagnostics.SkipEnvironmentElement,
 				settings.Diagnostics.IncludePersonalData
 			);
-			cl.Writeline("Error " + ex.GetBaseException().GetType() + ": " + ex.GetBaseException().Message);
-
-			ExceptionThrown?.Invoke(this, new AVD3CLModuleExceptionEventArgs(exElem));
-			//TODO Raise Event for modules to listen to
 
 			if(settings.Diagnostics.SaveErrors) {
 				Directory.CreateDirectory(settings.Diagnostics.ErrorDirectory);
 				var filePath = Path.Combine(settings.Diagnostics.ErrorDirectory, "AVD3Error" + ex.ThrownOn.ToString("yyyyMMdd HHmmssffff") + ".xml");
 
-				using(var safeXmlWriter = new SafeXmlWriter(filePath, Encoding.UTF8)) {
-					exElem.WriteTo(safeXmlWriter);
-				}
+				using var safeXmlWriter = new SafeXmlWriter(filePath, Encoding.UTF8);
+				exElem.WriteTo(safeXmlWriter);
 			}
+
+			var exception = ex.GetBaseException() ?? ex;
+
+			cl.Writeline("Error " + exception.GetType() + ": " + exception.Message);
+			ExceptionThrown?.Invoke(this, new AVD3CLModuleExceptionEventArgs(exElem));
+			//TODO Raise Event for modules to listen to
 		}
 
 		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) {
@@ -159,6 +164,10 @@ namespace AVDump3CL {
 				filePathsToSkip = new HashSet<string>(File.ReadLines(settings.FileDiscovery.SkipLogPath));
 			} else {
 				filePathsToSkip = new HashSet<string>();
+			}
+			if(settings.FileDiscovery.ProcessedLogPath != null) {
+				var processedLogPathDirectory = Path.GetDirectoryName(settings.FileDiscovery.ProcessedLogPath);
+				if(!string.IsNullOrEmpty(processedLogPathDirectory)) Directory.CreateDirectory(processedLogPathDirectory);
 			}
 		}
 
@@ -286,25 +295,26 @@ namespace AVDump3CL {
 				linesToWrite.Add("");
 			}
 
+
 			var reportsFactories = reportingModule.ReportFactories.Where(x => settings.Reporting.Reports.Any(y => x.Name.Equals(y, StringComparison.OrdinalIgnoreCase))).ToArray();
 			if(reportsFactories.Length != 0) {
 				var infoSetup = new InfoProviderSetup(filePath, blockConsumers);
 
 				try {
-					var infoProviders = informationModule.InfoProviderFactories.Select(x => x.Create(infoSetup));
+					var infoProviders = informationModule.InfoProviderFactories.Select(x => x.Create(infoSetup)).ToArray();
 
 					var fileMetaInfo = new FileMetaInfo(new FileInfo(filePath), infoProviders);
 					var reportItems = reportsFactories.Select(x => new { x.Name, Report = x.Create(fileMetaInfo) });
 
 					foreach(var reportItem in reportItems) {
 						if(settings.Display.PrintReports) {
-							linesToWrite.Add(reportItem.Report.ReportToString(Encoding.UTF8) + "\n");
+							linesToWrite.Add(reportItem.Report.ReportToString(Utils.UTF8EncodingNoBOM) + "\n");
 						}
-						reportItem.Report.SaveToFile(Path.Combine(settings.Reporting.ReportDirectory, $"{fileName}.{reportItem.Name}.{reportItem.Report.FileExtension}"), Encoding.UTF8);
+						reportItem.Report.SaveToFile(Path.Combine(settings.Reporting.ReportDirectory, $"{fileName}.{reportItem.Name}.{reportItem.Report.FileExtension}"), Utils.UTF8EncodingNoBOM);
 					}
 
 				} catch(Exception ex) {
-					OnException(new AVD3CLException("GeneratingReports", ex));
+					OnException(new AVD3CLException("GeneratingReports", ex) { Data = { { "FileName", new SensitiveData(fileName) } } });
 				}
 			}
 			cl.Writeline(linesToWrite);
@@ -329,11 +339,8 @@ namespace AVDump3CL {
 
 			FileProcessed?.Invoke(this, new AVD3CLFileProcessedEventArgs(filePath, blockConsumers));
 
-			if(settings.FileDiscovery.SkipLogPath != null) {
-				lock(filePathsToSkip) {
-					filePathsToSkip.Add(filePath);
-					File.AppendAllText(settings.FileDiscovery.SkipLogPath, filePath + "\n");
-				}
+			if(settings.FileDiscovery.ProcessedLogPath != null) {
+				File.AppendAllText(settings.FileDiscovery.ProcessedLogPath, filePath + "\n");
 			}
 
 		}

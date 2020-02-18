@@ -9,6 +9,8 @@ namespace AVDump3Lib.Misc {
 	public static class Utils {
 		public static bool UsingWindows { get; } = Environment.OSVersion.Platform == PlatformID.Win32NT;
 
+		public static UTF8Encoding UTF8EncodingNoBOM = new UTF8Encoding(false);
+
 		public static string ToBase32(byte[] input) {
 			if(input == null || input.Length == 0) {
 				throw new ArgumentNullException("input");

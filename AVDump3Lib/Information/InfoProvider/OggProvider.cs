@@ -18,7 +18,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 			Add(FileSizeType, oggFile.FileSize);
 			Add(OverheadType, oggFile.Overhead);
-			Add(DurationType, oggFile.Bitstreams.Where(b => !(b is UnknownOGGBitStream)).Max(b => (double)b.Duration));
+			if(oggFile.Bitstreams.Any()) Add(DurationType, oggFile.Bitstreams.Where(b => !(b is UnknownOGGBitStream)).Max(b => (double)b.Duration));
 
 			MetaInfoContainer stream = null;
 			foreach(var bitStream in oggFile.Bitstreams) {
@@ -31,8 +31,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 					AddNode(stream);
 
 
-				} else if(bitStream is AudioOGGBitStream) {
-					var audio = (AudioOGGBitStream)bitStream;
+				} else if(bitStream is AudioOGGBitStream audio) {
 					stream = new MetaInfoContainer(bitStream.Id, AudioStreamType);
 					Add(stream, AudioStream.ChannelCountType, audio.ChannelCount);
 					Add(stream, MediaStream.StatedSampleRateType, audio.SampleRate);
@@ -56,12 +55,10 @@ namespace AVDump3Lib.Information.InfoProvider {
 				Add(stream, MediaStream.ContainerCodecNameType, bitStream.CodecName);
 				Add(stream, MediaStream.BitrateType, bitStream.Size * 8 / duration.TotalSeconds);
 
-				if(bitStream is IVorbisComment) {
-					var track = (IVorbisComment)bitStream;
+				if(bitStream is IVorbisComment track) {
 					if(track.Comments.Items.Contains("title")) Add(stream, MediaStream.TitleType, track.Comments.Items["title"].Value.Aggregate((acc, str) => acc + "," + str));
 					if(track.Comments.Items.Contains("language")) Add(stream, MediaStream.LanguageType, track.Comments.Items["language"].Value.Aggregate((acc, str) => acc + "," + str));
 				}
-
 				if(bitStream is IOGMStream) Add(stream, MediaStream.ContainerCodecNameType, ((IOGMStream)bitStream).ActualCodecName);
 
 			}

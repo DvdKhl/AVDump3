@@ -28,8 +28,8 @@ namespace AVDump3Lib.Processing.StreamProvider {
 	}
 
 	public sealed class StreamFromPathsProvider : IStreamProvider, IDisposable {
-		private List<LocalConcurrency> localConcurrencyPartitions;
-		private SemaphoreSlim globalConcurrency = new SemaphoreSlim(1);
+		private readonly List<LocalConcurrency> localConcurrencyPartitions;
+		private readonly SemaphoreSlim globalConcurrency = new SemaphoreSlim(1);
 
 		public int TotalFileCount { get; private set; }
 		public long TotalBytes { get; private set; }
@@ -46,7 +46,7 @@ namespace AVDump3Lib.Processing.StreamProvider {
 					Limit = new SemaphoreSlim(pp.ConcurrentCount)
 				}
 			).ToList();
-			localConcurrencyPartitions.Add(new LocalConcurrency { Path = "", Limit = new SemaphoreSlim(1) });
+			localConcurrencyPartitions.Add(new LocalConcurrency { Path = "", Limit = new SemaphoreSlim(pathPartitions.ConcurrentCount) });
 			//localConcurrencyPartitions.Sort((a, b) => b.Path.Length.CompareTo(a.Path.Length));
 
 			FileTraversal.Traverse(paths, includeSubFolders, filePath => {
@@ -91,8 +91,8 @@ namespace AVDump3Lib.Processing.StreamProvider {
 		}
 
 		private class ProvidedStreamFromPath : ProvidedStream {
-			private StreamFromPathsProvider provider;
-			private string filePath;
+			private readonly StreamFromPathsProvider provider;
+			private readonly string filePath;
 
 			public ProvidedStreamFromPath(StreamFromPathsProvider provider, string filePath) : base(filePath, File.OpenRead(filePath)) {
 				this.provider = provider;

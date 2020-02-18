@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AVDump3CL", "AVDump3CL\AVDump3CL.csproj", "{23FC087F-F2DA-42CE-AF47-85AE441EAD87}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AVDump3Lib", "AVDump3Lib\AVDump3Lib.csproj", "{427F1262-4A9A-4CBC-84EE-0B659BEAA9D8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7F854E9E-7824-47A3-B560-3901B8F59DCA} = {7F854E9E-7824-47A3-B560-3901B8F59DCA}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AVDump3NativeLib", "AVDump3NativeLib\AVDump3NativeLib.vcxproj", "{7F854E9E-7824-47A3-B560-3901B8F59DCA}"
 EndProject

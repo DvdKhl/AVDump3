@@ -48,11 +48,11 @@ namespace AVDump3Lib.Reporting.Reports {
 							}
 						}
 						if(streamKind == StreamTypes.Menu) {
-							int indexStart;
-							int indexEnd;
 							XElement chapterNode;
-
-							if(int.TryParse(mediaInfo.Get("Chapters_Pos_Begin", streamKind, i), out indexStart) && int.TryParse(mediaInfo.Get("Chapters_Pos_End", streamKind, i), out indexEnd)) {
+							if(
+								int.TryParse(mediaInfo.Get("Chapters_Pos_Begin", streamKind, i), out var indexStart) && 
+								int.TryParse(mediaInfo.Get("Chapters_Pos_End", streamKind, i), out var indexEnd)
+							) {
 								chapterNode = new XElement("Chapters");
 								subNode.Add(chapterNode);
 								for(; indexStart < indexEnd; indexStart++) {

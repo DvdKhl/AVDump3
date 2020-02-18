@@ -16,14 +16,11 @@ namespace AVDump3Lib.Reporting.Core {
 		public string FileExtension { get; } = "xml";
 
 		public string ReportToString(Encoding encoding) {
-			using(var textWriter = new StringWriterWithEncoding(encoding))
-			using(var safeXmlWriter = new SafeXmlWriter(textWriter)) {
-				
+			using var textWriter = new StringWriterWithEncoding(encoding);
+			using var safeXmlWriter = new SafeXmlWriter(textWriter);
 
-
-				Report.WriteTo(safeXmlWriter);
-				return textWriter.ToString();
-			}
+			Report.WriteTo(safeXmlWriter);
+			return textWriter.ToString();
 		}
 
 		public XDocument ReportToXml() { return new XDocument(Report); }
@@ -31,9 +28,8 @@ namespace AVDump3Lib.Reporting.Core {
 		public void SaveToFile(string filePath, Encoding encoding) {
 			Directory.CreateDirectory(Path.GetDirectoryName(filePath));
 
-			using(var safeXmlWriter = new SafeXmlWriter(filePath, encoding)) {
-				Report.WriteTo(safeXmlWriter);
-			}
+			using var safeXmlWriter = new SafeXmlWriter(filePath, encoding);
+			Report.WriteTo(safeXmlWriter);
 		}
 	}
 }
