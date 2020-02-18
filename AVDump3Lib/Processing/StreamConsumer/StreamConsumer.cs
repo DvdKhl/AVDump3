@@ -13,7 +13,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 	public interface IStreamConsumer {
 		event StreamConsumerEventHandler Finished;
 		bool RanToCompletion { get; }
-
+		Guid Id { get; }
 		IReadOnlyList<IBlockConsumer> BlockConsumers { get; }
 		IBlockStream BlockStream { get; }
 		void ConsumeStream(IProgress<BlockStreamProgress> progress, CancellationToken ct);
@@ -25,6 +25,8 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 		private IBlockConsumer[] blockConsumers;
 
 		public event StreamConsumerEventHandler Finished;
+
+		public Guid Id { get; } = Guid.NewGuid();
 
 		public IBlockStream BlockStream { get; }
 		public IReadOnlyList<IBlockConsumer> BlockConsumers { get; }

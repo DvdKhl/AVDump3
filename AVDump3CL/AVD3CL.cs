@@ -43,6 +43,7 @@ namespace AVDump3CL {
 			public int ActiveCount { get; internal set; }
 		}
 		public class FileProgress {
+			public Guid Id { get; }
 			public string FilePath { get; private set; }
 			public DateTimeOffset StartedOn { get; private set; }
 			public long FileLength { get; private set; }
@@ -51,10 +52,11 @@ namespace AVDump3CL {
 			public int WriterLockCount { get; private set; }
 			public IReadOnlyList<KeyValuePair<string, long>> BytesProcessedPerBlockConsumer { get; private set; }
 
-			public FileProgress(string filePath, DateTimeOffset startedOn, long fileLength, long bytesProcessed,
+			public FileProgress(Guid id, string filePath, DateTimeOffset startedOn, long fileLength, long bytesProcessed,
 				int readerLockCount, int writerLockCount,
 				IReadOnlyList<KeyValuePair<string, long>> bytesProcessedPerBlockConsumer
 			) {
+				Id = id;
 				FilePath = filePath;
 				StartedOn = startedOn;
 				FileLength = fileLength;
@@ -119,25 +121,29 @@ namespace AVDump3CL {
 				var bytesRead = (long[])info.BytesRead.Clone();
 				var bcfProgress = new KeyValuePair<string, long>[bytesRead.Length - 1];
 
-				bytesProcessed += (long)bytesRead.Where(x => x != 0).DefaultIfEmpty(0).Average();
-
+				var bytesProcessLocal = 0L;
+				//bytesProcessed += (long)bytesRead.Skip(1).Where((x, i) => x != 0 && info.StreamConsumer.BlockConsumers[i].IsConsuming).DefaultIfEmpty(0).Average();
+				var activeCount = 0;
 				for(var i = 0; i < bcfProgress.Length; i++) {
-					bcfProgress[i] = new KeyValuePair<string, long>(
-						info.StreamConsumer.BlockConsumers[i].Name,
-						bytesRead[i + 1]
-					);
+					var blockConsumer = info.StreamConsumer.BlockConsumers[i];
 
-					var index = bcNameIndexMap[info.StreamConsumer.BlockConsumers[i].Name];
+					bcfProgress[i] = new KeyValuePair<string, long>(blockConsumer.Name, bytesRead[i + 1]);
 
+					var index = bcNameIndexMap[blockConsumer.Name];
 					var bcProgress = blockConsumerProgress[index];
-					if(info.StreamConsumer.BlockConsumers[i].IsConsuming) bcProgress.ActiveCount++;
+					if(blockConsumer.IsConsuming) {
+						bcProgress.ActiveCount++;
+						activeCount++;
+						bytesProcessLocal += bytesRead[i + 1];
+					}
 					bcProgress.BytesProcessed += bytesRead[i + 1];
 					bcProgress.BufferFill += (bytesRead[0] - bytesRead[i + 1]) / (double)bufferLength;
-					//bcProgress.BufferFill = Math.Min(bcProgress.BufferFill,(bytesRead[0] - bytesRead[i + 1]) / (double)bufferLength);
-
 				}
+				bytesProcessed += bytesProcessLocal / activeCount;
 
+				
 				fileProgressCollection.Add(new FileProgress(
+					info.StreamConsumer.Id,
 					info.Filename, info.StartedOn,
 					info.Length, bytesRead[0],
 					info.StreamConsumer.BlockStream.BufferUnderrunCount,
@@ -250,9 +256,13 @@ namespace AVDump3CL {
 				this.toWrite.Clear();
 			}
 			var consoleWidth = Console.BufferWidth - 1;
-			foreach(var line in toWrite) {
+			for(var i = 0; i < toWrite.Length; i++) {
+				var line = toWrite[i];
+
 				var sbLength = sb.Length;
-				sb.Append(line).Append(' ', consoleWidth - (sb.Length - sbLength)).AppendLine();
+				sb.Append(line);
+				if(i < sbLineCount) sb.Append(' ', Math.Max(0, consoleWidth - (sb.Length - sbLength)));
+				sb.AppendLine();
 			}
 
 			if(!settings.ForwardConsoleCursorOnly) {
@@ -286,17 +296,16 @@ namespace AVDump3CL {
 			Monitor.Exit(timer);
 		}
 
-		public void Writeline(string line) {
-			lock(toWrite) toWrite.Add(line);
-		}
+		public void Writeline(params string[] lines) => Writeline((IReadOnlyList<string>)lines);
 		public void Writeline(IReadOnlyList<string> lines) {
+			lines = lines.SelectMany(x => x.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)).ToArray();
 			lock(toWrite) toWrite.AddRange(lines);
 		}
 
 		private void Display(StringBuilder sb, double relPos) {
 			var sbLength = sb.Length;
 			var consoleWidth = Console.BufferWidth - 1;
-			consoleWidth = 79;
+			consoleWidth = Math.Min(120, consoleWidth);
 
 			var barWidth = consoleWidth - 8 - 1 - 2 - 2;
 			var now = DateTimeOffset.UtcNow;
@@ -345,7 +354,7 @@ namespace AVDump3CL {
 				barWidth = consoleWidth - 21;
 				foreach(var item in
 					from cur in curP.FileProgressCollection
-					join prev in prevP.FileProgressCollection on cur.FilePath equals prev.FilePath into PrevGJ
+					join prev in prevP.FileProgressCollection on cur.Id equals prev.Id into PrevGJ
 					from prev in PrevGJ.DefaultIfEmpty()
 					orderby cur.StartedOn
 					select new { cur, prev = prev ?? cur }
