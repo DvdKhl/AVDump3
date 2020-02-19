@@ -68,6 +68,7 @@ namespace AVDump3Lib.Information.MetaInfo {
 		public static readonly MetaInfoItemType<string> CodecAdditionalFeaturesType = new MetaInfoItemType<string>("CodecAdditionalFeatures");
 		public static readonly MetaInfoItemType<string> CodecCommercialIdType = new MetaInfoItemType<string>("CodecCommercialId");
 		public static readonly MetaInfoItemType<string> ContainerCodecIdType = new MetaInfoItemType<string>("ContainerCodecId");
+		public static readonly MetaInfoItemType<string> ContainerCodecCCType = new MetaInfoItemType<string>("ContainerCodecCC");
 		public static readonly MetaInfoItemType<string> ContainerCodecIdWithCodecPrivateType = new MetaInfoItemType<string>("ContainerCodecIdWithCodecPrivate");
 		public static readonly MetaInfoItemType<string> ContainerCodecNameType = new MetaInfoItemType<string>("ContainerCodecName");
 		public static readonly MetaInfoItemType<string> CodecNameType = new MetaInfoItemType<string>("CodecName");

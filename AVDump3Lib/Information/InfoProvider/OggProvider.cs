@@ -18,7 +18,9 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 			Add(FileSizeType, oggFile.FileSize);
 			Add(OverheadType, oggFile.Overhead);
-			if(oggFile.Bitstreams.Any()) Add(DurationType, oggFile.Bitstreams.Where(b => !(b is UnknownOGGBitStream)).Max(b => (double)b.Duration));
+
+			var knownStreams = oggFile.Bitstreams.Where(b => !(b is UnknownOGGBitStream)).ToArray();
+			if(knownStreams.Any()) Add(DurationType, knownStreams.Max(b => (double)b.Duration));
 
 			MetaInfoContainer stream = null;
 			foreach(var bitStream in oggFile.Bitstreams) {

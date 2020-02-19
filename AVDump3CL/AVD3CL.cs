@@ -139,7 +139,7 @@ namespace AVDump3CL {
 					bcProgress.BytesProcessed += bytesRead[i + 1];
 					bcProgress.BufferFill += (bytesRead[0] - bytesRead[i + 1]) / (double)bufferLength;
 				}
-				bytesProcessed += bytesProcessLocal / activeCount;
+				if(activeCount > 0) bytesProcessed += bytesProcessLocal / activeCount;
 
 				
 				fileProgressCollection.Add(new FileProgress(
@@ -375,9 +375,11 @@ namespace AVDump3CL {
 					curSpeed = (int)((item.cur.BytesProcessed >> 20) / (now - item.cur.StartedOn).TotalSeconds);
 					speed = (int)(prevSpeed + relPos * (curSpeed - prevSpeed));
 
-					var withWriterLock = item.cur.WriterLockCount > item.prev.WriterLockCount;
-					var withReaderLock = item.cur.ReaderLockCount > item.prev.ReaderLockCount;
-					var lockSign = withReaderLock ? (withWriterLock ? '*' : '-') : (withWriterLock ? '+' : ' ');
+					var writerLockCount = item.cur.WriterLockCount - item.prev.WriterLockCount;
+					var readerLockCount = (item.cur.ReaderLockCount - item.prev.ReaderLockCount) / Math.Max(1, curP.BlockConsumerProgressCollection.Count);
+					var lockSign = writerLockCount == 0 && readerLockCount == 0 ? ' ' : (writerLockCount < readerLockCount ? '-' : '+');
+
+
 
 					sbLength = sb.Length;
 					sb.Append(fileName, 0, Math.Min(barWidth, fileName.Length));

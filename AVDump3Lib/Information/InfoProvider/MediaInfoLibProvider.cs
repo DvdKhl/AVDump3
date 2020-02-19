@@ -2,6 +2,7 @@ using AVDump3Lib.Information.MetaInfo;
 using AVDump3Lib.Information.MetaInfo.Core;
 using AVDump3Lib.Misc;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -358,13 +359,21 @@ namespace AVDump3Lib.Information.InfoProvider {
 					Add(chapter, Chapter.TimeStartType, timeStamp / 1000d);
 					//Add(chapter, Chapter.TimeEndType, );
 
-					var languageTitle = mil.Get(indexStart, menuType, streamIndex);
-					var language = languageTitle.Substring(0, 4).Contains(':') ?  languageTitle.Substring(0, languageTitle.IndexOf(':'))  : "";
-					var title = languageTitle.Substring(string.IsNullOrEmpty(language) ? 0 : language.Length + 1);
+					var title = mil.Get(indexStart, menuType, streamIndex);
 
-					if(string.IsNullOrEmpty(language)) language = languageChapters;
+					var languages = new List<string>();
+					if((uint)title.IndexOf(':') < 5) {
+						var language = title.Contains(':') ? title.Substring(0, title.IndexOf(':'))  : "";
+						if(!string.IsNullOrEmpty(language)) languages.Add(language);
+						title = title.Substring(language.Length + 1);
 
-					Add(chapter, Chapter.TitleType, new ChapterTitle(title, string.IsNullOrEmpty(language) ? Array.Empty<string>() : new[] { language }, Array.Empty<string>()));
+					} else if(!string.IsNullOrEmpty(languageChapters)) {
+						languages.Add(languageChapters);
+					}
+
+
+
+					Add(chapter, Chapter.TitleType, new ChapterTitle(title, languages, Array.Empty<string>()));
 				}
 			}
 

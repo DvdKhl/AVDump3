@@ -340,7 +340,7 @@ namespace AVDump3CL {
 			FileProcessed?.Invoke(this, new AVD3CLFileProcessedEventArgs(filePath, blockConsumers));
 
 			if(settings.FileDiscovery.ProcessedLogPath != null) {
-				File.AppendAllText(settings.FileDiscovery.ProcessedLogPath, filePath + "\n");
+				lock(settings.FileDiscovery) File.AppendAllText(settings.FileDiscovery.ProcessedLogPath, filePath + "\n");
 			}
 
 		}
