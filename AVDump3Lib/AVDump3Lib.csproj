@@ -36,16 +36,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="BXmlLib">
-      <HintPath>..\..\BXmlLib\BXmlLib\bin\Debug\netstandard2.0\BXmlLib.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="..\LICENSE">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="BXmlLib">
+      <HintPath>Libs\BXmlLib.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>
