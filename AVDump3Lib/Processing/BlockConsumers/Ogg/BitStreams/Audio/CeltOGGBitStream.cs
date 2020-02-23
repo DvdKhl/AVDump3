@@ -5,18 +5,12 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 	public class CeltOGGBitStream : AudioOGGBitStream {
 		public override string CodecName { get { return "Celt"; } }
 		public override string CodecVersion { get; protected set; }
+		public override long SampleCount => LastGranulePosition;
+		public override double SampleRate { get; }
 
 		public CeltOGGBitStream()
 			: base(true) {
 
-		}
-
-
-		public override void ProcessPage(ref OggPage page) {
-			base.ProcessPage(ref page);
-
-			var sampleIndex = MemoryMarshal.Read<long>(page.GranulePosition);
-			if(SampleCount < (int)sampleIndex) SampleCount = (int)sampleIndex;
 		}
 	}
 }

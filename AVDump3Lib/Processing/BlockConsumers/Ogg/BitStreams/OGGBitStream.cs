@@ -6,7 +6,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 	public abstract class OGGBitStream {
 		public uint Id { get; private set; }
 		public long Size { get; private set; }
-		public long Duration { get; protected set; }
+		public long LastGranulePosition { get; private set; }
 		public abstract string CodecName { get; }
 		public abstract string CodecVersion { get; protected set; }
 
@@ -38,6 +38,9 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 		}
 
 		public virtual void ProcessPage(ref OggPage page) {
+			var granulePosition = MemoryMarshal.Read<long>(page.GranulePosition);
+			LastGranulePosition = granulePosition > LastGranulePosition ? granulePosition : LastGranulePosition;
+
 			Size += page.Data.Length;
 		}
 	}

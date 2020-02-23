@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace AVDump3Lib.Settings.Core {
 	public class SettingsObject {
-		private Dictionary<SettingsProperty, object> values = new Dictionary<SettingsProperty, object>();
+		private readonly Dictionary<SettingsProperty, object> values = new Dictionary<SettingsProperty, object>();
 
 		public string Name { get; protected set; }
 
@@ -23,8 +23,8 @@ namespace AVDump3Lib.Settings.Core {
 		}
 
 
-		public void UnsetValue(SettingsProperty property) { values.Remove(property); }
-		public void SetValue(SettingsProperty property, object value) { values[property] = value; }
-		public object GetValue(SettingsProperty property) { object value; return values.TryGetValue(property, out value) ? value : property.DefaultValue; }
+		public void UnsetValue(SettingsProperty property) => values.Remove(property);
+		public void SetValue(SettingsProperty property, object value) => values[property] = value;
+		public object GetValue(SettingsProperty property) => values.TryGetValue(property, out var value) ? value : property.DefaultValue;
 	}
 }

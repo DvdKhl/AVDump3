@@ -9,7 +9,7 @@ namespace AVDump3Lib.Reporting {
 		void AddReportFactory(ReportFactory reportFactory);
 	}
 	public class AVD3ReportingModule : IAVD3ReportingModule {
-		private List<IReportFactory> reportFactories;
+		private readonly List<IReportFactory> reportFactories;
 
 		public IReadOnlyCollection<IReportFactory> ReportFactories { get; }
 

@@ -134,6 +134,24 @@ namespace AVDump3CL {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Logs the filepath if the detected extension does not match the actual extension.
+        /// </summary>
+        internal static string ExtensionDifferencePathDescription {
+            get {
+                return ResourceManager.GetString("ExtensionDifferencePathDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to --ExtDiff=extdiff.txt.
+        /// </summary>
+        internal static string ExtensionDifferencePathExample {
+            get {
+                return ResourceManager.GetString("ExtensionDifferencePathExample", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to .
         /// </summary>
         internal static string HideBuffersDescription {

@@ -18,7 +18,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 			var page = new OggPage();
 			var stream = new OggBlockDataSource(Reader);
 
-			if(!stream.SeekPastSyncBytes(true)) return;
+			if(!stream.SeekPastSyncBytes(false)) return;
 
 
 			while(stream.ReadOggPage(ref page)) {

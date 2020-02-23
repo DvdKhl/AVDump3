@@ -5,8 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace AVDump3CL {
@@ -41,43 +43,43 @@ namespace AVDump3CL {
 		[CLNames("R")]
 		public SettingsProperty RecursiveProperty { get; }
 		public bool Recursive {
-			get { return (bool)GetValue(RecursiveProperty); }
-			set { SetValue(RecursiveProperty, value); }
+			get => (bool)GetValue(RecursiveProperty);
+			set => SetValue(RecursiveProperty, value);
 		}
 
 		[CLNames("PLPath")]
 		public SettingsProperty ProcessedLogPathProperty { get; }
 		public string ProcessedLogPath {
-			get { return (string)GetValue(ProcessedLogPathProperty); }
-			set { SetValue(ProcessedLogPathProperty, value); }
+			get => (string)GetValue(ProcessedLogPathProperty);
+			set => SetValue(ProcessedLogPathProperty, value);
 		}
 
 		[CLNames("SLPath")]
 		public SettingsProperty SkipLogPathProperty { get; }
 		public string SkipLogPath {
-			get { return (string)GetValue(SkipLogPathProperty); }
-			set { SetValue(SkipLogPathProperty, value); }
+			get => (string)GetValue(SkipLogPathProperty);
+			set => SetValue(SkipLogPathProperty, value);
 		}
 
 		[CLNames("DLPath")]
 		public SettingsProperty DoneLogPathProperty { get; }
 		public string DoneLogPath {
-			get { return (string)GetValue(DoneLogPathProperty); }
-			set { SetValue(DoneLogPathProperty, value); }
+			get => (string)GetValue(DoneLogPathProperty);
+			set => SetValue(DoneLogPathProperty, value);
 		}
 
 		[CLNames("Conc")]
 		public SettingsProperty ConcurrentProperty { get; }
 		public PathPartitions Concurrent {
-			get { return (PathPartitions)GetValue(ConcurrentProperty); }
-			set { SetValue(ConcurrentProperty, value); }
+			get => (PathPartitions)GetValue(ConcurrentProperty);
+			set => SetValue(ConcurrentProperty, value);
 		}
 
 		[CLNames("WExts")]
 		public SettingsProperty WithExtensionsProperty { get; }
 		public FileExtensionsSetting WithExtensions {
-			get { return (FileExtensionsSetting)GetValue(WithExtensionsProperty); }
-			set { SetValue(WithExtensionsProperty, value); }
+			get => (FileExtensionsSetting)GetValue(WithExtensionsProperty);
+			set => SetValue(WithExtensionsProperty, value);
 		}
 
 		public FileDiscoverySettings() {
@@ -106,8 +108,7 @@ namespace AVDump3CL {
 
 		object ICLConvert.FromCLString(SettingsProperty property, string str) {
 			if(property == WithExtensionsProperty) {
-				var value = new FileExtensionsSetting();
-				value.Allow = str.Length != 0 && str[0] != '-';
+				var value = new FileExtensionsSetting { Allow = str.Length != 0 && str[0] != '-' };
 				if(!value.Allow) str = str.Substring(1);
 				value.Items = Array.AsReadOnly(str.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries));
 				return value;
@@ -121,6 +122,9 @@ namespace AVDump3CL {
 					let parts = item.Split(',')
 					select new PathPartition(parts[0], int.Parse(parts[1]))
 				);
+			} else if(property == DoneLogPathProperty) {
+				SkipLogPath = str;
+				ProcessedLogPath = str;
 			}
 
 			return Convert.ChangeType(str, property.ValueType);
@@ -131,40 +135,40 @@ namespace AVDump3CL {
 		[CLNames("BLength")]
 		public SettingsProperty BufferLengthProperty { get; }
 		public int BufferLength {
-			get { return (int)GetValue(BufferLengthProperty); }
-			set { SetValue(BufferLengthProperty, value); }
+			get => (int)GetValue(BufferLengthProperty);
+			set => SetValue(BufferLengthProperty, value);
 		}
 
 		public SettingsProperty ProducerMinReadLengthProperty { get; }
 		public int ProducerMinReadLength {
-			get { return (int)GetValue(ProducerMinReadLengthProperty); }
-			set { SetValue(ProducerMinReadLengthProperty, value); }
+			get => (int)GetValue(ProducerMinReadLengthProperty);
+			set => SetValue(ProducerMinReadLengthProperty, value);
 		}
 		public SettingsProperty ProducerMaxReadLengthProperty { get; }
 		public int ProducerMaxReadLength {
-			get { return (int)GetValue(ProducerMaxReadLengthProperty); }
-			set { SetValue(ProducerMaxReadLengthProperty, value); }
+			get => (int)GetValue(ProducerMaxReadLengthProperty);
+			set => SetValue(ProducerMaxReadLengthProperty, value);
 		}
 
 
 		[CLNames("PBExit")]
 		public SettingsProperty PauseBeforeExitProperty { get; }
 		public bool PauseBeforeExit {
-			get { return (bool)GetValue(PauseBeforeExitProperty); }
-			set { SetValue(PauseBeforeExitProperty, value); }
+			get => (bool)GetValue(PauseBeforeExitProperty);
+			set => SetValue(PauseBeforeExitProperty, value);
 		}
 
 		[CLNames("Cons")]
 		public SettingsProperty ConsumersProperty { get; }
 		public IReadOnlyCollection<string> Consumers {
-			get { return (IReadOnlyCollection<string>)GetValue(ConsumersProperty); }
-			set { SetValue(ConsumersProperty, value); }
+			get => (IReadOnlyCollection<string>)GetValue(ConsumersProperty);
+			set => SetValue(ConsumersProperty, value);
 		}
 
 		public SettingsProperty PrintAvailableSIMDsProperty { get; }
 		public bool PrintAvailableSIMDs {
-			get { return (bool)GetValue(PrintAvailableSIMDsProperty); }
-			set { SetValue(PrintAvailableSIMDsProperty, value); }
+			get => (bool)GetValue(PrintAvailableSIMDsProperty);
+			set => SetValue(PrintAvailableSIMDsProperty, value);
 		}
 
 		public ProcessingSettings() {
@@ -206,25 +210,55 @@ namespace AVDump3CL {
 
 
 	public class ReportingSettings : SettingsObject, ICLConvert {
+
+		public SettingsProperty PrintHashesProperty { get; }
+		public bool PrintHashes {
+			get => (bool)GetValue(PrintHashesProperty);
+			set => SetValue(PrintHashesProperty, value);
+		}
+
+		public SettingsProperty PrintReportsProperty { get; }
+		public bool PrintReports {
+			get => (bool)GetValue(PrintReportsProperty);
+			set => SetValue(PrintReportsProperty, value);
+		}
+
 		public SettingsProperty ReportsProperty { get; }
 		public ReadOnlyCollection<string> Reports {
-			get { return (ReadOnlyCollection<string>)GetValue(ReportsProperty); }
-			set { SetValue(ReportsProperty, value); }
+			get => (ReadOnlyCollection<string>)GetValue(ReportsProperty);
+			set => SetValue(ReportsProperty, value);
 		}
 
 		[CLNames("RDir")]
 		public SettingsProperty ReportDirectoryProperty { get; }
 		public string ReportDirectory {
-			get { return (string)GetValue(ReportDirectoryProperty); }
-			set { SetValue(ReportDirectoryProperty, value); }
+			get => (string)GetValue(ReportDirectoryProperty);
+			set => SetValue(ReportDirectoryProperty, value);
+		}
+
+		[CLNames("EDPath")]
+		public SettingsProperty ExtensionDifferencePathProperty { get; }
+		public string ExtensionDifferencePath {
+			get => (string)GetValue(ExtensionDifferencePathProperty);
+			set => SetValue(ExtensionDifferencePathProperty, value);
+		}
+
+		public SettingsProperty CRC32ErrorProperty { get; }
+		public (string Path, string Pattern) CRC32Error {
+			get => ((string, string))GetValue(CRC32ErrorProperty);
+			set => SetValue(CRC32ErrorProperty, value);
 		}
 
 		public ReportingSettings() {
 			Name = "Reporting";
 			ResourceManager = Lang.ResourceManager;
 
+			PrintHashesProperty = Register(nameof(PrintHashes), false);
+			PrintReportsProperty = Register(nameof(PrintReports), false);
 			ReportsProperty = Register(nameof(Reports), Array.AsReadOnly(new string[0]));
 			ReportDirectoryProperty = Register(nameof(ReportDirectory), Environment.CurrentDirectory);
+			ExtensionDifferencePathProperty = Register(nameof(ExtensionDifferencePath), default(string));
+			CRC32ErrorProperty = Register(nameof(CRC32Error), (default(string), "(?i)<CRC32>"));
 		}
 
 		string ICLConvert.ToCLString(SettingsProperty property, object obj) {
@@ -241,6 +275,15 @@ namespace AVDump3CL {
 				if(str != null && str.Length == 0) return null;
 				//See ToCLString
 				return Array.AsReadOnly((str ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray());
+
+			} else if(property == CRC32ErrorProperty) {
+				var parts = str.Split(':');
+				var retVal = parts.Length == 1 ? (parts[0], (((string, string))property.DefaultValue).Item2) : (parts[0], parts[1]);
+
+				Regex.IsMatch("12345678", retVal.Item2.Replace("<CRC32>", "12345678")); //Throw Early on invalid Regex
+
+				return retVal;
+
 			}
 
 			return Convert.ChangeType(str, property.ValueType);
@@ -250,44 +293,32 @@ namespace AVDump3CL {
 	public class DisplaySettings : SettingsObject {
 		public SettingsProperty HideBuffersProperty { get; }
 		public bool HideBuffers {
-			get { return (bool)GetValue(HideBuffersProperty); }
-			set { SetValue(HideBuffersProperty, value); }
+			get => (bool)GetValue(HideBuffersProperty);
+			set => SetValue(HideBuffersProperty, value);
 		}
 
 		public SettingsProperty HideFileProgressProperty { get; }
 		public bool HideFileProgress {
-			get { return (bool)GetValue(HideFileProgressProperty); }
-			set { SetValue(HideFileProgressProperty, value); }
+			get => (bool)GetValue(HideFileProgressProperty);
+			set => SetValue(HideFileProgressProperty, value);
 		}
 
 		public SettingsProperty HideTotalProgressProperty { get; }
 		public bool HideTotalProgress {
-			get { return (bool)GetValue(HideTotalProgressProperty); }
-			set { SetValue(HideTotalProgressProperty, value); }
+			get => (bool)GetValue(HideTotalProgressProperty);
+			set => SetValue(HideTotalProgressProperty, value);
 		}
 
 		public SettingsProperty ShowDisplayJitterProperty { get; }
 		public bool ShowDisplayJitter {
-			get { return (bool)GetValue(ShowDisplayJitterProperty); }
-			set { SetValue(ShowDisplayJitterProperty, value); }
+			get => (bool)GetValue(ShowDisplayJitterProperty);
+			set => SetValue(ShowDisplayJitterProperty, value);
 		}
 
 		public SettingsProperty ForwardConsoleCursorOnlyProperty { get; }
 		public bool ForwardConsoleCursorOnly {
-			get { return (bool)GetValue(ForwardConsoleCursorOnlyProperty); }
-			set { SetValue(ForwardConsoleCursorOnlyProperty, value); }
-		}
-
-		public SettingsProperty PrintHashesProperty { get; }
-		public bool PrintHashes {
-			get { return (bool)GetValue(PrintHashesProperty); }
-			set { SetValue(PrintHashesProperty, value); }
-		}
-
-		public SettingsProperty PrintReportsProperty { get; }
-		public bool PrintReports {
-			get { return (bool)GetValue(PrintReportsProperty); }
-			set { SetValue(PrintReportsProperty, value); }
+			get => (bool)GetValue(ForwardConsoleCursorOnlyProperty);
+			set => SetValue(ForwardConsoleCursorOnlyProperty, value);
 		}
 
 		public DisplaySettings() {
@@ -299,8 +330,6 @@ namespace AVDump3CL {
 			HideTotalProgressProperty = Register(nameof(HideTotalProgress), false);
 			ShowDisplayJitterProperty = Register(nameof(ShowDisplayJitter), false);
 			ForwardConsoleCursorOnlyProperty = Register(nameof(ForwardConsoleCursorOnly), false);
-			PrintHashesProperty = Register(nameof(PrintHashes), false);
-			PrintReportsProperty = Register(nameof(PrintReports), false);
 		}
 	}
 
@@ -320,32 +349,32 @@ namespace AVDump3CL {
 	public class DiagnosticsSettings : SettingsObject, ICLConvert {
 		public SettingsProperty SaveErrorsProperty { get; }
 		public bool SaveErrors {
-			get { return (bool)GetValue(SaveErrorsProperty); }
-			set { SetValue(SaveErrorsProperty, value); }
+			get => (bool)GetValue(SaveErrorsProperty);
+			set => SetValue(SaveErrorsProperty, value);
 		}
 
 		public SettingsProperty SkipEnvironmentElementProperty { get; }
 		public bool SkipEnvironmentElement {
-			get { return (bool)GetValue(SkipEnvironmentElementProperty); }
-			set { SetValue(SkipEnvironmentElementProperty, value); }
+			get => (bool)GetValue(SkipEnvironmentElementProperty);
+			set => SetValue(SkipEnvironmentElementProperty, value);
 		}
 
 		public SettingsProperty IncludePersonalDataProperty { get; }
 		public bool IncludePersonalData {
-			get { return (bool)GetValue(IncludePersonalDataProperty); }
-			set { SetValue(IncludePersonalDataProperty, value); }
+			get => (bool)GetValue(IncludePersonalDataProperty);
+			set => SetValue(IncludePersonalDataProperty, value);
 		}
 
 		public SettingsProperty ErrorDirectoryProperty { get; }
 		public string ErrorDirectory {
-			get { return (string)GetValue(ErrorDirectoryProperty); }
-			set { SetValue(ErrorDirectoryProperty, value); }
+			get => (string)GetValue(ErrorDirectoryProperty);
+			set => SetValue(ErrorDirectoryProperty, value);
 		}
 
 		public SettingsProperty NullStreamTestProperty { get; }
 		public NullStreamTestSettings NullStreamTest {
-			get { return (NullStreamTestSettings)GetValue(NullStreamTestProperty); }
-			set { SetValue(NullStreamTestProperty, value); }
+			get => (NullStreamTestSettings)GetValue(NullStreamTestProperty);
+			set => SetValue(NullStreamTestProperty, value);
 		}
 
 		public DiagnosticsSettings() {

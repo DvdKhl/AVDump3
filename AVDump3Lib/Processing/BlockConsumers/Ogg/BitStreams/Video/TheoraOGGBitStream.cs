@@ -5,6 +5,8 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 	public class TheoraOGGBitStream : VideoOGGBitStream {
 		public override string CodecName { get { return "Theora"; } }
 		public override string CodecVersion { get; protected set; }
+		public override long FrameCount { get { return LastGranulePosition; } }
+		public override double FrameRate { get; }
 
 		public TheoraOGGBitStream(ReadOnlySpan<byte> header) : base(true) {
 			var offset = 0;
@@ -13,14 +15,6 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 			Height = header[offset + 17] << 16 | header[offset + 18] << 8 | header[offset + 19];
 			FrameRate = (header[offset + 22] << 24 | header[offset + 23] << 16 | header[offset + 24] << 8 | header[offset + 25]) / (double)(header[offset + 26] << 24 | header[offset + 27] << 16 | header[offset + 28] << 8 | header[offset + 29]);
 			//PAR = (header[30] << 16 | header[31] << 8 | header[32]) / (double)(header[33] << 16 | header[34] << 8 | header[35]);
-		}
-
-
-		public override void ProcessPage(ref OggPage page) {
-			base.ProcessPage(ref page);
-
-			var frameIndex = MemoryMarshal.Read<long>(page.GranulePosition);
-			if(FrameCount < (int)frameIndex) FrameCount = (int)frameIndex;
 		}
 
 		//[StructLayout(LayoutKind.Sequential, Size = 35, Pack = 1)]

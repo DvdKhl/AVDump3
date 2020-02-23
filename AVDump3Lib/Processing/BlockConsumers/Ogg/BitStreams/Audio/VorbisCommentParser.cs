@@ -21,14 +21,16 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 		public void ParsePage(ref OggPage page) {
 			if(FullyRead) return;
 
-			if(!ContainsComments && page.Data.SequenceEqual(header)) ContainsComments = true;
+			if(!ContainsComments && page.Data.IndexOf(header) != -1) ContainsComments = true;
 			if(!ContainsComments) return;
 
-			if(data == null) data = new byte[page.Data.Length * 5];
-			else if(data.Length - dataLength < page.Data.Length) Array.Resize(ref data, data.Length * 2);
+			var commentData = page.Data;
 
-			page.Data.CopyTo(((Span<byte>)data).Slice(dataLength));
-			dataLength += page.Data.Length;
+			if(data == null) data = new byte[commentData.Length * 5];
+			else if(data.Length - dataLength < commentData.Length) Array.Resize(ref data, (data.Length + commentData.Length) * 2);
+
+			commentData.CopyTo(((Span<byte>)data).Slice(dataLength));
+			dataLength += commentData.Length;
 
 
 			if((page.Flags & PageFlags.SpanAfter) != 0) {

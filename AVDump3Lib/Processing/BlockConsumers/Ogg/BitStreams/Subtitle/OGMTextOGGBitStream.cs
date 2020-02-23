@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 	public class OGMTextOGGBitStream : SubtitleOGGBitStream, IOGMStream, IVorbisComment {
@@ -7,18 +8,16 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 		public override string CodecVersion { get; protected set; }
 		public string ActualCodecName { get; private set; }
 
-		public OGMTextOGGBitStream(ReadOnlySpan<byte> header)
+		public unsafe OGMTextOGGBitStream(ReadOnlySpan<byte> header)
 			: base(false) {
 			var codecInfo = MemoryMarshal.Read<OGMTextHeader>(header.Slice(1, 0x38));
-			ActualCodecName = new string(codecInfo.SubType);
+			ActualCodecName = new string(codecInfo.SubType, 0 , 4, Encoding.ASCII);
 		}
 
 		[StructLayout(LayoutKind.Sequential, Size = 52)]
-		public struct OGMTextHeader {
-			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
-			public char[] StreamType;
-			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-			public char[] SubType;
+		public unsafe struct OGMTextHeader {
+			public fixed sbyte StreamType[8];
+			public fixed sbyte SubType[4];
 			public int Size;
 			public long TimeUnit;
 			public long SamplesPerUnit;

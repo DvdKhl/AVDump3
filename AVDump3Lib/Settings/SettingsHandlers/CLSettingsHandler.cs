@@ -71,22 +71,25 @@ namespace AVDump3Lib.Settings.CLArguments {
 					}
 
 				} else if(args[i][0] == '-' && args[i][1] == '-') {
+					var comparsionType = name.Length == 1 ? StringComparison.InvariantCulture : StringComparison.OrdinalIgnoreCase;
+
+
 					var argCandidates =
 						from g in items
 						where nameSpace == null || nameSpace.ToLower().Equals(g.Name.ToLower())
 						from a in g.Properties
-						where a.Name == name || propToNames[a].Any(ldKey => ldKey.Equals(name))
+						where a.Name.Equals(name, comparsionType) || propToNames[a].Any(ldKey => ldKey.Equals(name, comparsionType))
 						select new { Group = g, Property = a };
 
 					switch(argCandidates.Count()) {
 						case 0: throw new InvalidOperationException("Argument (" + (!string.IsNullOrEmpty(nameSpace) ? nameSpace + "." : "") + name + ") is not registered");
 						case 1: break;
-						default: throw new InvalidOperationException("Argument reference is ambiguous: " + string.Join(", ", argCandidates.Select(ldQuery => ldQuery.Group.Name + "." + name).ToArray()));
+						default: throw new InvalidOperationException("Argument reference is ambiguous: " + string.Join(", ", argCandidates.Select(ldQuery => ldQuery.Group.Name + "." + ldQuery.Property.Name).ToArray()));
 					}
 					var entry = argCandidates.First();
 
 					try {
-						param = param ?? (entry.Property.ValueType == typeof(bool) ? "true" : "");
+						param ??= (entry.Property.ValueType == typeof(bool) ? "true" : "");
 						object value = null;
 						if(entry.Group is ICLConvert) {
 							value = ((ICLConvert)entry.Group).FromCLString(entry.Property, param);

@@ -5,7 +5,8 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 	public sealed class VorbisOGGBitStream : AudioOGGBitStream, IVorbisComment {
 		public override string CodecName { get { return "Vorbis"; } }
 		public override string CodecVersion { get; protected set; }
-
+		public override long SampleCount => LastGranulePosition;
+		public override double SampleRate { get; }
 		//public long SampleCount { get; private set; }
 		//public long BitRate { get; private set; }
 
@@ -34,9 +35,6 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 		public override void ProcessPage(ref OggPage page) {
 			base.ProcessPage(ref page);
 			commentParser.ParsePage(ref page);
-
-			var sampleIndex = MemoryMarshal.Read<long>(page.GranulePosition);
-			if(SampleCount < (int)sampleIndex) SampleCount = (int)sampleIndex;
 		}
 
 		private VorbisCommentParser commentParser = new VorbisCommentParser();

@@ -36,24 +36,23 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 
 		public long Length => reader.Length;
 
-		private static uint OggS = BitConverter.ToUInt32(new[] { (byte)'O', (byte)'g', (byte)'g', (byte)'S' });
-		public bool SeekPastSyncBytes(bool strict) {
+		private static readonly ReadOnlyMemory<byte> OggS = new ReadOnlyMemory<byte>(new[] { (byte)'O', (byte)'g', (byte)'g', (byte)'S' });
+		public bool SeekPastSyncBytes(bool advanceReader) {
+			var magicBytes = OggS.Span;
 			while(true) {
-				var offset = 0;//TODO rewrite
-				var block = MemoryMarshal.Cast<byte, uint>(reader.GetBlock(reader.SuggestedReadLength & ~0xF)); //Max Page size    
-				while(offset < block.Length) {
-					if(block[offset++] == OggS) {
-						reader.Advance(offset * 4);
-						return true;
-					}
+				var block = reader.GetBlock(reader.SuggestedReadLength);
+				var offset = block.IndexOf(magicBytes);
+				if(offset != -1) {
+					if(advanceReader) reader.Advance(offset + 4);
+					return true;
 				}
-				if(reader.Advance(block.Length * 4 - 8)) break;
+				if(!advanceReader || block.Length < 4 || !reader.Advance(block.Length - 3)) break;
 			}
 			return false;
 		}
 
 		public bool ReadOggPage(ref OggPage page) {
-			if(!SeekPastSyncBytes(false)) return false;
+			if(!SeekPastSyncBytes(true)) return false;
 
 			var block = reader.GetBlock(23 + 256 * 256);
 
