@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace AVDump3Lib.Modules {
 	public class AVD3ModuleManagement {
-		private List<IAVD3Module> modules;
+		private readonly List<IAVD3Module> modules;
 
 		public AVD3ModuleManagement() {
 			modules = new List<IAVD3Module>();
@@ -16,7 +16,7 @@ namespace AVDump3Lib.Modules {
 
 		public void LoadModules(string directoryPath) {
 			foreach(var filePath in Directory.EnumerateFiles(directoryPath, "AVD3*Module.dll")) {
-				var moduleAssembly = Assembly.LoadFile(filePath);
+				var moduleAssembly = Assembly.LoadFrom(filePath);
 
 				var moduleTypes = moduleAssembly.GetTypes().Where(
 					t => !t.IsAbstract && typeof(IAVD3Module).IsAssignableFrom(t) && t.GetConstructors().Any(

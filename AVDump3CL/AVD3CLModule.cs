@@ -57,7 +57,7 @@ namespace AVDump3CL {
 		private HashSet<string> filePathsToSkip;
 
 		private readonly AVD3CLModuleSettings settings = new AVD3CLModuleSettings();
-
+		private readonly object reportSaveLockObject = new object();
 		private IAVD3ProcessingModule processingModule;
 		private IAVD3InformationModule informationModule;
 		private IAVD3ReportingModule reportingModule;
@@ -91,7 +91,6 @@ namespace AVDump3CL {
 			}
 
 			var exception = ex.GetBaseException() ?? ex;
-
 			cl.Writeline("Error " + exception.GetType() + ": " + exception.Message);
 			ExceptionThrown?.Invoke(this, new AVD3CLModuleExceptionEventArgs(exElem));
 			//TODO Raise Event for modules to listen to
@@ -313,7 +312,15 @@ namespace AVDump3CL {
 						if(settings.Reporting.PrintReports) {
 							linesToWrite.Add(reportItem.Report.ReportToString(Utils.UTF8EncodingNoBOM) + "\n");
 						}
-						reportItem.Report.SaveToFile(Path.Combine(settings.Reporting.ReportDirectory, $"{fileName}.{reportItem.Name}.{reportItem.Report.FileExtension}"), Utils.UTF8EncodingNoBOM);
+
+						var reportFileName = settings.Reporting.ReportFileName;
+						reportFileName = reportFileName.Replace("<FileName>", fileName);
+						reportFileName = reportFileName.Replace("<ReportName>", reportItem.Name);
+						reportFileName = reportFileName.Replace("<ReportFileExtension>", reportItem.Report.FileExtension);
+
+						lock(reportSaveLockObject) {
+							reportItem.Report.SaveToFile(Path.Combine(settings.Reporting.ReportDirectory, reportFileName), Utils.UTF8EncodingNoBOM);
+						}
 					}
 
 					if(!string.IsNullOrEmpty(settings.Reporting.CRC32Error.Path)) {
@@ -345,7 +352,6 @@ namespace AVDump3CL {
 							}
 						}
 					}
-
 				} catch(Exception ex) {
 					OnException(new AVD3CLException("GeneratingReports", ex) { Data = { { "FileName", new SensitiveData(fileName) } } });
 				}
@@ -370,7 +376,11 @@ namespace AVDump3CL {
 			//	}
 			//}
 
-			FileProcessed?.Invoke(this, new AVD3CLFileProcessedEventArgs(filePath, blockConsumers));
+			try {
+				FileProcessed?.Invoke(this, new AVD3CLFileProcessedEventArgs(filePath, blockConsumers));
+			} catch(Exception ex) {
+				OnException(new AVD3CLException("FileProcessedEvent", ex) { Data = { { "FileName", new SensitiveData(fileName) } } });
+			}
 
 			if(settings.FileDiscovery.ProcessedLogPath != null) {
 				lock(settings.FileDiscovery) File.AppendAllText(settings.FileDiscovery.ProcessedLogPath, filePath + "\n");

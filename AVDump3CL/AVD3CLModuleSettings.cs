@@ -236,6 +236,12 @@ namespace AVDump3CL {
 			set => SetValue(ReportDirectoryProperty, value);
 		}
 
+		public SettingsProperty ReportFileNameProperty { get; }
+		public string ReportFileName {
+			get => (string)GetValue(ReportFileNameProperty);
+			set => SetValue(ReportFileNameProperty, value);
+		}
+
 		[CLNames("EDPath")]
 		public SettingsProperty ExtensionDifferencePathProperty { get; }
 		public string ExtensionDifferencePath {
@@ -257,6 +263,7 @@ namespace AVDump3CL {
 			PrintReportsProperty = Register(nameof(PrintReports), false);
 			ReportsProperty = Register(nameof(Reports), Array.AsReadOnly(new string[0]));
 			ReportDirectoryProperty = Register(nameof(ReportDirectory), Environment.CurrentDirectory);
+			ReportFileNameProperty = Register(nameof(ReportFileName), "<FileName>.<ReportName>.<ReportFileExtension>");
 			ExtensionDifferencePathProperty = Register(nameof(ExtensionDifferencePath), default(string));
 			CRC32ErrorProperty = Register(nameof(CRC32Error), (default(string), "(?i)<CRC32>"));
 		}

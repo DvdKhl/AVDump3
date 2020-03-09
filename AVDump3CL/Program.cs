@@ -21,7 +21,7 @@ namespace AVDump3CL {
 					Console.WriteLine("FROMFILE: File not found");
 					return;
 				}
-				args = File.ReadLines(args[1]).Where(x => !x.StartsWith("//") && !string.IsNullOrWhiteSpace(x)).Select(x => x.Replace("\r", "")).ToArray();
+				args = File.ReadLines(args[1]).Where(x => !x.StartsWith("//") && !string.IsNullOrWhiteSpace(x)).Select(x => x.Replace("\r", "")).Concat(args.Skip(2)).ToArray();
 
 			}
 			Console.WriteLine("Arguments:");

@@ -28,7 +28,9 @@ namespace AVDump3Lib.Reporting.Core {
 		public void SaveToFile(string filePath, Encoding encoding) {
 			Directory.CreateDirectory(Path.GetDirectoryName(filePath));
 
-			using var safeXmlWriter = new SafeXmlWriter(filePath, encoding);
+			using var fileStream = File.Open(filePath, FileMode.Append, FileAccess.Write, FileShare.Read);
+
+			using var safeXmlWriter = new SafeXmlWriter(fileStream, encoding);
 			Report.WriteTo(safeXmlWriter);
 		}
 	}

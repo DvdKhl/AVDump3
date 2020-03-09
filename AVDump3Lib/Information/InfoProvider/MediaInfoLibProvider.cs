@@ -253,7 +253,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 						id = streamGet("UniqueID").ToInvUInt64();
 					}
 					if(!id.HasValue && !string.IsNullOrEmpty(streamGet("ID"))) {
-						id = streamGet("ID").ToInvUInt64();
+						id = streamGet("ID").Split('-')[0].ToInvUInt64();
 					}
 
 					MetaInfoContainer stream = null;
