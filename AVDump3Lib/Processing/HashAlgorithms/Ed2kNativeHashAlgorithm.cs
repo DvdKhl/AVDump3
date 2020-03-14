@@ -10,7 +10,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		public override int BlockSize => 9728000;
 
 		private int blockHashOffset = 0;
-		private byte[] nullMd4Hash = new byte[64];
+		private readonly byte[] nullMd4Hash = new byte[16];
 		private byte[] blockHashes = new byte[16 * 512]; //Good for ~4GB, increased if needed
 
 		public Ed2kNativeHashAlgorithm() {
@@ -20,8 +20,8 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			}
 		}
 
-		protected override void HashCore(ReadOnlySpan<byte> data) {
-			if(blockHashes.Length < blockHashOffset + ((data.Length / BlockSize) + 2) * 16) {
+		protected override void HashCore(in ReadOnlySpan<byte> data) {
+			if(blockHashes.Length < blockHashOffset + (data.Length / BlockSize + 2) * 16) {
 				Array.Resize(ref blockHashes, blockHashes.Length * 2);
 			}
 
@@ -32,11 +32,11 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			}
 		}
 
-		private void AddBlockHash(ReadOnlySpan<byte> data) {
+		private void AddBlockHash(in ReadOnlySpan<byte> data) {
 			Md4Hash(data, ((Span<byte>)blockHashes).Slice(blockHashOffset));
 			blockHashOffset += 16;
 		}
-		public void Md4Hash(ReadOnlySpan<byte> data, Span<byte> hash) {
+		public static void Md4Hash(ReadOnlySpan<byte> data, Span<byte> hash) {
 			fixed (byte* dataPtr = data)
 			fixed (byte* hashPtr = hash) {
 				Md4NativeHashAlgorithm.MD4ComputeHash(dataPtr, data.Length, hashPtr);
@@ -46,7 +46,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 
 		/// <summary>Calculates both ed2k hashes</summary>
 		/// <returns>Always returns the red hash</returns>
-		public override ReadOnlySpan<byte> TransformFinalBlock(ReadOnlySpan<byte> data) {
+		public override ReadOnlySpan<byte> TransformFinalBlock(in ReadOnlySpan<byte> data) {
 			BlueIsRed = false;
 			RedHash = null;
 			BlueHash = null;
@@ -55,11 +55,16 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 
 			Span<byte> hashes = blockHashes;
 			Span<byte> hashNoNull = new byte[16];
-			Md4Hash(hashes.Slice(0, blockHashOffset), hashNoNull);
+
+			if(blockHashOffset > 16) {
+				Md4Hash(hashes.Slice(0, blockHashOffset), hashNoNull);
+			} else {
+				hashNoNull = hashes.Slice(0, 16);
+			}
 
 			//https://wiki.anidb.info/w/Ed2k-hash
-			ReadOnlySpan<byte> hash;
 			BlueIsRed = false;
+			ReadOnlySpan<byte> hash;
 			if(data.Length != 0) {
 				//Data is not multiple of BlockLength (Common case)
 				BlueIsRed = true;

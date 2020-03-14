@@ -82,8 +82,8 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 				var readBytes = blockSource.Read(writerSpan);
 				progress?.Report(new BlockStreamProgress(this, -1, readBytes));
 
-				if(readBytes != writerSpan.Length) Buffer.CompleteProduction();
 				Buffer.ProducerAdvance(readBytes);
+				if(readBytes != writerSpan.Length) Buffer.CompleteProduction();
 				lock(consumerLock) Monitor.PulseAll(consumerLock);
 			}
 		}

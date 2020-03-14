@@ -10,8 +10,8 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		public override int BlockSize { get; }
 
 		public override void Initialize() { }
-		public override ReadOnlySpan<byte> TransformFinalBlock(ReadOnlySpan<byte> data) => ReadOnlySpan<byte>.Empty;
-		protected override unsafe void HashCore(ReadOnlySpan<byte> data) { }
+		public override ReadOnlySpan<byte> TransformFinalBlock(in ReadOnlySpan<byte> data) => ReadOnlySpan<byte>.Empty;
+		protected override unsafe void HashCore(in ReadOnlySpan<byte> data) { }
 
 		public NullHashAlgorithm(int blockSize) => BlockSize = blockSize;
 	}

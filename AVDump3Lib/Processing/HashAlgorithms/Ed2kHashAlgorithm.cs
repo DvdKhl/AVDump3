@@ -11,17 +11,17 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		public override int BlockSize => 9728000;
 
 		private int blockHashOffset = 0;
-		private byte[] nullMd4Hash = new byte[64];
+		private readonly byte[] nullMd4Hash = new byte[64];
 		private byte[] blockHashes = new byte[16 * 512]; //Good for ~4GB, increased if needed
 
-		private Md4HashAlgorithm md4;
+		private readonly Md4HashAlgorithm md4;
 
 		public Ed2kHashAlgorithm() {
 			md4 = new Md4HashAlgorithm();
 			md4.ComputeHash(Span<byte>.Empty, nullMd4Hash);
 		}
 
-		protected override unsafe void HashCore(ReadOnlySpan<byte> data) {
+		protected override unsafe void HashCore(in ReadOnlySpan<byte> data) {
 			if(blockHashes.Length < blockHashOffset + ((data.Length / BlockSize) + 2) * 16) {
 				Array.Resize(ref blockHashes, blockHashes.Length * 2);
 			}
@@ -38,7 +38,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 
 		/// <summary>Calculates both ed2k hashes</summary>
 		/// <returns>Always returns the red hash</returns>
-		public override ReadOnlySpan<byte> TransformFinalBlock(ReadOnlySpan<byte> data) {
+		public override ReadOnlySpan<byte> TransformFinalBlock(in ReadOnlySpan<byte> data) {
 			BlueIsRed = false;
 			RedHash = null;
 			BlueHash = null;

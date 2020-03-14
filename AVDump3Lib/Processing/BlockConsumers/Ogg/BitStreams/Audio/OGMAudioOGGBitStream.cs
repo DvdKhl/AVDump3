@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 	public class OGMAudioOGGBitStream : AudioOGGBitStream, IOGMStream, IVorbisComment {
@@ -10,20 +11,18 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 		public override double SampleRate { get; }
 
 
-		public OGMAudioOGGBitStream(ReadOnlySpan<byte> header)
+		public unsafe OGMAudioOGGBitStream(ReadOnlySpan<byte> header)
 			: base(false) {
 			var codecInfo = MemoryMarshal.Read<OGMAudioHeader>(header.Slice(1, 56));
 			ChannelCount = codecInfo.ChannelCount;
 			SampleRate = codecInfo.SamplesPerUnit;
-			ActualCodecName = new string(codecInfo.SubType);
+			ActualCodecName = new string(codecInfo.SubType, 0, 4, Encoding.ASCII); 
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
-		public struct OGMAudioHeader {
-			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 8)]
-			public char[] StreamType;
-			[MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
-			public char[] SubType;
+		public unsafe struct OGMAudioHeader {
+			public fixed sbyte StreamType[8];
+			public fixed sbyte SubType[4];
 			public int Size;
 			public long TimeUnit;
 			public long SamplesPerUnit;

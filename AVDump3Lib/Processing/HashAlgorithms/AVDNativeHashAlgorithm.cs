@@ -33,12 +33,12 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 
 		public override void Initialize() => init(handle);
 
-		protected override unsafe void HashCore(ReadOnlySpan<byte> data) {
+		protected override unsafe void HashCore(in ReadOnlySpan<byte> data) {
 			fixed (byte* bPtr = &data[0]) {
 				transform(handle, bPtr, data.Length, 0);
 			}
 		}
-		public override ReadOnlySpan<byte> TransformFinalBlock(ReadOnlySpan<byte> data) {
+		public override ReadOnlySpan<byte> TransformFinalBlock(in ReadOnlySpan<byte> data) {
 			var hash = new byte[HashSize];
 			fixed (byte* hashPtr = hash, bPtr = data) {
 				transform(handle, bPtr, data.Length, 1);

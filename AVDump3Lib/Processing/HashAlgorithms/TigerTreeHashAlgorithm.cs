@@ -24,7 +24,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		private readonly AutoResetEvent[] blockHashersSync;
 
 		public const int BLOCKSIZE = 1024;
-		public int BlockSize => BLOCKSIZE * 2; //Due to optimizations the each passed data block needs to be twice the size of BLOCKSIZE (See Compress)
+		public int BlockSize => BLOCKSIZE * 2; //Due to optimizations each passed data block needs to be twice the size of BLOCKSIZE (See Compress)
 
 		public TigerTreeHashAlgorithm(int threadCount) {
 			blockHashers = Enumerable.Range(0, threadCount).Select(x => new BlockHasher(leaves, x, threadCount)).ToArray();
@@ -38,7 +38,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			Array.Clear(leaves, 0, leaves.Length);
 		}
 
-		public ReadOnlySpan<byte> TransformFinalBlock(ReadOnlySpan<byte> data) {
+		public ReadOnlySpan<byte> TransformFinalBlock(in ReadOnlySpan<byte> data) {
 			foreach(var blockHasher in blockHashers) {
 				blockHasher.Finish();
 			}
@@ -96,18 +96,18 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 
 
 
-		public int TransformFullBlocks(ReadOnlySpan<byte> data) {
-			data = data.Slice(0, Math.Min(16 << 20, data.Length) & ~2047);
+		public int TransformFullBlocks(in ReadOnlySpan<byte> data) {
+			var dataSlice = data.Slice(0, Math.Min(16 << 20, data.Length) & ~2047);
 
-			fixed (byte* dataPtr = data) {
-				foreach(var blockHasher in blockHashers) blockHasher.ProcessData(dataPtr, data.Length);
+			fixed (byte* dataPtr = dataSlice) {
+				foreach(var blockHasher in blockHashers) blockHasher.ProcessData(dataPtr, dataSlice.Length);
 				WaitHandle.WaitAll(blockHashersSync);
 			}
-			leafCount += data.Length >> 10;
+			leafCount += dataSlice.Length >> 10;
 
 			Compress();
 
-			return data.Length;
+			return dataSlice.Length;
 		}
 
 		private byte* compressBuffer = TigerNativeHashAlgorithm.TTHCreateNode();

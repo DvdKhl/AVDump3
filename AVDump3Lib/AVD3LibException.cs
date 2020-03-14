@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -28,7 +28,7 @@ namespace AVDump3Lib {
 					x => new XElement(x.Key.ToString(), HandleSensitiveData(x.Value, includePersonalData)))),
 				new XElement("Cause", ToXElement(InnerException, includePersonalData)),
 				new XElement("Stacktrace", StackTrace?.Split('\n').Select(x => new XElement("Frame", x.Trim()))),
-				new XAttribute("thrownOn", ThrownOn.ToString("yyyy-MM-dd HH:mm:ss.ffff"))
+				new XAttribute("thrownOn", ThrownOn.ToString("yyyy-MM-dd HH:mm:ss.ffff", CultureInfo.InvariantCulture))
 			);
 		}
 
@@ -44,33 +44,28 @@ namespace AVDump3Lib {
 			var infoElem = new XElement("Information");
 			infoElem.Add(new XElement("EntryAssemblyVersion", Assembly.GetEntryAssembly().GetName().Version));
 			infoElem.Add(new XElement("LibVersion", Assembly.GetExecutingAssembly().GetName().Version));
-			//infoElem.Add(new XElement("SessionId", Process.GetCurrentProcess().SessionId));
-			infoElem.Add(new XElement("IntPtr.Size", IntPtr.Size));
+			infoElem.Add(SensitiveData.GetSessionElement);
 			infoElem.Add(new XElement("Framework", Environment.Version));
 			infoElem.Add(new XElement("OSVersion", Environment.OSVersion.VersionString));
-			if(includePersonalData) infoElem.Add(new XElement("Commandline", Environment.CommandLine));
+			infoElem.Add(new XElement("IntPtr.Size", IntPtr.Size));
 			infoElem.Add(new XElement("Is64BitOperatingSystem", Environment.Is64BitOperatingSystem));
 			infoElem.Add(new XElement("Is64BitProcess", Environment.Is64BitProcess));
 			infoElem.Add(new XElement("ProcessorCount", Environment.ProcessorCount));
 			infoElem.Add(new XElement("UserInteractive", Environment.UserInteractive));
 			infoElem.Add(new XElement("WorkingSet", Environment.WorkingSet));
-
-			var type = Type.GetType("Mono.Runtime");
-			if(type != null) {
-				var displayName = type.GetMethod("GetDisplayName", BindingFlags.NonPublic | BindingFlags.Static);
-				if(displayName != null) infoElem.Add(new XElement("Mono", displayName.Invoke(null, null)));
-			}
+			if(includePersonalData) infoElem.Add(new XElement("Commandline", Environment.CommandLine));
 
 			return infoElem;
 		}
 
 		protected virtual IEnumerable<XElement> ToXElementAdditional(bool includePersonalData) { yield break; }
 
-		protected static XElement ToXElement(Exception ex, bool includePersonalData) {
-			XElement exElem;
 
-			if(ex is AVD3LibException) {
-				var avd3LibEx = (AVD3LibException)ex;
+		protected static XElement ToXElement(Exception ex, bool includePersonalData) {
+			if(ex is null) throw new ArgumentNullException(nameof(ex));
+
+			XElement exElem;
+			if(ex is AVD3LibException avd3LibEx) {
 				exElem = avd3LibEx.ToXElement(true, includePersonalData);
 
 			} else {
@@ -78,11 +73,11 @@ namespace AVDump3Lib {
 					new XElement("Message", ex.Message),
 					new XElement("Stacktrace", ex.StackTrace?.Split('\n').Select(x => new XElement("Frame", x.Trim()))),
 					new XElement("Data", ex.Data?.Cast<DictionaryEntry>().Select(
-						x => new XElement(x.Key.ToString(), HandleSensitiveData(x.Value, includePersonalData))))
+						x => new XElement(x.Key.ToString(), HandleSensitiveData(x.Value, includePersonalData))
+					))
 				);
 
-				if(ex is AggregateException) {
-					var aggEx = (AggregateException)ex;
+				if(ex is AggregateException aggEx) {
 					exElem.Add(new XElement("Cause", aggEx.Flatten().InnerExceptions.Select(x => ToXElement(x, includePersonalData))));
 
 				} else if(ex.InnerException != null) {
@@ -96,12 +91,16 @@ namespace AVDump3Lib {
 
 	[Serializable]
 	public class SensitiveData {
-		private static readonly int salt = new Random().Next();
-		private static readonly SHA1 sha1 = SHA1.Create();
+		private static readonly Guid session = Guid.NewGuid();
+		private static readonly SHA512 sha1 = SHA512.Create();
+
+		public static XElement GetSessionElement => new XElement("Session", session);
 
 		private static string ComputeHash(string value) {
 			lock(sha1) { //TODO: Good Enough? We're not protecting banks here.
-				return BitConverter.ToString(sha1.ComputeHash(Encoding.UTF8.GetBytes(salt + value))).Replace("-", "");
+				return BitConverter.ToString(
+					sha1.ComputeHash(Encoding.UTF8.GetBytes(session.ToString() + value))
+				).Replace("-", "", StringComparison.InvariantCultureIgnoreCase);
 			}
 		}
 

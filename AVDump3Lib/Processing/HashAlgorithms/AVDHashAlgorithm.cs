@@ -6,8 +6,8 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		int BlockSize { get; }
 
 		void Initialize();
-		int TransformFullBlocks(ReadOnlySpan<byte> data);
-		ReadOnlySpan<byte> TransformFinalBlock(ReadOnlySpan<byte> data);
+		int TransformFullBlocks(in ReadOnlySpan<byte> data);
+		ReadOnlySpan<byte> TransformFinalBlock(in ReadOnlySpan<byte> data);
 	}
 
 
@@ -15,14 +15,14 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		public abstract int BlockSize { get; }
 
 		public abstract void Initialize();
-		public abstract ReadOnlySpan<byte> TransformFinalBlock(ReadOnlySpan<byte> data);
-		public int TransformFullBlocks(ReadOnlySpan<byte> data) {
+		public abstract ReadOnlySpan<byte> TransformFinalBlock(in ReadOnlySpan<byte> data);
+		public int TransformFullBlocks(in ReadOnlySpan<byte> data) {
 			var toProcess = data.Slice(0, (data.Length / BlockSize) * BlockSize);
 			if(toProcess.Length > 0) HashCore(toProcess);
 			return toProcess.Length;
 		}
 
-		protected abstract void HashCore(ReadOnlySpan<byte> data);
+		protected abstract void HashCore(in ReadOnlySpan<byte> data);
 
 
 		#region IDisposable Support
@@ -50,7 +50,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		}
 
 		public override void Initialize() => Hash.GetHashAndReset();
-		public override ReadOnlySpan<byte> TransformFinalBlock(ReadOnlySpan<byte> data) {
+		public override ReadOnlySpan<byte> TransformFinalBlock(in ReadOnlySpan<byte> data) {
 			Hash.AppendData(data);
 			return Hash.GetHashAndReset();
 		}
@@ -59,7 +59,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			base.Dispose(disposing);
 		}
 
-		protected override void HashCore(ReadOnlySpan<byte> data) => Hash.AppendData(data);
+		protected override void HashCore(in ReadOnlySpan<byte> data) => Hash.AppendData(data);
 
 	}
 }

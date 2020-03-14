@@ -236,7 +236,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 			Add(FileSizeType, () => mil.Get("FileSize"), s => s.ToInvInt64(), splitTakeFirst, removeNonNumerics);
 			Add(DurationType, () => mil.Get("Duration"), s => s.ToInvDouble() / 1000, splitTakeFirst, removeNonNumerics);
-			Add(FileExtensionType, () => mil.Get("FileExtension"), s => s.ToLowerInvariant(), splitTakeFirst); //TODO: Add multiple if multiple
+			Add(FileExtensionType, () => mil.Get("FileExtension"), s => s.ToUpperInvariant(), splitTakeFirst); //TODO: Add multiple if multiple
 			Add(WritingAppType, () => mil.Get("Encoded_Application"));
 			Add(MuxingAppType, () => mil.Get("Encoded_Library"));
 
@@ -271,7 +271,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 							Add(stream, MediaStream.MaxSampleRateType, () => streamGet("FrameRate_Maximum").ToInvDouble());
 							Add(stream, MediaStream.MinSampleRateType, () => streamGet("FrameRate_Minimum").ToInvDouble());
 
-							Add(stream, VideoStream.IsInterlacedType, () => streamGet("ScanType").Equals("Interlaced"));
+							Add(stream, VideoStream.IsInterlacedType, () => streamGet("ScanType").Equals("Interlaced", StringComparison.OrdinalIgnoreCase));
 							Add(stream, VideoStream.HasVariableFrameRateType, () => streamGet("FrameRate_Mode").Equals("VFR", StringComparison.OrdinalIgnoreCase));
 							Add(stream, VideoStream.ChromaSubsamplingType, () => new ChromeSubsampling(streamGet("ChromaSubsampling")));
 							//Add(stream, VideoStream.ColorSpaceType, () => streamGet("ColorSpace"));
@@ -331,7 +331,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 			var chapters = new MetaInfoContainer((ulong)streamIndex, ChaptersType);
 
 			static ulong conv(string str) {
-				var timeParts = str.Split(new char[] { ':', '.' }).Select(s => ulong.Parse(s.Trim())).ToArray();
+				var timeParts = str.Split(new char[] { ':', '.' }).Select(s => s.Trim().ToInvUInt64()).ToArray();
 				return (((timeParts[0] * 60 + timeParts[1]) * 60 + timeParts[2]) * 1000 + timeParts[3]) * 1000000;
 			}
 
@@ -344,7 +344,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 				//MIL Offset Bug workaround
 				var offsetFixTries = 20;
-				while(offsetFixTries-- > 0 && !mil.Get(indexStart, menuType, streamIndex, MediaInfoLibNativeMethods.InfoTypes.Name).Split('-').All(x => x.Contains(':'))) {
+				while(offsetFixTries-- > 0 && !mil.Get(indexStart, menuType, streamIndex, MediaInfoLibNativeMethods.InfoTypes.Name).Split('-').All(x => x.Contains(':', StringComparison.Ordinal))) {
 					indexStart++;
 					indexEnd++;
 				}

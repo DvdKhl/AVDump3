@@ -160,7 +160,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			D += dd;
 		}
 
-		protected override unsafe void HashCore(ReadOnlySpan<byte> data) {
+		protected override unsafe void HashCore(in ReadOnlySpan<byte> data) {
 			fixed (byte* pData = data) {
 				for(var offset = 0; offset < data.Length; offset += BLOCKLENGTH) {
 					TransformMd4Block((uint*)(pData + offset));
@@ -190,7 +190,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			return padding;
 		}
 
-		public void ComputeHash(ReadOnlySpan<byte> data, Span<byte> hash) {
+		public void ComputeHash(in ReadOnlySpan<byte> data, in Span<byte> hash) {
 			Span<byte> tail = stackalloc byte[128];
 
 			var toProcess = data.Slice(0, (data.Length / BlockSize) * BlockSize);
@@ -210,7 +210,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			Initialize();
 		}
 
-		public override ReadOnlySpan<byte> TransformFinalBlock(ReadOnlySpan<byte> data) {
+		public override ReadOnlySpan<byte> TransformFinalBlock(in ReadOnlySpan<byte> data) {
 			Span<byte> hash = new byte[16];
 			ComputeHash(data, hash);
 			return hash;

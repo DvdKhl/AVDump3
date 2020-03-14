@@ -121,7 +121,7 @@ namespace AVDump3Lib.Processing {
 			}
 
 			blockConsumerFactories = factories.Values.ToList();
-			blockConsumerFactories.Sort((a, b) => a.Name.CompareTo(b.Name));
+			blockConsumerFactories.Sort((a, b) => string.CompareOrdinal(a.Name, b.Name));
 			BlockConsumerFactories = blockConsumerFactories.AsReadOnly();
 		}
 

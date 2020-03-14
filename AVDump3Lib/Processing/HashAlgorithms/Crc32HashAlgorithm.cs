@@ -27,10 +27,10 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 
 		public override void Initialize() => hash = seed;
 
-		protected override void HashCore(ReadOnlySpan<byte> data) {
+		protected override void HashCore(in ReadOnlySpan<byte> data) {
 			hash = CalculateHash(table, hash, data);
 		}
-		public override ReadOnlySpan<byte> TransformFinalBlock(ReadOnlySpan<byte> data) {
+		public override ReadOnlySpan<byte> TransformFinalBlock(in ReadOnlySpan<byte> data) {
 			hash = CalculateHash(table, hash, data);
 			return UInt32ToBigEndianBytes(~hash);
 		}
