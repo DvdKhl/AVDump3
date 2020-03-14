@@ -81,7 +81,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 			if(block[23 + offset - 1] == 255) page.Flags |= PageFlags.SpanAfter;
 
 			//reader.BytesRead + 23 + offset;
-			page.Data = block.Slice(23 + offset, dataLength);
+			page.Data = block.Slice(23 + offset, Math.Min(dataLength, block.Length - 23 - offset));
 
 			return true;
 		}
