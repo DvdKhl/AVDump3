@@ -192,7 +192,7 @@ namespace AVDump3CL {
 				//A bit odd at first, but with this we make Consumers==null the special case (i.e. list the consumers)
 				return obj != null ? (lst.Count == 0 ? null : string.Join(",", lst)) : "";
 			}
-			return obj.ToString();
+			return obj == null ? "<null>" : obj.ToString();
 		}
 
 		object ICLConvert.FromCLString(SettingsProperty property, string str) {
@@ -274,7 +274,7 @@ namespace AVDump3CL {
 				//A bit odd at first, but with this we make Reports==null the special case (i.e. list the consumers)
 				return obj != null ? (lst.Count == 0 ? null : string.Join(",", lst)) : "";
 			}
-			return obj.ToString();
+			return obj == null ? "<null>" : obj.ToString();
 		}
 
 		object ICLConvert.FromCLString(SettingsProperty property, string str) {
@@ -405,7 +405,7 @@ namespace AVDump3CL {
 					":" + nullStreamTestSettings.StreamLength +
 					":" + nullStreamTestSettings.ParallelStreamCount;
 			}
-			return obj.ToString();
+			return obj == null ? "<null>" : obj.ToString();
 		}
 
 		public object FromCLString(SettingsProperty property, string str) {
