@@ -217,13 +217,12 @@ namespace AVDump3CL {
 				try {
 					streamConsumerCollection.ConsumeStreams(cts.Token, bytesReadProgress);
 
-				} catch(OperationCanceledException ex) {
-					Console.WriteLine(ex.Message);
+				} catch(OperationCanceledException) {
 
 				} finally {
-					cl.Stop();
 					Console.CancelKeyPress -= cancelKeyHandler;
 					Console.CursorVisible = true;
+					cl.Stop();
 				}
 			}
 

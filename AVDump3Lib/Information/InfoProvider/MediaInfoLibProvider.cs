@@ -1,6 +1,7 @@
 using AVDump3Lib.Information.MetaInfo;
 using AVDump3Lib.Information.MetaInfo.Core;
 using AVDump3Lib.Misc;
+using ExtKnot.StringInvariants;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace AVDump3Lib.Settings.Core {
-	public interface ICLSettingsHandler {
+	public interface ISettingsHandler {
 		void Register(params SettingsObject[] settingsObjects);
 	}
 

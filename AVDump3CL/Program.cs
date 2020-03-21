@@ -11,6 +11,13 @@ using System.IO;
 using System.Linq;
 
 namespace AVDump3CL {
+	public class AVD3Instance {
+		static private void Start() {
+
+		}
+
+	}
+
 	class Program {
 		private static CLSettingsHandler clSettingsHandler;
 

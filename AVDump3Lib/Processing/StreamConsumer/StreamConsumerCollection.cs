@@ -58,7 +58,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 							if(firstChanceException == null) firstChanceException = t.Exception.Flatten();
 							cts.Cancel();
 						}
-					});
+					}, TaskScheduler.Current);
 					if(firstChanceException != null) break;
 				}
 
@@ -97,6 +97,9 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 						}
 
 
+					} catch(OperationCanceledException ex) {
+						throw;
+
 					} catch(StreamConsumerException ex) {
 						ex.Data.Add("StreamTag", new SensitiveData(providedStream.Tag));
 
@@ -114,7 +117,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 				} while(retry);
 
 				try {
-					tcs.SetResult(streamConsumer?.BlockConsumers ?? new IBlockConsumer[0]);
+					tcs.SetResult(streamConsumer?.BlockConsumers ?? Array.Empty<IBlockConsumer>());
 				} catch(Exception ex) {
 					throw new StreamConsumerCollectionException("After stream processing exception", ex);
 				}
@@ -125,7 +128,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 				throw;
 				//TODO
 			} finally {
-				var blockConsumers = streamConsumer?.BlockConsumers ?? new IBlockConsumer[0];
+				var blockConsumers = streamConsumer?.BlockConsumers ?? Array.Empty<IBlockConsumer>();
 				foreach(var blockConsumer in blockConsumers) blockConsumer.Dispose();
 			}
 		}

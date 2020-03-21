@@ -15,9 +15,8 @@ namespace AVDump3Lib.Settings {
 	public class AVD3SettingsModule : IAVD3SettingsModule {
 		public event EventHandler<ModuleInitResult> AfterConfiguration;
 
-		private ICLSettingsHandler settingsHandler;
-		private List<SettingsObject> settingsObjects = new List<SettingsObject>();
-		public AVD3SettingsModule(ICLSettingsHandler handler) {
+		private ISettingsHandler settingsHandler;
+		public AVD3SettingsModule(ISettingsHandler handler) {
 			settingsHandler = handler;
 		}
 

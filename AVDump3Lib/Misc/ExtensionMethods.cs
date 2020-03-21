@@ -7,40 +7,6 @@ using System.Xml.Linq;
 
 namespace AVDump3Lib.Misc {
 	public static class ExtensionMethods {
-		#region Invariant String<->Type Conversion Extensions
-		public static double ToInvDouble(this string s) { return double.Parse(s, CultureInfo.InvariantCulture); }
-		public static double ToInvDouble(this string s, double defVal) { double val; if(double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
-		public static double ToInvDouble(this string s, NumberStyles style, double defVal) { double val; if(double.TryParse(s, style, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
-		public static string ToInvString(this double s) { return s.ToString(CultureInfo.InvariantCulture); }
-		public static string ToInvString(this double s, string format) { return s.ToString(format, CultureInfo.InvariantCulture); }
-
-		public static float ToInvFloat(this string s) { return float.Parse(s, CultureInfo.InvariantCulture); }
-		public static float ToInvFloat(this string s, float defVal) { float val; if(float.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
-		public static float ToInvFloat(this string s, NumberStyles style, float defVal) { float val; if(float.TryParse(s, style, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
-		public static string ToInvString(this float s) { return s.ToString(CultureInfo.InvariantCulture); }
-
-		public static long ToInvInt64(this string s) { return long.Parse(s, CultureInfo.InvariantCulture); }
-		public static long ToInvInt64(this string s, long defVal) { long val; if(long.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
-		public static string ToInvString(this long v) { return v.ToString(CultureInfo.InvariantCulture); }
-
-		public static ulong ToInvUInt64(this string s) { return ulong.Parse(s, CultureInfo.InvariantCulture); }
-		public static ulong ToInvUInt64(this string s, ulong defVal) { ulong val; if(ulong.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
-		public static string ToInvString(this ulong v) { return v.ToString(CultureInfo.InvariantCulture); }
-
-		public static int ToInvInt32(this string s) { return int.Parse(s, CultureInfo.InvariantCulture); }
-		public static int ToInvInt32(this string s, int defVal) { int val; if(int.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
-		public static string ToInvString(this int v) { return v.ToString(CultureInfo.InvariantCulture); }
-
-		public static short ToInvInt16(this string s) { return short.Parse(s, CultureInfo.InvariantCulture); }
-		public static short ToInvInt16(this string s, short defVal) { short val; if(short.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out val)) return val; else return defVal; }
-		public static string ToInvString(this short v) { return v.ToString(CultureInfo.InvariantCulture); }
-
-		public static DateTime ToInvDateTime(this string s) { return DateTime.Parse(s, CultureInfo.InvariantCulture); }
-		public static DateTime ToInvDateTime(this string s, DateTime defVal) { DateTime val; if(DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.None, out val)) return val; else return defVal; }
-		public static DateTime? ToInvDateTime(this string s, DateTime? defVal) { DateTime val; if(DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.None, out val)) return val; else return defVal; }
-		public static string ToInvString(this DateTime v) { return v.ToString(CultureInfo.InvariantCulture); }
-		#endregion
-
 		//public static TResult OnNotNullReturn<TResult, TSource>(this TSource? n, Func<TSource, TResult> transform) where TSource : struct {
 		//    return n.HasValue ? transform(n.Value) : default(TResult);
 		//}

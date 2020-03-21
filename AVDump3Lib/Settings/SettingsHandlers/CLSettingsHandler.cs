@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 namespace AVDump3Lib.Settings.CLArguments {
 	[AttributeUsage(AttributeTargets.Property)]
 	public sealed class CLNamesAttribute : Attribute {
-		public ReadOnlyCollection<string> Names { get; set; }
+		public ReadOnlyCollection<string> Names { get; }
 
 		public CLNamesAttribute(params string[] names) { Names = Array.AsReadOnly(names); }
 
@@ -163,7 +163,7 @@ namespace AVDump3Lib.Settings.CLArguments {
 
 
 		private void PrintLine(string msg, bool noColors = false) { Print(msg, noColors); Console.WriteLine(); }
-		private void Print(string msg, bool noColors = false) {
+		private static void Print(string msg, bool noColors = false) {
 			var strb = new StringBuilder();
 
 			Func<char, ConsoleColor> charToColor = c => {

@@ -14,9 +14,7 @@ namespace AVDump3Lib.Misc {
 			this.encoding = encoding ?? throw new ArgumentNullException(nameof(encoding));
 		}
 
-		public override Encoding Encoding {
-			get { return encoding; }
-		}
+		public override Encoding Encoding => encoding;
 	}
 
 	public class SafeXmlWriter : XmlTextWriter {
@@ -39,6 +37,6 @@ namespace AVDump3Lib.Misc {
 			base.WriteStartElement(prefix, lowerCaseElements ? localName.ToLower() : localName, ns);
 		}
 
-		public static bool IsLegalXmlChar(int character) { return (character == 0x9 || character == 0xA || character == 0xD || (character >= 0x20 && character <= 0xD7FF) || (character >= 0xE000 && character <= 0xFFFD) || (character >= 0x10000 && character <= 0x10FFFF)); }
+		public static bool IsLegalXmlChar(int character) => character == 0x9 || character == 0xA || character == 0xD || character >= 0x20 && character <= 0xD7FF || character >= 0xE000 && character <= 0xFFFD || character >= 0x10000 && character <= 0x10FFFF;
 	}
 }
