@@ -68,7 +68,9 @@ namespace AVDump3Lib.Information.InfoProvider {
 				if(trackIndex != -1) Add(stream, MediaStream.IndexType, trackIndex);
 				Add(stream, MediaStream.IdType, bitStream.Id);
 				Add(stream, MediaStream.SizeType, bitStream.Size);
-				Add(stream, MediaStream.ContainerCodecNameType, bitStream.CodecName);
+				if(bitStream.IsOfficiallySupported) {
+					Add(stream, MediaStream.ContainerCodecIdType, bitStream.CodecName);
+				}
 
 				if(bitStream is IVorbisComment track) {
 					if(track.Comments.Items.Contains("title")) Add(stream, MediaStream.TitleType, track.Comments.Items["title"].Value.Aggregate((acc, str) => acc + "," + str));

@@ -10,7 +10,7 @@ using static AVDump3Lib.Information.InfoProvider.MediaInfoLibNativeMethods;
 
 namespace AVDump3Lib.Information.InfoProvider {
 	public class FormatInfoProvider : MetaDataProvider {
-		public FormatInfoProvider(string filePath) : base("FormatInfoProvider", FormatInfoProviderType) {
+		public FormatInfoProvider(string filePath) : base("FormatInfoProvider", MediaProvider.MediaProviderType) {
 			var fileExtensionProvider = new FileExtensionProvider();
 			fileExtensionProvider.AddMetaData(this, filePath);
 
@@ -310,7 +310,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 	public class IdxFileType : FileType {
 		private IDX idx;
 
-		public IdxFileType() : base(new byte[0], identifier: "text/idx") { PossibleExtensions = new string[] { "idx" }; fileType = MediaProvider.SubtitleStreamType; }
+		public IdxFileType() : base(Array.Empty<byte>(), identifier: "text/idx") { PossibleExtensions = new string[] { "idx" }; fileType = MediaProvider.SubtitleStreamType; }
 		public override void ElaborateCheck(Stream stream) {
 			if(stream.Length > 10 * 1024 * 1024) IsCandidate = false;
 			if(!IsCandidate) return;
@@ -336,10 +336,11 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 					var container = new MetaInfoContainer((ulong)i, fileType);
 					provider.AddNode(container);
-					provider.Add(container, MediaStream.CodecIdType, identifier);
+					provider.Add(container, MediaStream.ContainerCodecIdType, identifier);
 					provider.Add(container, MediaStream.LanguageType, idx.Subtitles[i].language);
 					provider.Add(container, MediaStream.IndexType, idx.Subtitles[i].index);
 				}
+
 			} else {
 				base.AddInfo(provider);
 			}
@@ -668,7 +669,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 				var container = new MetaInfoContainer(0, fileType);
 				provider.AddNode(container);
 
-				provider.Add(container, MediaStream.CodecIdType, identifier);
+				provider.Add(container, MediaStream.ContainerCodecIdType, identifier);
 			}
 		}
 

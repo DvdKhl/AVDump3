@@ -34,7 +34,7 @@ namespace AVDump3Lib.Misc {
 		}
 
 		public override void WriteStartElement(string prefix, string localName, string ns) {
-			base.WriteStartElement(prefix, lowerCaseElements ? localName.ToLower() : localName, ns);
+			base.WriteStartElement(prefix, lowerCaseElements ? localName.ToLowerInvariant() : localName, ns);
 		}
 
 		public static bool IsLegalXmlChar(int character) => character == 0x9 || character == 0xA || character == 0xD || character >= 0x20 && character <= 0xD7FF || character >= 0xE000 && character <= 0xFFFD || character >= 0x10000 && character <= 0x10FFFF;

@@ -32,6 +32,9 @@ namespace AVDump3Lib.Reporting.Core {
 
 			using var safeXmlWriter = new SafeXmlWriter(fileStream, encoding);
 			Report.WriteTo(safeXmlWriter);
+			safeXmlWriter.Flush();
+
+			fileStream.WriteByte(10);
 		}
 	}
 }

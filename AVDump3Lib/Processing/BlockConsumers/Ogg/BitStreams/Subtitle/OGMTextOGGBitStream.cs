@@ -15,7 +15,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 		}
 
 		[StructLayout(LayoutKind.Sequential, Size = 52)]
-		public unsafe struct OGMTextHeader {
+		private unsafe struct OGMTextHeader {
 			public fixed sbyte StreamType[8];
 			public fixed sbyte SubType[4];
 			public int Size;

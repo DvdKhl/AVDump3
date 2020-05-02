@@ -27,6 +27,6 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 			IsEndOfStream = reader.Length == reader.BytesRead + offset;
 		}
 
-		protected override ReadOnlySpan<byte> GetDataBlock(int minLength) => reader.GetBlock(minLength).Slice(offset);
+		protected override ReadOnlySpan<byte> GetDataBlock(int minLength) => reader.GetBlock(minLength + offset).Slice(offset);
 	}
 }

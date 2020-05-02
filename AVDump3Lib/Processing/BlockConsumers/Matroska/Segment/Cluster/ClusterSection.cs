@@ -20,7 +20,12 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster {
 		public void AddTracks(IEnumerable<TrackEntrySection> tracks) {
 			foreach(var track in tracks) {
 				var trackNumber = (int)track.TrackNumber.Value;
-				Tracks.Add(trackNumber, new Track(trackNumber, track.TrackTimecodeScale ?? 1d, track));
+				if(Tracks.TryGetValue(~trackNumber, out var clusterTrack)) {
+					Tracks.Add(trackNumber, new Track(trackNumber, track.TrackTimecodeScale ?? 1d, track));
+					Tracks.Remove(~trackNumber);
+				} else {
+					Tracks.Add(trackNumber, new Track(trackNumber, track.TrackTimecodeScale ?? 1d, track));
+				}
 			}
 		}
 

@@ -155,7 +155,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 					Add(stream, VideoStream.PixelCropType, new CropSides((int)track.Video.PixelCropTop, (int)track.Video.PixelCropRight, (int)track.Video.PixelCropBottom, (int)track.Video.PixelCropLeft));
 					Add(stream, VideoStream.PixelDimensionsType, new Dimensions((int)track.Video.PixelWidth, (int)track.Video.PixelHeight));
 					Add(stream, VideoStream.StorageAspectRatioType, track.Video.PixelWidth / (double)track.Video.PixelHeight);
-					Add(stream, VideoStream.PixelAspectRatioType, (track.Video.DisplayWidth / (double)track.Video.DisplayHeight) / (track.Video.PixelWidth / (double)track.Video.PixelHeight));
+					Add(stream, VideoStream.PixelAspectRatioType, (track.Video.DisplayWidth * track.Video.PixelHeight) / (double)(track.Video.DisplayHeight * track.Video.PixelWidth));
 					Add(stream, VideoStream.DisplayAspectRatioType, track.Video.DisplayWidth / (double)track.Video.DisplayHeight);
 
 					Add(stream, MediaStream.SampleCountType, trackInfo?.SampleCount);

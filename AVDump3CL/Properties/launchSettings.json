@@ -1,7 +1,8 @@
 {
   "profiles": {
     "AVDump3CL": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "FROMFILE DebugParams.txt"
     }
   }
 }

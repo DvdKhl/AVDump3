@@ -259,6 +259,7 @@ namespace AVDump3CL {
 				},
 				ex => Console.WriteLine("Filediscovery: " + ex.Message)
 			);
+			Console.WriteLine("Accepted files: " + acceptedFiles);
 			Console.WriteLine();
 
 			cl.TotalFiles = spp.TotalFileCount;

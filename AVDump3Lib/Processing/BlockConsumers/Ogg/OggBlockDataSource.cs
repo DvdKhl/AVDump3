@@ -37,16 +37,19 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 		public long Length => reader.Length;
 
 		private static readonly ReadOnlyMemory<byte> OggS = new ReadOnlyMemory<byte>(new[] { (byte)'O', (byte)'g', (byte)'g', (byte)'S' });
-		public bool SeekPastSyncBytes(bool advanceReader) {
+		public bool SeekPastSyncBytes(bool advanceReader, int maxSkippableBytes = 1 << 20) {
+			var bytesSkipped = 0;
 			var magicBytes = OggS.Span;
 			while(true) {
 				var block = reader.GetBlock(reader.SuggestedReadLength);
 				var offset = block.IndexOf(magicBytes);
-				if(offset != -1) {
+				if(offset != -1 && offset <= maxSkippableBytes) {
 					if(advanceReader) reader.Advance(offset + 4);
 					return true;
 				}
-				if(!advanceReader || block.Length < 4 || !reader.Advance(block.Length - 3)) break;
+				bytesSkipped += offset;
+
+				if(bytesSkipped > maxSkippableBytes || block.Length < 4 || !reader.Advance(block.Length - 3)) break;
 			}
 			return false;
 		}

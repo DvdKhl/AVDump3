@@ -18,7 +18,7 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 
 		public string Name { get; } //TODO
 
-		public bool IsConsuming { get { return !Reader.Completed; } }
+		public virtual bool IsConsuming => !Reader.Completed;
 
 		public BlockConsumer(string name, IBlockStreamReader reader) {
 			Name = name;
@@ -39,6 +39,7 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 		}
 
 		protected abstract void DoWork(CancellationToken ct);
+
 		public virtual void Dispose() { }
 	}
 }

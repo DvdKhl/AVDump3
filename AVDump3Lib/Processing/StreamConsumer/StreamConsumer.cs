@@ -43,7 +43,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 		public void ConsumeStream(IProgress<BlockStreamProgress> progress, CancellationToken ct) {
 			if(blockConsumers.Any()) {
 				var tasks = new Task[blockConsumers.Length + 1];
-				tasks[tasks.Length - 1] = BlockStream.Produce(progress, ct);
+				tasks[^1] = BlockStream.Produce(progress, ct);
 
 				for(var i = 0; i < blockConsumers.Length; i++) {
 					var consumerIndex = i;

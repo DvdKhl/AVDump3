@@ -247,7 +247,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 				var streamCount = mil.GetCount(streamType);
 
 				for(var streamIndex = 0; streamIndex < streamCount; streamIndex++) {
-					string streamGet(string key) => mil.Get(key, streamType, streamIndex);
+					string streamGet(string key) => mil.Get(key, streamType, streamIndex)?.Trim();
 
 					ulong? id = null;
 					if(!string.IsNullOrEmpty(streamGet("UniqueID"))) {

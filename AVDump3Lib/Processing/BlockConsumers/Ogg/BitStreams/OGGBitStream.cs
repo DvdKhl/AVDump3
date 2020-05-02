@@ -19,16 +19,16 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 			OGGBitStream bitStream = null;
 			if(page.Data.Length >= 29 && Encoding.ASCII.GetString(page.Data.Slice(1, 5)).Equals("video")) {
 				bitStream = new OGMVideoOGGBitStream(page.Data);
+			} else if(page.Data.Length >= 46 && Encoding.ASCII.GetString(page.Data.Slice(1, 5)).Equals("audio")) {
+				bitStream = new OGMAudioOGGBitStream(page.Data);
+			} else if(page.Data.Length >= 0x39 && Encoding.ASCII.GetString(page.Data.Slice(1, 4)).Equals("text")) {
+				bitStream = new OGMTextOGGBitStream(page.Data);
 			} else if(page.Data.Length >= 42 && Encoding.ASCII.GetString(page.Data.Slice(1, 6)).Equals("theora")) {
 				bitStream = new TheoraOGGBitStream(page.Data);
 			} else if(page.Data.Length >= 30 && Encoding.ASCII.GetString(page.Data.Slice(1, 6)).Equals("vorbis")) {
 				bitStream = new VorbisOGGBitStream(page.Data);
 			} else if(page.Data.Length >= 79 && Encoding.ASCII.GetString(page.Data.Slice(1, 4)).Equals("FLAC")) {
 				bitStream = new FlacOGGBitStream(page.Data);
-			} else if(page.Data.Length >= 46 && Encoding.ASCII.GetString(page.Data.Slice(1, 5)).Equals("audio")) {
-				bitStream = new OGMAudioOGGBitStream(page.Data);
-			} else if(page.Data.Length >= 0x39 && Encoding.ASCII.GetString(page.Data.Slice(1, 4)).Equals("text")) {
-				bitStream = new OGMTextOGGBitStream(page.Data);
 			}
 
 			if(bitStream == null) bitStream = new UnknownOGGBitStream();
