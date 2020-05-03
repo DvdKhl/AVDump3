@@ -10,6 +10,7 @@ using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tags;
 using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 
@@ -48,12 +49,16 @@ namespace AVDump3Lib.Information.InfoProvider {
 			Add(WritingAppType, MFI.Segment.SegmentInfo.WritingApp);
 			Add(MuxingAppType, MFI.Segment.SegmentInfo.MuxingApp);
 
-			if(MFI.Segment.Tracks.Items.Any(e => e.TrackType == TrackEntrySection.Types.Video)) {
-				Add(SuggestedFileExtensionType, "mkv");
+			if(MFI.EbmlHeader.DocType.Equals("webm", StringComparison.OrdinalIgnoreCase)) {
+				Add(SuggestedFileExtensionType, ImmutableArray.Create("webm"));
+			} else if(MFI.Segment.Tracks.Items.Any(e => e.TrackType == TrackEntrySection.Types.Video && e.Video.StereoMode != VideoSection.StereoModes.Mono)) {
+				Add(SuggestedFileExtensionType, ImmutableArray.Create("mk3d"));
+			} else if(MFI.Segment.Tracks.Items.Any(e => e.TrackType == TrackEntrySection.Types.Video)) {
+				Add(SuggestedFileExtensionType, ImmutableArray.Create("mkv"));
 			} else if(MFI.Segment.Tracks.Items.Any(e => e.TrackType == TrackEntrySection.Types.Audio)) {
-				Add(SuggestedFileExtensionType, "mka");
+				Add(SuggestedFileExtensionType, ImmutableArray.Create("mka"));
 			} else if(MFI.Segment.Tracks.Items.Any(e => e.TrackType == TrackEntrySection.Types.Subtitle)) {
-				Add(SuggestedFileExtensionType, "mks");
+				Add(SuggestedFileExtensionType, ImmutableArray.Create("mks"));
 			}
 
 			foreach(var track in MFI.Segment.Tracks.Items) {

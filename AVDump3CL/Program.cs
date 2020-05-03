@@ -10,7 +10,9 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Security.Cryptography;
 
 namespace AVDump3CL {
 	public class AVD3CLInstance {
@@ -56,7 +58,6 @@ namespace AVDump3CL {
 		private static CLSettingsHandler clSettingsHandler;
 
 		static void Main(string[] args) {
-
 			if(args.Length > 0 && args[0].Equals("FROMFILE")) {
 				if(args.Length < 2 || !File.Exists(args[1])) {
 					Console.WriteLine("FROMFILE: File not found");

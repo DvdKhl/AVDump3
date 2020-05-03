@@ -99,6 +99,9 @@ copy /Y "$(OutDir)*.pdb" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(Configur
     <ClInclude Include="AVD3NativeLibApi.h" />
     <ClInclude Include="DLLDefines.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Build.sh" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

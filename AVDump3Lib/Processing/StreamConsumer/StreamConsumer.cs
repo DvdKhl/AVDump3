@@ -54,7 +54,19 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 					);
 				}
 
-				Task.WaitAll(tasks, ct);
+				try {
+					Task.WaitAll(tasks);
+				} catch(AggregateException ex) { 
+					var wasCancelled = false;
+					ex.Flatten().Handle(ex => {
+						wasCancelled |= ex is OperationCanceledException;
+						return ex is OperationCanceledException;
+					});
+					if(wasCancelled) {
+						throw new OperationCanceledException("ConsumeStream operation was cancelled", ex, ct);
+					}
+				}
+
 			}
 
 			var exceptions = (

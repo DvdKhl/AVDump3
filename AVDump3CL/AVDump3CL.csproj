@@ -5,7 +5,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <ApplicationIcon>AVD3Icon.ico</ApplicationIcon>
     <StartupObject>AVDump3CL.Program</StartupObject>
-    <AssemblyVersion>3.0.0.8040</AssemblyVersion>
+    <AssemblyVersion>3.0.8046.0</AssemblyVersion>
     <Version>3.0.0</Version>
     <Company>extknot</Company>
     <Authors>DvdKhl</Authors>
@@ -16,7 +16,7 @@
     <NeutralLanguage>en</NeutralLanguage>
     <Copyright>Copyright © 2020 extknot</Copyright>
     <Platforms>AnyCPU;x64</Platforms>
-    <FileVersion>3.0.0.8040</FileVersion>
+    <FileVersion>3.0.8046.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -49,7 +49,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.3" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.1" />
   </ItemGroup>
 

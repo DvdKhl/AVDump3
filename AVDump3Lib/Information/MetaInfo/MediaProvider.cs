@@ -1,6 +1,7 @@
 using AVDump3Lib.Information.MetaInfo.Core;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
@@ -37,7 +38,7 @@ namespace AVDump3Lib.Information.MetaInfo {
 		public static readonly MetaInfoItemType<string> DirectoryNameType = new MetaInfoItemType<string>("DirectoryName");
 		public static readonly MetaInfoItemType<string> FileNameType = new MetaInfoItemType<string>("FileName");
 		public static readonly MetaInfoItemType<string> FileExtensionType = new MetaInfoItemType<string>("FileExtension");
-		public static readonly MetaInfoItemType<string> SuggestedFileExtensionType = new MetaInfoItemType<string>("SuggestedFileExtension");
+		public static readonly MetaInfoItemType<ImmutableArray<string>> SuggestedFileExtensionType = new MetaInfoItemType<ImmutableArray<string>>("SuggestedFileExtension");
 		public static readonly MetaInfoItemType<List<TargetedTag>> TagsType = new MetaInfoItemType<List<TargetedTag>>("Tags");
 		public static readonly MetaInfoItemType<long> AttachmentsSizeType = new MetaInfoItemType<long>("AttachmentSize");
 

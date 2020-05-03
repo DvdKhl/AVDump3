@@ -2,10 +2,12 @@ using AVDump3Lib.Information.MetaInfo;
 using AVDump3Lib.Information.MetaInfo.Core;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using ExtKnot.StringInvariants;
 using static AVDump3Lib.Information.InfoProvider.MediaInfoLibNativeMethods;
 
 namespace AVDump3Lib.Information.InfoProvider {
@@ -100,7 +102,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 				extsStr = null;
 			}
 
-			if(!string.IsNullOrEmpty(extsStr)) provider.Add(MediaProvider.SuggestedFileExtensionType, extsStr);
+			if(!string.IsNullOrEmpty(extsStr)) provider.Add(MediaProvider.SuggestedFileExtensionType, ImmutableArray.Create(extsStr));
 			if(exts.Count() == 1) {
 				exts.Single().AddInfo(provider);
 			}
@@ -271,14 +273,14 @@ namespace AVDump3Lib.Information.InfoProvider {
 			//int pos = str.IndexOf("[script info]");
 			//if(pos < 0) { IsCandidate = false; return; }
 
-			var pos = str.IndexOf(" styles]");
+			var pos = str.InvIndexOfOrdCI(" styles]");
 			if(pos != -1) {
 				pos = str.IndexOf("v4", pos - 4, 10);
 				if(pos != -1) pos += 2;
 			}
 
 			if(pos == -1) {
-				pos = str.IndexOf(" styles]");
+				pos = str.InvIndexOfOrdCI(" styles]");
 				if(pos != -1) {
 					pos = str.IndexOf("v3", pos - 4, 10);
 					if(pos != -1) pos += 2;
@@ -286,13 +288,13 @@ namespace AVDump3Lib.Information.InfoProvider {
 			}
 
 			if(pos == -1) {
-				pos = str.IndexOf("scripttype:");
+				pos = str.InvIndexOfOrdCI("scripttype:");
 				if(pos < 0) { IsCandidate = false; return; }
 				if((pos = str.IndexOf("v4.00", pos, 20)) < 0) { IsCandidate = false; return; }
 				pos += 5;
 			}
 			if(pos == -1) {
-				pos = str.IndexOf("scripttype:");
+				pos = str.InvIndexOfOrdCI("scripttype:");
 				if(pos < 0) { IsCandidate = false; return; }
 				if((pos = str.IndexOf("v3.00", pos, 20)) < 0) { IsCandidate = false; return; }
 				pos += 5;

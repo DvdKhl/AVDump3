@@ -3,6 +3,7 @@ using AVDump3Lib.Information.MetaInfo.Core;
 using AVDump3Lib.Processing.BlockConsumers.Ogg;
 using AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams;
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace AVDump3Lib.Information.InfoProvider {
@@ -77,17 +78,16 @@ namespace AVDump3Lib.Information.InfoProvider {
 					if(track.Comments.Items.Contains("language")) Add(stream, MediaStream.LanguageType, track.Comments.Items["language"].Value.Aggregate((acc, str) => acc + "," + str));
 				}
 				if(bitStream is IOGMStream) Add(stream, MediaStream.ContainerCodecCCType, ((IOGMStream)bitStream).ActualCodecName);
-
 			}
 
 			if(maxDuration != TimeSpan.Zero) Add(DurationType, maxDuration.TotalSeconds);
 
 			if(oggFile.Bitstreams.All(b => b is AudioOGGBitStream)) {
-				Add(SuggestedFileExtensionType, "ogg");
+				Add(SuggestedFileExtensionType, ImmutableArray.Create("ogg"));
 			} else if(oggFile.Bitstreams.All(b => b.IsOfficiallySupported)) {
-				Add(SuggestedFileExtensionType, "ogv");
+				Add(SuggestedFileExtensionType, ImmutableArray.Create("ogv"));
 			} else if(oggFile.Bitstreams.Any(b => b is OGMAudioOGGBitStream || b is OGMVideoOGGBitStream || b is OGMTextOGGBitStream)) {
-				Add(SuggestedFileExtensionType, "ogm");
+				Add(SuggestedFileExtensionType, ImmutableArray.Create("ogm"));
 			}
 
 		}

@@ -15,6 +15,7 @@ using AVDump3Lib.Settings;
 using AVDump3Lib.Settings.CLArguments;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -209,6 +210,7 @@ namespace AVDump3CL {
 				streamConsumerCollection.ConsumingStream += ConsumingStream;
 
 				void cancelKeyHandler(object s, ConsoleCancelEventArgs e) {
+					Console.CancelKeyPress -= cancelKeyHandler;
 					e.Cancel = true;
 					cts.Cancel();
 				}
@@ -220,9 +222,8 @@ namespace AVDump3CL {
 				} catch(OperationCanceledException) {
 
 				} finally {
-					Console.CancelKeyPress -= cancelKeyHandler;
-					Console.CursorVisible = true;
 					cl.Stop();
+					Console.CursorVisible = true;
 				}
 			}
 
@@ -270,11 +271,11 @@ namespace AVDump3CL {
 		}
 
 		private async void ConsumingStream(object sender, ConsumingStreamEventArgs e) {
-			var hasError = false;
+			var hasProcessingError = false;
 			e.OnException += (s, args) => {
 				args.IsHandled = true;
 				args.Retry = args.RetryCount < 2;
-				hasError = !args.IsHandled;
+				hasProcessingError = !args.IsHandled;
 
 				OnException(new AVD3CLException("ConsumingStream", args.Cause));
 			};
@@ -283,7 +284,7 @@ namespace AVDump3CL {
 			var filePath = (string)e.Tag;
 			var fileName = Path.GetFileName(filePath);
 
-			if(hasError) return;
+			if(hasProcessingError) return;
 
 			var linesToWrite = new List<string>(32);
 			if(settings.Reporting.PrintHashes || settings.Reporting.PrintReports) {
@@ -297,7 +298,7 @@ namespace AVDump3CL {
 				linesToWrite.Add("");
 			}
 
-
+			var success = true;
 			var reportsFactories = reportingModule.ReportFactories.Where(x => settings.Reporting.Reports.Any(y => x.Name.Equals(y, StringComparison.OrdinalIgnoreCase))).ToArray();
 			if(reportsFactories.Length != 0) {
 				var infoSetup = new InfoProviderSetup(filePath, blockConsumers);
@@ -340,20 +341,23 @@ namespace AVDump3CL {
 
 					if(!string.IsNullOrEmpty(settings.Reporting.ExtensionDifferencePath)) {
 						var metaDataProvider = fileMetaInfo.CondensedProviders.Where(x => x.Type == MediaProvider.MediaProviderType).Single();
-						var detExt = metaDataProvider.Select(MediaProvider.SuggestedFileExtensionType)?.Value ?? "";
+						var detExts = metaDataProvider.Select(MediaProvider.SuggestedFileExtensionType)?.Value ?? ImmutableArray.Create<string>();
 						var ext = fileMetaInfo.FileInfo.Extension.StartsWith('.') ? fileMetaInfo.FileInfo.Extension.Substring(1) : fileMetaInfo.FileInfo.Extension;
 
-						if(!detExt.Equals(ext, StringComparison.OrdinalIgnoreCase)) {
+						if(!detExts.Contains(ext, StringComparer.OrdinalIgnoreCase)) {
+							if(detExts.Length == 0) detExts = ImmutableArray.Create("unknown");
+
 							lock(settings.Reporting) {
 								File.AppendAllText(
 									settings.Reporting.ExtensionDifferencePath,
-									ext + " => " + (detExt ?? "unknown") + "	" + fileMetaInfo.FileInfo.FullName + Environment.NewLine
+									ext + " => " + string.Join(" ", detExts) + "\t" + fileMetaInfo.FileInfo.FullName + Environment.NewLine
 								);
 							}
 						}
 					}
 				} catch(Exception ex) {
 					OnException(new AVD3CLException("GeneratingReports", ex) { Data = { { "FileName", new SensitiveData(fileName) } } });
+					success = false;
 				}
 			}
 			cl.Writeline(linesToWrite);
@@ -380,9 +384,10 @@ namespace AVDump3CL {
 				FileProcessed?.Invoke(this, new AVD3CLFileProcessedEventArgs(filePath, blockConsumers));
 			} catch(Exception ex) {
 				OnException(new AVD3CLException("FileProcessedEvent", ex) { Data = { { "FileName", new SensitiveData(fileName) } } });
+				success = false;
 			}
 
-			if(settings.FileDiscovery.ProcessedLogPath != null) {
+			if(settings.FileDiscovery.ProcessedLogPath != null && success) {
 				lock(settings.FileDiscovery) File.AppendAllText(settings.FileDiscovery.ProcessedLogPath, filePath + "\n");
 			}
 

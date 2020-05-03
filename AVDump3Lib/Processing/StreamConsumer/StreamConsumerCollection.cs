@@ -44,7 +44,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 			using(var cts = new CancellationTokenSource())
 			using(var counter = new CountdownEvent(1))
 			using(ct.Register(() => cts.Cancel())) {
-				Exception firstChanceException = null;
+				AggregateException firstChanceException = null;
 				foreach(var providedStream in streamProvider.GetConsumingEnumerable(ct)) {
 					ct.ThrowIfCancellationRequested();
 
@@ -66,7 +66,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 				counter.Wait(ct);
 
 				if(firstChanceException != null) {
-					throw firstChanceException;
+					firstChanceException.Handle(ex => ex is OperationCanceledException);
 				}
 			}
 
@@ -122,6 +122,9 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 					throw new StreamConsumerCollectionException("After stream processing exception", ex);
 				}
 
+
+			} catch(OperationCanceledException ex) {
+				throw;
 
 			} catch(Exception ex) {
 				Console.WriteLine(ex.Message);

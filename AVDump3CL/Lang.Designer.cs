@@ -143,7 +143,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to --ExtDiff=extdiff.txt.
+        ///   Looks up a localized string similar to --EDPath=extdiff.txt.
         /// </summary>
         internal static string ExtensionDifferencePathExample {
             get {

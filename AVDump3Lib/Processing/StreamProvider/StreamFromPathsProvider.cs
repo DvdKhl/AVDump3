@@ -1,4 +1,5 @@
 using AVDump3Lib.Misc;
+using ExtKnot.StringInvariants;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -37,6 +38,7 @@ namespace AVDump3Lib.Processing.StreamProvider {
 		public StreamFromPathsProvider(PathPartitions pathPartitions,
 			IEnumerable<string> paths, bool includeSubFolders, Func<string, bool> accept, Action<Exception> onError
 		) {
+			if(pathPartitions is null) throw new ArgumentNullException(nameof(pathPartitions));
 
 			globalConcurrency = new SemaphoreSlim(pathPartitions.ConcurrentCount);
 
@@ -55,7 +57,7 @@ namespace AVDump3Lib.Processing.StreamProvider {
 				//if(fileInfo.Length < 1 << 30) return;
 
 				TotalBytes += fileInfo.Length;
-				localConcurrencyPartitions.First(ldKey => filePath.StartsWith(ldKey.Path)).Files.Enqueue(filePath);
+				localConcurrencyPartitions.First(ldKey => filePath.InvStartsWith(ldKey.Path)).Files.Enqueue(filePath);
 				TotalFileCount++;
 			}, onError);
 		}
@@ -67,12 +69,20 @@ namespace AVDump3Lib.Processing.StreamProvider {
 				var i = WaitHandle.WaitAny(localLimits.Select(ll => ll.Limit.AvailableWaitHandle).ToArray());
 				localLimits[i].Limit.Wait();
 
-				yield return new ProvidedStreamFromPath(this, localLimits[i].Files.Dequeue()); //TODO error handling (e.g. file not found)
+				var path = localLimits[i].Files.Dequeue();
+				ProvidedStreamFromPath providedStream = null;
+				try {
+					providedStream = new ProvidedStreamFromPath(this, path); //TODO error handling (e.g. file not found)
+				} catch(FileNotFoundException) {
+					Release(path);
+				}
+
+				if(providedStream != null) yield return providedStream;
 			}
 		}
 
 		private void Release(string filePath) {
-			localConcurrencyPartitions.First(ldKey => filePath.StartsWith(ldKey.Path)).Limit.Release();
+			localConcurrencyPartitions.First(ldKey => filePath.InvStartsWith(ldKey.Path)).Limit.Release();
 			globalConcurrency.Release();
 		}
 

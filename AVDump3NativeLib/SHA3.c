@@ -58,8 +58,12 @@ extern "C" {
 #endif
 
 //TODO
+#ifndef __BYTE_ORDER
 #define __BYTE_ORDER 1
+#endif
+#ifndef __LITTLE_ENDIAN
 #define __LITTLE_ENDIAN 1
+#endif
 #if (defined(__BYTE_ORDER) && defined(__LITTLE_ENDIAN) && \
 		__BYTE_ORDER == __LITTLE_ENDIAN) || \
 	defined(CPU_IA32) || defined(CPU_X64) || \

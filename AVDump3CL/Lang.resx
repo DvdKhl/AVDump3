@@ -146,7 +146,7 @@ First param (max) sets a global limit. (path,max) pairs sets limits per path.</v
     <value>Logs the filepath if the detected extension does not match the actual extension</value>
   </data>
   <data name="ExtensionDifferencePathExample" xml:space="preserve">
-    <value>--ExtDiff=extdiff.txt</value>
+    <value>--EDPath=extdiff.txt</value>
   </data>
   <data name="HideBuffersDescription" xml:space="preserve">
     <value />

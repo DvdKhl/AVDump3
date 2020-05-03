@@ -4,6 +4,7 @@ using AVDump3Lib.Processing.BlockConsumers.MP4;
 using BXmlLib.DocTypes.MP4;
 using BXmlLib.DocTypes.MP4.Boxes;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace AVDump3Lib.Information.InfoProvider {
@@ -37,9 +38,9 @@ namespace AVDump3Lib.Information.InfoProvider {
 			var tracksBox = RootBox.Descendents(MP4DocType.Track).ToArray();
 
 			if(tracksBox.All(x => "soun".Equals(MP4DocType.KeyToString(new HandlerBox(x.Descendents(MP4DocType.Handler).First().Data.Span).HandlerType)))) {
-				Add(SuggestedFileExtensionType, "m4a");
+				Add(SuggestedFileExtensionType, ImmutableArray.Create("m4a"));
 			} else {
-				Add(SuggestedFileExtensionType, "mp4");
+				Add(SuggestedFileExtensionType, ImmutableArray.Create("mp4"));
 			}
 
 			foreach(var trackBox in tracksBox) PopulateTrack(trackBox);
