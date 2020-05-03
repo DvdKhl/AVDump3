@@ -260,5 +260,6 @@ paket-files/
 __pycache__/
 *.pyc
 /AVDump3CL/DebugParams.txt
+/AVDump3CL/AppHashCode.txt
 *.gch
 /AVDump3NativeLib/AVDump3NativeLib.so
