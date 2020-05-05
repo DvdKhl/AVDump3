@@ -46,10 +46,6 @@ namespace AVDump3CL {
 				args = File.ReadLines(args[1]).Where(x => !x.StartsWith("//") && !string.IsNullOrWhiteSpace(x)).Select(x => x.Replace("\r", "")).Concat(args.Skip(2)).ToArray();
 
 			}
-			Console.WriteLine("Arguments:");
-			foreach(var arg in args) Console.WriteLine(arg);
-
-			Console.WriteLine();
 			return true;
 		}
 	}
@@ -58,6 +54,7 @@ namespace AVDump3CL {
 		private static CLSettingsHandler clSettingsHandler;
 
 		static void Main(string[] args) {
+
 			if(args.Length > 0 && args[0].Equals("FROMFILE")) {
 				if(args.Length < 2 || !File.Exists(args[1])) {
 					Console.WriteLine("FROMFILE: File not found");
@@ -66,11 +63,6 @@ namespace AVDump3CL {
 				args = File.ReadLines(args[1]).Where(x => !x.StartsWith("//") && !string.IsNullOrWhiteSpace(x)).Select(x => x.Replace("\r", "")).Concat(args.Skip(2)).ToArray();
 
 			}
-			Console.WriteLine("Arguments:");
-			foreach(var arg in args) {
-				Console.WriteLine(arg);
-			}
-			Console.WriteLine();
 
 			clSettingsHandler = new CLSettingsHandler();
 

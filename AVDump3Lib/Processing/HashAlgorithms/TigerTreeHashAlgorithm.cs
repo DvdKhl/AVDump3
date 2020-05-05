@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -22,6 +23,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		private readonly byte[] leaves = new byte[(16 * 1024 * 1024) / 1024 * 24]; //Space for leaves calculated by 16MiB worth of data
 		private readonly BlockHasher[] blockHashers;
 		private readonly AutoResetEvent[] blockHashersSync;
+		private readonly byte[] EmptyHash = new byte[] { 0x32, 0x93, 0xAC, 0x63, 0x0C, 0x13, 0xF0, 0x24, 0x5F, 0x92, 0xBB, 0xB1, 0x76, 0x6E, 0x16, 0x16, 0x7A, 0x4E, 0x58, 0x49, 0x2D, 0xDE, 0x73, 0xF3 };
 
 		public const int BLOCKSIZE = 1024;
 		public int BlockSize => BLOCKSIZE * 2; //Due to optimizations each passed data block needs to be twice the size of BLOCKSIZE (See Compress)
@@ -43,11 +45,16 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 				blockHasher.Finish();
 			}
 
-			if(data.Length >= 2048 || leafCount != 0) throw new Exception();
+			if(nodeCount == 0 && data.Length == 0) {
+				return EmptyHash;
+			}
+
+
+			if(data.Length >= 2048 || leafCount != 0) throw new Exception("leafCount is not 0 or remaining data is larger than 2048 bytes");
 
 			if(data.Length != 0) {
-				fixed (byte* leavesPtr = leaves)
-				fixed (byte* dataPtr = data) {
+				fixed(byte* leavesPtr = leaves)
+				fixed(byte* dataPtr = data) {
 					var buffer = TigerNativeHashAlgorithm.TTHCreateBlock();
 					if(data.Length > 1024) {
 						TigerNativeHashAlgorithm.TTHBlockHash(dataPtr, buffer, leavesPtr);
@@ -62,14 +69,23 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 					leafCount++;
 					AVDNativeHashAlgorithm.FreeHashObject((IntPtr)buffer);
 
-					if(leafCount > 1) Compress();
+					//There needs to be at least one node
+					if(leafCount > 1) {
+						Compress();
+
+					} else if(nodeCount == 0) {
+						leafCount--;
+						nodeCount++;
+						((Span<byte>)leaves).Slice(0, 24).CopyTo(nodes);
+					}
 				}
 			}
 
+			if(nodeCount == 0) throw new Exception("nodeCount is 0");
 
 			var nodesCopied = 0;
 			Span<byte> finalHashesSpan = new byte[24 * 3];
-			fixed (byte* finalHashesPtr = finalHashesSpan) {
+			fixed(byte* finalHashesPtr = finalHashesSpan) {
 				Span<byte> leavesSpan = leaves;
 				Span<byte> nodeSpan = nodes;
 
@@ -99,7 +115,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		public int TransformFullBlocks(in ReadOnlySpan<byte> data) {
 			var dataSlice = data.Slice(0, Math.Min(16 << 20, data.Length) & ~2047);
 
-			fixed (byte* dataPtr = dataSlice) {
+			fixed(byte* dataPtr = dataSlice) {
 				foreach(var blockHasher in blockHashers) blockHasher.ProcessData(dataPtr, dataSlice.Length);
 				WaitHandle.WaitAll(blockHashersSync);
 			}
@@ -115,8 +131,8 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			var leafPairsProcessed = 0;
 
 			//Since we assume Only the last datablock may have an odd number of leaves
-			fixed (byte* leavesPtr = leaves)
-			fixed (byte* nodesPtr = nodes) {
+			fixed(byte* leavesPtr = leaves)
+			fixed(byte* nodesPtr = nodes) {
 				while(leafCount > 1) {
 					var levelIsEmpty = (nodeCount & 1) == 0;
 					TigerNativeHashAlgorithm.TTHNodeHash(leavesPtr + leafPairsProcessed * 48, compressBuffer, nodesPtr + (levelIsEmpty ? 0 : 24));
@@ -136,10 +152,11 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 
 		public void Dispose() {
 			AVDNativeHashAlgorithm.FreeHashObject((IntPtr)compressBuffer);
+			foreach(var blockHasher in blockHashers) blockHasher.Dispose();
 			compressBuffer = (byte*)0;
 		}
 
-		private class BlockHasher {
+		private class BlockHasher: IDisposable {
 			private readonly Thread hashThread;
 			private bool threadJoin;
 
@@ -187,12 +204,16 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 				hashThread.Join();
 			}
 
+			public void Dispose() {
+				doWorkSync.Dispose();
+			}
+
 			void DoWork() {
 				var buffer = TigerNativeHashAlgorithm.TTHCreateBlock();
 
 				doWorkSync.WaitOne();
 				while(!threadJoin) {
-					fixed (byte* leavesPtr = leaves) {
+					fixed(byte* leavesPtr = leaves) {
 						while(lengthData >= BLOCKSIZE) {
 							TigerNativeHashAlgorithm.TTHBlockHash(dataPtr + offsetData, buffer, leavesPtr + offsetLeaf);
 

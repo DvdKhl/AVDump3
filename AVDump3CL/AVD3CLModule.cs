@@ -298,15 +298,49 @@ namespace AVDump3CL {
 				linesToWrite.Add("");
 			}
 
+
+			var infoSetup = new InfoProviderSetup(filePath, blockConsumers);
+			var infoProviders = informationModule.InfoProviderFactories.Select(x => x.Create(infoSetup)).ToArray();
+			var fileMetaInfo = new FileMetaInfo(new FileInfo(filePath), infoProviders);
+
+			if(!string.IsNullOrEmpty(settings.Reporting.CRC32Error.Path)) {
+				var hashProvider = fileMetaInfo.CondensedProviders.Where(x => x.Type == HashProvider.HashProviderType).Single();
+				var crc32Hash = (ReadOnlyMemory<byte>)hashProvider.Items.First(x => x.Type.Key.Equals("CRC32")).Value;
+				var crc32HashStr = BitConverter.ToString(crc32Hash.ToArray(), 0).Replace("-", "");
+
+				if(!Regex.IsMatch(fileMetaInfo.FileInfo.FullName, settings.Reporting.CRC32Error.Pattern.Replace("<CRC32>", crc32HashStr))) {
+					lock(settings.Reporting) {
+						File.AppendAllText(
+							settings.Reporting.CRC32Error.Path,
+							crc32HashStr + " " + fileMetaInfo.FileInfo.FullName + Environment.NewLine
+						);
+					}
+				}
+			}
+
+			if(!string.IsNullOrEmpty(settings.Reporting.ExtensionDifferencePath)) {
+				var metaDataProvider = fileMetaInfo.CondensedProviders.Where(x => x.Type == MediaProvider.MediaProviderType).Single();
+				var detExts = metaDataProvider.Select(MediaProvider.SuggestedFileExtensionType)?.Value ?? ImmutableArray.Create<string>();
+				var ext = fileMetaInfo.FileInfo.Extension.StartsWith('.') ? fileMetaInfo.FileInfo.Extension.Substring(1) : fileMetaInfo.FileInfo.Extension;
+
+				if(!detExts.Contains(ext, StringComparer.OrdinalIgnoreCase)) {
+					if(detExts.Length == 0) detExts = ImmutableArray.Create("unknown");
+
+					lock(settings.Reporting) {
+						File.AppendAllText(
+							settings.Reporting.ExtensionDifferencePath,
+							ext + " => " + string.Join(" ", detExts) + "\t" + fileMetaInfo.FileInfo.FullName + Environment.NewLine
+						);
+					}
+				}
+			}
+
 			var success = true;
 			var reportsFactories = reportingModule.ReportFactories.Where(x => settings.Reporting.Reports.Any(y => x.Name.Equals(y, StringComparison.OrdinalIgnoreCase))).ToArray();
 			if(reportsFactories.Length != 0) {
-				var infoSetup = new InfoProviderSetup(filePath, blockConsumers);
 
 				try {
-					var infoProviders = informationModule.InfoProviderFactories.Select(x => x.Create(infoSetup)).ToArray();
 
-					var fileMetaInfo = new FileMetaInfo(new FileInfo(filePath), infoProviders);
 					var reportItems = reportsFactories.Select(x => new { x.Name, Report = x.Create(fileMetaInfo) });
 
 					foreach(var reportItem in reportItems) {
@@ -316,6 +350,8 @@ namespace AVDump3CL {
 
 						var reportFileName = settings.Reporting.ReportFileName;
 						reportFileName = reportFileName.Replace("<FileName>", fileName);
+						reportFileName = reportFileName.Replace("<FileNameWithoutExtension>", Path.GetFileNameWithoutExtension(fileName));
+						reportFileName = reportFileName.Replace("<FileExtension>", Path.GetExtension(fileName).Replace(".", ""));
 						reportFileName = reportFileName.Replace("<ReportName>", reportItem.Name);
 						reportFileName = reportFileName.Replace("<ReportFileExtension>", reportItem.Report.FileExtension);
 
@@ -324,37 +360,6 @@ namespace AVDump3CL {
 						}
 					}
 
-					if(!string.IsNullOrEmpty(settings.Reporting.CRC32Error.Path)) {
-						var hashProvider = fileMetaInfo.CondensedProviders.Where(x => x.Type == HashProvider.HashProviderType).Single();
-						var crc32Hash = (ReadOnlyMemory<byte>)hashProvider.Items.First(x => x.Type.Key.Equals("CRC32")).Value;
-						var crc32HashStr = BitConverter.ToString(crc32Hash.ToArray(), 0).Replace("-", "");
-
-						if(!Regex.IsMatch(fileMetaInfo.FileInfo.FullName, settings.Reporting.CRC32Error.Pattern.Replace("<CRC32>", crc32HashStr))) {
-							lock(settings.Reporting) {
-								File.AppendAllText(
-									settings.Reporting.CRC32Error.Path,
-									crc32HashStr + " " + fileMetaInfo.FileInfo.FullName + Environment.NewLine
-								);
-							}
-						}
-					}
-
-					if(!string.IsNullOrEmpty(settings.Reporting.ExtensionDifferencePath)) {
-						var metaDataProvider = fileMetaInfo.CondensedProviders.Where(x => x.Type == MediaProvider.MediaProviderType).Single();
-						var detExts = metaDataProvider.Select(MediaProvider.SuggestedFileExtensionType)?.Value ?? ImmutableArray.Create<string>();
-						var ext = fileMetaInfo.FileInfo.Extension.StartsWith('.') ? fileMetaInfo.FileInfo.Extension.Substring(1) : fileMetaInfo.FileInfo.Extension;
-
-						if(!detExts.Contains(ext, StringComparer.OrdinalIgnoreCase)) {
-							if(detExts.Length == 0) detExts = ImmutableArray.Create("unknown");
-
-							lock(settings.Reporting) {
-								File.AppendAllText(
-									settings.Reporting.ExtensionDifferencePath,
-									ext + " => " + string.Join(" ", detExts) + "\t" + fileMetaInfo.FileInfo.FullName + Environment.NewLine
-								);
-							}
-						}
-					}
 				} catch(Exception ex) {
 					OnException(new AVD3CLException("GeneratingReports", ex) { Data = { { "FileName", new SensitiveData(fileName) } } });
 					success = false;

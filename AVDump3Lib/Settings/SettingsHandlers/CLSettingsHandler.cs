@@ -1,8 +1,10 @@
 using AVDump3Lib.Misc;
 using AVDump3Lib.Settings.Core;
+using ExtKnot.StringInvariants;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -41,7 +43,7 @@ namespace AVDump3Lib.Settings.CLArguments {
 					if(attr != null) {
 						propToNames.Add(prop, attr.Names);
 					} else {
-						propToNames.Add(prop, new ReadOnlyCollection<string>(new string[0]));
+						propToNames.Add(prop, new ReadOnlyCollection<string>(Array.Empty<string>()));
 					}
 				}
 			}
@@ -50,7 +52,7 @@ namespace AVDump3Lib.Settings.CLArguments {
 		public bool ParseArgs(string[] args, ICollection<string> unnamedArgs) {
 			args = args.Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
 
-			if(args.Length == 0 || args[0].ToLower().Equals("--Help".ToLower())) {
+			if(args.Length == 0 || args[0].InvEqualsOrdCI("--Help")) {
 				if(args.Length == 2) PrintHelpTopic(args[1], true); else PrintHelp(true);
 				return false;
 			}
@@ -61,7 +63,7 @@ namespace AVDump3Lib.Settings.CLArguments {
 				var param = match.Groups["Param"].Success ? match.Groups["Param"].Value : null;
 				var name = match.Groups["Arg"].Value;
 
-				if(args[i][0] == '-' && name.Equals(string.Empty)) throw new FormatException("Invalid argument structure");
+				if(args[i][0] == '-' && string.IsNullOrEmpty(name)) throw new FormatException("Invalid argument structure");
 				if(args[i][0] == '-' && args[i][1] != '-') {
 					if(name.Length > 1) {
 						if(param != null) throw new FormatException("Multiple one letter arguments may not have parameters");
@@ -76,7 +78,7 @@ namespace AVDump3Lib.Settings.CLArguments {
 
 					var argCandidates =
 						from g in items
-						where nameSpace == null || nameSpace.ToLower().Equals(g.Name.ToLower())
+						where nameSpace == null || nameSpace.InvEqualsOrdCI(g.Name)
 						from a in g.Properties
 						where a.Name.Equals(name, comparsionType) || propToNames[a].Any(ldKey => ldKey.Equals(name, comparsionType))
 						select new { Group = g, Property = a };
@@ -95,7 +97,7 @@ namespace AVDump3Lib.Settings.CLArguments {
 							value = ((ICLConvert)entry.Group).FromCLString(entry.Property, param);
 						}
 						if(value == null && !string.IsNullOrWhiteSpace(param)) {
-							value = Convert.ChangeType(param, entry.Property.ValueType);
+							value = Convert.ChangeType(param, entry.Property.ValueType, CultureInfo.InvariantCulture);
 						}
 						entry.Group.SetValue(entry.Property, value);
 
@@ -118,7 +120,7 @@ namespace AVDump3Lib.Settings.CLArguments {
 		}
 
 		public void PrintHelpTopic(string topic, bool detailed) {
-			var argGroup = items.SingleOrDefault(ldArgGroup => ldArgGroup.Name.ToLower().Equals(topic.ToLower()));
+			var argGroup = items.SingleOrDefault(ldArgGroup => ldArgGroup.Name.InvEqualsOrdCI(topic));
 			if(argGroup == null) {
 				Console.WriteLine("There is no such topic");
 				Console.WriteLine();

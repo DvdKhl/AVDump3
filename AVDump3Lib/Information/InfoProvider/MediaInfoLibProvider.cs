@@ -368,7 +368,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 					var languages = new List<string>();
 					if((uint)title.IndexOf(':') < 5) {
-						var language = title.Contains(':') ? title.Substring(0, title.IndexOf(':'))  : "";
+						var language = title.Contains(':') ? title.Substring(0, title.IndexOf(':')) : "";
 						if(!string.IsNullOrEmpty(language)) languages.Add(language);
 						title = title.Substring(language.Length + 1);
 
@@ -415,13 +415,13 @@ namespace AVDump3Lib.Information.InfoProvider {
 				}
 
 			} else if(milInfo.Contains("mp4") && milInfo.Contains("m4a") && milInfo.Contains("m4v")) {
-			//	if(hasSubtitle || (hasVideo && hasAudio)) {
-			//		Add(SuggestedFileExtensionType, ImmutableArray.Create("mp4"));
-			//	} else if(hasVideo && !hasAudio) {
-			//		Add(SuggestedFileExtensionType, ImmutableArray.Create("m4v"));
-			//	} else if(!hasVideo && hasAudio) {
-			//		Add(SuggestedFileExtensionType, ImmutableArray.Create("m4a"));
-			//	}
+				//	if(hasSubtitle || (hasVideo && hasAudio)) {
+				//		Add(SuggestedFileExtensionType, ImmutableArray.Create("mp4"));
+				//	} else if(hasVideo && !hasAudio) {
+				//		Add(SuggestedFileExtensionType, ImmutableArray.Create("m4v"));
+				//	} else if(!hasVideo && hasAudio) {
+				//		Add(SuggestedFileExtensionType, ImmutableArray.Create("m4a"));
+				//	}
 				if(!hasVideo && hasAudio && !hasSubtitle) {
 					Add(SuggestedFileExtensionType, ImmutableArray.Create("m4a"));
 				} else if(hasVideo && !hasAudio && !hasSubtitle) {
@@ -431,8 +431,8 @@ namespace AVDump3Lib.Information.InfoProvider {
 				}
 
 			} else if(milInfo.Contains("dts") || milInfo.Contains("thd")) {
-				if(milInfoCommercial.Contains("dts")) {
-					if(milInfoCommercial.Contains("dts-hd")) {
+				if(milInfoCommercial.InvContains("dts")) {
+					if(milInfoCommercial.InvContains("dts-hd")) {
 						Add(SuggestedFileExtensionType, ImmutableArray.Create("dtshd"));
 					} else {
 						Add(SuggestedFileExtensionType, ImmutableArray.Create("dts"));
@@ -444,9 +444,9 @@ namespace AVDump3Lib.Information.InfoProvider {
 					}
 				}
 			} else if(milInfo.Contains("mlp") || milInfo.Length == 0 || string.IsNullOrEmpty(milInfo[0])) {
-				if(milInfoCommercial.Contains("truehd")) {
+				if(milInfoCommercial.InvContains("truehd")) {
 					Add(SuggestedFileExtensionType, ImmutableArray.Create("thd"));
-				} else if(milInfoCommercial.Contains("mlp")) {
+				} else if(milInfoCommercial.InvContains("mlp")) {
 					Add(SuggestedFileExtensionType, ImmutableArray.Create("mlp"));
 				}
 			}
@@ -454,16 +454,16 @@ namespace AVDump3Lib.Information.InfoProvider {
 			if(Select(SuggestedFileExtensionType) == null) {
 				if(milInfo.Contains("rm") || milInfo.Contains("rmvb")) {
 					Add(SuggestedFileExtensionType, ImmutableArray.Create("rm"));
-				}
-				if(milInfo.Contains("asf") || milInfo.Contains("wmv") /*|| milInfo.Contains("wma")*/) {
+				} else if(milInfo.Contains("asf") || milInfo.Contains("wmv") /*|| milInfo.Contains("wma")*/) {
 					Add(SuggestedFileExtensionType, ImmutableArray.Create("wmv"));
-				}
-				if(milInfo.Contains("mov") || milInfo.Contains("qt")) {
+				} else if(milInfo.Contains("mov") || milInfo.Contains("qt")) {
 					Add(SuggestedFileExtensionType, ImmutableArray.Create("mov"));
+				} else if(milInfo.Contains("aac") || milInfo.Contains("aacp") || milInfo.Contains("adts")) {
+					Add(SuggestedFileExtensionType, ImmutableArray.Create("aac"));
 				}
 			}
 
-			if(Select(SuggestedFileExtensionType) == null) {
+			if(Select(SuggestedFileExtensionType) == null && milInfo.Length > 0) {
 				Add(SuggestedFileExtensionType, ImmutableArray.Create(milInfo));
 			}
 		}

@@ -13,8 +13,8 @@
     <NeutralLanguage>en</NeutralLanguage>
     <ApplicationIcon></ApplicationIcon>
     <Platforms>AnyCPU;x64</Platforms>
-    <AssemblyVersion>3.0.8046.0</AssemblyVersion>
-    <FileVersion>3.0.8046.0</FileVersion>
+    <AssemblyVersion>3.0.8049.0</AssemblyVersion>
+    <FileVersion>3.0.8049.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
