@@ -324,7 +324,9 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 			var menuStreamCount = mil.GetCount(MediaInfoLibNativeMethods.StreamTypes.Menu);
 			for(var i = 0; i < menuStreamCount; i++) {
-				PopulateChapters(mil, i);
+				try {
+					PopulateChapters(mil, i);
+				} catch(Exception) { }
 			}
 		}
 

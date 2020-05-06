@@ -52,6 +52,7 @@ namespace AVDump3Lib {
 			infoElem.Add(new XElement("Is64BitProcess", Environment.Is64BitProcess));
 			infoElem.Add(new XElement("ProcessorCount", Environment.ProcessorCount));
 			infoElem.Add(new XElement("UserInteractive", Environment.UserInteractive));
+			infoElem.Add(new XElement("SystemPageSize", Environment.SystemPageSize));
 			infoElem.Add(new XElement("WorkingSet", Environment.WorkingSet));
 			if(includePersonalData) infoElem.Add(new XElement("Commandline", Environment.CommandLine));
 

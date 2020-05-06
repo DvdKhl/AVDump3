@@ -271,18 +271,19 @@ namespace AVDump3CL {
 		}
 
 		private async void ConsumingStream(object sender, ConsumingStreamEventArgs e) {
+			var filePath = (string)e.Tag;
+			var fileName = Path.GetFileName(filePath);
+
 			var hasProcessingError = false;
 			e.OnException += (s, args) => {
 				args.IsHandled = true;
 				args.Retry = args.RetryCount < 2;
 				hasProcessingError = !args.IsHandled;
 
-				OnException(new AVD3CLException("ConsumingStream", args.Cause));
+				OnException(new AVD3CLException("ConsumingStream", args.Cause) { Data = { { "FileName", new SensitiveData(fileName) } } });
 			};
 
 			var blockConsumers = await e.FinishedProcessing;
-			var filePath = (string)e.Tag;
-			var fileName = Path.GetFileName(filePath);
 
 			if(hasProcessingError) return;
 
@@ -298,9 +299,16 @@ namespace AVDump3CL {
 				linesToWrite.Add("");
 			}
 
+			MetaDataProvider[] infoProviders;
+			try {
+				var infoSetup = new InfoProviderSetup(filePath, blockConsumers);
+				infoProviders = informationModule.InfoProviderFactories.Select(x => x.Create(infoSetup)).ToArray();
 
-			var infoSetup = new InfoProviderSetup(filePath, blockConsumers);
-			var infoProviders = informationModule.InfoProviderFactories.Select(x => x.Create(infoSetup)).ToArray();
+			} catch(Exception ex) {
+				OnException(new AVD3CLException("CreatingInfoProviders", ex) { Data = { { "FileName", new SensitiveData(fileName) } } });
+				return;
+			}
+
 			var fileMetaInfo = new FileMetaInfo(new FileInfo(filePath), infoProviders);
 
 			if(!string.IsNullOrEmpty(settings.Reporting.CRC32Error.Path)) {
