@@ -7,17 +7,18 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
-
 	public unsafe class SHA3NativeHashAlgorithm : AVDNativeHashAlgorithm {
-		[DllImport("AVDump3NativeLib")]
-		private static extern IntPtr SHA3Create(out int blockSize);
-		[DllImport("AVDump3NativeLib")]
-		private static extern void SHA3Init(IntPtr handle);
-		[DllImport("AVDump3NativeLib")]
-		private unsafe static extern void SHA3Transform(IntPtr handle, byte* b, int length, byte lastBlock);
-		[DllImport("AVDump3NativeLib")]
-		private unsafe static extern void SHA3Final(IntPtr handle, byte* hash);
+		internal static class NativeMethods {
+			[DllImport("AVDump3NativeLib")]
+			internal static extern IntPtr SHA3Create(ref int hashLength, out int blockSize);
+			[DllImport("AVDump3NativeLib")]
+			internal static extern void SHA3Init(IntPtr handle);
+			[DllImport("AVDump3NativeLib")]
+			internal static extern void SHA3Transform(IntPtr handle, byte* b, int length);
+			[DllImport("AVDump3NativeLib")]
+			internal static extern void SHA3Final(IntPtr handle, byte* b, int length, byte* hash);
+		}
 
-		public SHA3NativeHashAlgorithm() : base(SHA3Create, SHA3Init, SHA3Transform, SHA3Final, -1) { } //TODO
+		public SHA3NativeHashAlgorithm(int hashBitCount) : base(NativeMethods.SHA3Create, NativeMethods.SHA3Init, NativeMethods.SHA3Transform, NativeMethods.SHA3Final, hashBitCount) { } //TODO
 	}
 }

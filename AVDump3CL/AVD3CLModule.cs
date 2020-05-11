@@ -13,6 +13,7 @@ using AVDump3Lib.Processing.StreamProvider;
 using AVDump3Lib.Reporting;
 using AVDump3Lib.Settings;
 using AVDump3Lib.Settings.CLArguments;
+using ExtKnot.StringInvariants;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -58,7 +59,7 @@ namespace AVDump3CL {
 		private HashSet<string> filePathsToSkip;
 
 		private readonly AVD3CLModuleSettings settings = new AVD3CLModuleSettings();
-		private readonly object reportSaveLockObject = new object();
+		private readonly object fileSystemLock = new object();
 		private IAVD3ProcessingModule processingModule;
 		private IAVD3InformationModule informationModule;
 		private IAVD3ReportingModule reportingModule;
@@ -84,11 +85,13 @@ namespace AVDump3CL {
 			);
 
 			if(settings.Diagnostics.SaveErrors) {
-				Directory.CreateDirectory(settings.Diagnostics.ErrorDirectory);
-				var filePath = Path.Combine(settings.Diagnostics.ErrorDirectory, "AVD3Error" + ex.ThrownOn.ToString("yyyyMMdd HHmmssffff") + ".xml");
+				lock(fileSystemLock) {
+					Directory.CreateDirectory(settings.Diagnostics.ErrorDirectory);
+					var filePath = Path.Combine(settings.Diagnostics.ErrorDirectory, "AVD3Error" + ex.ThrownOn.ToString("yyyyMMdd HHmmssffff") + ".xml");
 
-				using var safeXmlWriter = new SafeXmlWriter(filePath, Encoding.UTF8);
-				exElem.WriteTo(safeXmlWriter);
+					using var safeXmlWriter = new SafeXmlWriter(filePath, Encoding.UTF8);
+					exElem.WriteTo(safeXmlWriter);
+				}
 			}
 
 			var exception = ex.GetBaseException() ?? ex;
@@ -100,7 +103,7 @@ namespace AVDump3CL {
 		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) {
 			processingModule = modules.OfType<IAVD3ProcessingModule>().Single();
 			processingModule.BlockConsumerFilter += (s, e) => {
-				if(settings.Processing.Consumers.Any(x => e.BlockConsumerName.Equals(x, StringComparison.OrdinalIgnoreCase))) {
+				if(settings.Processing.Consumers.Any(x => e.BlockConsumerName.InvEqualsOrdCI(x.Name))) {
 					e.Accept();
 				}
 			};
@@ -119,6 +122,8 @@ namespace AVDump3CL {
 		}
 		public ModuleInitResult Initialized() => new ModuleInitResult(false);
 		public void AfterConfiguration(object sender, ModuleInitResult args) {
+			processingModule.RegisterDefaultBlockConsumers(settings.Processing.Consumers?.ToDictionary(x => x.Name, x => x.Arguments));
+
 			if(settings.Processing.Consumers == null) {
 				Console.WriteLine("Available Consumers: ");
 				foreach(var blockConsumerFactory in processingModule.BlockConsumerFactories) {
@@ -127,9 +132,9 @@ namespace AVDump3CL {
 				args.Cancel();
 
 			} else if(settings.Processing.Consumers.Any()) {
-				var invalidBlockConsumerNames = settings.Processing.Consumers.Where(x => processingModule.BlockConsumerFactories.All(y => !y.Name.Equals(x))).ToArray();
+				var invalidBlockConsumerNames = settings.Processing.Consumers.Where(x => processingModule.BlockConsumerFactories.All(y => !y.Name.InvEqualsOrdCI(x.Name))).ToArray();
 				if(invalidBlockConsumerNames.Any()) {
-					Console.WriteLine("Invalid BlockConsumer(s): " + string.Join(", ", invalidBlockConsumerNames));
+					Console.WriteLine("Invalid BlockConsumer(s): " + string.Join(", ", invalidBlockConsumerNames.Select(x => x.Name)));
 					args.Cancel();
 				}
 			}
@@ -143,12 +148,13 @@ namespace AVDump3CL {
 				args.Cancel();
 
 			} else if(settings.Reporting.Reports.Any()) {
-				var invalidReportNames = settings.Reporting.Reports.Where(x => reportingModule.ReportFactories.All(y => !y.Name.Equals(x))).ToArray();
+				var invalidReportNames = settings.Reporting.Reports.Where(x => reportingModule.ReportFactories.All(y => !y.Name.InvEqualsOrdCI(x))).ToArray();
 				if(invalidReportNames.Any()) {
 					Console.WriteLine("Invalid Report: " + string.Join(", ", invalidReportNames));
 					args.Cancel();
 				}
 			}
+
 
 			if(settings.Processing.PrintAvailableSIMDs) {
 				Console.WriteLine("Available SIMD Instructions: ");
@@ -168,6 +174,13 @@ namespace AVDump3CL {
 				path = Path.GetDirectoryName(path);
 				if(!string.IsNullOrEmpty(path)) Directory.CreateDirectory(path);
 			}
+
+			if(settings.Diagnostics.NullStreamTest != null && (settings.Reporting.Reports.Count > 0)) {
+				Console.WriteLine("NullStreamTest cannot be used with reports");
+				args.Cancel();
+			}
+
+
 
 			CreateDirectoryChain(settings.FileDiscovery.ProcessedLogPath);
 			CreateDirectoryChain(settings.FileDiscovery.SkipLogPath);
@@ -363,7 +376,7 @@ namespace AVDump3CL {
 						reportFileName = reportFileName.Replace("<ReportName>", reportItem.Name);
 						reportFileName = reportFileName.Replace("<ReportFileExtension>", reportItem.Report.FileExtension);
 
-						lock(reportSaveLockObject) {
+						lock(fileSystemLock) {
 							reportItem.Report.SaveToFile(Path.Combine(settings.Reporting.ReportDirectory, reportFileName), Utils.UTF8EncodingNoBOM);
 						}
 					}

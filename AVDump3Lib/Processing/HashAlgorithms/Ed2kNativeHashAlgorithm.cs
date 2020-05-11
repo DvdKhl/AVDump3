@@ -1,7 +1,13 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
 	public unsafe sealed class Ed2kNativeHashAlgorithm : AVDHashAlgorithm {
+		private static class NativeMethods {
+			[DllImport("AVDump3NativeLib")]
+			public static extern void MD4ComputeHash(byte* b, int length, byte* hash);
+		}
+
 
 		public bool BlueIsRed { get; private set; }
 		public ReadOnlyMemory<byte> RedHash { get; private set; }
@@ -16,7 +22,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		public Ed2kNativeHashAlgorithm() {
 			fixed (byte* emptyPtr = Span<byte>.Empty)
 			fixed (byte* emptyHashPtr = nullMd4Hash) {
-				Md4NativeHashAlgorithm.MD4ComputeHash(emptyPtr, 0, emptyHashPtr);
+				NativeMethods.MD4ComputeHash(emptyPtr, 0, emptyHashPtr);
 			}
 		}
 
@@ -39,7 +45,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		public static void Md4Hash(ReadOnlySpan<byte> data, Span<byte> hash) {
 			fixed (byte* dataPtr = data)
 			fixed (byte* hashPtr = hash) {
-				Md4NativeHashAlgorithm.MD4ComputeHash(dataPtr, data.Length, hashPtr);
+				NativeMethods.MD4ComputeHash(dataPtr, data.Length, hashPtr);
 			}
 		}
 

@@ -3,10 +3,12 @@ using AVDump3Lib.Settings.CLArguments;
 using AVDump3Lib.Settings.Core;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -132,6 +134,16 @@ namespace AVDump3CL {
 	}
 
 	public class ProcessingSettings : SettingsObject, ICLConvert {
+		public class ConsumerSettings {
+			public ConsumerSettings(string name, IEnumerable<string> arguments) {
+				Name = name;
+				Arguments = ImmutableArray.CreateRange(arguments);
+			}
+
+			public string Name { get; private set; }
+			public ImmutableArray<string> Arguments { get; private set; }
+		}
+
 		[CLNames("BLength")]
 		public SettingsProperty BufferLengthProperty { get; }
 		public int BufferLength {
@@ -160,8 +172,8 @@ namespace AVDump3CL {
 
 		[CLNames("Cons")]
 		public SettingsProperty ConsumersProperty { get; }
-		public IReadOnlyCollection<string> Consumers {
-			get => (IReadOnlyCollection<string>)GetValue(ConsumersProperty);
+		public IReadOnlyCollection<ConsumerSettings> Consumers {
+			get => (IReadOnlyCollection<ConsumerSettings>)GetValue(ConsumersProperty);
 			set => SetValue(ConsumersProperty, value);
 		}
 
@@ -177,7 +189,7 @@ namespace AVDump3CL {
 			BufferLengthProperty = Register(nameof(BufferLength), 64 << 20);
 			ProducerMinReadLengthProperty = Register(nameof(ProducerMinReadLength), 1 << 20);
 			ProducerMaxReadLengthProperty = Register(nameof(ProducerMaxReadLength), 8 << 20);
-			ConsumersProperty = Register(nameof(Consumers), Array.Empty<string>());
+			ConsumersProperty = Register(nameof(Consumers), Array.Empty<ConsumerSettings>());
 			PrintAvailableSIMDsProperty = Register(nameof(PrintAvailableSIMDs), false);
 			PauseBeforeExitProperty = Register(nameof(PauseBeforeExit), false);
 		}
@@ -188,9 +200,15 @@ namespace AVDump3CL {
 				return (value >> 20).ToString();
 
 			} else if(property == ConsumersProperty) {
-				var lst = (IReadOnlyCollection<string>)obj;
+				var lst = (IReadOnlyCollection<ConsumerSettings>)obj;
 				//A bit odd at first, but with this we make Consumers==null the special case (i.e. list the consumers)
-				return obj != null ? (lst.Count == 0 ? null : string.Join(",", lst)) : "";
+				return 
+					obj != null ? (
+						lst.Count == 0 ? 
+						null : 
+						string.Join(",", lst.Select(x => x.Name + string.Concat(x.Arguments.Select(y => ":" + y))))
+					) : 
+					"";
 			}
 			return obj == null ? "<null>" : obj.ToString();
 		}
@@ -202,7 +220,10 @@ namespace AVDump3CL {
 			} else if(property == ConsumersProperty) {
 				if(str != null && str.Length == 0) return null;
 				//See ToCLString
-				return Array.AsReadOnly((str ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray());
+				return Array.AsReadOnly((str ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x => {
+					var args = x.Split(':');
+					return new ConsumerSettings(args[0].Trim(), args.Skip(1));
+				}).ToArray());
 			}
 			return Convert.ChangeType(str, property.ValueType);
 		}

@@ -4,17 +4,17 @@
 
 * zlib.h -- interface of the 'zlib' general purpose compression library
 * version 1.2.8, April 28th, 2013
-* 
+*
 * Copyright (C) 1995-2013 Jean-loup Gailly and Mark Adler
-* 
+*
 * This software is provided 'as-is', without any express or implied
 * warranty.  In no event will the authors be held liable for any damages
 * arising from the use of this software.
-* 
+*
 * Permission is granted to anyone to use this software for any purpose,
 * including commercial applications, and to alter it and redistribute it
 * freely, subject to the following restrictions:
-* 
+*
 * 1. The origin of this software must not be misrepresented; you must not
 * claim that you wrote the original software. If you use this software
 * in a product, an acknowledgment in the product documentation would be
@@ -22,7 +22,7 @@
 * 2. Altered source versions must be plainly marked as such, and must not be
 * misrepresented as being the original software.
 * 3. This notice may not be removed or altered from any source distribution.
-* 
+*
 * Jean-loup Gailly        Mark Adler
 * jloup@gzip.org          madler@alumni.caltech.edu
 
@@ -39,8 +39,7 @@
 
 #include "AVD3NativeLibApi.h"
 
-static uint32_t crc32_little (uint32_t, const uint8_t *, int32_t);
-static uint32_t crc32_big (uint32_t, const uint8_t *, int32_t);
+static uint32_t crc32_little(uint32_t, const uint8_t*, int32_t);
 
 static const uint32_t crc_table[8][256] =
 {
@@ -478,22 +477,6 @@ static const uint32_t crc_table[8][256] =
 	}
 };
 
-#define ZSWAP32(q) ((((q) >> 24) & 0xff) + (((q) >> 8) & 0xff00) + \
-                    (((q) & 0xff00) << 8) + (((q) & 0xff) << 24))
-
-uint32_t crc32(crc, buf, len)
-uint32_t crc;
-const uint8_t *buf;
-int32_t len;
-{
-	if (buf == NULL) return crc;
-
-	int32_t endian = 1;
-	if (*((uint8_t*)(&endian))) return crc32_little(crc, buf, len);
-	else return crc32_big(crc, buf, len);
-}
-
-
 
 #define DOLIT4 c ^= *buf4++; \
         c = crc_table[3][c & 0xff] ^ crc_table[2][(c >> 8) & 0xff] ^ \
@@ -501,30 +484,32 @@ int32_t len;
 #define DOLIT32 DOLIT4; DOLIT4; DOLIT4; DOLIT4; DOLIT4; DOLIT4; DOLIT4; DOLIT4
 
 /* ========================================================================= */
-static uint32_t crc32_little(crc, buf, len)
-uint32_t crc;
-const uint8_t *buf;
-int32_t len;
-{
+static uint32_t crc32_little(uint32_t crc, const uint8_t* buf, int32_t len) {
 	register uint32_t c;
-	register const uint32_t *buf4;
+	register const uint32_t* buf4;
+	register const uint32_t* bufEnd;
 
 	c = ~crc;
-	while (len && ((ptrdiff_t)buf & 3)) {
-		c = crc_table[0][(c ^ *buf++) & 0xff] ^ (c >> 8);
-		len--;
+	buf4 = (const uint32_t*)(const void*)buf;
+	bufEnd = (const uint32_t*)(const void*)(buf + len);
+	while (buf4 != bufEnd) {
+		DOLIT32;
 	}
 
-	buf4 = (const uint32_t *)(const void *)buf;
-	while (len >= 32) {
-		DOLIT32;
-		len -= 32;
-	}
+	return c = ~c;
+}
+
+static uint32_t crc32_little_final(uint32_t crc, const uint8_t* buf, int32_t len) {
+	register uint32_t c;
+	register const uint32_t* buf4;
+
+	c = ~crc;
+	buf4 = (const uint32_t*)(const void*)buf;
 	while (len >= 4) {
 		DOLIT4;
 		len -= 4;
 	}
-	buf = (const uint8_t *)buf4;
+	buf = (const uint8_t*)buf4;
 
 	if (len) do {
 		c = crc_table[0][(c ^ *buf++) & 0xff] ^ (c >> 8);
@@ -533,70 +518,30 @@ int32_t len;
 }
 
 /* ========================================================================= */
-#define DOBIG4 c ^= *++buf4; \
-        c = crc_table[4][c & 0xff] ^ crc_table[5][(c >> 8) & 0xff] ^ \
-            crc_table[6][(c >> 16) & 0xff] ^ crc_table[7][c >> 24]
-#define DOBIG32 DOBIG4; DOBIG4; DOBIG4; DOBIG4; DOBIG4; DOBIG4; DOBIG4; DOBIG4
-
-/* ========================================================================= */
-static uint32_t crc32_big(crc, buf, len)
-uint32_t crc;
-const uint8_t *buf;
-int32_t len;
-{
-	register uint32_t c;
-	register const uint32_t *buf4;
-
-	c = ZSWAP32(crc);
-	c = ~c;
-
-	while (len && ((ptrdiff_t)buf & 3)) {
-		c = crc_table[4][(c >> 24) ^ *buf++] ^ (c << 8);
-		len--;
-	}
-
-	buf4 = (const uint32_t *)(const void *)buf;
-	buf4--;
-	while (len >= 32) {
-		DOBIG32;
-		len -= 32;
-	}
-	while (len >= 4) {
-		DOBIG4;
-		len -= 4;
-	}
-	buf4++;
-	buf = (const uint8_t *)buf4;
-
-	if (len) do {
-		c = crc_table[4][(c >> 24) ^ *buf++] ^ (c << 8);
-	} while (--len);
-	c = ~c;
-	return (uint32_t)(ZSWAP32(c));
-}
-
-/* ========================================================================= */
 
 
-void* CRC32Create(uint32_t* blockSize) {
-	*blockSize = 4;
+void* CRC32Create(uint32_t* hashLength, uint32_t* blockSize) {
+	*blockSize = 32;
+	*hashLength = 32;
 
-	uint8_t *b = (uint8_t*)malloc(4);
+	uint8_t* b = (uint8_t*)malloc(4);
 	CRC32Init(b);
 	return b;
 }
 
-void CRC32Init(void * handle) {
-	*(uint32_t*)handle = crc32(0L, NULL, 0);
+void CRC32Init(void* handle) {
+	*(uint32_t*)handle = crc32_little(0L, NULL, 0);
 }
 
-void CRC32Transform(void* handle, uint8_t *b, int32_t length, uint8_t lastBlock) {
-	*(uint32_t*)handle = crc32(*(uint32_t*)handle, b, length);
+void CRC32Transform(void* handle, uint8_t* b, int32_t length) {
+	*(uint32_t*)handle = crc32_little(*(uint32_t*)handle, b, length);
 }
 
-void CRC32Final(void* handle, uint8_t *b) {
-	*(b + 0) = *((int8_t*)handle + 3);
-	*(b + 1) = *((int8_t*)handle + 2);
-	*(b + 2) = *((int8_t*)handle + 1);
-	*(b + 3) = *((int8_t*)handle + 0);
+void CRC32Final(void* handle, uint8_t* b, int32_t length, uint8_t* hash) {
+	*(uint32_t*)handle = crc32_little_final(*(uint32_t*)handle, b, length);
+
+	*(hash + 0) = *((int8_t*)handle + 3);
+	*(hash + 1) = *((int8_t*)handle + 2);
+	*(hash + 2) = *((int8_t*)handle + 1);
+	*(hash + 3) = *((int8_t*)handle + 0);
 }

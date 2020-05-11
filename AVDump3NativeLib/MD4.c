@@ -101,10 +101,11 @@ void MD4TransformBlock(uint32_t* digest, const uint32_t* in) {
 
 
 //========================================================================
-void* MD4Create(uint32_t* blockSize) {
+void* MD4Create(uint32_t* hashLength, uint32_t* blockSize) {
+	*hashLength = 128;
 	*blockSize = 64;
 
-	uint8_t* b = (uint8_t*)malloc(sizeof(uint32_t) * (4 + 16*2 + 2));
+	uint8_t* b = (uint8_t*)malloc(sizeof(uint32_t) * (4 + 16 * 2 + 2));
 	MD4Init(b);
 	return b;
 }
@@ -115,59 +116,53 @@ void MD4Init(void* handle) {
 	digest[1] = 0xefcdab89L;
 	digest[2] = 0x98badcfeL;
 	digest[3] = 0x10325476L;
-	for (size_t i = 0; i < 16*2 + 2; i++) {
+	for (size_t i = 0; i < 16 * 2 + 2; i++) {
 		digest[4 + i] = 0;
 	}
 }
 
-void MD4Transform(void* handle, uint8_t* b, int32_t length, uint8_t lastBlock) {
+void MD4Transform(void* handle, uint8_t* b, int32_t length) {
 	uint32_t* word = (uint32_t*)b;
 	uint32_t* wordEnd = (uint32_t*)b + (length / 64) * 16;
-	uint32_t * digest = (uint32_t*)handle;
+	uint32_t* digest = (uint32_t*)handle;
 	while (word != wordEnd) {
 		MD4TransformBlock(digest, word);
 		word += 16;
 	}
 	*(uint64_t*)(digest + 4 + 16 * 2) += length;
 
-	if (lastBlock) {
-		b = (uint8_t*)wordEnd;
-
-		uint32_t restLength = length % 64;
-		uint8_t* lastBlock = (uint8_t*)(digest + 4);
-		for (size_t i = 0; i < restLength; i++) lastBlock[i] = b[i];
-
-		uint32_t padding;
-		if (restLength < 56) padding = 56; else padding = 120;
-		uint64_t bits = *(uint64_t*)(digest + 4 + 16 * 2) << 3;
-
-		lastBlock[restLength] = 0x80;
-
-		lastBlock[padding] = bits & 0xFF;
-		lastBlock[padding + 1] = bits >> 8 & 0xFF;
-		lastBlock[padding + 2] = bits >> 16 & 0xFF;
-		lastBlock[padding + 3] = bits >> 24 & 0xFF;
-		lastBlock[padding + 4] = bits >> 32 & 0xFF;
-		lastBlock[padding + 5] = bits >> 40 & 0xFF;
-		lastBlock[padding + 6] = bits >> 48 & 0xFF;
-		lastBlock[padding + 7] = bits >> 56 & 0xFF;
-
-		MD4TransformBlock(digest, (uint32_t*)lastBlock);
-		if(padding == 120) MD4TransformBlock(digest, (uint32_t*)lastBlock + 16);
-	}
 }
 
-void MD4Final(void* handle, uint8_t * b) {
-	uint32_t* word = (uint32_t*)b;
+void MD4Final(void* handle, uint8_t* b, int32_t length, uint8_t* hash) {
 	uint32_t* digest = (uint32_t*)handle;
 
-	word[0] = digest[0];
-	word[1] = digest[1];
-	word[2] = digest[2];
-	word[3] = digest[3];
+	uint32_t restLength = length % 64;
+	uint8_t* lastBlock = (uint8_t*)(digest + 4);
+	for (size_t i = 0; i < restLength; i++) lastBlock[i] = b[i];
+
+	uint32_t padding;
+	if (restLength < 56) padding = 56; else padding = 120;
+	uint64_t bits = *(uint64_t*)(digest + 4 + 16 * 2) << 3;
+
+	lastBlock[restLength] = 0x80;
+
+	lastBlock[padding] = bits & 0xFF;
+	lastBlock[padding + 1] = bits >> 8 & 0xFF;
+	lastBlock[padding + 2] = bits >> 16 & 0xFF;
+	lastBlock[padding + 3] = bits >> 24 & 0xFF;
+	lastBlock[padding + 4] = bits >> 32 & 0xFF;
+	lastBlock[padding + 5] = bits >> 40 & 0xFF;
+	lastBlock[padding + 6] = bits >> 48 & 0xFF;
+	lastBlock[padding + 7] = bits >> 56 & 0xFF;
+
+	MD4TransformBlock(digest, (uint32_t*)lastBlock);
+	if (padding == 120) MD4TransformBlock(digest, (uint32_t*)lastBlock + 16);
+
+
+	*(uint32_t*)hash = *(uint32_t*)handle;
 }
 
-void MD4ComputeHash(uint8_t* b, int32_t length, uint32_t *hash) {
+void MD4ComputeHash(uint8_t* b, int32_t length, uint32_t* hash) {
 	uint32_t digest[] = { 0x67452301L, 0xefcdab89L, 0x98badcfeL, 0x10325476L };
 
 	uint32_t* word = (uint32_t*)b;
@@ -180,7 +175,7 @@ void MD4ComputeHash(uint8_t* b, int32_t length, uint32_t *hash) {
 	b = (uint8_t*)wordEnd;
 
 	uint32_t restLength = length % 64;
-	uint8_t lastBlock[128] = {0};
+	uint8_t lastBlock[128] = { 0 };
 	for (size_t i = 0; i < restLength; i++) lastBlock[i] = b[i];
 
 	uint32_t padding;

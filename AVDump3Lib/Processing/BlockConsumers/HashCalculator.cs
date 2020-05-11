@@ -8,7 +8,7 @@ using System.Threading;
 namespace AVDump3Lib.Processing.BlockConsumers {
 	public class HashCalculator : BlockConsumer {
 		public int ReadLength { get; }
-		public ReadOnlyMemory<byte> HashValue;
+		public ReadOnlyMemory<byte> HashValue { get; private set; }
 
 		public IAVDHashAlgorithm HashAlgorithm { get; }
 		public HashCalculator(string name, IBlockStreamReader reader, IAVDHashAlgorithm transform) : base(name, reader) {
@@ -26,7 +26,7 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 						}
 					};
 				}
-			}
+			} 
 			ReadLength = length;
 		}
 

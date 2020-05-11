@@ -59,8 +59,8 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <PostBuildEvent>
-      <Command>copy /Y "$(OutDir)*.dll" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(ConfigurationName)\netcoreapp3.1\"
-copy /Y "$(OutDir)*.pdb" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(ConfigurationName)\netcoreapp3.1\"
+      <Command>copy /Y "$(OutDir)AVD*.dll" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(ConfigurationName)\netcoreapp3.1\"
+copy /Y "$(OutDir)AVD*.pdb" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(ConfigurationName)\netcoreapp3.1\"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -73,6 +73,8 @@ copy /Y "$(OutDir)*.pdb" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(Configur
       <SDLCheck>true</SDLCheck>
       <ExceptionHandling>false</ExceptionHandling>
       <CompileAs>CompileAsC</CompileAs>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -92,6 +94,8 @@ copy /Y "$(OutDir)*.pdb" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(Configur
     <ClCompile Include="CRC32C.c" />
     <ClCompile Include="InstructionCheck.c" />
     <ClCompile Include="MD4.c" />
+    <ClCompile Include="SHA1.c" />
+    <ClCompile Include="SHA256.c" />
     <ClCompile Include="SHA3.c" />
     <ClCompile Include="Tiger.c" />
   </ItemGroup>

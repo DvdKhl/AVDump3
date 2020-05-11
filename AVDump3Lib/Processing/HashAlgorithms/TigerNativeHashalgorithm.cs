@@ -8,28 +8,18 @@ using System.Threading.Tasks;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
 	public unsafe class TigerNativeHashAlgorithm : AVDNativeHashAlgorithm {
-		[DllImport("AVDump3NativeLib")]
-		private static extern IntPtr TigerCreate(out int blockSize);
-		[DllImport("AVDump3NativeLib")]
-		private static extern void TigerInit(IntPtr handle);
-		[DllImport("AVDump3NativeLib")]
-		private static extern void TigerTransform(IntPtr handle, byte* b, int length, byte lastBlock);
-		[DllImport("AVDump3NativeLib")]
-		private static extern void TigerFinal(IntPtr handle, byte* hash);
+		private static class NativeMethods {
+			[DllImport("AVDump3NativeLib")]
+			internal static extern IntPtr TigerCreate(ref int hashLength, out int blockSize);
+			[DllImport("AVDump3NativeLib")]
+			internal static extern void TigerInit(IntPtr handle);
+			[DllImport("AVDump3NativeLib")]
+			internal static extern void TigerTransform(IntPtr handle, byte* b, int length);
+			[DllImport("AVDump3NativeLib")]
+			internal static extern void TigerFinal(IntPtr handle, byte* b, int length, byte* hash);
+		}
 
-
-		[DllImport("AVDump3NativeLib")]
-		public static extern byte* TTHCreateBlock();
-		[DllImport("AVDump3NativeLib")]
-		public static extern byte* TTHCreateNode();
-		[DllImport("AVDump3NativeLib")]
-		public static extern void TTHNodeHash(byte* data, byte* buffer, byte* hash);
-		[DllImport("AVDump3NativeLib")]
-		public static extern void TTHBlockHash(byte* data, byte* buffer, byte* hash);
-		[DllImport("AVDump3NativeLib")]
-		public static extern void TTHPartialBlockHash(byte* data, int length, byte* buffer, byte* hash);
-
-		public TigerNativeHashAlgorithm() : base(TigerCreate, TigerInit, TigerTransform, TigerFinal, 24) { }
+		public TigerNativeHashAlgorithm() : base(NativeMethods.TigerCreate, NativeMethods.TigerInit, NativeMethods.TigerTransform, NativeMethods.TigerFinal, 192) { }
 
 	}
 }

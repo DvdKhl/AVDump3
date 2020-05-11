@@ -12,6 +12,23 @@ using System.Threading;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
 	public unsafe class TigerTreeHashAlgorithm : IAVDHashAlgorithm {
+		private static class NativeMethods {
+			[DllImport("AVDump3NativeLib")]
+			internal static extern byte* TTHCreateBlock();
+			[DllImport("AVDump3NativeLib")]
+			internal static extern byte* TTHCreateNode();
+			[DllImport("AVDump3NativeLib")]
+			internal static extern void TTHNodeHash(byte* data, byte* buffer, byte* hash);
+			[DllImport("AVDump3NativeLib")]
+			internal static extern void TTHBlockHash(byte* data, byte* buffer, byte* hash);
+			[DllImport("AVDump3NativeLib")]
+			internal static extern void TTHPartialBlockHash(byte* data, int length, byte* buffer, byte* hash);
+			[DllImport("AVDump3NativeLib")]
+			internal static extern void FreeHashObject(IntPtr handle);
+		}
+
+
+
 		//Assumptions: We will never hash more than 2^64 bytes.
 		// => Max Tree Depth: TD = log_2(2^64 / 1024) + 1 = 55
 		// We only ever need to store two tiger hashes per level.
@@ -55,19 +72,19 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			if(data.Length != 0) {
 				fixed(byte* leavesPtr = leaves)
 				fixed(byte* dataPtr = data) {
-					var buffer = TigerNativeHashAlgorithm.TTHCreateBlock();
+					var buffer = NativeMethods.TTHCreateBlock();
 					if(data.Length > 1024) {
-						TigerNativeHashAlgorithm.TTHBlockHash(dataPtr, buffer, leavesPtr);
+						NativeMethods.TTHBlockHash(dataPtr, buffer, leavesPtr);
 						leafCount++;
 					}
 
-					TigerNativeHashAlgorithm.TTHPartialBlockHash(
+					NativeMethods.TTHPartialBlockHash(
 						dataPtr + leafCount * 1024,
 						data.Length - leafCount * 1024,
 						buffer, leavesPtr + leafCount * 24
 					);
 					leafCount++;
-					AVDNativeHashAlgorithm.FreeHashObject((IntPtr)buffer);
+					NativeMethods.FreeHashObject((IntPtr)buffer);
 
 					//There needs to be at least one node
 					if(leafCount > 1) {
@@ -126,7 +143,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			return dataSlice.Length;
 		}
 
-		private byte* compressBuffer = TigerNativeHashAlgorithm.TTHCreateNode();
+		private byte* compressBuffer = NativeMethods.TTHCreateNode();
 		private void Compress() {
 			var leafPairsProcessed = 0;
 
@@ -135,14 +152,14 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			fixed(byte* nodesPtr = nodes) {
 				while(leafCount > 1) {
 					var levelIsEmpty = (nodeCount & 1) == 0;
-					TigerNativeHashAlgorithm.TTHNodeHash(leavesPtr + leafPairsProcessed * 48, compressBuffer, nodesPtr + (levelIsEmpty ? 0 : 24));
+					NativeMethods.TTHNodeHash(leavesPtr + leafPairsProcessed * 48, compressBuffer, nodesPtr + (levelIsEmpty ? 0 : 24));
 					leafPairsProcessed++;
 					leafCount -= 2;
 
 					var currentLevel = 0;
 					while(!levelIsEmpty) {
 						levelIsEmpty = (nodeCount & (2 << currentLevel)) == 0;
-						TigerNativeHashAlgorithm.TTHNodeHash(nodesPtr + currentLevel * 48, compressBuffer, nodesPtr + (currentLevel + 1) * 48 + (levelIsEmpty ? 0 : 24));
+						NativeMethods.TTHNodeHash(nodesPtr + currentLevel * 48, compressBuffer, nodesPtr + (currentLevel + 1) * 48 + (levelIsEmpty ? 0 : 24));
 						currentLevel++;
 					}
 					nodeCount++;
@@ -150,13 +167,14 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			}
 		}
 
-		public void Dispose() {
-			AVDNativeHashAlgorithm.FreeHashObject((IntPtr)compressBuffer);
-			foreach(var blockHasher in blockHashers) blockHasher.Dispose();
-			compressBuffer = (byte*)0;
-		}
 
-		private class BlockHasher: IDisposable {
+		//public void Dispose() {
+		//	NativeMethods.FreeHashObject((IntPtr)compressBuffer);
+		//	foreach(var blockHasher in blockHashers) blockHasher.Dispose();
+		//	compressBuffer = (byte*)0;
+		//}
+
+		private class BlockHasher : IDisposable {
 			private readonly Thread hashThread;
 			private bool threadJoin;
 
@@ -204,18 +222,16 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 				hashThread.Join();
 			}
 
-			public void Dispose() {
-				doWorkSync.Dispose();
-			}
+			public void Dispose() { doWorkSync.Dispose(); }
 
 			void DoWork() {
-				var buffer = TigerNativeHashAlgorithm.TTHCreateBlock();
+				var buffer = NativeMethods.TTHCreateBlock();
 
 				doWorkSync.WaitOne();
 				while(!threadJoin) {
 					fixed(byte* leavesPtr = leaves) {
 						while(lengthData >= BLOCKSIZE) {
-							TigerNativeHashAlgorithm.TTHBlockHash(dataPtr + offsetData, buffer, leavesPtr + offsetLeaf);
+							NativeMethods.TTHBlockHash(dataPtr + offsetData, buffer, leavesPtr + offsetLeaf);
 
 							offsetLeaf += nextBlockOffsetLeaf;
 							offsetData += nextBlockOffsetData;
@@ -225,10 +241,30 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 					WorkDoneSync.Set();
 					doWorkSync.WaitOne();
 				}
-				AVDNativeHashAlgorithm.FreeHashObject((IntPtr)buffer);
+				NativeMethods.FreeHashObject((IntPtr)buffer);
 			}
 
 		}
+
+		#region IDisposable Support
+		private bool disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing) {
+			if(!disposedValue) {
+				NativeMethods.FreeHashObject((IntPtr)compressBuffer);
+				foreach(var blockHasher in blockHashers) blockHasher.Dispose();
+				compressBuffer = (byte*)0;
+
+				disposedValue = true;
+			}
+		}
+
+		~TigerTreeHashAlgorithm() => Dispose(false);
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+		#endregion
 
 	}
 }

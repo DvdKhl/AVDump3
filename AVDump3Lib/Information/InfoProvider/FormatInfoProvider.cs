@@ -38,6 +38,16 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 
 		public void AddMetaData(MetaDataProvider provider, string path) {
+			Stream stream = null;
+			if(File.Exists(path)) {
+				try {
+					stream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+				} catch(FileNotFoundException) { }
+			}
+			if(stream == null) return;
+
+
+
 			var fileTypes = new IFileType[] {
 				//new MpegAudioFileType(),
 				//new MpegVideoFileType(),
@@ -67,7 +77,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 				new Sasami2kFileType()
 			};
 
-			using(Stream stream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read)) {
+			using(stream) {
 				int b;
 				var needMoreBytes = true;
 				while(needMoreBytes) {
@@ -90,14 +100,14 @@ namespace AVDump3Lib.Information.InfoProvider {
 			var exts = fileTypes.Where(f => f.IsCandidate);
 
 			if(exts.Count() != 1) {
-				if(exts.Any(ft => ft.PossibleExtensions[0].Equals("zip"))) exts = new List<IFileType>(new IFileType[] { new ZipFileType() });
-				if(exts.Any(ft => ft.PossibleExtensions[0].Equals("7z"))) exts = new List<IFileType>(new IFileType[] { new C7zFileType() });
-				if(exts.Any(ft => ft.PossibleExtensions[0].Equals("rar"))) exts = new List<IFileType>(new IFileType[] { new RarFileType() });
+				if(exts.Any(ft => ft.PossibleExtensions[0].InvEquals("zip"))) exts = new List<IFileType>(new IFileType[] { new ZipFileType() });
+				if(exts.Any(ft => ft.PossibleExtensions[0].InvEquals("7z"))) exts = new List<IFileType>(new IFileType[] { new C7zFileType() });
+				if(exts.Any(ft => ft.PossibleExtensions[0].InvEquals("rar"))) exts = new List<IFileType>(new IFileType[] { new RarFileType() });
 			}
 
 			string extsStr;
 			if(fileTypes.Any(f => f.IsCandidate)) {
-				extsStr = exts.Aggregate<IFileType, IEnumerable<string>>(new string[0], (acc, f) => acc.Concat(f.PossibleExtensions)).Aggregate((acc, str) => acc + " " + str);
+				extsStr = exts.Aggregate<IFileType, IEnumerable<string>>(Array.Empty<string>(), (acc, f) => acc.Concat(f.PossibleExtensions)).Aggregate((acc, str) => acc + " " + str);
 			} else {
 				extsStr = null;
 			}
@@ -268,21 +278,21 @@ namespace AVDump3Lib.Information.InfoProvider {
 			var sr = new StreamReader(stream, Encoding.UTF8, true, 2048);
 			var chars = new char[2048];
 			var length = sr.Read(chars, 0, chars.Length);
-			var str = new string(chars, 0, length).ToLowerInvariant();
+			var str = new string(chars, 0, length).ToInvLower();
 
 			//int pos = str.IndexOf("[script info]");
 			//if(pos < 0) { IsCandidate = false; return; }
 
 			var pos = str.InvIndexOfOrdCI(" styles]");
 			if(pos != -1) {
-				pos = str.IndexOf("v4", pos - 4, 10);
+				pos = str.InvIndexOfOrdCI("v4", pos - 4, 10);
 				if(pos != -1) pos += 2;
 			}
 
 			if(pos == -1) {
 				pos = str.InvIndexOfOrdCI(" styles]");
 				if(pos != -1) {
-					pos = str.IndexOf("v3", pos - 4, 10);
+					pos = str.InvIndexOfOrdCI("v3", pos - 4, 10);
 					if(pos != -1) pos += 2;
 				}
 			}
@@ -290,13 +300,13 @@ namespace AVDump3Lib.Information.InfoProvider {
 			if(pos == -1) {
 				pos = str.InvIndexOfOrdCI("scripttype:");
 				if(pos < 0) { IsCandidate = false; return; }
-				if((pos = str.IndexOf("v4.00", pos, 20)) < 0) { IsCandidate = false; return; }
+				if((pos = str.InvIndexOfOrdCI("v4.00", pos, 20)) < 0) { IsCandidate = false; return; }
 				pos += 5;
 			}
 			if(pos == -1) {
 				pos = str.InvIndexOfOrdCI("scripttype:");
 				if(pos < 0) { IsCandidate = false; return; }
-				if((pos = str.IndexOf("v3.00", pos, 20)) < 0) { IsCandidate = false; return; }
+				if((pos = str.InvIndexOfOrdCI("v3.00", pos, 20)) < 0) { IsCandidate = false; return; }
 				pos += 5;
 			}
 
@@ -601,8 +611,8 @@ namespace AVDump3Lib.Information.InfoProvider {
 	public class WavFileType : FileType { public WavFileType() : base(new string[] { "RIFX", "RIFF" }) => PossibleExtensions = new string[] { "wav" }; public override void ElaborateCheck(Stream stream) => IsCandidate &= Check(stream, 8, "WAVE"); }
 
 	public abstract class FileType : IFileType {
-		private byte[][] magicBytesLst; 
-		private int[] magicBytesPos; 
+		private byte[][] magicBytesLst;
+		private int[] magicBytesPos;
 		private int offset;
 
 		protected string identifier;

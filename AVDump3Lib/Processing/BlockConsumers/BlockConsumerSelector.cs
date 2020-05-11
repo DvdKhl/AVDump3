@@ -1,6 +1,7 @@
 ﻿using AVDump3Lib.Processing.BlockBuffers;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace AVDump3Lib.Processing.BlockConsumers {
@@ -39,6 +40,8 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 			}
 		}
 		public IEnumerable<IBlockConsumer> Create(IEnumerable<IBlockConsumerFactory> factories, IBlockStream blockStream) {
+			if(factories is null) throw new ArgumentNullException(nameof(factories));
+
 			var readerIndex = 0;
 			foreach(var factory in factories) {
 				var blockReader = new BlockStreamReader(blockStream, readerIndex++);

@@ -39,6 +39,12 @@
     <ClCompile Include="InstructionCheck.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SHA1.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SHA256.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AVD3NativeLibApi.h">

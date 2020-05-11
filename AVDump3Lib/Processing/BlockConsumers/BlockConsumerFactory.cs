@@ -1,4 +1,9 @@
 using AVDump3Lib.Processing.BlockBuffers;
+using ExtKnot.StringInvariants;
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Globalization;
 
 namespace AVDump3Lib.Processing.BlockConsumers {
 	public interface IBlockConsumerFactory {
@@ -7,10 +12,20 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 		IBlockConsumer Create(IBlockStreamReader reader);
 	}
 
-	public delegate IBlockConsumer CreateBlockConsumer(string name, IBlockStreamReader reader);
+	public class BlockConsumerSetup {
+		public BlockConsumerSetup(string name, IBlockStreamReader reader) {
+			Name = name ?? throw new ArgumentNullException(nameof(name));
+			Reader = reader ?? throw new ArgumentNullException(nameof(reader));
+		}
+
+		public string Name { get; }
+		public IBlockStreamReader Reader { get; }
+	}
+
+	public delegate IBlockConsumer CreateBlockConsumer(BlockConsumerSetup setup);
 
 	public class BlockConsumerFactory : IBlockConsumerFactory {
-		private CreateBlockConsumer createBlockConsumer;
+		private readonly CreateBlockConsumer createBlockConsumer;
 
 		public BlockConsumerFactory(string name, CreateBlockConsumer createBlockConsumer) {
 			Name = name;
@@ -19,14 +34,14 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 
 		public virtual string Description {
 			get {
-				var description = Lang.ResourceManager.GetString(Name.Replace("-", "") + "ConsumerDescription");
+				var description = Lang.ResourceManager.GetInvString(Name.InvReplace("-", "") + "ConsumerDescription");
 				return !string.IsNullOrEmpty(description) ? description : "<NoDescriptionGiven>";
 			}
 		}
 		public string Name { get; }
 
 		public IBlockConsumer Create(IBlockStreamReader reader) {
-			return createBlockConsumer(Name, reader);
+			return createBlockConsumer(new BlockConsumerSetup(Name, reader));
 		}
 	}
 }

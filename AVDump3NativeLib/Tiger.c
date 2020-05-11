@@ -653,7 +653,7 @@ const uint64_t table[4 * 256 + 3] =
 
 
 
-void TigerTransformBlock(uint64_t * digest, const uint64_t * X) {
+void TigerTransformBlock(uint64_t* digest, const uint64_t* X) {
 #if CRYPTOPP_BOOL_SSE2_ASM_AVAILABLE && (CRYPTOPP_BOOL_X86 || CRYPTOPP_BOOL_X32)
 	if (HasSSE2()) {
 #ifdef __GNUC__
@@ -893,7 +893,8 @@ void TigerTransformBlock(uint64_t * digest, const uint64_t * X) {
 
 
 //========================================================================
-void* TigerCreate(uint32_t * blockSize) {
+void* TigerCreate(uint32_t* hashLength, uint32_t* blockSize) {
+	*hashLength = 192;
 	*blockSize = 64;
 
 	uint8_t* b = (uint8_t*)malloc(sizeof(uint64_t) * 4);
@@ -915,36 +916,35 @@ void TigerInit(void* handle) {
 }
 
 
-void TigerTransform(void* handle, uint8_t * b, int32_t length, uint8_t lastBlock) {
+void TigerTransform(void* handle, uint8_t* b, int32_t length) {
 	uint64_t* word = (uint64_t*)b;
 	uint64_t* wordEnd = (uint64_t*)b + (length / (sizeof(uint64_t)) / 8) * 8;
-	uint64_t * digest = (uint64_t*)handle;
+	uint64_t* digest = (uint64_t*)handle;
 	while (word != wordEnd) {
 		TigerTransformBlock(digest, word);
 		word += 8;
 	}
 	digest[3] += length;
-
-	if (lastBlock) {
-		uint32_t restLength = length % (sizeof(uint64_t) * 8);
-		uint64_t* lastBlock = (uint64_t*)malloc(sizeof(uint64_t) * 8);
-		for (size_t i = 0; i < 8; i++) lastBlock[i] = 0;
-		for (size_t i = 0; i < restLength; i++) ((uint8_t*)lastBlock)[i] = ((uint8_t*)word)[i];
-		((uint8_t*)lastBlock)[restLength] = 0x01;
-
-		if (restLength + 8 >= sizeof(uint64_t) * 8) {
-			TigerTransformBlock(digest, lastBlock);
-			for (size_t i = 0; i < 8; i++) lastBlock[i] = 0;
-		}
-		lastBlock[7] = digest[3] << 3;
-		TigerTransformBlock(digest, lastBlock);
-		free(lastBlock);
-	}
 }
 
-void TigerFinal(void* handle, uint8_t * b) {
-	uint64_t* word = (uint64_t*)b;
+void TigerFinal(void* handle, uint8_t* b, int32_t length, uint8_t* hash) {
+	uint64_t* word = (uint64_t*)hash;
 	uint64_t* digest = (uint64_t*)handle;
+
+
+	uint32_t restLength = length % (sizeof(uint64_t) * 8);
+	uint64_t* lastBlock = (uint64_t*)malloc(sizeof(uint64_t) * 8);
+	for (size_t i = 0; i < 8; i++) lastBlock[i] = 0;
+	for (size_t i = 0; i < restLength; i++) ((uint8_t*)lastBlock)[i] = ((uint8_t*)word)[i];
+	((uint8_t*)lastBlock)[restLength] = 0x01;
+
+	if (restLength + 8 >= sizeof(uint64_t) * 8) {
+		TigerTransformBlock(digest, lastBlock);
+		for (size_t i = 0; i < 8; i++) lastBlock[i] = 0;
+	}
+	lastBlock[7] = digest[3] << 3;
+	TigerTransformBlock(digest, lastBlock);
+	free(lastBlock);
 
 	word[0] = digest[0];
 	word[1] = digest[1];
@@ -952,13 +952,13 @@ void TigerFinal(void* handle, uint8_t * b) {
 }
 
 
-void TTHNodeHash(uint8_t * data, uint8_t * buffer, uint8_t * hash) {
+void TTHNodeHash(uint8_t* data, uint8_t* buffer, uint8_t* hash) {
 	memcpy(buffer + 1, data, 48);
 
 	TigerInitInternal(hash);
 	TigerTransformBlock((uint64_t*)hash, (uint64_t*)buffer);
 }
-void TTHBlockHash(uint8_t * data, uint8_t * buffer, uint8_t * hash) {
+void TTHBlockHash(uint8_t* data, uint8_t* buffer, uint8_t* hash) {
 	memcpy(buffer + 1, data, 1024);
 
 	TigerInitInternal(hash);
@@ -968,18 +968,16 @@ void TTHBlockHash(uint8_t * data, uint8_t * buffer, uint8_t * hash) {
 	}
 
 }
-void TTHPartialBlockHash(uint8_t * data, uint32_t length, uint8_t * buffer, uint8_t * hash) {
+void TTHPartialBlockHash(uint8_t* data, uint32_t length, uint8_t* buffer, uint8_t* hash) {
 	buffer[1025] = 0;
 	memcpy(buffer + 1, data, length);
 
 	uint32_t dummy;
-	uint64_t* digest = TigerCreate(&dummy);
+	uint64_t* digest = TigerCreate(&dummy, &dummy);
 
 	buffer[length + 1] = 1;
 	TigerInitInternal(digest);
-	TigerTransform(digest, buffer, length + 1, 1);
-
-	TigerFinal(digest, hash);
+	TigerFinal(digest, buffer, length + 1, hash);
 	buffer[1025] = 1;
 }
 
@@ -987,7 +985,7 @@ uint8_t* TTHCreateBlock() {
 	uint8_t* b = (uint8_t*)calloc(1 + 1024 + 63, sizeof(uint8_t));
 	b[0] = 0;
 	b[1025] = 1;
-	*((uint64_t*)(b + 1024 + 64 - 8)) = 1025*8;
+	*((uint64_t*)(b + 1024 + 64 - 8)) = 1025 * 8;
 	return b;
 }
 
@@ -995,6 +993,6 @@ uint8_t* TTHCreateNode() {
 	uint8_t* b = (uint8_t*)calloc(1 + 48 + 15, sizeof(uint8_t));
 	b[0] = 1;
 	b[49] = 1;
-	*((uint64_t*)(b + 64 - 8)) = 49*8;
+	*((uint64_t*)(b + 64 - 8)) = 49 * 8;
 	return b;
 }

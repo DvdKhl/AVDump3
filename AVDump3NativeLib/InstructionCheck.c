@@ -19,43 +19,43 @@ void cpuid(int info[4], int InfoType) {
 
 uint64_t RetrieveCPUInstructions() {
 	//  Misc.
-	bool HW_MMX;
-	bool HW_x64;
-	bool HW_ABM;      // Advanced Bit Manipulation
-	bool HW_RDRAND;
-	bool HW_BMI1;
-	bool HW_BMI2;
-	bool HW_ADX;
-	bool HW_PREFETCHWT1;
+	bool HW_MMX = 0;
+	bool HW_x64 = 0;
+	bool HW_ABM = 0;      // Advanced Bit Manipulation
+	bool HW_RDRAND = 0;
+	bool HW_BMI1 = 0;
+	bool HW_BMI2 = 0;
+	bool HW_ADX = 0;
+	bool HW_PREFETCHWT1 = 0;
 
 	//  SIMD: 128-bit
-	bool HW_SSE;
-	bool HW_SSE2;
-	bool HW_SSE3;
-	bool HW_SSSE3;
-	bool HW_SSE41;
-	bool HW_SSE42;
-	bool HW_SSE4a;
-	bool HW_AES;
-	bool HW_SHA;
+	bool HW_SSE = 0;
+	bool HW_SSE2 = 0;
+	bool HW_SSE3 = 0;
+	bool HW_SSSE3 = 0;
+	bool HW_SSE41 = 0;
+	bool HW_SSE42 = 0;
+	bool HW_SSE4a = 0;
+	bool HW_AES = 0;
+	bool HW_SHA = 0;
 
 	//  SIMD: 256-bit
-	bool HW_AVX;
-	bool HW_XOP;
-	bool HW_FMA3;
-	bool HW_FMA4;
-	bool HW_AVX2;
+	bool HW_AVX = 0;
+	bool HW_XOP = 0;
+	bool HW_FMA3 = 0;
+	bool HW_FMA4 = 0;
+	bool HW_AVX2 = 0;
 
 	//  SIMD: 512-bit
-	bool HW_AVX512F;    //  AVX512 Foundation
-	bool HW_AVX512CD;   //  AVX512 Conflict Detection
-	bool HW_AVX512PF;   //  AVX512 Prefetch
-	bool HW_AVX512ER;   //  AVX512 Exponential + Reciprocal
-	bool HW_AVX512VL;   //  AVX512 Vector Length Extensions
-	bool HW_AVX512BW;   //  AVX512 Byte + Word
-	bool HW_AVX512DQ;   //  AVX512 Doubleword + Quadword
-	bool HW_AVX512IFMA; //  AVX512 Integer 52-bit Fused Multiply-Add
-	bool HW_AVX512VBMI; //  AVX512 Vector Byte Manipulation Instructions
+	bool HW_AVX512F = 0;    //  AVX512 Foundation
+	bool HW_AVX512CD = 0;   //  AVX512 Conflict Detection
+	bool HW_AVX512PF = 0;   //  AVX512 Prefetch
+	bool HW_AVX512ER = 0;   //  AVX512 Exponential + Reciprocal
+	bool HW_AVX512VL = 0;   //  AVX512 Vector Length Extensions
+	bool HW_AVX512BW = 0;   //  AVX512 Byte + Word
+	bool HW_AVX512DQ = 0;   //  AVX512 Doubleword + Quadword
+	bool HW_AVX512IFMA = 0; //  AVX512 Integer 52-bit Fused Multiply-Add
+	bool HW_AVX512VBMI = 0; //  AVX512 Vector Byte Manipulation Instructions
 
 	int info[4];
 	cpuid(info, 0);
@@ -93,12 +93,12 @@ uint64_t RetrieveCPUInstructions() {
 		HW_PREFETCHWT1 = (info[2] & ((int)1 << 0)) != 0;
 
 		HW_AVX512F = (info[1] & ((int)1 << 16)) != 0;
-		HW_AVX512CD = (info[1] & ((int)1 << 28)) != 0;
+		HW_AVX512DQ = (info[1] & ((int)1 << 17)) != 0;
 		HW_AVX512PF = (info[1] & ((int)1 << 26)) != 0;
 		HW_AVX512ER = (info[1] & ((int)1 << 27)) != 0;
-		HW_AVX512VL = (info[1] & ((int)1 << 31)) != 0;
+		HW_AVX512CD = (info[1] & ((int)1 << 28)) != 0;
 		HW_AVX512BW = (info[1] & ((int)1 << 30)) != 0;
-		HW_AVX512DQ = (info[1] & ((int)1 << 17)) != 0;
+		HW_AVX512VL = (info[1] & ((int)1 << 31)) != 0;
 		HW_AVX512IFMA = (info[1] & ((int)1 << 21)) != 0;
 		HW_AVX512VBMI = (info[2] & ((int)1 << 1)) != 0;
 	}
