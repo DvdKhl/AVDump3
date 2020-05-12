@@ -45,6 +45,6 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: AVDump3NativeLib.so
-          path: $GITHUB_WORKSPACE/AVDump3NativeLib/bin/AVDump3NativeLib.so
+          path: ${{ GITHUB_WORKSPACE }}/AVDump3NativeLib/bin/AVDump3NativeLib.so
         
   
