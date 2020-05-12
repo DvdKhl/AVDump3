@@ -67,7 +67,7 @@ jobs:
 
     steps:
     - name: AVD3Main-Checkout
-    - uses: actions/checkout@v2
+      uses: actions/checkout@v2
       
     - name: AVD3Main-DotNetSetup
       uses: actions/setup-dotnet@v1
