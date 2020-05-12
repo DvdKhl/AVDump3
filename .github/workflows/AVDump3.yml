@@ -30,8 +30,9 @@ jobs:
       - name: AVD3CompileLinux
         if: matrix.platform == 'linux'
         run: |
-          gcc -c -Wall -Werror -fpic -msha -O3 AVDump3/AVDump3NativeLib/*.c -lrt 
-          gcc -msha -O3 -shared -o AVDump3NativeLib.so AVDump3/AVDump3NativeLib/*.o -lrt
+          pwd
+          gcc -c -Wall -Werror -fpic -msha -O3 $GITHUB_WORKSPACE/AVDump3/AVDump3NativeLib/*.c -lrt 
+          gcc -msha -O3 -shared -o $GITHUB_WORKSPACE/AVDump3NativeLib.so $GITHUB_WORKSPACE/AVDump3/AVDump3NativeLib/*.o -lrt
         
         
   
