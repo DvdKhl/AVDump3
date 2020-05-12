@@ -2,7 +2,7 @@ name: AVDump3
 
 on:
   push:
-    branches: [ master, AVD3Workflow-Testing ]
+    branches: [ master ]
   pull_request:
     branches: [ master ]
 
