@@ -74,7 +74,7 @@ namespace AVDump3Lib.Processing {
 				if(AvailableSIMD.HasFlag(CPUInstructions.SSE42)) {
 					addOrReplace(new BlockConsumerFactory("CRC32C", s => new HashCalculator(s.Name, s.Reader, new Crc32CIntelHashAlgorithm())));
 				}
-				if(AvailableSIMD.HasFlag(CPUInstructions.SHA)) {
+				if(AvailableSIMD.HasFlag(CPUInstructions.SHA) && false) { //Broken (Produces wrong hashes)
 					addOrReplace(new BlockConsumerFactory("SHA1", s => new HashCalculator(s.Name, s.Reader, new SHA1NativeHashAlgorithm())));
 					addOrReplace(new BlockConsumerFactory("SHA2-256", s => new HashCalculator(s.Name, s.Reader, new SHA256NativeHashAlgorithm())));
 				}
