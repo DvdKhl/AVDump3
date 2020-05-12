@@ -22,16 +22,14 @@ jobs:
             platform: windows
           - os: ubuntu-latest
             platform: linux
-        
-        
+          
     steps:
       - name: AVD3Checkout
         uses: actions/checkout@v2.1.0
-      - name: AVD3LinuxCompile
+        
+      - name: AVD3Native-Compile-Linux
         if: matrix.platform == 'linux'
-        run: |
-          ls -lhR $GITHUB_WORKSPACE
-          
+        run: |         
           mkdir AVDump3NativeLib/obj/
           mkdir AVDump3NativeLib/bin/
           cd AVDump3NativeLib/obj/        
@@ -40,11 +38,22 @@ jobs:
           
           gcc -mavx -mavx2 -msse4 -msha -O3 -shared -o $GITHUB_WORKSPACE/AVDump3NativeLib/bin/AVDump3NativeLib.so $GITHUB_WORKSPACE/AVDump3NativeLib/obj/*.o -lrt
           
-      - name: AVD3LinuxArtifactUpload
+      - name: AVD3Native-ArtifactUpload-Linux
         if: matrix.platform == 'linux'
         uses: actions/upload-artifact@v2
         with:
           name: AVDump3NativeLib.zip
           path: ${{ github.workspace }}/AVDump3NativeLib/bin/AVDump3NativeLib.so
+
+      - name: AVD3Native-Compile-Windows-MSBuildSetup
+        if: matrix.platform == 'windows'
+        uses: microsoft/setup-msbuild@v1.0.0
+
+      - name: AVD3Native-Compile-Windows
+        if: matrix.platform == 'windows'
+        run: |
+          msbuild $GITHUB_WORKSPACE/AVDump3.sln /t:AVDump3NativeLib /p:Configuration="Release" /p:Platform="x64" /p:BuildProjectReferences=false
+          
+          
         
   
