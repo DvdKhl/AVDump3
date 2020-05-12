@@ -52,7 +52,7 @@ jobs:
       - name: AVD3Native-Compile-Windows
         if: matrix.platform == 'windows'
         run: |
-          msbuild $GITHUB_WORKSPACE/AVDump3.sln /t:AVDump3NativeLib /p:Configuration="Release" /p:Platform="x64" /p:BuildProjectReferences=false
+          msbuild AVDump3.sln /t:AVDump3NativeLib /p:Configuration="Release" /p:Platform="x64" /p:BuildProjectReferences=false
           
           
         
