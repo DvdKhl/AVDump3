@@ -5,7 +5,7 @@ env:
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, AVD3Workflow-Testing ]
   pull_request:
     branches: [ master ]
 
