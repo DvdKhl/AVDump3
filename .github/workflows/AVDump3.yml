@@ -27,7 +27,7 @@ jobs:
     steps:
       - name: AVD3Checkout
         uses: actions/checkout@v2.1.0
-      - name: AVD3CompileLinux
+      - name: AVD3LinuxCompile
         if: matrix.platform == 'linux'
         run: |
           ls -lhR $GITHUB_WORKSPACE
@@ -39,6 +39,12 @@ jobs:
           cd ../..
           
           gcc -mavx -mavx2 -msse4 -msha -O3 -shared -o $GITHUB_WORKSPACE/AVDump3NativeLib/bin/AVDump3NativeLib.so $GITHUB_WORKSPACE/AVDump3NativeLib/obj/*.o -lrt
-        
+          
+      - name: AVD3LinuxArtifactUpload
+        if: matrix.platform == 'linux'
+        uses: actions/upload-artifact@v2
+        with:
+          name: AVDump3NativeLib.so
+          path: $GITHUB_WORKSPACE/AVDump3NativeLib/bin/AVDump3NativeLib.so
         
   
