@@ -31,8 +31,9 @@ jobs:
         if: matrix.platform == 'linux'
         run: |
           pwd
-          gcc -c -Wall -Werror -fpic -msha -O3 $GITHUB_WORKSPACE/AVDump3/AVDump3NativeLib/*.c -lrt 
-          gcc -msha -O3 -shared -o $GITHUB_WORKSPACE/AVDump3NativeLib.so $GITHUB_WORKSPACE/AVDump3/AVDump3NativeLib/*.o -lrt
+          ls -Rlh
+          gcc -c -Wall -Werror -fpic -msha -O3 $GITHUB_WORKSPACE/AVDump3NativeLib/*.c -lrt 
+          gcc -msha -O3 -shared -o $GITHUB_WORKSPACE/AVDump3NativeLib.so $GITHUB_WORKSPACE/AVDump3NativeLib/*.o -lrt
         
         
   
