@@ -42,7 +42,7 @@ jobs:
       if: matrix.platform == 'linux'
       uses: actions/upload-artifact@v2
       with:
-        name: AVDump3NativeLib.Linux.zip
+        name: AVDump3NativeLib.Linux
         path: ${{ github.workspace }}/AVDump3NativeLib/bin/AVDump3NativeLib.so
 
 
@@ -59,12 +59,12 @@ jobs:
       if: matrix.platform == 'windows'
       uses: actions/upload-artifact@v2
       with:
-        name: AVDump3NativeLib.Windows.zip
+        name: AVDump3NativeLib.Windows
         path: ${{ github.workspace }}\AVDump3NativeLib\x64\GithubWorkflow\AVDump3NativeLib.dll
 
   build-avd3-main:
+    needs: build-avd3-native
     runs-on: ubuntu-latest
-
     steps:
     - name: AVD3Main-Checkout
       uses: actions/checkout@v2
@@ -74,12 +74,21 @@ jobs:
       with:
         dotnet-version: 3.1.102
 
+    - name: AVD3Main-DownloadArtifacts
+      uses: actions/download-artifact@v2
+      with:
+        path: ${{ github.workspace }}/AVDump3CL/bin/Release/netcoreapp3.1/
+    
     - name: AVD3Main-Compile
-      run: dotnet build --configuration Release          
-        
+      run: dotnet build --configuration GithubWorkflow        
+      
+    - name: AVD3Main-CopyLibs  
+      run: |
+        cp $GITHUB_WORKSPACE/AVDump3Lib/Libs/MediaInfo.* $GITHUB_WORKSPACE/AVDump3CL/bin/Release/netcoreapp3.1/
+      
     - name: AVD3Main-ArtifactUpload
       uses: actions/upload-artifact@v2
       with:
-        name: AVDump3Main.zip
+        name: AVDump3CL
         path: ${{ github.workspace }}/AVDump3CL/bin/Release/netcoreapp3.1/
   
