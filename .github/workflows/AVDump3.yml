@@ -1,0 +1,35 @@
+name: AVDump3
+
+env:
+  AVD3Configuration: Release
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        include: 
+          - os: windows-latest
+            platform: windows
+          - os: ubuntu-latest
+            platform: linux
+        
+        
+    steps:
+      - name: AVD3Checkout
+        uses: actions/checkout@v2.1.0
+      - name: AVD3CompileLinux
+        if: matrix.platform == 'linux'
+        run: |
+          gcc -c -Wall -Werror -fpic -msha -O3 AVDump3/AVDump3NativeLib/*.c -lrt 
+          gcc -msha -O3 -shared -o AVDump3NativeLib.so AVDump3/AVDump3NativeLib/*.o -lrt
+        
+        
+  
