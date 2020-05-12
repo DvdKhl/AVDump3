@@ -10,7 +10,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  build-avd3-native:
     name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -18,42 +18,68 @@ jobs:
       matrix:
         os: [windows-latest, ubuntu-latest]
         include: 
-          - os: windows-latest
-            platform: windows
-          - os: ubuntu-latest
-            platform: linux
+        - os: windows-latest
+          platform: windows
+        - os: ubuntu-latest
+          platform: linux
           
     steps:
-      - name: AVD3Checkout
-        uses: actions/checkout@v2.1.0
-        
-      - name: AVD3Native-Compile-Linux
-        if: matrix.platform == 'linux'
-        run: |         
-          mkdir AVDump3NativeLib/obj/
-          mkdir AVDump3NativeLib/bin/
-          cd AVDump3NativeLib/obj/        
-          gcc -mavx -mavx2 -msse4 -msha -O3 -c -Wall -Werror -fpic $GITHUB_WORKSPACE/AVDump3NativeLib/*.c -lrt 
-          cd ../..
-          
-          gcc -mavx -mavx2 -msse4 -msha -O3 -shared -o $GITHUB_WORKSPACE/AVDump3NativeLib/bin/AVDump3NativeLib.so $GITHUB_WORKSPACE/AVDump3NativeLib/obj/*.o -lrt
-          
-      - name: AVD3Native-ArtifactUpload-Linux
-        if: matrix.platform == 'linux'
-        uses: actions/upload-artifact@v2
-        with:
-          name: AVDump3NativeLib.zip
-          path: ${{ github.workspace }}/AVDump3NativeLib/bin/AVDump3NativeLib.so
+    - name: AVD3Native-Checkout
+      uses: actions/checkout@v2.1.0
 
-      - name: AVD3Native-Compile-Windows-MSBuildSetup
-        if: matrix.platform == 'windows'
-        uses: microsoft/setup-msbuild@v1.0.0
+    - name: AVD3Native-Compile-Linux
+      if: matrix.platform == 'linux'
+      run: |         
+        mkdir AVDump3NativeLib/obj/
+        mkdir AVDump3NativeLib/bin/
+        cd AVDump3NativeLib/obj/        
+        gcc -mavx -mavx2 -msse4 -msha -O3 -c -Wall -Werror -fpic $GITHUB_WORKSPACE/AVDump3NativeLib/*.c -lrt 
+        cd ../..
 
-      - name: AVD3Native-Compile-Windows
-        if: matrix.platform == 'windows'
-        run: |
-          msbuild AVDump3.sln /t:AVDump3NativeLib /p:Configuration="GithubWorkflow" /p:Platform="x64" /p:BuildProjectReferences=false
-          
-          
+        gcc -mavx -mavx2 -msse4 -msha -O3 -shared -o $GITHUB_WORKSPACE/AVDump3NativeLib/bin/AVDump3NativeLib.so $GITHUB_WORKSPACE/AVDump3NativeLib/obj/*.o -lrt
+
+    - name: AVD3Native-ArtifactUpload-Linux
+      if: matrix.platform == 'linux'
+      uses: actions/upload-artifact@v2
+      with:
+        name: AVDump3NativeLib.Linux.zip
+        path: ${{ github.workspace }}/AVDump3NativeLib/bin/AVDump3NativeLib.so
+
+
+    - name: AVD3Native-MSBuildSetup-Windows
+      if: matrix.platform == 'windows'
+      uses: microsoft/setup-msbuild@v1.0.0
+
+    - name: AVD3Native-Compile-Windows
+      if: matrix.platform == 'windows'
+      run: |
+        msbuild AVDump3.sln /t:AVDump3NativeLib /p:Configuration="GithubWorkflow" /p:Platform="x64" /p:BuildProjectReferences=false
+
+    - name: AVD3Native-ArtifactUpload-Windows
+      if: matrix.platform == 'windows'
+      uses: actions/upload-artifact@v2
+      with:
+        name: AVDump3NativeLib.Windows.zip
+        path: ${{ github.workspace }}\AVDump3NativeLib\x64\GithubWorkflow\AVDump3NativeLib.dll
+
+  build-avd3-main:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: AVD3Main-Checkout
+    - uses: actions/checkout@v2
+      
+    - name: AVD3Main-DotNetSetup
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.102
+
+    - name: AVD3Main-Compile
+      run: dotnet build --configuration Release          
         
+    - name: AVD3Main-ArtifactUpload
+      uses: actions/upload-artifact@v2
+      with:
+        name: AVDump3Main.zip
+        path: ${{ github.workspace }}/AVDump3CL/bin/Release/netcoreapp3.1/
   
