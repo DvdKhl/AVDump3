@@ -126,7 +126,7 @@ jobs:
 
     - name: AVD3Release-CompressAsset
       run: |
-        zip -r ${{ github.workspace }}/AVDump3CL.zip ${{ github.workspace }}/AVDump3CL
+        zip -j -r ${{ github.workspace }}/AVDump3CL.zip ${{ github.workspace }}/AVDump3CL
      
     - name: AVD3Release-UploadAsset
       uses: actions/upload-release-asset@v1.0.2
