@@ -2,7 +2,7 @@ name: AVDump3
 
 on:
   push:
-    tags: [ 'v*' ]
+    tags: [ 'B*' ]
     branches: [ master ]
   pull_request:
     branches: [ master ]
@@ -96,11 +96,17 @@ jobs:
         path: ${{ github.workspace }}/AVDump3CL/bin/GithubWorkflow/netcoreapp3.1/
 
   release-avd3-main:
-    if: contains(github.ref, 'tags/v')
+    if: contains(github.ref, 'tags/B')
     runs-on: ubuntu-latest
     needs: build-avd3-main
 
     steps:
+    - name: AVD3Release-GetTag
+      id: avd3releasegettag
+      uses: olegtarasov/get-tag@v2
+      with:
+        tagRegex: "B(\\d+)"
+      
     - name: AVD3Release-Create
       id: avd3releasecreate
       uses: actions/create-release@v1
@@ -108,20 +114,24 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        draft: false
+        release_name: Build ${{ steps.avd3releasegettag.outputs.tag }}
+        draft: true
         prerelease: true
 
     - name: AVD3Release-DownloadArtifacts
       uses: actions/download-artifact@v2
       with:
         name: AVDump3CL
-        path: ${{ github.workspace }}/AVDump3CL.zip
+        path: ${{ github.workspace }}/AVDump3CL
 
+    - name: AVD3Release-CompressAsset
+    - run: |
+        zip -r ${{ github.workspace }}/AVDump3CL.zip ${{ github.workspace }}/AVDump3CL
+     
     - name: AVD3Release-UploadAsset
       uses: actions/upload-release-asset@v1.0.2
       with:
         upload_url: ${{ steps.avd3releasecreate.outputs.upload_url }}
         asset_path:  ${{ github.workspace }}/AVDump3CL.zip
-        asset_name: ${{ github.ref }}
+        asset_name: AVDump3CL-B${{ steps.avd3releasegettag.outputs.tag }}.zip
         asset_content_type: application/zip
