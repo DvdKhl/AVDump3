@@ -9,7 +9,7 @@ on:
 
 jobs:
   build-avd3-native:
-    name: ${{ matrix.os }}
+    name: build-avd3-native/${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
