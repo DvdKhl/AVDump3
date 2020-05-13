@@ -115,8 +115,8 @@ jobs:
       with:
         tag_name: ${{ github.ref }}
         release_name: Build ${{ steps.avd3releasegettag.outputs.tag }}
-        draft: true
-        prerelease: true
+        draft: false
+        prerelease: false
 
     - name: AVD3Release-DownloadArtifacts
       uses: actions/download-artifact@v2
