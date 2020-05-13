@@ -58,15 +58,9 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		}
 
 		public ReadOnlySpan<byte> TransformFinalBlock(in ReadOnlySpan<byte> data) {
-			foreach(var blockHasher in blockHashers) {
-				blockHasher.Finish();
-			}
+			foreach(var blockHasher in blockHashers) blockHasher.Finish();
 
-			if(nodeCount == 0 && data.Length == 0) {
-				return EmptyHash;
-			}
-
-
+			if(nodeCount == 0 && data.Length == 0) return EmptyHash;
 			if(data.Length >= 2048 || leafCount != 0) throw new Exception("leafCount is not 0 or remaining data is larger than 2048 bytes");
 
 			if(data.Length != 0) {
@@ -173,6 +167,26 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		//	foreach(var blockHasher in blockHashers) blockHasher.Dispose();
 		//	compressBuffer = (byte*)0;
 		//}
+		#region IDisposable Support
+		private bool disposedValue = false; // To detect redundant calls
+
+		protected virtual void Dispose(bool disposing) {
+			if(!disposedValue) {
+
+				NativeMethods.FreeHashObject((IntPtr)compressBuffer);
+				foreach(var blockHasher in blockHashers) blockHasher.Dispose();
+				compressBuffer = (byte*)0;
+
+				disposedValue = true;
+			}
+		}
+
+		~TigerTreeHashAlgorithm() => Dispose(false);
+		public void Dispose() {
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+		#endregion
 
 		private class BlockHasher : IDisposable {
 			private readonly Thread hashThread;
@@ -222,7 +236,10 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 				hashThread.Join();
 			}
 
-			public void Dispose() { doWorkSync.Dispose(); }
+			public void Dispose() {
+				Finish();
+				doWorkSync.Dispose();
+			}
 
 			void DoWork() {
 				var buffer = NativeMethods.TTHCreateBlock();
@@ -246,25 +263,6 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 
 		}
 
-		#region IDisposable Support
-		private bool disposedValue = false; // To detect redundant calls
-
-		protected virtual void Dispose(bool disposing) {
-			if(!disposedValue) {
-				NativeMethods.FreeHashObject((IntPtr)compressBuffer);
-				foreach(var blockHasher in blockHashers) blockHasher.Dispose();
-				compressBuffer = (byte*)0;
-
-				disposedValue = true;
-			}
-		}
-
-		~TigerTreeHashAlgorithm() => Dispose(false);
-		public void Dispose() {
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-		#endregion
 
 	}
 }

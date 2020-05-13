@@ -56,7 +56,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 
 				try {
 					Task.WaitAll(tasks);
-				} catch(AggregateException ex) { 
+				} catch(AggregateException ex) {
 					var wasCancelled = false;
 					ex.Flatten().Handle(ex => {
 						wasCancelled |= ex is OperationCanceledException;
@@ -68,6 +68,9 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 				}
 
 			}
+
+			//foreach(var blockConsumer in blockConsumers) blockConsumer.Dispose();
+
 
 			var exceptions = (
 				from b in blockConsumers
