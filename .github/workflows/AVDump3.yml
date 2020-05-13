@@ -130,6 +130,8 @@ jobs:
      
     - name: AVD3Release-UploadAsset
       uses: actions/upload-release-asset@v1.0.2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.avd3releasecreate.outputs.upload_url }}
         asset_path:  ${{ github.workspace }}/AVDump3CL.zip
