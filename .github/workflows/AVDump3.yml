@@ -125,7 +125,7 @@ jobs:
         path: ${{ github.workspace }}/AVDump3CL
 
     - name: AVD3Release-CompressAsset
-    - run: |
+      run: |
         zip -r ${{ github.workspace }}/AVDump3CL.zip ${{ github.workspace }}/AVDump3CL
      
     - name: AVD3Release-UploadAsset
