@@ -1,3 +1,5 @@
 #!/usr/bin/env sh
 
-docker build --build-arg DockerTag=$DOCKER_TAG -t $IMAGE_NAME .
+apt-get install -y curl zip
+
+docker build --build-arg DockerTag=${DOCKER_TAG} -t $IMAGE_NAME .
