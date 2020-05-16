@@ -28,20 +28,14 @@ jobs:
     - name: AVD3Native-Compile-Linux
       if: matrix.platform == 'linux'
       run: |         
-        mkdir AVDump3NativeLib/obj/
-        mkdir AVDump3NativeLib/bin/
-        cd AVDump3NativeLib/obj/        
-        gcc -mavx -mavx2 -msse4 -msha -O3 -c -Wall -Werror -fpic $GITHUB_WORKSPACE/AVDump3NativeLib/*.c -lrt 
-        cd ../..
-
-        gcc -mavx -mavx2 -msse4 -msha -O3 -shared -o $GITHUB_WORKSPACE/AVDump3NativeLib/bin/AVDump3NativeLib.so $GITHUB_WORKSPACE/AVDump3NativeLib/obj/*.o -lrt
+        make -C AVDump3NativeLib
 
     - name: AVD3Native-ArtifactUpload-Linux
       if: matrix.platform == 'linux'
       uses: actions/upload-artifact@v2
       with:
         name: AVDump3NativeLib.Linux
-        path: ${{ github.workspace }}/AVDump3NativeLib/bin/AVDump3NativeLib.so
+        path: ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib.so
 
 
     - name: AVD3Native-MSBuildSetup-Windows

@@ -128,23 +128,20 @@ copy /Y "$(OutDir)*.pdb" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(Configur
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="AVD3MirrorBuffer.c" />
-    <ClCompile Include="AVD3NativeLibApi.c" />
-    <ClCompile Include="CRC32.c" />
-    <ClCompile Include="CRC32C.c" />
-    <ClCompile Include="InstructionCheck.c" />
-    <ClCompile Include="MD4.c" />
-    <ClCompile Include="SHA1.c" />
-    <ClCompile Include="SHA256.c" />
-    <ClCompile Include="SHA3.c" />
-    <ClCompile Include="Tiger.c" />
+    <ClCompile Include="src\AVD3MirrorBuffer.c" />
+    <ClCompile Include="src\AVD3NativeLibApi.c" />
+    <ClCompile Include="src\InstructionCheck.c" />
+    <ClCompile Include="src\CRC32.c" />
+    <ClCompile Include="src\CRC32C.c" />
+    <ClCompile Include="src\MD4.c" />
+    <ClCompile Include="src\SHA1.c" />
+    <ClCompile Include="src\SHA256.c" />
+    <ClCompile Include="src\SHA3.c" />
+    <ClCompile Include="src\Tiger.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AVD3NativeLibApi.h" />
-    <ClInclude Include="DLLDefines.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Build.sh" />
+    <ClInclude Include="src\AVD3NativeLibApi.h" />
+    <ClInclude Include="src\DLLDefines.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

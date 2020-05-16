@@ -13,48 +13,49 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\Hashes">
+      <UniqueIdentifier>{ee2a2025-5c93-408c-be0c-845b09ccf4f1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AVD3NativeLibApi.c">
+    <ClCompile Include="src\AVD3MirrorBuffer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CRC32C.c">
+    <ClCompile Include="src\AVD3NativeLibApi.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CRC32.c">
+    <ClCompile Include="src\InstructionCheck.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Tiger.c">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Src\Tiger.c">
+      <Filter>Source Files\Hashes</Filter>
     </ClCompile>
-    <ClCompile Include="SHA3.c">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Src\SHA256.c">
+      <Filter>Source Files\Hashes</Filter>
     </ClCompile>
-    <ClCompile Include="AVD3MirrorBuffer.c">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Src\SHA3.c">
+      <Filter>Source Files\Hashes</Filter>
     </ClCompile>
-    <ClCompile Include="MD4.c">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Src\SHA1.c">
+      <Filter>Source Files\Hashes</Filter>
     </ClCompile>
-    <ClCompile Include="InstructionCheck.c">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Src\MD4.c">
+      <Filter>Source Files\Hashes</Filter>
     </ClCompile>
-    <ClCompile Include="SHA1.c">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Src\CRC32C.c">
+      <Filter>Source Files\Hashes</Filter>
     </ClCompile>
-    <ClCompile Include="SHA256.c">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Src\CRC32.c">
+      <Filter>Source Files\Hashes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AVD3NativeLibApi.h">
+    <ClInclude Include="src\AVD3NativeLibApi.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DLLDefines.h">
+    <ClInclude Include="src\DLLDefines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Build.sh" />
+    <ClInclude Include="Makefile" />
   </ItemGroup>
 </Project>
