@@ -13,8 +13,8 @@
     <NeutralLanguage>en</NeutralLanguage>
     <ApplicationIcon></ApplicationIcon>
     <Platforms>AnyCPU;x64</Platforms>
-    <AssemblyVersion>3.0.8057.0</AssemblyVersion>
-    <FileVersion>3.0.8057.0</FileVersion>
+    <AssemblyVersion>3.0.8058.0</AssemblyVersion>
+    <FileVersion>3.0.8058.0</FileVersion>
     <Configurations>Debug;Release;GithubWorkflow</Configurations>
   </PropertyGroup>
 
@@ -28,14 +28,15 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DebugType>full</DebugType>
+    <DebugType>pdbonly</DebugType>
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='GithubWorkflow|x64'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DebugType>full</DebugType>
+    <DebugType>pdbonly</DebugType>
     <DebugSymbols>true</DebugSymbols>
+    <Optimize>true</Optimize>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

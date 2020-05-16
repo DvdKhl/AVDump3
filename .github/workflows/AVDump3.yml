@@ -69,25 +69,25 @@ jobs:
     - name: AVD3Main-DownloadArtifacts
       uses: actions/download-artifact@v2
       with:
-        path: ${{ github.workspace }}/AVDump3CL/bin/x64/GithubWorkflow/netcoreapp3.1/
+        path: ${{ github.workspace }}/AVDump3CL/bin/GithubWorkflow/netcoreapp3.1/
     
     - name: AVDMain-MoveArtifacts
       run: |
-        find $GITHUB_WORKSPACE/AVDump3CL/bin/x64/GithubWorkflow/netcoreapp3.1/ -type f -print -exec mv {} $GITHUB_WORKSPACE/AVDump3CL/bin/x64/GithubWorkflow/netcoreapp3.1/ \;
-        rm -R -- $GITHUB_WORKSPACE/AVDump3CL/bin/x64/GithubWorkflow/netcoreapp3.1/*/
+        find $GITHUB_WORKSPACE/AVDump3CL/bin/GithubWorkflow/netcoreapp3.1/ -type f -print -exec mv {} $GITHUB_WORKSPACE/AVDump3CL/bin/GithubWorkflow/netcoreapp3.1/ \;
+        rm -R -- $GITHUB_WORKSPACE/AVDump3CL/bin/GithubWorkflow/netcoreapp3.1/*/
     
     - name: AVD3Main-Compile
       run: dotnet build --configuration GithubWorkflow        
       
     - name: AVD3Main-CopyLibs  
       run: |
-        cp $GITHUB_WORKSPACE/AVDump3Lib/Libs/MediaInfo.* $GITHUB_WORKSPACE/AVDump3CL/bin/x64/GithubWorkflow/netcoreapp3.1/
+        cp $GITHUB_WORKSPACE/AVDump3Lib/Libs/MediaInfo.* $GITHUB_WORKSPACE/AVDump3CL/bin/GithubWorkflow/netcoreapp3.1/
       
     - name: AVD3Main-ArtifactUpload
       uses: actions/upload-artifact@v2
       with:
         name: AVDump3CL
-        path: ${{ github.workspace }}/AVDump3CL/bin/x64/GithubWorkflow/netcoreapp3.1/
+        path: ${{ github.workspace }}/AVDump3CL/bin/GithubWorkflow/netcoreapp3.1/
 
   release-avd3-main:
     if: contains(github.ref, 'tags/B')
