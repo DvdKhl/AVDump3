@@ -51,7 +51,6 @@ namespace AVDump3Lib.Processing {
 			addOrReplace(new BlockConsumerFactory("MKV", s => new MatroskaParser(s.Name, s.Reader)));
 			addOrReplace(new BlockConsumerFactory("OGG", s => new OggParser(s.Name, s.Reader)));
 			addOrReplace(new BlockConsumerFactory("MP4", s => new MP4Parser(s.Name, s.Reader)));
-			//addOrReplace(new BlockConsumerFactory("COPY", s =>new CopyToFileBlockConsumer("COPY", r, @"D:\Projects\Visual Studio 2017\Projects\New\AVDump3\bla.bin")));
 
 			try {
 				addOrReplace(new BlockConsumerFactory("ED2K", s => new HashCalculator(s.Name, s.Reader, new Ed2kNativeHashAlgorithm())));
