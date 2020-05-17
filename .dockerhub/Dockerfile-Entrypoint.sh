@@ -32,7 +32,7 @@ then
     fi
     rm -rf /AVD3/*
     
-    dlUrl="https://github.com/DvdKhl/AVDump3/releases/download/$useVersion/AVDump3CL-$useVersion.zip"
+    dlUrl="https://github.com/DvdKhl/AVDump3/releases/download/$useVersion%2FGitHub-Release/AVDump3CL-$useVersion.zip"
     echo "Downloading Version: $useVersion - $dlUrl"
     curl -s -L --output /AVD3/AVDump3CL.zip "$dlUrl"
     unzip -q /AVD3/AVDump3CL.zip -d /AVD3
