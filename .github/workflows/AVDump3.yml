@@ -2,7 +2,7 @@ name: AVDump3
 
 on:
   push:
-    tags: [ 'B*' ]
+    tags: [ 'B[0-9]+/Github-Release' ]
     branches: [ master ]
   pull_request:
     branches: [ master ]
