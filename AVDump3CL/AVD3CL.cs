@@ -36,7 +36,7 @@ namespace AVDump3CL {
 		}
 
 		public class BlockConsumerProgress {
-			public string Name { get; internal set; }
+			public string Name { get; internal set; } = "";
 			public int FilesProcessed { get; internal set; }
 			public long BytesProcessed { get; internal set; }
 			public double BufferFill { get; internal set; }
@@ -82,6 +82,10 @@ namespace AVDump3CL {
 				BytesProcessed = bytesProcessed;
 				FileProgressCollection = fileProgressCollection;
 				BlockConsumerProgressCollection = blockConsumerProgressCollection;
+			}
+			public Progress() {
+				FileProgressCollection = new List<FileProgress>().AsReadOnly();
+				BlockConsumerProgressCollection = new List<BlockConsumerProgress>().AsReadOnly();
 			}
 		}
 
@@ -202,6 +206,7 @@ namespace AVDump3CL {
 		private readonly int TicksInPeriod = 5;
 		private readonly StringBuilder sb = new StringBuilder();
 		private readonly List<string> toWrite = new List<string>();
+		private readonly Timer timer;
 
 		public long TotalBytes { get; set; }
 		public int TotalFiles { get; set; }
@@ -213,7 +218,6 @@ namespace AVDump3CL {
 		private int maxBCCount;
 		private int maxFCount;
 		private int maxCursorPos;
-		private Timer timer;
 		private int state;
 		private int sbLineCount;
 		private BytesReadProgress.Progress curP, prevP;
@@ -221,12 +225,16 @@ namespace AVDump3CL {
 		public AVD3CL(DisplaySettings settings, Func<BytesReadProgress.Progress> getProgress) {
 			this.settings = settings;
 			this.getProgress = getProgress;
+
+			output = "";
+			timer = new Timer(TimerCallback);
+			prevP = curP = new BytesReadProgress.Progress();
 		}
 
 
 		public void Display() {
 			curP = getProgress();
-			timer = new Timer(TimerCallback, null, 500, 100);
+			timer.Change(500, 100);
 		}
 
 		public void Stop() {
@@ -239,7 +247,7 @@ namespace AVDump3CL {
 		}
 
 		private readonly Stopwatch sw = new Stopwatch();
-		private void TimerCallback(object sender) {
+		private void TimerCallback(object? sender) {
 			if(!Monitor.TryEnter(timer)) {
 				displaySkipCount++;
 				return;

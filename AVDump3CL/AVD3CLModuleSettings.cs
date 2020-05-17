@@ -51,42 +51,40 @@ namespace AVDump3CL {
 
 		[CLNames("PLPath")]
 		public SettingsProperty ProcessedLogPathProperty { get; }
-		public string ProcessedLogPath {
-			get => (string)GetValue(ProcessedLogPathProperty);
+		public string? ProcessedLogPath {
+			get => (string?)GetValue(ProcessedLogPathProperty);
 			set => SetValue(ProcessedLogPathProperty, value);
 		}
 
 		[CLNames("SLPath")]
 		public SettingsProperty SkipLogPathProperty { get; }
-		public string SkipLogPath {
-			get => (string)GetValue(SkipLogPathProperty);
+		public string? SkipLogPath {
+			get => (string?)GetValue(SkipLogPathProperty);
 			set => SetValue(SkipLogPathProperty, value);
 		}
 
 		[CLNames("DLPath")]
 		public SettingsProperty DoneLogPathProperty { get; }
-		public string DoneLogPath {
-			get => (string)GetValue(DoneLogPathProperty);
+		public string? DoneLogPath {
+			get => (string?)GetValue(DoneLogPathProperty);
 			set => SetValue(DoneLogPathProperty, value);
 		}
 
 		[CLNames("Conc")]
 		public SettingsProperty ConcurrentProperty { get; }
 		public PathPartitions Concurrent {
-			get => (PathPartitions)GetValue(ConcurrentProperty);
+			get => (PathPartitions)GetRequiredValue(ConcurrentProperty);
 			set => SetValue(ConcurrentProperty, value);
 		}
 
 		[CLNames("WExts")]
 		public SettingsProperty WithExtensionsProperty { get; }
 		public FileExtensionsSetting WithExtensions {
-			get => (FileExtensionsSetting)GetValue(WithExtensionsProperty);
+			get => (FileExtensionsSetting)GetRequiredValue(WithExtensionsProperty);
 			set => SetValue(WithExtensionsProperty, value);
 		}
 
-		public FileDiscoverySettings() {
-			Name = "FileDiscovery";
-			ResourceManager = Lang.ResourceManager;
+		public FileDiscoverySettings() : base("FileDiscovery", Lang.ResourceManager) {
 			RecursiveProperty = Register(nameof(Recursive), false);
 			ProcessedLogPathProperty = Register<string>(nameof(ProcessedLogPath), null);
 			SkipLogPathProperty = Register<string>(nameof(SkipLogPath), null);
@@ -95,28 +93,28 @@ namespace AVDump3CL {
 			WithExtensionsProperty = Register(nameof(WithExtensions), new FileExtensionsSetting() { Allow = true });
 		}
 
-		string ICLConvert.ToCLString(SettingsProperty property, object obj) {
+		string ICLConvert.ToCLString(SettingsProperty property, object? obj) {
 			if(property == WithExtensionsProperty) {
-				var value = (FileExtensionsSetting)obj;
-				return (value.Allow ? "" : "-") + string.Join(",", value.Items);
+				var value = (FileExtensionsSetting?)obj;
+				return ((value?.Allow ?? false) ? "" : "-") + string.Join(",", value.Items);
 
 			} else if(property == ConcurrentProperty) {
-				var value = (PathPartitions)obj;
+				var value = (PathPartitions?)obj;
 				return value.ConcurrentCount + (value.Partitions.Count > 0 ? ":" : "") + string.Join(",", value.Partitions.Select(x => x.Path + "," + x.ConcurrentCount));
 			}
 
-			return obj == null ? "<null>" : obj.ToString();
+			return obj == null ? "<null>" : (obj?.ToString() ?? "");
 		}
 
-		object ICLConvert.FromCLString(SettingsProperty property, string str) {
+		object ICLConvert.FromCLString(SettingsProperty property, string? str) {
 			if(property == WithExtensionsProperty) {
-				var value = new FileExtensionsSetting { Allow = str.Length != 0 && str[0] != '-' };
+				var value = new FileExtensionsSetting { Allow = str == null || str.Length != 0 && str[0] != '-' };
 				if(!value.Allow) str = str.Substring(1);
 				value.Items = Array.AsReadOnly(str.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries));
 				return value;
 
 			} else if(property == ConcurrentProperty) {
-				var raw = str.Split(new char[] { ':' }, 2);
+				var raw = (str ?? "").Split(new char[] { ':' }, 2);
 
 				return new PathPartitions(
 					int.Parse(raw[0]),
@@ -172,8 +170,8 @@ namespace AVDump3CL {
 
 		[CLNames("Cons")]
 		public SettingsProperty ConsumersProperty { get; }
-		public IReadOnlyCollection<ConsumerSettings> Consumers {
-			get => (IReadOnlyCollection<ConsumerSettings>)GetValue(ConsumersProperty);
+		public IReadOnlyCollection<ConsumerSettings>? Consumers {
+			get => (IReadOnlyCollection<ConsumerSettings>?)GetValue(ConsumersProperty);
 			set => SetValue(ConsumersProperty, value);
 		}
 
@@ -183,9 +181,7 @@ namespace AVDump3CL {
 			set => SetValue(PrintAvailableSIMDsProperty, value);
 		}
 
-		public ProcessingSettings() {
-			Name = "Processing";
-			ResourceManager = Lang.ResourceManager;
+		public ProcessingSettings() : base("Processing", Lang.ResourceManager) {
 			BufferLengthProperty = Register(nameof(BufferLength), 64 << 20);
 			ProducerMinReadLengthProperty = Register(nameof(ProducerMinReadLength), 1 << 20);
 			ProducerMaxReadLengthProperty = Register(nameof(ProducerMaxReadLength), 8 << 20);
@@ -194,26 +190,26 @@ namespace AVDump3CL {
 			PauseBeforeExitProperty = Register(nameof(PauseBeforeExit), false);
 		}
 
-		string ICLConvert.ToCLString(SettingsProperty property, object obj) {
+		string ICLConvert.ToCLString(SettingsProperty property, object? obj) {
 			if(property == BufferLengthProperty || property == ProducerMinReadLengthProperty || property == ProducerMaxReadLengthProperty) {
-				var value = (int)obj;
+				var value = (int?)obj ?? throw new Exception("BufferLengthProperty was null");
 				return (value >> 20).ToString();
 
 			} else if(property == ConsumersProperty) {
-				var lst = (IReadOnlyCollection<ConsumerSettings>)obj;
+				var lst = (IReadOnlyCollection<ConsumerSettings>?)obj;
 				//A bit odd at first, but with this we make Consumers==null the special case (i.e. list the consumers)
-				return 
-					obj != null ? (
-						lst.Count == 0 ? 
-						null : 
+				return
+					lst != null ? (
+						lst.Count == 0 ?
+						"" :
 						string.Join(",", lst.Select(x => x.Name + string.Concat(x.Arguments.Select(y => ":" + y))))
-					) : 
+					) :
 					"";
 			}
-			return obj == null ? "<null>" : obj.ToString();
+			return obj == null ? "<null>" : (obj.ToString() ?? "");
 		}
 
-		object ICLConvert.FromCLString(SettingsProperty property, string str) {
+		object? ICLConvert.FromCLString(SettingsProperty property, string? str) {
 			if(property == BufferLengthProperty || property == ProducerMinReadLengthProperty || property == ProducerMaxReadLengthProperty) {
 				return int.Parse(str) << 20;
 
@@ -276,10 +272,7 @@ namespace AVDump3CL {
 			set => SetValue(CRC32ErrorProperty, value);
 		}
 
-		public ReportingSettings() {
-			Name = "Reporting";
-			ResourceManager = Lang.ResourceManager;
-
+		public ReportingSettings() : base("Reporting", Lang.ResourceManager) {
 			PrintHashesProperty = Register(nameof(PrintHashes), false);
 			PrintReportsProperty = Register(nameof(PrintReports), false);
 			ReportsProperty = Register(nameof(Reports), Array.AsReadOnly(new string[0]));
@@ -349,10 +342,7 @@ namespace AVDump3CL {
 			set => SetValue(ForwardConsoleCursorOnlyProperty, value);
 		}
 
-		public DisplaySettings() {
-			Name = "Display";
-			ResourceManager = Lang.ResourceManager;
-
+		public DisplaySettings() : base("Display", Lang.ResourceManager) {
 			HideBuffersProperty = Register(nameof(HideBuffers), false);
 			HideFileProgressProperty = Register(nameof(HideFileProgress), false);
 			HideTotalProgressProperty = Register(nameof(HideTotalProgress), false);
@@ -405,10 +395,7 @@ namespace AVDump3CL {
 			set => SetValue(NullStreamTestProperty, value);
 		}
 
-		public DiagnosticsSettings() {
-			Name = "Diagnostics";
-			ResourceManager = Lang.ResourceManager;
-
+		public DiagnosticsSettings() : base("Diagnostics", Lang.ResourceManager) {
 			SaveErrorsProperty = Register(nameof(SaveErrors), false);
 			SkipEnvironmentElementProperty = Register(nameof(SkipEnvironmentElement), false);
 			IncludePersonalDataProperty = Register(nameof(IncludePersonalData), false);

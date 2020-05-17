@@ -18,7 +18,7 @@ fi
 if [ "$1" == "USEVERSION" ] 
 then
     doReset=1; shift
-    useVersion=$(sed -n -r 's/(B[[:digit:]]+)/\1/p'); shift
+    useVersion=$(echo $1 | sed -n -r 's/.*(B[[:digit:]]+).*/\1/p'); shift
     echo "Using Version $useVersion"
 fi
 

@@ -5,7 +5,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <ApplicationIcon>AVD3Icon.ico</ApplicationIcon>
     <StartupObject>AVDump3CL.Program</StartupObject>
-    <AssemblyVersion>3.0.8058.0</AssemblyVersion>
+    <AssemblyVersion>3.0.8059.0</AssemblyVersion>
     <Version>3.0.0</Version>
     <Company>extknot</Company>
     <Authors>DvdKhl</Authors>
@@ -16,8 +16,9 @@
     <NeutralLanguage>en</NeutralLanguage>
     <Copyright>Copyright © 2020 extknot</Copyright>
     <Platforms>AnyCPU;x64</Platforms>
-    <FileVersion>3.0.8058.0</FileVersion>
+    <FileVersion>3.0.8059.0</FileVersion>
     <Configurations>Debug;Release;GithubWorkflow</Configurations>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

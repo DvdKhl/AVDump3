@@ -19,8 +19,8 @@ namespace AVDump3Lib.Settings.CLArguments {
 	}
 
 	public interface ICLConvert {
-		string ToCLString(SettingsProperty property, object obj);
-		object FromCLString(SettingsProperty property, string str);
+		string ToCLString(SettingsProperty prop, object? obj);
+		object? FromCLString(SettingsProperty prop, string? str);
 	}
 
 
@@ -39,7 +39,8 @@ namespace AVDump3Lib.Settings.CLArguments {
 			foreach(var item in settingsObjects) {
 				items.Add(item);
 				foreach(var prop in item.Properties) {
-					var attr = (CLNamesAttribute)Attribute.GetCustomAttribute(item.GetType().GetProperty(prop.Name + "Property"), typeof(CLNamesAttribute));
+					var settingProperty = item.GetType().GetProperty(prop.Name + "Property");
+					var attr = settingProperty != null ? (CLNamesAttribute?)Attribute.GetCustomAttribute(settingProperty, typeof(CLNamesAttribute)) : null;
 					if(attr != null) {
 						propToNames.Add(prop, attr.Names);
 					} else {
@@ -49,7 +50,7 @@ namespace AVDump3Lib.Settings.CLArguments {
 			}
 		}
 
-		public bool ParseArgs(string[] args, ICollection<string> unnamedArgs) {
+		public bool ParseArgs(string[] args, ICollection<string>? unnamedArgs) {
 			args = args.Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
 
 			if(args.Length == 0 || args[0].InvEqualsOrdCI("--Help")) {
@@ -92,7 +93,7 @@ namespace AVDump3Lib.Settings.CLArguments {
 
 					try {
 						param ??= (entry.Property.ValueType == typeof(bool) ? "true" : "");
-						object value = null;
+						object? value = null;
 						if(entry.Group is ICLConvert) {
 							value = ((ICLConvert)entry.Group).FromCLString(entry.Property, param);
 						}
@@ -105,7 +106,7 @@ namespace AVDump3Lib.Settings.CLArguments {
 					} catch(Exception ex) {
 						throw new InvalidOperationException("Property (" + entry.Group.Name + "." + entry.Property.Name + ") could not be set", ex);
 					}
-				} else unnamedArgs.Add(args[i]);
+				} else unnamedArgs?.Add(args[i]);
 			}
 
 			return true;
@@ -127,10 +128,10 @@ namespace AVDump3Lib.Settings.CLArguments {
 				return;
 			}
 
-			Func<SettingsProperty, string> argToString = arg => {
+			string argToString(SettingsProperty arg) {
 				var names = new[] { arg.Name }.Concat(propToNames[arg]).ToArray();
 				return string.Join(", ", names.Select(ldKey => ldKey.Length == 1 ? "-" + ldKey : "--" + ldKey));
-			};
+			}
 
 
 			//Console.ForegroundColor = ConsoleColor.DarkGreen;
@@ -138,15 +139,14 @@ namespace AVDump3Lib.Settings.CLArguments {
 
 
 			var resMan = argGroup.ResourceManager;
-			PrintLine(("▶2 NameSpace◀: " + argGroup.Name).PadRight(descPad, ' ') + resMan?.GetString($"{argGroup.Name}Description").OnNotNullReturn(s => " | ▶8 " + s + "◀"));
+			PrintLine(("▶2 NameSpace◀: " + argGroup.Name).PadRight(descPad, ' ') + resMan?.GetInvString($"{argGroup.Name}Description").OnNotNullReturn(s => " | ▶8 " + s + "◀"));
 			Console.WriteLine();
 			foreach(var prop in argGroup.Properties) {
-				var example = resMan?.GetString($"{prop.Name}Example");
-				var description = resMan?.GetString($"{prop.Name}Description");
+				var example = resMan?.GetInvString($"{prop.Name}Example");
+				var description = resMan?.GetInvString($"{prop.Name}Description");
 
-				string defaultValue;
-				var clCOnvert = argGroup as ICLConvert;
-				if(clCOnvert != null) {
+				string? defaultValue;
+				if(argGroup is ICLConvert clCOnvert) {
 					defaultValue = clCOnvert.ToCLString(prop, prop.DefaultValue);
 				} else {
 					defaultValue = prop.DefaultValue?.ToString();

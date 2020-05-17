@@ -53,10 +53,10 @@ namespace AVDump3CL {
 
 
 	public class AVD3CLModule : IAVD3CLModule {
-		public event EventHandler<AVD3CLModuleExceptionEventArgs> ExceptionThrown;
-		public event EventHandler<AVD3CLFileProcessedEventArgs> FileProcessed;
+		public event EventHandler<AVD3CLModuleExceptionEventArgs>? ExceptionThrown;
+		public event EventHandler<AVD3CLFileProcessedEventArgs>? FileProcessed;
 
-		private HashSet<string> filePathsToSkip;
+		private HashSet<string> filePathsToSkip = new HashSet<string>();
 
 		private readonly AVD3CLModuleSettings settings = new AVD3CLModuleSettings();
 		private readonly object fileSystemLock = new object();
@@ -166,16 +166,14 @@ namespace AVDump3CL {
 
 			if(File.Exists(settings.FileDiscovery.SkipLogPath)) {
 				filePathsToSkip = new HashSet<string>(File.ReadLines(settings.FileDiscovery.SkipLogPath));
-			} else {
-				filePathsToSkip = new HashSet<string>();
 			}
 
-			static void CreateDirectoryChain(string path, bool isDirectory = false) {
+			static void CreateDirectoryChain(string? path, bool isDirectory = false) {
 				path = Path.GetDirectoryName(path);
 				if(!string.IsNullOrEmpty(path)) Directory.CreateDirectory(path);
 			}
 
-			if(settings.Diagnostics.NullStreamTest != null && (settings.Reporting.Reports.Count > 0)) {
+			if(settings.Diagnostics.NullStreamTest != null && settings.Reporting.Reports.Count > 0) {
 				Console.WriteLine("NullStreamTest cannot be used with reports");
 				args.Cancel();
 			}
