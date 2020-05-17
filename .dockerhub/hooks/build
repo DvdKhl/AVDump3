@@ -2,4 +2,4 @@
 
 apt-get install -y curl zip
 
-docker build --build-arg DockerTag=$DOCKER_TAG -t $IMAGE_NAME -t dvdkhl/avdump3cl:latest .
+docker build --build-arg TagName=$SOURCE_BRANCH -t $IMAGE_NAME
