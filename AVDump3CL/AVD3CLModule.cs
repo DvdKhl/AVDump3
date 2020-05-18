@@ -49,6 +49,8 @@ namespace AVDump3CL {
 	public interface IAVD3CLModule : IAVD3Module {
 		event EventHandler<AVD3CLModuleExceptionEventArgs> ExceptionThrown;
 		event EventHandler<AVD3CLFileProcessedEventArgs> FileProcessed;
+
+		void WriteLine(string value);
 	}
 
 
@@ -416,6 +418,8 @@ namespace AVDump3CL {
 			}
 
 		}
+
+		public void WriteLine(string value) => cl.Writeline(value);
 	}
 
 	public class AVD3CLException : AVD3LibException {
