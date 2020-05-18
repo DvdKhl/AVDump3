@@ -72,11 +72,15 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 			//foreach(var blockConsumer in blockConsumers) blockConsumer.Dispose();
 
 
-			var exceptions = (
-				from b in blockConsumers
-				where b.Exception != null
-				select b.Exception
-			).ToArray();
+			var exceptions = blockConsumers
+				.Where(x => x.Exception != null)
+				.Select(x => x.Exception)
+				.ToArray();
+
+			if(exceptions.Any(x => x is OperationCanceledException)) {
+				throw new OperationCanceledException("ConsumeStream operation was cancelled", new AggregateException(exceptions), ct);
+			}
+
 
 			RanToCompletion = exceptions.Length == 0;
 			Finished?.Invoke(this);
