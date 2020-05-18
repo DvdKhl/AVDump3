@@ -248,7 +248,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 				var streamCount = mil.GetCount(streamType);
 
 				for(var streamIndex = 0; streamIndex < streamCount; streamIndex++) {
-					string streamGet(string key) => mil.Get(key, streamType, streamIndex)?.Trim();
+					string streamGet(string key) => mil.Get(key, streamType, streamIndex)?.Trim() ?? "";
 
 					ulong? id = null;
 					if(!string.IsNullOrEmpty(streamGet("UniqueID"))) {
@@ -258,7 +258,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 						id = streamGet("ID").Split('-')[0].ToInvUInt64();
 					}
 
-					MetaInfoContainer stream = null;
+					MetaInfoContainer stream;
 					switch(streamType) {
 						case MediaInfoLibNativeMethods.StreamTypes.Video:
 							stream = new MetaInfoContainer(id ?? (ulong)Nodes.Count(x => x.Type == ChaptersType), VideoStreamType); hasVideo = true;
@@ -269,12 +269,12 @@ namespace AVDump3Lib.Information.InfoProvider {
 							Add(stream, VideoStream.DisplayAspectRatioType, () => streamGet("DisplayAspectRatio").ToInvDouble());
 							Add(stream, VideoStream.ColorBitDepthType, () => streamGet("BitDepth").ToInvInt32());
 
-							Add(stream, MediaStream.AverageSampleRateType, () => streamGet("FrameRate_Mode").Equals("VFR", StringComparison.OrdinalIgnoreCase) ? streamGet("FrameRate").ToInvDouble() : default);
+							Add(stream, MediaStream.AverageSampleRateType, () => streamGet("FrameRate_Mode").InvEqualsOrdCI("VFR") ? streamGet("FrameRate").ToInvDouble() : default);
 							Add(stream, MediaStream.MaxSampleRateType, () => streamGet("FrameRate_Maximum").ToInvDouble());
 							Add(stream, MediaStream.MinSampleRateType, () => streamGet("FrameRate_Minimum").ToInvDouble());
 
-							Add(stream, VideoStream.IsInterlacedType, () => streamGet("ScanType").Equals("Interlaced", StringComparison.OrdinalIgnoreCase));
-							Add(stream, VideoStream.HasVariableFrameRateType, () => streamGet("FrameRate_Mode").Equals("VFR", StringComparison.OrdinalIgnoreCase));
+							Add(stream, VideoStream.IsInterlacedType, () => streamGet("ScanType").InvEqualsOrdCI("Interlaced"));
+							Add(stream, VideoStream.HasVariableFrameRateType, () => streamGet("FrameRate_Mode").InvEqualsOrdCI("VFR"));
 							Add(stream, VideoStream.ChromaSubsamplingType, () => new ChromeSubsampling(streamGet("ChromaSubsampling")));
 							//Add(stream, VideoStream.ColorSpaceType, () => streamGet("ColorSpace"));
 							AddNode(stream);
@@ -301,8 +301,8 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 					Add(stream, MediaStream.SizeType, () => streamGet("StreamSize").ToInvInt64());
 					Add(stream, MediaStream.TitleType, () => streamGet("Title"));
-					Add(stream, MediaStream.IsForcedType, () => streamGet("Forced").Equals("yes", StringComparison.OrdinalIgnoreCase));
-					Add(stream, MediaStream.IsDefaultType, () => streamGet("Default").Equals("yes", StringComparison.OrdinalIgnoreCase));
+					Add(stream, MediaStream.IsForcedType, () => streamGet("Forced").InvEqualsOrdCI("yes"));
+					Add(stream, MediaStream.IsDefaultType, () => streamGet("Default").InvEqualsOrdCI("yes"));
 					Add(stream, MediaStream.IdType, () => streamGet("UniqueID").ToInvUInt64());
 					Add(stream, MediaStream.LanguageType, () => streamGet("Language"));
 					Add(stream, MediaStream.DurationType, () => streamGet("Duration"), s => TimeSpan.FromSeconds(s.ToInvDouble() / 1000), (Func<string, string>)splitTakeFirst);

@@ -44,26 +44,30 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 			using(var cts = new CancellationTokenSource())
 			using(var counter = new CountdownEvent(1))
 			using(ct.Register(() => cts.Cancel())) {
-				AggregateException firstChanceException = null;
-				foreach(var providedStream in streamProvider.GetConsumingEnumerable(ct)) {
-					ct.ThrowIfCancellationRequested();
+				AggregateException? firstChanceException = null;
 
-					counter.AddCount();
-					Task.Factory.StartNew(() => {
-						ConsumeStream(providedStream, progress, cts.Token);
-					}, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current).ContinueWith(t => {
-						providedStream.Dispose();
-						counter.Signal();
-						if(t.IsFaulted) {
-							if(firstChanceException == null) firstChanceException = t.Exception.Flatten();
-							cts.Cancel();
-						}
-					}, TaskScheduler.Current);
-					if(firstChanceException != null) break;
-				}
+				try {
+					foreach(var providedStream in streamProvider.GetConsumingEnumerable(ct)) {
+						ct.ThrowIfCancellationRequested();
+
+						counter.AddCount();
+						Task.Factory.StartNew(() => {
+							ConsumeStream(providedStream, progress, cts.Token);
+						}, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current).ContinueWith(t => {
+							providedStream.Dispose();
+							if(t.IsFaulted || t.IsCanceled) {
+								if(firstChanceException == null) firstChanceException = t.Exception?.Flatten();
+								cts.Cancel();
+							}
+							counter.Signal();
+						}, TaskScheduler.Current);
+						if(firstChanceException != null) break;
+					}
+				} catch(OperationCanceledException) { }
+
 
 				counter.Signal();
-				counter.Wait(ct);
+				counter.Wait();
 
 				if(firstChanceException != null) {
 					firstChanceException.Handle(ex => ex is OperationCanceledException);

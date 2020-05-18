@@ -35,6 +35,7 @@ namespace AVDump3Lib.Reporting.Core {
 			safeXmlWriter.Flush();
 
 			fileStream.WriteByte(10);
+			fileStream.WriteByte(10);
 		}
 	}
 }
