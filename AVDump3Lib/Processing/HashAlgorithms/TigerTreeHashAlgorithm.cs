@@ -67,17 +67,21 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 				fixed(byte* leavesPtr = leaves)
 				fixed(byte* dataPtr = data) {
 					var buffer = NativeMethods.TTHCreateBlock();
-					if(data.Length > 1024) {
+					if(data.Length >= 1024) {
 						NativeMethods.TTHBlockHash(dataPtr, buffer, leavesPtr);
 						leafCount++;
 					}
 
-					NativeMethods.TTHPartialBlockHash(
-						dataPtr + leafCount * 1024,
-						data.Length - leafCount * 1024,
-						buffer, leavesPtr + leafCount * 24
-					);
-					leafCount++;
+
+					if(data.Length != 1024) {
+						NativeMethods.TTHPartialBlockHash(
+							dataPtr + leafCount * 1024,
+							data.Length - leafCount * 1024,
+							buffer, leavesPtr + leafCount * 24
+						);
+						leafCount++;
+					}
+
 					NativeMethods.FreeHashObject((IntPtr)buffer);
 
 					//There needs to be at least one node

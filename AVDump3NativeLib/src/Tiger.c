@@ -4,6 +4,7 @@
 
 
 #include "AVD3NativeLibApi.h"
+#include <assert.h>
 
 #define CRYPTOPP_GENERATE_X64_MASM
 #define CRYPTOPP_X86_ASM_AVAILABLE
@@ -917,8 +918,10 @@ void TigerInit(void* handle) {
 
 
 void TigerTransform(void* handle, uint8_t* b, int32_t length) {
+	assert((length & 63) == 0);
+
 	uint64_t* word = (uint64_t*)b;
-	uint64_t* wordEnd = (uint64_t*)b + (length / (sizeof(uint64_t)) / 8) * 8;
+	uint64_t* wordEnd = (uint64_t*)b + length / sizeof(uint64_t);
 	uint64_t* digest = (uint64_t*)handle;
 	while (word != wordEnd) {
 		TigerTransformBlock(digest, word);
@@ -932,16 +935,16 @@ void TigerFinal(void* handle, uint8_t* b, int32_t length, uint8_t* hash) {
 	uint64_t* digest = (uint64_t*)handle;
 
 
-	uint32_t restLength = length % (sizeof(uint64_t) * 8);
-	uint64_t* lastBlock = (uint64_t*)malloc(sizeof(uint64_t) * 8);
-	for (size_t i = 0; i < 8; i++) lastBlock[i] = 0;
-	for (size_t i = 0; i < restLength; i++) ((uint8_t*)lastBlock)[i] = ((uint8_t*)word)[i];
-	((uint8_t*)lastBlock)[restLength] = 0x01;
+	uint64_t* lastBlock = (uint64_t*)malloc(64);
+	for (size_t i = length; i < 64; i++) ((uint8_t*)lastBlock)[i] = 0;
+	for (size_t i = 0; i < length; i++) ((uint8_t*)lastBlock)[i] = b[i];
+	((uint8_t*)lastBlock)[length] = 0x01;
 
-	if (restLength + 8 >= sizeof(uint64_t) * 8) {
+	if (length + 8 >= 64) {
 		TigerTransformBlock(digest, lastBlock);
 		for (size_t i = 0; i < 8; i++) lastBlock[i] = 0;
 	}
+	digest[3] += length;
 	lastBlock[7] = digest[3] << 3;
 	TigerTransformBlock(digest, lastBlock);
 	free(lastBlock);
@@ -968,17 +971,29 @@ void TTHBlockHash(uint8_t* data, uint8_t* buffer, uint8_t* hash) {
 	}
 
 }
+/*
 void TTHPartialBlockHash(uint8_t* data, uint32_t length, uint8_t* buffer, uint8_t* hash) {
 	buffer[1025] = 0;
 	memcpy(buffer + 1, data, length);
+	buffer[length + 1] = 1;
 
 	uint32_t dummy;
 	uint64_t* digest = TigerCreate(&dummy, &dummy);
 
-	buffer[length + 1] = 1;
 	TigerInitInternal(digest);
 	TigerFinal(digest, buffer, length + 1, hash);
 	buffer[1025] = 1;
+}
+*/
+void TTHPartialBlockHash(uint8_t* data, uint32_t length, uint8_t* buffer, uint8_t* hash) {
+	memcpy(buffer + 1, data, length);
+	uint32_t bufferLength = length + 1;
+
+	//buffer[length + 1] = 1;
+
+	TigerInitInternal(hash);
+	TigerTransform(hash, buffer, bufferLength & ~63);
+	TigerFinal(hash, buffer + (bufferLength & ~63), bufferLength & 63, hash);
 }
 
 uint8_t* TTHCreateBlock() {
