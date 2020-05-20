@@ -201,7 +201,7 @@ namespace AVDump3CL {
 	}
 
 	public sealed class AVD3CL : IDisposable {
-		private readonly Func<BytesReadProgress.Progress> getProgress;
+		private Func<BytesReadProgress.Progress> getProgress; //TODO As Event
 		private readonly DisplaySettings settings;
 		private readonly int TicksInPeriod = 5;
 		private readonly StringBuilder sb = new StringBuilder();
@@ -222,9 +222,8 @@ namespace AVDump3CL {
 		private int sbLineCount;
 		private BytesReadProgress.Progress curP, prevP;
 
-		public AVD3CL(DisplaySettings settings, Func<BytesReadProgress.Progress> getProgress) {
+		public AVD3CL(DisplaySettings settings) {
 			this.settings = settings;
-			this.getProgress = getProgress;
 
 			output = "";
 			timer = new Timer(TimerCallback);
@@ -232,9 +231,10 @@ namespace AVDump3CL {
 		}
 
 
-		public void Display() {
+		public void Display(Func<BytesReadProgress.Progress> getProgress) {
 			curP = getProgress();
 			timer.Change(500, 100);
+			this.getProgress = getProgress;
 		}
 
 		public void Stop() {
@@ -247,7 +247,7 @@ namespace AVDump3CL {
 		}
 
 		private readonly Stopwatch sw = new Stopwatch();
-		private void TimerCallback(object? sender) {
+		private void TimerCallback(object? _) {
 			if(!Monitor.TryEnter(timer)) {
 				displaySkipCount++;
 				return;
@@ -306,8 +306,12 @@ namespace AVDump3CL {
 
 		public void Writeline(params string[] lines) => Writeline((IReadOnlyList<string>)lines);
 		public void Writeline(IReadOnlyList<string> lines) {
-			lines = lines.SelectMany(x => x.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)).ToArray();
-			lock(toWrite) toWrite.AddRange(lines);
+			if(sw.IsRunning) {
+				lines = lines.SelectMany(x => x.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)).ToArray();
+				lock(toWrite) toWrite.AddRange(lines);
+			} else {
+				Console.WriteLine(string.Join("\n", lines));
+			}
 		}
 
 		private void Display(StringBuilder sb, double relPos) {

@@ -69,6 +69,7 @@ namespace AVDump3CL {
 
 		public AVD3CLModule() {
 			AppDomain.CurrentDomain.UnhandledException += UnhandleException;
+			cl = new AVD3CL(settings.Display);
 		}
 
 		private void UnhandleException(object sender, UnhandledExceptionEventArgs e) {
@@ -206,7 +207,6 @@ namespace AVDump3CL {
 
 		public void Process(string[] paths) {
 			var bytesReadProgress = new BytesReadProgress(processingModule.BlockConsumerFactories.Select(x => x.Name));
-			cl = new AVD3CL(settings.Display, bytesReadProgress.GetProgress);
 
 			var sp = settings.Diagnostics.NullStreamTest != null ? CreateNullStreamProvider() : CreateFileStreamProvider(paths);
 			var streamConsumerCollection = processingModule.CreateStreamConsumerCollection(sp,
@@ -218,7 +218,7 @@ namespace AVDump3CL {
 			using(cl)
 			using(sp as IDisposable)
 			using(var cts = new CancellationTokenSource()) {
-				cl.Display();
+				cl.Display(bytesReadProgress.GetProgress);
 
 				streamConsumerCollection.ConsumingStream += ConsumingStream;
 
