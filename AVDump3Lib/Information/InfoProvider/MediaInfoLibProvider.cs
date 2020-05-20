@@ -255,7 +255,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 						id = streamGet("UniqueID").ToInvUInt64();
 					}
 					if(!id.HasValue && !string.IsNullOrEmpty(streamGet("ID"))) {
-						id = streamGet("ID").Split('-')[0].ToInvUInt64();
+						id = streamGet("ID").InvReplace("-", "000").ToInvUInt64();
 					}
 
 					MetaInfoContainer stream;
@@ -299,6 +299,11 @@ namespace AVDump3Lib.Information.InfoProvider {
 							break;
 					}
 
+					if(streamType == MediaInfoLibNativeMethods.StreamTypes.Video || streamType == MediaInfoLibNativeMethods.StreamTypes.Audio) {
+						Add(stream, MediaStream.BitrateType, () => streamGet("BitRate").ToInvDouble());
+						Add(stream, MediaStream.StatedBitrateModeType, () => streamGet("BitRate_Mode"));
+					}
+
 					Add(stream, MediaStream.SizeType, () => streamGet("StreamSize").ToInvInt64());
 					Add(stream, MediaStream.TitleType, () => streamGet("Title"));
 					Add(stream, MediaStream.IsForcedType, () => streamGet("Forced").InvEqualsOrdCI("yes"));
@@ -306,7 +311,6 @@ namespace AVDump3Lib.Information.InfoProvider {
 					Add(stream, MediaStream.IdType, () => streamGet("UniqueID").ToInvUInt64());
 					Add(stream, MediaStream.LanguageType, () => streamGet("Language"));
 					Add(stream, MediaStream.DurationType, () => streamGet("Duration"), s => TimeSpan.FromSeconds(s.ToInvDouble() / 1000), (Func<string, string>)splitTakeFirst);
-					Add(stream, MediaStream.BitrateType, () => streamGet("BitRate").ToInvDouble());
 					Add(stream, MediaStream.ContainerCodecIdWithCodecPrivateType, () => streamGet("CodecID"));
 					Add(stream, MediaStream.CodecIdType, () => streamGet("Format"));
 					Add(stream, MediaStream.CodecAdditionalFeaturesType, () => streamGet("Format_AdditionalFeatures"));
@@ -316,7 +320,6 @@ namespace AVDump3Lib.Information.InfoProvider {
 					Add(stream, MediaStream.CodecNameType, () => streamGet("Format-Info"));
 					Add(stream, MediaStream.EncoderSettingsType, () => streamGet("Encoded_Library_Settings"));
 					Add(stream, MediaStream.EncoderNameType, () => streamGet("Encoded_Library"));
-					Add(stream, MediaStream.StatedBitrateModeType, () => streamGet("BitRate_Mode"));
 				}
 			}
 
