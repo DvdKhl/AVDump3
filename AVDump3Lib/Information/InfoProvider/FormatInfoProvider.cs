@@ -136,29 +136,29 @@ namespace AVDump3Lib.Information.InfoProvider {
 		//public MpegAudioFileType() : base(new byte[][] { new byte[] { 0xff }, new byte[] { (byte)'I', (byte)'D', (byte)'3' } }) { }
 		public MpegAudioFileType() : base("") => fileType = MediaProvider.AudioStreamType;
 
-		private static int[,] bitRateTable = {
-			{-1, -1 ,-1, -1, -1},
-			{32,32,32,32,8},
-			{64,48,40,48,16},
-			{96,56,48,56,24},
-			{128,64,56,64,32},
-			{160,80,64,80,40},
-			{192,96,80,96,48},
-			{224,112,96,112,56},
-			{256,128,112,128,64},
-			{288,160,128,144,80},
-			{320,192,160,160,96},
-			{352,224,192,176,112},
-			{384,256,224,192,128},
-			{416,320,256,224,144},
-			{448,384,320,256,160},
-			{-1, -1 ,-1, -1, -1},
+		private static readonly int[][] bitRateTable = {
+			new[] {-1, -1 ,-1, -1, -1},
+			new[] {32, 32,32,32,8},
+			new[] {64,48,40,48,16},
+			new[] {96,56,48,56,24},
+			new[] {128,64,56,64,32},
+			new[] {160,80,64,80,40},
+			new[] {192,96,80,96,48},
+			new[] {224,112,96,112,56},
+			new[] {256,128,112,128,64},
+			new[] {288,160,128,144,80},
+			new[] {320,192,160,160,96},
+			new[] {352,224,192,176,112},
+			new[] {384,256,224,192,128},
+			new[] {416,320,256,224,144},
+			new[] {448,384,320,256,160},
+			new[] {-1, -1 ,-1, -1, -1},
 		};
-		private static int[,] samplerateTable = {
-			{44100,22050,11025},
-			{48000,24000,12000},
-			{32000,16000,8000},
-			{-1,-1,-1},
+		private static readonly int[][] samplerateTable = {
+			new[]{44100,22050,11025},
+			new[]{48000,24000,12000},
+			new[]{32000,16000,8000},
+			new[]{-1,-1,-1},
 		};
 
 		public override void ElaborateCheck(Stream stream) {
@@ -204,7 +204,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 			var columnIndex = mpegVer == MpegVer.Mpeg1 ? (layer == Layer.Layer1 ? 0 : (layer == Layer.Layer2 ? 1 : 2)) : ((mpegVer == MpegVer.Mpeg2 || mpegVer == MpegVer.Mpeg2_5) ? ((layer == Layer.Layer1) ? 3 : 4) : -1);
 			if(columnIndex == -1) return false;
 
-			var bitrate = bitRateTable[rowIndex, columnIndex];
+			var bitrate = bitRateTable[rowIndex][columnIndex];
 			if(bitrate == -1) return false;
 
 
@@ -212,7 +212,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 			columnIndex = mpegVer == MpegVer.Mpeg1 ? 0 : (mpegVer == MpegVer.Mpeg2 ? 1 : 2);
 			if(columnIndex == -1) return false;
 
-			var sampleRate = samplerateTable[rowIndex, columnIndex];
+			var sampleRate = samplerateTable[rowIndex][columnIndex];
 			if(sampleRate == -1) return false;
 
 			var padding = (newByte & 0x02) != 0;
@@ -276,7 +276,10 @@ namespace AVDump3Lib.Information.InfoProvider {
 		public override void ElaborateCheck(Stream stream) {
 			if(!IsCandidate) return;
 
-			var sr = new StreamReader(stream, Encoding.UTF8, true, 2048);
+			IsCandidate = stream.ReadByte() != 0x1A && stream.ReadByte() != 0x45 && stream.ReadByte() != 0xDF && stream.ReadByte() != 0xA3;
+			if(!IsCandidate) return;
+
+			using var sr = new StreamReader(stream, Encoding.UTF8, true, 2048, true);
 			var chars = new char[2048];
 			var length = sr.Read(chars, 0, chars.Length);
 			var str = new string(chars, 0, length).ToInvLower();

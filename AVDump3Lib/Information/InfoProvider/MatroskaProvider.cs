@@ -8,6 +8,7 @@ using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters;
 using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster;
 using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tags;
 using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks;
+using ExtKnot.StringInvariants;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -196,7 +197,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 					break;
 			}
 
-			if(trackInfo != null) {
+			if(trackInfo != null && (track.TrackType == TrackEntrySection.Types.Video || track.TrackType == TrackEntrySection.Types.Audio)) {
 				Add(stream, MediaStream.SampleRateHistogramType, trackInfo.SampleRateHistogram.Select(x => new SampleRateCountPair(x.SampleRate, x.Count)).ToList());
 
 				Add(stream, MediaStream.AverageSampleRateType, trackInfo.AverageSampleRate);
@@ -204,6 +205,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 				Add(stream, MediaStream.MaxSampleRateType, trackInfo.MaxSampleRate);
 				Add(stream, MediaStream.DominantSampleRateType, trackInfo.SampleRateHistogram.OrderByDescending(p => p.Count).FirstOrDefault()?.SampleRate);
 				Add(stream, MediaStream.SampleRateVarianceType, CalcDeviation(trackInfo.SampleRateHistogram));
+				Add(stream, MediaStream.BitrateType, trackInfo.AverageBitrate);
 			}
 
 			Add(stream, MediaStream.IndexType, trackIndex);
@@ -221,18 +223,17 @@ namespace AVDump3Lib.Information.InfoProvider {
 			if(track.CodecPrivate != null) {
 				Add(stream, MediaStream.CodecPrivateSizeType, track.CodecPrivate.Length);
 
-				if("V_MS/VFW/FOURCC".Equals(track.CodecId) && track.CodecPrivate.Length >= BitmapInfoHeader.LENGTH) {
+				if("V_MS/VFW/FOURCC".InvEquals(track.CodecId) && track.CodecPrivate.Length >= BitmapInfoHeader.LENGTH) {
 					var header = new BitmapInfoHeader(track.CodecPrivate);
 					Add(stream, MediaStream.ContainerCodecCCType, header.FourCC);
 				}
-				if("A_MS/ACM".Equals(track.CodecId) && track.CodecPrivate.Length >= WaveFormatEx.LENGTH) {
+				if("A_MS/ACM".InvEquals(track.CodecId) && track.CodecPrivate.Length >= WaveFormatEx.LENGTH) {
 					var header = new WaveFormatEx(track.CodecPrivate);
 					Add(stream, MediaStream.ContainerCodecCCType, header.TwoCC);
 				}
 			}
 
 			if(trackInfo != null) {
-				Add(stream, MediaStream.BitrateType, trackInfo.AverageBitrate);
 				Add(stream, MediaStream.DurationType, trackInfo.TrackLength);
 				Add(stream, MediaStream.SizeType, trackInfo.TrackSize);
 			}
