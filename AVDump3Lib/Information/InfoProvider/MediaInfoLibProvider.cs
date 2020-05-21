@@ -117,7 +117,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 			} catch {
 				Handle = IntPtr.Zero;
 			}
-			if(Environment.OSVersion.ToString().IndexOf("Windows") == -1) {
+			if(Environment.OSVersion.ToString().InvIndexOf("Windows") == -1) {
 				UsingUTF32Encoding = true;
 				Option("setlocale_LC_CTYPE", "");
 			} else {
@@ -234,6 +234,8 @@ namespace AVDump3Lib.Information.InfoProvider {
 		private void Populate(MediaInfoLibNativeMethods mil) {
 			static string removeNonNumerics(string s) => Regex.Replace(s, "[^-,.0-9]", "");
 			static string splitTakeFirst(string s) => s.Split('\\', '/', '|')[0];
+			static string skipIntDefault(string s) => string.IsNullOrEmpty(s.Trim('0', '.', ',')) ? "" : s;
+
 			//string nonEmpty(string a, string b) => string.IsNullOrEmpty(a) ? b : a;
 
 			Add(FileSizeType, () => mil.Get("FileSize"), s => s.ToInvInt64(), splitTakeFirst, removeNonNumerics);
@@ -262,7 +264,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 					switch(streamType) {
 						case MediaInfoLibNativeMethods.StreamTypes.Video:
 							stream = new MetaInfoContainer(id ?? (ulong)Nodes.Count(x => x.Type == ChaptersType), VideoStreamType); hasVideo = true;
-							Add(stream, MediaStream.StatedSampleRateType, () => streamGet("FrameRate").ToInvDouble());
+							Add(stream, MediaStream.StatedSampleRateType, () => streamGet("FrameRate"), s => s.ToInvDouble(), skipIntDefault);
 							Add(stream, MediaStream.SampleCountType, () => streamGet("FrameCount").ToInvInt64());
 							Add(stream, VideoStream.PixelAspectRatioType, () => streamGet("PixelAspectRatio").ToInvDouble());
 							Add(stream, VideoStream.PixelDimensionsType, () => new Dimensions(streamGet("Width").ToInvInt32(), streamGet("Height").ToInvInt32()));
@@ -282,7 +284,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 						case MediaInfoLibNativeMethods.StreamTypes.Audio:
 							stream = new MetaInfoContainer(id ?? (ulong)Nodes.Count(x => x.Type == AudioStreamType), AudioStreamType); hasAudio = true;
-							Add(stream, MediaStream.StatedSampleRateType, () => streamGet("SamplingRate").ToInvDouble());
+							Add(stream, MediaStream.StatedSampleRateType, () => streamGet("SamplingRate"), s => s.ToInvDouble(), skipIntDefault);
 							Add(stream, MediaStream.SampleCountType, () => streamGet("SamplingCount").ToInvInt32());
 							Add(stream, AudioStream.ChannelCountType, () => streamGet("Channel(s)").ToInvInt32());
 							AddNode(stream);
@@ -300,7 +302,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 					}
 
 					if(streamType == MediaInfoLibNativeMethods.StreamTypes.Video || streamType == MediaInfoLibNativeMethods.StreamTypes.Audio) {
-						Add(stream, MediaStream.BitrateType, () => streamGet("BitRate").ToInvDouble());
+						Add(stream, MediaStream.BitrateType, () => streamGet("BitRate"), s => s.ToInvDouble(), skipIntDefault);
 						Add(stream, MediaStream.StatedBitrateModeType, () => streamGet("BitRate_Mode"));
 					}
 
@@ -372,8 +374,8 @@ namespace AVDump3Lib.Information.InfoProvider {
 					var title = mil.Get(indexStart, menuType, streamIndex);
 
 					var languages = new List<string>();
-					if((uint)title.IndexOf(':') < 5) {
-						var language = title.Contains(':') ? title.Substring(0, title.IndexOf(':')) : "";
+					if((uint)title.InvIndexOf(":") < 5) {
+						var language = title.InvContains(":") ? title.Substring(0, title.InvIndexOf(":")) : "";
 						if(!string.IsNullOrEmpty(language)) languages.Add(language);
 						title = title.Substring(language.Length + 1);
 
@@ -392,9 +394,9 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 
 		private void AddSuggestedFileExtension(MediaInfoLibNativeMethods mil, bool hasAudio, bool hasVideo, bool hasSubtitle) {
-			var fileExt = (mil.Get("FileExtension") ?? "").ToLowerInvariant();
-			var milInfo = (mil.Get("Format/Extensions") ?? "").ToLowerInvariant().Split(' ');
-			var milInfoCommercial = (mil.Get("Format_Commercial") ?? "").ToLowerInvariant();
+			var fileExt = (mil.Get("FileExtension") ?? "").ToInvLower();
+			var milInfo = (mil.Get("Format/Extensions") ?? "").ToInvLower().Split(' ');
+			var milInfoCommercial = (mil.Get("Format_Commercial") ?? "").ToInvLower();
 
 
 			if(milInfo.Contains("asf") && milInfo.Contains("wmv") && milInfo.Contains("wma")) {
@@ -443,7 +445,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 						Add(SuggestedFileExtensionType, ImmutableArray.Create("dts"));
 					}
 				} else {
-					milInfo = mil.Get("Audio_Codec_List").ToLowerInvariant().Split(' ');
+					milInfo = mil.Get("Audio_Codec_List").ToInvLower().Split(' ');
 					if(milInfo.Contains("truehd")) {
 						Add(SuggestedFileExtensionType, ImmutableArray.Create("thd"));
 					}
@@ -485,12 +487,6 @@ namespace AVDump3Lib.Information.InfoProvider {
 				} else {
 					throw new InvalidOperationException("MediaInfoLib couldn't open the file");
 				}
-			}
-		}
-
-		private void Add(MetaInfoItemType<string> type, string value) {
-			if(!string.IsNullOrWhiteSpace(value)) {
-				base.Add(type, value);
 			}
 		}
 
