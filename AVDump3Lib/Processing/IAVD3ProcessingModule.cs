@@ -14,6 +14,9 @@ namespace AVDump3Lib.Processing {
 		ImmutableArray<IBlockConsumerFactory> BlockConsumerFactories { get; }
 
 		event EventHandler<BlockConsumerFilterEventArgs> BlockConsumerFilter;
+		event EventHandler<FilePathFilterEventArgs> FilePathFilter;
+
+		IStreamProvider CreateFileStreamProvider(string[] paths, PathPartitions pathPartitions, Action<string> onPathAccepted, Action<Exception> onError);
 		IStreamConsumerCollection CreateStreamConsumerCollection(IStreamProvider streamProvider, int bufferLength, int minProducerReadLength, int maxProducerReadLength);
 		void RegisterDefaultBlockConsumers(IDictionary<string, ImmutableArray<string>> arguments);
 	}

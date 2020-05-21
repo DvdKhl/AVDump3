@@ -18,7 +18,16 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
 namespace AVDump3Lib.Processing {
-	
+
+
+	public class FilePathFilterEventArgs : EventArgs {
+		public string FilePath { get; private set; }
+		public bool Accepted { get; private set; }
+		public void Decline() => Accepted = false;
+
+		internal void Reset(string filePath) { FilePath = filePath; Accepted = true; }
+	}
+
 	public class AVD3ProcessingModule : IAVD3ProcessingModule {
 		private static class NativeMethods {
 			[DllImport("AVDump3NativeLib")]
@@ -29,7 +38,8 @@ namespace AVDump3Lib.Processing {
 
 		public CPUInstructions AvailableSIMD { get; } = NativeMethods.RetrieveCPUInstructions();
 
-		public event EventHandler<BlockConsumerFilterEventArgs> BlockConsumerFilter;
+		public event EventHandler<BlockConsumerFilterEventArgs> BlockConsumerFilter = delegate { };
+		public event EventHandler<FilePathFilterEventArgs> FilePathFilter = delegate { };
 
 		public ImmutableArray<IBlockConsumerFactory> BlockConsumerFactories { get; private set; }
 
@@ -87,6 +97,27 @@ namespace AVDump3Lib.Processing {
 			blockConsumerFactories.Sort((a, b) => string.CompareOrdinal(a.Name, b.Name));
 			BlockConsumerFactories = ImmutableArray.CreateRange(blockConsumerFactories);
 		}
+
+
+		public IStreamProvider CreateFileStreamProvider(string[] paths, PathPartitions pathPartitions, Action<string> onPathAccepted, Action<Exception> onError) {
+			var filePathFilterEventArgs = new FilePathFilterEventArgs();
+
+			var acceptedFileCountCursorTop = Console.CursorTop++;
+			var fileDiscoveryOn = DateTimeOffset.UtcNow;
+			var spp = new StreamFromPathsProvider(pathPartitions, paths, true,
+				path => {
+					filePathFilterEventArgs.Reset(path);
+					FilePathFilter(this, filePathFilterEventArgs);
+					if(filePathFilterEventArgs.Accepted) onPathAccepted?.Invoke(path);
+					return filePathFilterEventArgs.Accepted;
+				},
+				onError
+			);
+
+
+			return spp;
+		}
+
 
 		public IStreamConsumerCollection CreateStreamConsumerCollection(IStreamProvider streamProvider, int bufferLength, int minProducerReadLength, int maxProducerReadLength) {
 			var bcs = new BlockConsumerSelector(BlockConsumerFactories);

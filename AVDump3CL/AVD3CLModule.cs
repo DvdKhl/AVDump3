@@ -111,6 +111,16 @@ namespace AVDump3CL {
 				}
 			};
 
+			processingModule.FilePathFilter += (s, e) => {
+				var accept = settings.FileDiscovery.WithExtensions.Allow == (
+					settings.FileDiscovery.WithExtensions.Items.Count == 0 ||
+					settings.FileDiscovery.WithExtensions.Items.Any(
+						fe => e.FilePath.EndsWith(fe, StringComparison.InvariantCultureIgnoreCase)
+					)
+				) && !filePathsToSkip.Contains(e.FilePath);
+				if(!accept) e.Decline();
+			};
+
 			informationModule = modules.OfType<IAVD3InformationModule>().Single();
 			reportingModule = modules.OfType<IAVD3ReportingModule>().Single();
 
@@ -176,7 +186,7 @@ namespace AVDump3CL {
 				if(!string.IsNullOrEmpty(path)) Directory.CreateDirectory(path);
 			}
 
-			if(settings.Diagnostics.NullStreamTest != null && settings.Reporting.Reports.Count > 0) {
+			if(settings.Diagnostics.NullStreamTest != null && settings.Reporting.Reports?.Count > 0) {
 				Console.WriteLine("NullStreamTest cannot be used with reports");
 				args.Cancel();
 			}
@@ -246,40 +256,25 @@ namespace AVDump3CL {
 		}
 
 		private IStreamProvider CreateFileStreamProvider(string[] paths) {
-			IStreamProvider sp;
-
 			var acceptedFiles = 0;
-			var acceptedFileCountCursorTop = Console.CursorTop++;
 			var fileDiscoveryOn = DateTimeOffset.UtcNow;
-			var spp = new StreamFromPathsProvider(settings.FileDiscovery.Concurrent, paths, true,
+			var sp = (StreamFromPathsProvider)processingModule.CreateFileStreamProvider(
+				paths, settings.FileDiscovery.Concurrent,
 				path => {
 					if(fileDiscoveryOn.AddSeconds(1) < DateTimeOffset.UtcNow) {
-						//var currentCursorTop = Console.CursorTop;
-						//Console.CursorTop = acceptedFileCountCursorTop;
 						Console.WriteLine("Accepted files: " + acceptedFiles);
-						//Console.CursorTop = currentCursorTop;
 						fileDiscoveryOn = DateTimeOffset.UtcNow;
 					}
-
-					var accept = settings.FileDiscovery.WithExtensions.Allow == (
-						settings.FileDiscovery.WithExtensions.Items.Count == 0 ||
-						settings.FileDiscovery.WithExtensions.Items.Any(
-							fe => path.EndsWith(fe, StringComparison.InvariantCultureIgnoreCase)
-						)
-					) && !filePathsToSkip.Contains(path);
-
-					if(accept) acceptedFiles++;
-					return accept;
+					acceptedFiles++;
 				},
 				ex => Console.WriteLine("Filediscovery: " + ex.Message)
 			);
 			Console.WriteLine("Accepted files: " + acceptedFiles);
 			Console.WriteLine();
 
-			cl.TotalFiles = spp.TotalFileCount;
-			cl.TotalBytes = spp.TotalBytes;
+			cl.TotalFiles = sp.TotalFileCount;
+			cl.TotalBytes = sp.TotalBytes;
 
-			sp = spp;
 			return sp;
 		}
 
