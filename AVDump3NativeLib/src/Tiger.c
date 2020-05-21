@@ -991,9 +991,13 @@ void TTHPartialBlockHash(uint8_t* data, uint32_t length, uint8_t* buffer, uint8_
 
 	//buffer[length + 1] = 1;
 
-	TigerInitInternal(hash);
-	TigerTransform(hash, buffer, bufferLength & ~63);
-	TigerFinal(hash, buffer + (bufferLength & ~63), bufferLength & 63, hash);
+	uint8_t* handle = (uint8_t*)malloc(sizeof(uint64_t) * 4);
+
+	TigerInit(handle);
+	TigerTransform(handle, buffer, bufferLength & ~63);
+	TigerFinal(handle, buffer + (bufferLength & ~63), bufferLength & 63, hash);
+
+	free(handle);
 }
 
 uint8_t* TTHCreateBlock() {

@@ -72,7 +72,6 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 						leafCount++;
 					}
 
-
 					if(data.Length != 1024) {
 						NativeMethods.TTHPartialBlockHash(
 							dataPtr + leafCount * 1024,
@@ -99,30 +98,26 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			if(nodeCount == 0) throw new Exception("nodeCount is 0");
 
 			var nodesCopied = 0;
-			Span<byte> finalHashesSpan = new byte[24 * 3];
-			fixed(byte* finalHashesPtr = finalHashesSpan) {
-				Span<byte> leavesSpan = leaves;
-				Span<byte> nodeSpan = nodes;
+			Span<byte> leavesSpan = leaves;
+			Span<byte> nodeSpan = nodes;
 
-				for(var i = 0; i <= 55; i++) {
-					//for (int i = 55 - 1; i >= 0; i--) {
-					if((nodeCount & (1L << i)) == 0) continue;
+			for(var i = 0; i <= 55; i++) {
+				if((nodeCount & (1L << i)) == 0) continue;
 
-					if(leafCount < 2) {
-						leavesSpan.Slice(0, 24).CopyTo(leavesSpan.Slice(24));
-						nodeSpan.Slice(i * 48, 24).CopyTo(leavesSpan);
-						leafCount++;
+				if(leafCount < 2) {
+					leavesSpan.Slice(0, 24).CopyTo(leavesSpan.Slice(24));
+					nodeSpan.Slice(i * 48, 24).CopyTo(leavesSpan);
+					leafCount++;
 
-					} else {
-						nodeSpan.Slice(i * 48, 24).CopyTo(nodeSpan.Slice((leafCount + nodesCopied - 2) * 48, 24));
-						nodesCopied++;
-					}
+				} else {
+					nodeSpan.Slice(i * 48, 24).CopyTo(nodeSpan.Slice((leafCount + nodesCopied - 2) * 48, 24));
+					nodesCopied++;
 				}
-				nodeCount = ~(-1 << nodesCopied);
-				Compress();
-
-				return nodeSpan.Slice(nodesCopied * 48, 24);
 			}
+			nodeCount = ~(-1 << nodesCopied);
+			Compress();
+
+			return nodeSpan.Slice(nodesCopied * 48, 24);
 		}
 
 
@@ -156,9 +151,9 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 
 					var currentLevel = 0;
 					while(!levelIsEmpty) {
-						levelIsEmpty = (nodeCount & (2 << currentLevel)) == 0;
-						NativeMethods.TTHNodeHash(nodesPtr + currentLevel * 48, compressBuffer, nodesPtr + (currentLevel + 1) * 48 + (levelIsEmpty ? 0 : 24));
 						currentLevel++;
+						levelIsEmpty = (nodeCount & (1 << currentLevel)) == 0;
+						NativeMethods.TTHNodeHash(nodesPtr + (currentLevel - 1) * 48, compressBuffer, nodesPtr + currentLevel * 48 + (levelIsEmpty ? 0 : 24));
 					}
 					nodeCount++;
 				}
