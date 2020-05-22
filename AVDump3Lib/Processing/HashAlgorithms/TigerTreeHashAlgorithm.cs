@@ -28,16 +28,26 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		}
 
 
+		/* #    <--
+		 * |\     |- Node Hashes
+		 * # #  <--
+		 * |\|\
+		 * #### <--  Leave Hashes
+		 * ||||
+		 * #### <--  Block Hashes
+		 */
 
 		//Assumptions: We will never hash more than 2^64 bytes.
 		// => Max Tree Depth: TD = log_2(2^64 / 1024) + 1 = 55
 		// We only ever need to store two tiger hashes per level.
-		// => Internal Node Data Length: Length(ND) = TD * 24 * 2 = 2640
+		// => Internal Node Data Length:  Length(ND) = TD * 24 * 2 = 2640
+		//Additionally we limit the maximal amount of data transformed by one call of TransformFinalBlock to DL = 16MiB
+		// => Internal Leave Data Length: Length(LD) = DL / 1024 * 24 = 393216
 
 		private int leafCount;
-		private long nodeCount; //Used as a map to check if a level already contains a hash
+		private long nodeCount; //Used as a map to check if a level already contains a node hash
 		private readonly byte[] nodes = new byte[2640];
-		private readonly byte[] leaves = new byte[(16 * 1024 * 1024) / 1024 * 24]; //Space for leaves calculated by 16MiB worth of data
+		private readonly byte[] leaves = new byte[393216];
 		private readonly BlockHasher[] blockHashers;
 		private readonly AutoResetEvent[] blockHashersSync;
 		private readonly byte[] EmptyHash = new byte[] { 0x32, 0x93, 0xAC, 0x63, 0x0C, 0x13, 0xF0, 0x24, 0x5F, 0x92, 0xBB, 0xB1, 0x76, 0x6E, 0x16, 0x16, 0x7A, 0x4E, 0x58, 0x49, 0x2D, 0xDE, 0x73, 0xF3 };
@@ -61,7 +71,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			foreach(var blockHasher in blockHashers) blockHasher.Finish();
 
 			if(nodeCount == 0 && data.Length == 0) return EmptyHash;
-			if(data.Length >= 2048 || leafCount != 0) throw new Exception("leafCount is not 0 or remaining data is larger than 2048 bytes");
+			Debug.Assert(data.Length >= 2048 || leafCount != 0, "leafCount is not 0 or remaining data is larger than 2048 bytes");
 
 			if(data.Length != 0) {
 				fixed(byte* leavesPtr = leaves)
@@ -73,6 +83,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 					}
 
 					if(data.Length != 1024) {
+						//Always an incomplete block since length is not 0 or 1024 or more than 2047
 						NativeMethods.TTHPartialBlockHash(
 							dataPtr + leafCount * 1024,
 							data.Length - leafCount * 1024,
@@ -82,42 +93,42 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 					}
 
 					NativeMethods.FreeHashObject((IntPtr)buffer);
-
-					//There needs to be at least one node
-					if(leafCount > 1) {
-						Compress();
-
-					} else if(nodeCount == 0) {
-						leafCount--;
-						nodeCount++;
-						((Span<byte>)leaves).Slice(0, 24).CopyTo(nodes);
-					}
 				}
 			}
 
-			if(nodeCount == 0) throw new Exception("nodeCount is 0");
+			Debug.Assert(nodeCount > 0 || leafCount > 0);
+			Debug.Assert(leafCount <= 2);
 
 			var nodesCopied = 0;
 			Span<byte> leavesSpan = leaves;
 			Span<byte> nodeSpan = nodes;
-
+			//First nodes are copied into leavesSpan until leafCount == 2, which will allow us to use the Compress function to get the final hash.
+			//Any non empty node hash levels are copied next to each other so there are no free spaces (node hash promotion)
 			for(var i = 0; i <= 55; i++) {
 				if((nodeCount & (1L << i)) == 0) continue;
 
 				if(leafCount < 2) {
+					//Push node hash into leavesSpan
 					leavesSpan.Slice(0, 24).CopyTo(leavesSpan.Slice(24));
 					nodeSpan.Slice(i * 48, 24).CopyTo(leavesSpan);
 					leafCount++;
 
 				} else {
-					nodeSpan.Slice(i * 48, 24).CopyTo(nodeSpan.Slice((leafCount + nodesCopied - 2) * 48, 24));
+					//Fill the next free node hash level
+					nodeSpan.Slice(i * 48, 24).CopyTo(nodeSpan.Slice(nodesCopied * 48));
 					nodesCopied++;
 				}
 			}
+			//Trick the Compress function to behave like there is a node hash at every level until all copied nodehashes have been compressed into a single node hash
 			nodeCount = ~(-1 << nodesCopied);
-			if(leafCount == 1) leavesSpan.Slice(0, 24).CopyTo(nodeSpan);
 
+			if(leafCount == 1) {
+				//This can only happen if either there are no node hashes and a single leave hash or there only was a single node hash level occupied and leaveCount was zero.
+				//Therefore the single leave hash is the final hash and nodeCount is now zero
+				leavesSpan.Slice(0, 24).CopyTo(nodeSpan);
+			}
 
+			//Will only produce the final hash when leafCount is 2, if it is 1 nothing needs to be done as that is already the final hash.
 			Compress();
 
 			return nodeSpan.Slice(nodesCopied * 48, 24);
@@ -126,9 +137,12 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 
 
 		public int TransformFullBlocks(in ReadOnlySpan<byte> data) {
+			//Limit the amount of data transformed to 16MiB since the leaves array would overflow otherwise
+			//dataSlice is required to be a multiple of 2048 bytes.
 			var dataSlice = data.Slice(0, Math.Min(16 << 20, data.Length) & ~2047);
 
 			fixed(byte* dataPtr = dataSlice) {
+				//Hash Datablocks in parallel and wait for them to finish
 				foreach(var blockHasher in blockHashers) blockHasher.ProcessData(dataPtr, dataSlice.Length);
 				WaitHandle.WaitAll(blockHashersSync);
 			}
@@ -148,6 +162,8 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			fixed(byte* nodesPtr = nodes) {
 				while(leafCount > 1) {
 					var levelIsEmpty = (nodeCount & 1) == 0;
+
+					//Create node hash from two leave hashes
 					NativeMethods.TTHNodeHash(leavesPtr + leafPairsProcessed * 48, compressBuffer, nodesPtr + (levelIsEmpty ? 0 : 24));
 					leafPairsProcessed++;
 					leafCount -= 2;
