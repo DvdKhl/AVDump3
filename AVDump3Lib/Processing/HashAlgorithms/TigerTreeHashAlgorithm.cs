@@ -115,6 +115,9 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 				}
 			}
 			nodeCount = ~(-1 << nodesCopied);
+			if(leafCount == 1) leavesSpan.Slice(0, 24).CopyTo(nodeSpan);
+
+
 			Compress();
 
 			return nodeSpan.Slice(nodesCopied * 48, 24);
@@ -140,7 +143,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		private void Compress() {
 			var leafPairsProcessed = 0;
 
-			//Since we assume Only the last datablock may have an odd number of leaves
+			//Since we assume only the last datablock may have an odd number of leaves, we'll only process Blocks in pairs.
 			fixed(byte* leavesPtr = leaves)
 			fixed(byte* nodesPtr = nodes) {
 				while(leafCount > 1) {
