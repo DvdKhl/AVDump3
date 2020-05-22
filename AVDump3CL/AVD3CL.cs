@@ -145,7 +145,7 @@ namespace AVDump3CL {
 				}
 				if(activeCount > 0) bytesProcessed += bytesProcessLocal / activeCount;
 
-				
+
 				fileProgressCollection.Add(new FileProgress(
 					info.StreamConsumer.Id,
 					info.Filename, info.StartedOn,
@@ -203,7 +203,9 @@ namespace AVDump3CL {
 	public sealed class AVD3CL : IDisposable {
 		private Func<BytesReadProgress.Progress> getProgress; //TODO As Event
 		private readonly DisplaySettings settings;
-		private readonly int TicksInPeriod = 5;
+		private const int TickPeriod = 100;
+		private const int UpdatePeriodInTicks = 5;
+		private const int MeanAverageMinuteInterval = 60 * 1000 / TickPeriod;
 		private readonly StringBuilder sb = new StringBuilder();
 		private readonly List<string> toWrite = new List<string>();
 		private readonly Timer timer;
@@ -221,6 +223,11 @@ namespace AVDump3CL {
 		private int state;
 		private int sbLineCount;
 		private BytesReadProgress.Progress curP, prevP;
+		private readonly float[] totalSpeedAverages = new float[3];
+		private readonly int[] totalSpeedDisplayAverages = new int[3];
+		private string totalSpeedDisplayUnit;
+		private int totalBytesShiftCount;
+		private string totalBytesDisplayUnit;
 
 		public AVD3CL(DisplaySettings settings) {
 			this.settings = settings;
@@ -232,13 +239,20 @@ namespace AVDump3CL {
 
 
 		public void Display(Func<BytesReadProgress.Progress> getProgress) {
+			var totalBytes = TotalBytes;
+			while(totalBytes > 9999) {
+				totalBytes >>= 10;
+				totalBytesShiftCount += 10;
+			}
+			totalBytesDisplayUnit = totalBytesShiftCount switch { 40 => "TiB", 30 => "GiB", 20 => "MiB", 10 => "KiB", _ => "Byt" };
+
 			curP = getProgress();
-			timer.Change(500, 100);
+			timer.Change(500, TickPeriod);
 			this.getProgress = getProgress;
 		}
 
 		public void Stop() {
-			Thread.Sleep(2 * TicksInPeriod * 100);
+			Thread.Sleep(2 * UpdatePeriodInTicks * TickPeriod);
 			timer.Change(Timeout.Infinite, Timeout.Infinite);
 			lock(timer) {
 				if(!settings.ForwardConsoleCursorOnly) Console.SetCursorPosition(0, maxCursorPos);
@@ -274,15 +288,53 @@ namespace AVDump3CL {
 			}
 
 			if(!settings.ForwardConsoleCursorOnly) {
-				if(state == 0) {
+				if(state == 0) { 
 					prevP = curP;
 					curP = getProgress();
+				}
+
+				var processedMiBsInInterval = ((curP.BytesProcessed - prevP.BytesProcessed) >> 20) / UpdatePeriodInTicks;
+				var interpolationFactor = (state + 1) / (double)UpdatePeriodInTicks;
+
+				if((DateTimeOffset.UtcNow - curP.StartedOn).TotalMinutes < 1) {
+					var now = DateTimeOffset.UtcNow;
+					var prevSpeed = (prevP.BytesProcessed >> 20) / (now - prevP.StartedOn).TotalSeconds;
+					var curSpeed = (curP.BytesProcessed >> 20) / (now - curP.StartedOn).TotalSeconds;
+					totalSpeedAverages[0] = (float)(prevSpeed + interpolationFactor * (curSpeed - prevSpeed));
+
+				} else {
+					var maInterval = MeanAverageMinuteInterval;
+					totalSpeedAverages[0] = totalSpeedAverages[0] * (maInterval - 1) / maInterval + (processedMiBsInInterval / (float)TickPeriod * 1000) / maInterval;
+				}
+				if((DateTimeOffset.UtcNow - curP.StartedOn).TotalMinutes < 5) {
+					totalSpeedAverages[1] = totalSpeedAverages[0];
+				} else {
+					var maInterval = MeanAverageMinuteInterval * 5;
+					totalSpeedAverages[1] = totalSpeedAverages[1] * (maInterval - 1) / maInterval + (processedMiBsInInterval / (float)TickPeriod * 1000) / maInterval;
+				}
+				if((DateTimeOffset.UtcNow - curP.StartedOn).TotalMinutes < 15) {
+					totalSpeedAverages[2] = totalSpeedAverages[1];
+				} else {
+					var maInterval = MeanAverageMinuteInterval * 15;
+					totalSpeedAverages[2] = totalSpeedAverages[2] * (maInterval - 1) / maInterval + (processedMiBsInInterval / (float)TickPeriod * 1000) / maInterval;
+				}
+				if(totalSpeedAverages[0] > 9999 || totalSpeedAverages[1] > 9999 || totalSpeedAverages[2] > 9999) {
+					totalSpeedDisplayAverages[0] = (int)totalSpeedAverages[0] >> 10;
+					totalSpeedDisplayAverages[1] = (int)totalSpeedAverages[1] >> 10;
+					totalSpeedDisplayAverages[2] = (int)totalSpeedAverages[2] >> 10;
+					totalSpeedDisplayUnit = "GiB/s";
+
+				} else {
+					totalSpeedDisplayAverages[0] = (int)totalSpeedAverages[0];
+					totalSpeedDisplayAverages[1] = (int)totalSpeedAverages[1];
+					totalSpeedDisplayAverages[2] = (int)totalSpeedAverages[2];
+					totalSpeedDisplayUnit = "MiB/s";
 				}
 
 				maxCursorPos = Math.Max(maxCursorPos, Console.CursorTop);
 				Console.SetCursorPosition(0, Math.Max(0, Console.CursorTop - sbLineCount));
 
-				Display(sb, (state + 1) / (double)TicksInPeriod);
+				Display(sb, interpolationFactor);
 
 				if(settings.ShowDisplayJitter) {
 					sb.AppendLine();
@@ -296,7 +348,7 @@ namespace AVDump3CL {
 				}
 
 				state++;
-				state %= TicksInPeriod;
+				state %= UpdatePeriodInTicks;
 			}
 
 			output = sb.ToString();
@@ -318,6 +370,8 @@ namespace AVDump3CL {
 			var sbLength = sb.Length;
 			var consoleWidth = Console.BufferWidth - 1;
 			consoleWidth = Math.Min(120, consoleWidth);
+			if(consoleWidth < 60) return;
+
 
 			var barWidth = consoleWidth - 8 - 1 - 2 - 2;
 			var now = DateTimeOffset.UtcNow;
@@ -363,7 +417,7 @@ namespace AVDump3CL {
 			double prevSpeed, curSpeed;
 			int speed, curFCount = 0;
 			if(!settings.HideFileProgress) {
-				barWidth = consoleWidth - 22;
+				barWidth = consoleWidth - 23;
 				foreach(var item in
 					from cur in curP.FileProgressCollection
 					join prev in prevP.FileProgressCollection on cur.Id equals prev.Id into PrevGJ
@@ -400,7 +454,7 @@ namespace AVDump3CL {
 
 					sb.Append(lockSign).Append('[').Append('#', barPosition).Append(' ', 10 - barPosition).Append("] ");
 
-					sb.Append(Math.Min(999, speed)).Append("MiB/s");
+					sb.Append(Math.Min(999, speed).ToString().PadLeft(3)).Append("MiB/s");
 
 					sbLineCount++;
 					sb.Append(' ', consoleWidth - (sb.Length - sbLength)).AppendLine();
@@ -416,25 +470,31 @@ namespace AVDump3CL {
 			}
 
 			if(!settings.HideTotalProgress && TotalBytes > 0) {
-				barWidth = consoleWidth - 19;
-				prevSpeed = (prevP.BytesProcessed >> 20) / (now - prevP.StartedOn).TotalSeconds;
-				curSpeed = (curP.BytesProcessed >> 20) / (now - curP.StartedOn).TotalSeconds;
-				speed = (int)(prevSpeed + relPos * (curSpeed - prevSpeed));
+				barWidth = consoleWidth - 30;
+				//prevSpeed = (prevP.BytesProcessed >> 20) / (now - prevP.StartedOn).TotalSeconds;
+				//curSpeed = (curP.BytesProcessed >> 20) / (now - curP.StartedOn).TotalSeconds;
+				//speed = (int)(prevSpeed + relPos * (curSpeed - prevSpeed));
 
 				prevBarPosition = (int)(barWidth * prevP.BytesProcessed / TotalBytes);
 				curBarPosition = (int)(barWidth * curP.BytesProcessed / TotalBytes);
 				barPosition = (int)Math.Ceiling(prevBarPosition + relPos * (curBarPosition - prevBarPosition));
 
+
+				//9999 9999 9999MiB/s
+
 				sbLength = sb.Length;
-				sb.Append("Total [").Append('#', barPosition).Append(' ', barWidth - barPosition).Append("] ");
-				sb.Append(Math.Min(99999, speed).ToString().PadLeft(5)).Append("MiB/s");
+				sb.Append("Total [").Append('#', barPosition).Append(' ', consoleWidth - 30 - barPosition).Append("] ");
+				sb.Append(Math.Min(9999, totalSpeedDisplayAverages[0]).ToString().PadLeft(5));
+				sb.Append(Math.Min(9999, totalSpeedDisplayAverages[1]).ToString().PadLeft(5));
+				sb.Append(Math.Min(9999, totalSpeedDisplayAverages[2]).ToString().PadLeft(5));
+				sb.Append(totalSpeedDisplayUnit);
 
 				sbLineCount++;
 				sb.Append(' ', consoleWidth - (sb.Length - sbLength)).AppendLine();
 
 				var etaStr = "-.--:--:--";
-				if(speed != 0) {
-					var eta = TimeSpan.FromSeconds(((TotalBytes - curP.BytesProcessed) >> 20) / speed);
+				if(totalSpeedAverages[2] != 0) {
+					var eta = TimeSpan.FromSeconds(((TotalBytes - curP.BytesProcessed) >> 20) / totalSpeedAverages[2]);
 
 					if(eta.TotalDays <= 9) {
 						etaStr = eta.ToString(@"d\.hh\:mm\:ss");
@@ -443,7 +503,7 @@ namespace AVDump3CL {
 
 				sbLength = sb.Length;
 				sb.Append(curP.FilesProcessed).Append('/').Append(TotalFiles).Append(" Files | ");
-				sb.Append(curP.BytesProcessed >> 30).Append('/').Append(TotalBytes >> 30).Append(" GiB | ");
+				sb.Append(curP.BytesProcessed >> totalBytesShiftCount).Append('/').Append(TotalBytes >> totalBytesShiftCount).Append(" ").Append(totalBytesDisplayUnit).Append(" | ");
 				sb.Append((now - curP.StartedOn).ToString(@"d\.hh\:mm\:ss")).Append(" Elapsed | ");
 				sb.Append(etaStr).Append(" Remaining");
 
