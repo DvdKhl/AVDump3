@@ -34,7 +34,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 				return;
 			}
 
-			Add(FileSizeType, MFI.SectionSize.Value);
+			Add(FileSizeType, MFI.SectionSize);
 			Add(ContainerVersionType, $"DocType={MFI.EbmlHeader.DocType} DocTypeVersion={MFI.EbmlHeader.DocTypeVersion}");
 			Add(CreationDateType, MFI.Segment.SegmentInfo.ProductionDate);
 			Add(DurationType, MFI.Segment.SegmentInfo.Duration.OnNotNullReturn(x => x * MFI.Segment.SegmentInfo.TimecodeScale / 1000000000d));

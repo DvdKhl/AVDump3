@@ -240,7 +240,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 			//bool accept = false;
 			var count = 0;
 			//int lineType = 0, dummy;
-			var sr = new StreamReader(stream, Encoding.UTF8, true, 2048);
+			using var sr = new StreamReader(stream, Encoding.UTF8, true, 2048, true);
 
 			foreach(var line in ReadLines(sr, 1024)) {
 				if(regexParse.IsMatch(line)) count++;
@@ -277,9 +277,10 @@ namespace AVDump3Lib.Information.InfoProvider {
 			if(!IsCandidate) return;
 
 			IsCandidate = stream.ReadByte() != 0x1A && stream.ReadByte() != 0x45 && stream.ReadByte() != 0xDF && stream.ReadByte() != 0xA3;
+			stream.Position = 0;
 			if(!IsCandidate) return;
 
-			using var sr = new StreamReader(stream, Encoding.UTF8, true, 2048, true);
+			using var sr = new StreamReader(stream, Encoding.Default, true, 2048, true);
 			var chars = new char[2048];
 			var length = sr.Read(chars, 0, chars.Length);
 			var str = new string(chars, 0, length).ToInvLower();
@@ -566,30 +567,30 @@ namespace AVDump3Lib.Information.InfoProvider {
 			else IsCandidate = false;
 		}
 
-		private bool Subviewer(Stream stream) {
-			var sr = new StreamReader(stream, Encoding.UTF8, true, 2048);
+		private static bool Subviewer(Stream stream) {
+			using var sr = new StreamReader(stream, Encoding.UTF8, true, 2048, true);
 			var chars = new char[1024];
 			var length = sr.Read(chars, 0, chars.Length);
 			var str = new string(chars, 0, length).ToUpperInvariant();
 
 			var matches = 0;
 			string[] keys = { "[BEGIN]", "[INFORMATION]", "[TITLE]", "[AUTHOR]", "[SOURCE]", "[PRG]", "[FILEPATH]", "[DELAY]", "[CD TRACK]", "[COMMENT]", "[END INFORMATION]", "[SUBTITLE]", "[COLF]", "[STYLE]", "[SIZE]", "[FONT]" };
-			foreach(var key in keys) matches += str.Contains(key) ? 1 : 0;
+			foreach(var key in keys) matches += str.InvContains(key) ? 1 : 0;
 
 
 			if(matches < 5) return false;
 			//identifier += "subviewer";
 			return true;
 		}
-		private bool MicroDVD(Stream stream) {
+		private static bool MicroDVD(Stream stream) {
 			if(stream.Length > 10 * 1024 * 1024) return false;
 			stream.Position = 0;
-			var sr = new StreamReader(stream, Encoding.UTF8, true, 2048);
+			using var sr = new StreamReader(stream, Encoding.UTF8, true, 2048, true);
 
 			int count = 0, matches = 0;
 			var regex = new Regex(@"^\{\d*\}\{\d*\}.*$");
 			foreach(var line in ReadLines(sr, 1024).Select(ldLine => ldLine.Trim())) {
-				if(line.Equals("")) continue;
+				if(line.InvEquals("")) continue;
 				if(regex.IsMatch(line)) matches++;
 				count++;
 				if(count > 20) break;

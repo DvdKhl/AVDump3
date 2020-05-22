@@ -71,7 +71,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			foreach(var blockHasher in blockHashers) blockHasher.Finish();
 
 			if(nodeCount == 0 && data.Length == 0) return EmptyHash;
-			Debug.Assert(data.Length >= 2048 || leafCount != 0, "leafCount is not 0 or remaining data is larger than 2048 bytes");
+			Debug.Assert(data.Length <= 2048 && leafCount == 0, "leafCount is not 0 or remaining data is larger than 2048 bytes");
 
 			if(data.Length != 0) {
 				fixed(byte* leavesPtr = leaves)
