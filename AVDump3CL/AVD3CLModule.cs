@@ -21,9 +21,11 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace AVDump3CL {
@@ -39,6 +41,12 @@ namespace AVDump3CL {
 		public string FilePath { get; }
 		public ReadOnlyCollection<IBlockConsumer> BlockConsumers { get; }
 
+		private List<Task<bool>> processingTasks = new List<Task<bool>>();
+
+		public void AddProcessingTask(Task<bool> processingTask) => processingTasks.Add(processingTask);
+
+		public IEnumerable<Task<bool>> ProcessingTasks => processingTasks;
+
 		public AVD3CLFileProcessedEventArgs(string filePath, IEnumerable<IBlockConsumer> blockConsumers) {
 			FilePath = filePath;
 			BlockConsumers = Array.AsReadOnly(blockConsumers.ToArray());
@@ -49,19 +57,27 @@ namespace AVDump3CL {
 	public interface IAVD3CLModule : IAVD3Module {
 		event EventHandler<AVD3CLModuleExceptionEventArgs> ExceptionThrown;
 		event EventHandler<AVD3CLFileProcessedEventArgs> FileProcessed;
+		event EventHandler<StringBuilder> AdditionalLines;
+		event EventHandler ProcessingFinished;
 
-		void WriteLine(string value);
+		void RegisterShutdownDelay(WaitHandle waitHandle);
+
+		void WriteLine(params string[] values);
 	}
 
 
 	public class AVD3CLModule : IAVD3CLModule {
 		public event EventHandler<AVD3CLModuleExceptionEventArgs>? ExceptionThrown;
 		public event EventHandler<AVD3CLFileProcessedEventArgs>? FileProcessed;
+		public event EventHandler ProcessingFinished;
+
+		public event EventHandler<StringBuilder> AdditionalLines { add { cl.AdditionalLines += value; } remove { cl.AdditionalLines -= value; } }
 
 		private HashSet<string> filePathsToSkip = new HashSet<string>();
 
 		private readonly AVD3CLModuleSettings settings = new AVD3CLModuleSettings();
 		private readonly object fileSystemLock = new object();
+		private readonly List<WaitHandle> shutdownDelayHandles = new List<WaitHandle>();
 		private IAVD3ProcessingModule processingModule;
 		private IAVD3InformationModule informationModule;
 		private IAVD3ReportingModule reportingModule;
@@ -228,6 +244,7 @@ namespace AVDump3CL {
 			using(cl)
 			using(sp as IDisposable)
 			using(var cts = new CancellationTokenSource()) {
+				cl.IsProcessing = true;
 				cl.Display(bytesReadProgress.GetProgress);
 
 				streamConsumerCollection.ConsumingStream += ConsumingStream;
@@ -241,6 +258,11 @@ namespace AVDump3CL {
 				Console.CursorVisible = false;
 				try {
 					streamConsumerCollection.ConsumeStreams(cts.Token, bytesReadProgress);
+					cl.IsProcessing = false;
+					ProcessingFinished?.Invoke(this, EventArgs.Empty);
+
+					var shutdownDelayHandles = this.shutdownDelayHandles.ToArray();
+					if(shutdownDelayHandles.Length > 0) WaitHandle.WaitAll(shutdownDelayHandles);
 
 				} catch(OperationCanceledException) {
 
@@ -267,7 +289,11 @@ namespace AVDump3CL {
 					}
 					acceptedFiles++;
 				},
-				ex => Console.WriteLine("Filediscovery: " + ex.Message)
+				ex => {
+					if(!(ex is UnauthorizedAccessException) || !RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+						Console.WriteLine("Filediscovery: " + ex.Message);
+					}
+				}
 			);
 			Console.WriteLine("Accepted files: " + acceptedFiles);
 			Console.WriteLine();
@@ -291,7 +317,7 @@ namespace AVDump3CL {
 				OnException(new AVD3CLException("ConsumingStream", args.Cause) { Data = { { "FileName", new SensitiveData(fileName) } } });
 			};
 
-			var blockConsumers = await e.FinishedProcessing;
+			var blockConsumers = await e.FinishedProcessing.ConfigureAwait(false);
 
 			if(hasProcessingError) return;
 
@@ -401,12 +427,15 @@ namespace AVDump3CL {
 			//	}
 			//}
 
+			var fileProcessedEventArgs = new AVD3CLFileProcessedEventArgs(filePath, blockConsumers);
 			try {
-				FileProcessed?.Invoke(this, new AVD3CLFileProcessedEventArgs(filePath, blockConsumers));
+				FileProcessed?.Invoke(this, fileProcessedEventArgs);
 			} catch(Exception ex) {
 				OnException(new AVD3CLException("FileProcessedEvent", ex) { Data = { { "FileName", new SensitiveData(fileName) } } });
 				success = false;
 			}
+
+			success &= (await Task.WhenAll(fileProcessedEventArgs.ProcessingTasks).ConfigureAwait(false)).All(x => x);
 
 			if(settings.FileDiscovery.ProcessedLogPath != null && success) {
 				lock(settings.FileDiscovery) File.AppendAllText(settings.FileDiscovery.ProcessedLogPath, filePath + "\n");
@@ -414,7 +443,10 @@ namespace AVDump3CL {
 
 		}
 
-		public void WriteLine(string value) => cl.Writeline(value);
+		public void WriteLine(params string[] values) => cl.Writeline(values);
+
+
+		public void RegisterShutdownDelay(WaitHandle waitHandle) => shutdownDelayHandles.Add(waitHandle);
 	}
 
 	public class AVD3CLException : AVD3LibException {

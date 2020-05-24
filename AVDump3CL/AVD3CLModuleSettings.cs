@@ -177,7 +177,7 @@ namespace AVDump3CL {
 
 		public SettingsProperty PrintAvailableSIMDsProperty { get; }
 		public bool PrintAvailableSIMDs {
-			get => (bool)GetValue(PrintAvailableSIMDsProperty);
+			get => (bool)GetRequiredValue(PrintAvailableSIMDsProperty);
 			set => SetValue(PrintAvailableSIMDsProperty, value);
 		}
 
@@ -217,8 +217,8 @@ namespace AVDump3CL {
 				if(str != null && str.Length == 0) return null;
 				//See ToCLString
 				return Array.AsReadOnly((str ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x => {
-					var args = x.Split(':');
-					return new ConsumerSettings(args[0].Trim(), args.Skip(1));
+					var args = x.Split(':', 2);
+					return new ConsumerSettings(args[0].Trim(), args.Skip(1).DefaultIfEmpty("").First().Split('|'));
 				}).ToArray());
 			}
 			return Convert.ChangeType(str, property.ValueType);
@@ -230,45 +230,45 @@ namespace AVDump3CL {
 
 		public SettingsProperty PrintHashesProperty { get; }
 		public bool PrintHashes {
-			get => (bool)GetValue(PrintHashesProperty);
+			get => (bool)GetRequiredValue(PrintHashesProperty);
 			set => SetValue(PrintHashesProperty, value);
 		}
 
 		public SettingsProperty PrintReportsProperty { get; }
 		public bool PrintReports {
-			get => (bool)GetValue(PrintReportsProperty);
+			get => (bool)GetRequiredValue(PrintReportsProperty);
 			set => SetValue(PrintReportsProperty, value);
 		}
 
 		public SettingsProperty ReportsProperty { get; }
-		public ReadOnlyCollection<string> Reports {
-			get => (ReadOnlyCollection<string>)GetValue(ReportsProperty);
+		public ReadOnlyCollection<string>? Reports {
+			get => (ReadOnlyCollection<string>?)GetValue(ReportsProperty);
 			set => SetValue(ReportsProperty, value);
 		}
 
 		[CLNames("RDir")]
 		public SettingsProperty ReportDirectoryProperty { get; }
 		public string ReportDirectory {
-			get => (string)GetValue(ReportDirectoryProperty);
+			get => (string)GetRequiredValue(ReportDirectoryProperty);
 			set => SetValue(ReportDirectoryProperty, value);
 		}
 
 		public SettingsProperty ReportFileNameProperty { get; }
 		public string ReportFileName {
-			get => (string)GetValue(ReportFileNameProperty);
+			get => (string)GetRequiredValue(ReportFileNameProperty);
 			set => SetValue(ReportFileNameProperty, value);
 		}
 
 		[CLNames("EDPath")]
 		public SettingsProperty ExtensionDifferencePathProperty { get; }
 		public string ExtensionDifferencePath {
-			get => (string)GetValue(ExtensionDifferencePathProperty);
+			get => (string)GetRequiredValue(ExtensionDifferencePathProperty);
 			set => SetValue(ExtensionDifferencePathProperty, value);
 		}
 
 		public SettingsProperty CRC32ErrorProperty { get; }
 		public (string Path, string Pattern) CRC32Error {
-			get => ((string, string))GetValue(CRC32ErrorProperty);
+			get => ((string, string))GetRequiredValue(CRC32ErrorProperty);
 			set => SetValue(CRC32ErrorProperty, value);
 		}
 
@@ -278,7 +278,7 @@ namespace AVDump3CL {
 			ReportsProperty = Register(nameof(Reports), Array.AsReadOnly(new string[0]));
 			ReportDirectoryProperty = Register(nameof(ReportDirectory), Environment.CurrentDirectory);
 			ReportFileNameProperty = Register(nameof(ReportFileName), "<FileName>.<ReportName>.<ReportFileExtension>");
-			ExtensionDifferencePathProperty = Register(nameof(ExtensionDifferencePath), default(string));
+			ExtensionDifferencePathProperty = Register(nameof(ExtensionDifferencePath), "");
 			CRC32ErrorProperty = Register(nameof(CRC32Error), (default(string), "(?i)<CRC32>"));
 		}
 
@@ -332,7 +332,7 @@ namespace AVDump3CL {
 
 		public SettingsProperty ShowDisplayJitterProperty { get; }
 		public bool ShowDisplayJitter {
-			get => (bool)GetValue(ShowDisplayJitterProperty);
+			get => (bool)GetRequiredValue(ShowDisplayJitterProperty);
 			set => SetValue(ShowDisplayJitterProperty, value);
 		}
 

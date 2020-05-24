@@ -14,15 +14,13 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 		}
 
 		protected override void DoWork(CancellationToken ct) {
+			using var fileStream = File.OpenWrite(FilePath);
 			ReadOnlySpan<byte> block;
-
-			using(var fileStream = File.OpenWrite(FilePath)) {
-				do {
-					ct.ThrowIfCancellationRequested();
-					block = Reader.GetBlock(Reader.SuggestedReadLength);
-					fileStream.Write(block);
-				} while(Reader.Advance(block.Length));
-			}
+			do {
+				ct.ThrowIfCancellationRequested();
+				block = Reader.GetBlock(Reader.SuggestedReadLength);
+				fileStream.Write(block);
+			} while(Reader.Advance(block.Length));
 		}
 	}
 }

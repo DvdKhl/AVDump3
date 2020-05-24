@@ -16,6 +16,7 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 		int BufferOverrunCount { get; }
 	}
 
+
 	public struct BlockStreamProgress {
 		public IBlockStream Sender { get; }
 		public int Index { get; }

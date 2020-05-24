@@ -8,7 +8,7 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 	public interface IBlockConsumerSelector {
 		event EventHandler<BlockConsumerSelectorEventArgs> Filter;
 		IEnumerable<IBlockConsumerFactory> Select();
-		IEnumerable<IBlockConsumer> Create(IEnumerable<IBlockConsumerFactory> factories, IBlockStream blockStream);
+		IEnumerable<IBlockConsumer> Create(IEnumerable<IBlockConsumerFactory> factories, IBlockStream blockStream, object tag);
 	}
 
 	public class BlockConsumerSelectorEventArgs : EventArgs {
@@ -39,13 +39,13 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 				yield return blockConsumerFactories[i];
 			}
 		}
-		public IEnumerable<IBlockConsumer> Create(IEnumerable<IBlockConsumerFactory> factories, IBlockStream blockStream) {
+		public IEnumerable<IBlockConsumer> Create(IEnumerable<IBlockConsumerFactory> factories, IBlockStream blockStream, object tag) {
 			if(factories is null) throw new ArgumentNullException(nameof(factories));
 
 			var readerIndex = 0;
 			foreach(var factory in factories) {
 				var blockReader = new BlockStreamReader(blockStream, readerIndex++);
-				yield return factory.Create(blockReader);
+				yield return factory.Create(blockReader, tag);
 			}
 		}
 	}

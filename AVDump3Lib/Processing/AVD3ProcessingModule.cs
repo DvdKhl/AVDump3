@@ -12,6 +12,7 @@ using ExtKnot.StringInvariants;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Resources;
 using System.Runtime.InteropServices;
@@ -46,10 +47,11 @@ namespace AVDump3Lib.Processing {
 		public void RegisterDefaultBlockConsumers(IDictionary<string, ImmutableArray<string>> arguments) {
 			var factories = new Dictionary<string, IBlockConsumerFactory>();
 			void addOrReplace(IBlockConsumerFactory factory) => factories[factory.Name] = factory;
-			string getArgumentAt(BlockConsumerSetup s, int index, string defVal) => (arguments?.TryGetValue(s.Name, out var args) ?? false) && index < args.Length ? args[index] ?? defVal : defVal;
+			string? getArgumentAt(BlockConsumerSetup s, int index, string? defVal) => (arguments?.TryGetValue(s.Name, out var args) ?? false) && index < args.Length ? args[index] ?? defVal : defVal;
 
 
-			addOrReplace(new BlockConsumerFactory("NULL", s => new HashCalculator(s.Name, s.Reader, new NullHashAlgorithm(4 << 20))));
+			addOrReplace(new BlockConsumerFactory("NULL", s => new HashCalculator(s.Name, s.Reader, new NullHashAlgorithm(getArgumentAt(s, 0, "4").ToInvInt32() << 20))));
+			addOrReplace(new BlockConsumerFactory("CPY", s => new CopyToFileBlockConsumer(s.Name, s.Reader, Path.Combine(getArgumentAt(s, 0, null) ?? throw new Exception(), Path.GetFileName((string)s.Tag)))));
 			addOrReplace(new BlockConsumerFactory("MD5", s => new HashCalculator(s.Name, s.Reader, new AVDHashAlgorithmIncrmentalHashAdapter(HashAlgorithmName.MD5, 1024))));
 			addOrReplace(new BlockConsumerFactory("SHA1", s => new HashCalculator(s.Name, s.Reader, new AVDHashAlgorithmIncrmentalHashAdapter(HashAlgorithmName.SHA1, 1024))));
 			addOrReplace(new BlockConsumerFactory("SHA2-256", s => new HashCalculator(s.Name, s.Reader, new AVDHashAlgorithmIncrmentalHashAdapter(HashAlgorithmName.SHA256, 1024))));
@@ -61,6 +63,7 @@ namespace AVDump3Lib.Processing {
 			addOrReplace(new BlockConsumerFactory("MKV", s => new MatroskaParser(s.Name, s.Reader)));
 			addOrReplace(new BlockConsumerFactory("OGG", s => new OggParser(s.Name, s.Reader)));
 			addOrReplace(new BlockConsumerFactory("MP4", s => new MP4Parser(s.Name, s.Reader)));
+
 
 			try {
 				addOrReplace(new BlockConsumerFactory("ED2K", s => new HashCalculator(s.Name, s.Reader, new Ed2kNativeHashAlgorithm())));

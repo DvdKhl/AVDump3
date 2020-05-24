@@ -212,6 +212,9 @@ namespace AVDump3CL {
 
 		public long TotalBytes { get; set; }
 		public int TotalFiles { get; set; }
+		public bool IsProcessing { get; set; }
+
+		public event EventHandler<StringBuilder> AdditionalLines;
 
 		private int displayUpdateCount;
 		private int displaySkipCount;
@@ -222,6 +225,7 @@ namespace AVDump3CL {
 		private int maxCursorPos;
 		private int state;
 		private int sbLineCount;
+		private bool hasLastDisplay;
 		private BytesReadProgress.Progress curP, prevP;
 		private readonly float[] totalSpeedAverages = new float[3];
 		private readonly int[] totalSpeedDisplayAverages = new int[3];
@@ -288,6 +292,7 @@ namespace AVDump3CL {
 			}
 
 			if(!settings.ForwardConsoleCursorOnly) {
+
 				if(state == 0) { 
 					prevP = curP;
 					curP = getProgress();
@@ -334,7 +339,22 @@ namespace AVDump3CL {
 				maxCursorPos = Math.Max(maxCursorPos, Console.CursorTop);
 				Console.SetCursorPosition(0, Math.Max(0, Console.CursorTop - sbLineCount));
 
-				Display(sb, interpolationFactor);
+				sbLineCount = 0;
+				if(IsProcessing) {
+					Display(sb, interpolationFactor);
+				} else if(!hasLastDisplay) {
+					hasLastDisplay = true;
+					Display(sb, 1);
+					sbLineCount = 0;
+				}
+
+
+				AdditionalLines?.Invoke(this, sb);
+
+				sb.Append(' ', consoleWidth).AppendLine();
+				sb.Append(' ', consoleWidth).AppendLine();
+				sb.Append(' ', consoleWidth).AppendLine();
+				sbLineCount += 3;
 
 				if(settings.ShowDisplayJitter) {
 					sb.AppendLine();
@@ -354,6 +374,10 @@ namespace AVDump3CL {
 			output = sb.ToString();
 
 			Monitor.Exit(timer);
+		}
+		public void WriteStatusLine(string statusLine) {
+			sb.AppendLine(statusLine);
+			sbLineCount++;
 		}
 
 		public void Writeline(params string[] lines) => Writeline((IReadOnlyList<string>)lines);
@@ -376,7 +400,6 @@ namespace AVDump3CL {
 			var barWidth = consoleWidth - 8 - 1 - 2 - 2;
 			var now = DateTimeOffset.UtcNow;
 
-			sbLineCount = 0;
 			sbLineCount++;
 			sb.Append('-', consoleWidth).AppendLine();
 
@@ -511,12 +534,8 @@ namespace AVDump3CL {
 				sb.Append(' ', consoleWidth - (sb.Length - sbLength)).AppendLine();
 			}
 
-
-			sb.Append(' ', consoleWidth).AppendLine();
-			sb.Append(' ', consoleWidth).AppendLine();
-			sb.Append(' ', consoleWidth).AppendLine();
-			sbLineCount += 3;
 		}
+
 
 		public void Dispose() {
 			lock(timer) {

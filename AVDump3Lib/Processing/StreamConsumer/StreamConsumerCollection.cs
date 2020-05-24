@@ -90,7 +90,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 				do {
 					retry = false;
 					providedStream.Stream.Position = 0;
-					streamConsumer = streamConsumerFactory.Create(providedStream.Stream);
+					streamConsumer = streamConsumerFactory.Create(providedStream);
 					try {
 
 						if(streamConsumer != null) {
