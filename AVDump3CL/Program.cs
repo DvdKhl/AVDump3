@@ -51,7 +51,7 @@ namespace AVDump3CL {
 	}
 
 	class Program {
-		private static CLSettingsHandler clSettingsHandler;
+		private static readonly CLSettingsHandler clSettingsHandler = new CLSettingsHandler();
 
 		static void Main(string[] args) {
 			if(args.Length > 0 && args[0].Equals("FROMFILE")) {
@@ -68,9 +68,6 @@ namespace AVDump3CL {
 
 				args = args.Skip(1).ToArray();
 			}
-
-
-			clSettingsHandler = new CLSettingsHandler();
 
 			var moduleManagement = CreateModules();
 			moduleManagement.RaiseIntialize();
@@ -102,7 +99,7 @@ namespace AVDump3CL {
 
 		private static AVD3ModuleManagement CreateModules() {
 			var moduleManagement = new AVD3ModuleManagement();
-			moduleManagement.LoadModules(AppDomain.CurrentDomain.BaseDirectory);
+			moduleManagement.LoadModules(AppDomain.CurrentDomain.BaseDirectory ?? throw new Exception("AppDomain.CurrentDomain.BaseDirectory is null"));
 			moduleManagement.LoadModuleFromType(typeof(AVD3InformationModule));
 			moduleManagement.LoadModuleFromType(typeof(AVD3ProcessingModule));
 			moduleManagement.LoadModuleFromType(typeof(AVD3ReportingModule));

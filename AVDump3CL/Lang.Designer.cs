@@ -118,6 +118,24 @@ namespace AVDump3CL {
         /// <summary>
         ///   Looks up a localized string similar to .
         /// </summary>
+        internal static string CRC32ErrorDescription {
+            get {
+                return ResourceManager.GetString("CRC32ErrorDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string CRC32ErrorExample {
+            get {
+                return ResourceManager.GetString("CRC32ErrorExample", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
         internal static string ErrorDirectoryDescription {
             get {
                 return ResourceManager.GetString("ErrorDirectoryDescription", resourceCulture);
@@ -127,9 +145,27 @@ namespace AVDump3CL {
         /// <summary>
         ///   Looks up a localized string similar to .
         /// </summary>
+        internal static string ErrorDirectoryDescription1 {
+            get {
+                return ResourceManager.GetString("ErrorDirectoryDescription1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
         internal static string ErrorDirectoryExample {
             get {
                 return ResourceManager.GetString("ErrorDirectoryExample", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string ErrorDirectoryExample1 {
+            get {
+                return ResourceManager.GetString("ErrorDirectoryExample1", resourceCulture);
             }
         }
         
@@ -148,6 +184,24 @@ namespace AVDump3CL {
         internal static string ExtensionDifferencePathExample {
             get {
                 return ResourceManager.GetString("ExtensionDifferencePathExample", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string ForwardConsoleCursorOnlyDescription {
+            get {
+                return ResourceManager.GetString("ForwardConsoleCursorOnlyDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string ForwardConsoleCursorOnlyExample {
+            get {
+                return ResourceManager.GetString("ForwardConsoleCursorOnlyExample", resourceCulture);
             }
         }
         
@@ -244,6 +298,24 @@ namespace AVDump3CL {
         /// <summary>
         ///   Looks up a localized string similar to .
         /// </summary>
+        internal static string PauseBeforeExitDescription {
+            get {
+                return ResourceManager.GetString("PauseBeforeExitDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string PauseBeforeExitExample {
+            get {
+                return ResourceManager.GetString("PauseBeforeExitExample", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
         internal static string PrintHashesDescription {
             get {
                 return ResourceManager.GetString("PrintHashesDescription", resourceCulture);
@@ -278,6 +350,24 @@ namespace AVDump3CL {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string ProcessedLogPathDescription {
+            get {
+                return ResourceManager.GetString("ProcessedLogPathDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string ProcessedLogPathExample {
+            get {
+                return ResourceManager.GetString("ProcessedLogPathExample", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Recursively descent into Subdirectories.
         /// </summary>
         internal static string RecursiveDescription {
@@ -296,6 +386,24 @@ namespace AVDump3CL {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string ReportDirectoryDescription {
+            get {
+                return ResourceManager.GetString("ReportDirectoryDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string ReportDirectoryExample {
+            get {
+                return ResourceManager.GetString("ReportDirectoryExample", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select reports to use. Use without arguments to list available reports.
         /// </summary>
         internal static string ReportsDescription {
@@ -310,6 +418,24 @@ namespace AVDump3CL {
         internal static string ReportsExample {
             get {
                 return ResourceManager.GetString("ReportsExample", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string SaveErrorsDescription {
+            get {
+                return ResourceManager.GetString("SaveErrorsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string SaveErrorsExample {
+            get {
+                return ResourceManager.GetString("SaveErrorsExample", resourceCulture);
             }
         }
         
@@ -346,6 +472,24 @@ namespace AVDump3CL {
         internal static string SkipEnvironmentElementExample {
             get {
                 return ResourceManager.GetString("SkipEnvironmentElementExample", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string SkipLogPathDescription {
+            get {
+                return ResourceManager.GetString("SkipLogPathDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string SkipLogPathExample {
+            get {
+                return ResourceManager.GetString("SkipLogPathExample", resourceCulture);
             }
         }
         

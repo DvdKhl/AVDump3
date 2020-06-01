@@ -11,6 +11,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml;
 
 namespace AVDump3Lib.Information.InfoProvider {
 	public class MediaInfoLibNativeMethods : IDisposable {
@@ -230,7 +231,6 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 
 	public class MediaInfoLibProvider : MediaProvider {
-
 		private void Populate(MediaInfoLibNativeMethods mil) {
 			static string removeNonNumerics(string s) => Regex.Replace(s, "[^-,.0-9]", "");
 			static string splitTakeFirst(string s) => s.Split('\\', '/', '|')[0];
@@ -250,7 +250,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 				var streamCount = mil.GetCount(streamType);
 
 				for(var streamIndex = 0; streamIndex < streamCount; streamIndex++) {
-					string streamGet(string key) => mil.Get(key, streamType, streamIndex)?.Trim() ?? "";
+					string streamGet(string key) => new string(mil.Get(key, streamType, streamIndex)?.Trim().Where(c => XmlConvert.IsXmlChar(c)).ToArray() ?? Array.Empty<char>()); //TODO
 
 					ulong? id = null;
 					if(!string.IsNullOrEmpty(streamGet("UniqueID"))) {

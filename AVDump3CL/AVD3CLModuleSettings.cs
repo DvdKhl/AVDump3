@@ -218,7 +218,7 @@ namespace AVDump3CL {
 				//See ToCLString
 				return Array.AsReadOnly((str ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x => {
 					var args = x.Split(':', 2);
-					return new ConsumerSettings(args[0].Trim(), args.Skip(1).DefaultIfEmpty("").First().Split('|'));
+					return new ConsumerSettings(args[0].Trim(), args.Skip(1).FirstOrDefault()?.Split('|') ?? Array.Empty<string>());
 				}).ToArray());
 			}
 			return Convert.ChangeType(str, property.ValueType);

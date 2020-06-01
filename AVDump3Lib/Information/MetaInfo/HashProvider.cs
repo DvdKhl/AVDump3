@@ -4,10 +4,13 @@ using System;
 using System.Collections.Generic;
 
 namespace AVDump3Lib.Information.MetaInfo {
+
+	public class HashInfoItemType : MetaInfoItemType<ReadOnlyMemory<byte>> { public HashInfoItemType(string key) : base(key) { } }
+
 	public class HashProvider : MetaDataProvider {
 		public HashProvider(IEnumerable<HashCalculator> hashCalculators) : base("HashProvider", HashProviderType) {
 			foreach(var hashCalculator in hashCalculators) {
-				Add(new MetaInfoItemType<ReadOnlyMemory<byte>>(hashCalculator.Name, "Dimensionless"), hashCalculator.HashValue);
+				Add(new HashInfoItemType(hashCalculator.Name), hashCalculator.HashValue);
 			}
 		}
 		public static readonly MetaInfoContainerType HashProviderType = new MetaInfoContainerType("HashProvider");

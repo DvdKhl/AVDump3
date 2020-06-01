@@ -108,8 +108,9 @@ namespace AVDump3CL {
 					Directory.CreateDirectory(settings.Diagnostics.ErrorDirectory);
 					var filePath = Path.Combine(settings.Diagnostics.ErrorDirectory, "AVD3Error" + ex.ThrownOn.ToString("yyyyMMdd HHmmssffff") + ".xml");
 
-					using var safeXmlWriter = new SafeXmlWriter(filePath, Encoding.UTF8);
-					exElem.WriteTo(safeXmlWriter);
+					using var fileStream = File.OpenWrite(filePath);
+					using var xmlWriter = System.Xml.XmlWriter.Create(fileStream, new System.Xml.XmlWriterSettings { CheckCharacters = false, Encoding = Encoding.UTF8 });
+					exElem.WriteTo(xmlWriter);
 				}
 			}
 
@@ -150,8 +151,8 @@ namespace AVDump3CL {
 			settingsgModule.AfterConfiguration += AfterConfiguration;
 		}
 		public ModuleInitResult Initialized() => new ModuleInitResult(false);
-		public void AfterConfiguration(object sender, ModuleInitResult args) {
-			processingModule.RegisterDefaultBlockConsumers(settings.Processing.Consumers?.ToDictionary(x => x.Name, x => x.Arguments));
+		public void AfterConfiguration(object? sender, ModuleInitResult args) {
+			processingModule.RegisterDefaultBlockConsumers((settings.Processing.Consumers ?? Array.Empty<ProcessingSettings.ConsumerSettings>()).ToDictionary(x => x.Name, x => x.Arguments));
 
 			if(settings.Processing.Consumers == null) {
 				Console.WriteLine("Available Consumers: ");
@@ -198,7 +199,7 @@ namespace AVDump3CL {
 			}
 
 			static void CreateDirectoryChain(string? path, bool isDirectory = false) {
-				path = Path.GetDirectoryName(path);
+				if(!isDirectory) path = Path.GetDirectoryName(path);
 				if(!string.IsNullOrEmpty(path)) Directory.CreateDirectory(path);
 			}
 
@@ -304,7 +305,7 @@ namespace AVDump3CL {
 			return sp;
 		}
 
-		private async void ConsumingStream(object sender, ConsumingStreamEventArgs e) {
+		private async void ConsumingStream(object? sender, ConsumingStreamEventArgs e) {
 			var filePath = (string)e.Tag;
 			var fileName = Path.GetFileName(filePath);
 

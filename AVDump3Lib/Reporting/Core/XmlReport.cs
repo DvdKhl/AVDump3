@@ -6,36 +6,38 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace AVDump3Lib.Reporting.Core {
 	public abstract class XmlReport : IReport {
 		protected abstract XDocument Report { get; }
-
-
 		public string FileExtension { get; } = "xml";
 
 		public string ReportToString(Encoding encoding) {
-			using var textWriter = new StringWriterWithEncoding(encoding);
-			using var safeXmlWriter = new SafeXmlWriter(textWriter);
+			using var memStream = new MemoryStream();
+			using(var xmlWriter = XmlWriter.Create(memStream, new XmlWriterSettings {
+				Indent = true,
+				NewLineChars = "\n",
+				CheckCharacters = false,
+				Encoding = Encoding.UTF8,
+				OmitXmlDeclaration = true,
+				ConformanceLevel = ConformanceLevel.Fragment
+			})) {
+				Report.Root.WriteTo(xmlWriter);
+			}
+			memStream.Position = 0;
 
-			Report.WriteTo(safeXmlWriter);
-			return textWriter.ToString();
+			using var strReader = new StreamReader(memStream);
+
+			return strReader.ReadToEnd();
 		}
 
 		public XDocument ReportToXml() { return new XDocument(Report); }
 
 		public void SaveToFile(string filePath, Encoding encoding) {
 			Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-
-			using var fileStream = File.Open(filePath, FileMode.Append, FileAccess.Write, FileShare.Read);
-
-			using var safeXmlWriter = new SafeXmlWriter(fileStream, encoding);
-			Report.WriteTo(safeXmlWriter);
-			safeXmlWriter.Flush();
-
-			fileStream.WriteByte(10);
-			fileStream.WriteByte(10);
+			File.AppendAllText(filePath, ReportToString(encoding) + "\n\n", encoding);
 		}
 	}
 }

@@ -1,4 +1,5 @@
 using AVDump3Lib.Information.MetaInfo.Core;
+using ExtKnot.StringInvariants;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -40,9 +41,14 @@ namespace AVDump3Lib.Information.MetaInfo.Core {
 
 
 
-		public MetaInfoItem<T> Select<T>(MetaInfoItemType<T> type) {
+		public MetaInfoItem<T>? Select<T>(MetaInfoItemType<T> type) {
 			return items.Contains(type) ? (MetaInfoItem<T>)items[type] : null;
 		}
+		public MetaInfoItem<TValue> Select<TType, TValue>(string typeName) where TType: MetaInfoItemType<TValue> {
+			return items.OfType<MetaInfoItem<TValue>>().FirstOrDefault(x => x.Type.Key.InvEquals(typeName));
+		}
+
+
 
 	}
 }
