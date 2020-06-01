@@ -137,22 +137,23 @@ First param (max) sets a global limit. (path,max) pairs sets limits per path.</v
     <value>--Consumers=&lt;ConsumerName1&gt;[,&lt;ConsumerName2&gt;,...]</value>
   </data>
   <data name="CRC32ErrorDescription" xml:space="preserve">
-    <value />
+    <value>Searches the filename for the calculated CRC32 hash. If not present or different a line with the caluclated hash and the full path of the file is appended to the specified path. 
+The regex pattern should contain the placeholder "&lt;CRC32&gt;" which is replaced by the calculated hash prior matching.</value>
   </data>
   <data name="CRC32ErrorExample" xml:space="preserve">
-    <value />
+    <value>--CRC32Error=&lt;Filepath&gt;:&lt;RegexPattern&gt;</value>
+  </data>
+  <data name="DoneLogPathDescription" xml:space="preserve">
+    <value>Will set --SkipLogPath and --ProcessedLogPath to the specified filepath</value>
+  </data>
+  <data name="DoneLogPathExample" xml:space="preserve">
+    <value>--DoneLogPath=&lt;Filepath&gt;</value>
   </data>
   <data name="ErrorDirectoryDescription" xml:space="preserve">
-    <value />
-  </data>
-  <data name="ErrorDirectoryDescription1" xml:space="preserve">
-    <value />
+    <value>--ErrorDirectory=&lt;DirectoryPath&gt;</value>
   </data>
   <data name="ErrorDirectoryExample" xml:space="preserve">
-    <value />
-  </data>
-  <data name="ErrorDirectoryExample1" xml:space="preserve">
-    <value />
+    <value>If --SaveErrors is specified the error files will be placed in the specified path</value>
   </data>
   <data name="ExtensionDifferencePathDescription" xml:space="preserve">
     <value>Logs the filepath if the detected extension does not match the actual extension</value>
@@ -161,34 +162,34 @@ First param (max) sets a global limit. (path,max) pairs sets limits per path.</v
     <value>--EDPath=extdiff.txt</value>
   </data>
   <data name="ForwardConsoleCursorOnlyDescription" xml:space="preserve">
-    <value />
+    <value>The cursor position of the console will not be explicitly set. This option will disable most progress output.</value>
   </data>
   <data name="ForwardConsoleCursorOnlyExample" xml:space="preserve">
-    <value />
+    <value>--ForwardConsoleCursorOnly</value>
   </data>
   <data name="HideBuffersDescription" xml:space="preserve">
-    <value />
+    <value>Hides buffer bars</value>
   </data>
   <data name="HideBuffersExample" xml:space="preserve">
-    <value />
+    <value>--HideBuffers</value>
   </data>
   <data name="HideFileProgressDescription" xml:space="preserve">
-    <value />
+    <value>Hides file progress</value>
   </data>
   <data name="HideFileProgressExample" xml:space="preserve">
-    <value />
+    <value>--HideFileProgress</value>
   </data>
   <data name="HideTotalProgressDescription" xml:space="preserve">
-    <value />
+    <value>Hides total progress</value>
   </data>
   <data name="HideTotalProgressExample" xml:space="preserve">
-    <value />
+    <value>--HideTotalProgress</value>
   </data>
   <data name="IncludePersonalDataDescription" xml:space="preserve">
-    <value />
+    <value>Various places may include personal data. Currently this only affects error files, which will then include the full filepath</value>
   </data>
   <data name="IncludePersonalDataExample" xml:space="preserve">
-    <value />
+    <value>--IncludePersonalData</value>
   </data>
   <data name="NullStreamTestDescription" xml:space="preserve">
     <value>Use Memory as the DataSource for HashSpeed testing. Overrides any FileDiscovery Settings!</value>
@@ -197,28 +198,28 @@ First param (max) sets a global limit. (path,max) pairs sets limits per path.</v
     <value>--NullStreamTest=&lt;StreamCount&gt;:&lt;StreamLength in MiB&gt;:&lt;ParallelStreamCount&gt;</value>
   </data>
   <data name="PauseBeforeExitDescription" xml:space="preserve">
-    <value />
+    <value>Pause console before exiting</value>
   </data>
   <data name="PauseBeforeExitExample" xml:space="preserve">
-    <value />
+    <value>--PauseBeforeExit</value>
   </data>
   <data name="PrintHashesDescription" xml:space="preserve">
-    <value />
+    <value>Print calculated hashes in hexadecimal format to console</value>
   </data>
   <data name="PrintHashesExample" xml:space="preserve">
-    <value />
+    <value>--PrintHashes</value>
   </data>
   <data name="PrintReportsDescription" xml:space="preserve">
-    <value />
+    <value>Print generated reports to console</value>
   </data>
   <data name="PrintReportsExample" xml:space="preserve">
-    <value />
+    <value>--PrintReports</value>
   </data>
   <data name="ProcessedLogPathDescription" xml:space="preserve">
-    <value />
+    <value>Appends the full filepath to the specified path</value>
   </data>
   <data name="ProcessedLogPathExample" xml:space="preserve">
-    <value />
+    <value>--ProcessedLogPath=&lt;Filepath&gt;</value>
   </data>
   <data name="RecursiveDescription" xml:space="preserve">
     <value>Recursively descent into Subdirectories</value>
@@ -227,10 +228,17 @@ First param (max) sets a global limit. (path,max) pairs sets limits per path.</v
     <value>--Recursive</value>
   </data>
   <data name="ReportDirectoryDescription" xml:space="preserve">
-    <value />
+    <value>Reports will be saved to the specified directory</value>
   </data>
   <data name="ReportDirectoryExample" xml:space="preserve">
-    <value />
+    <value>--ReportDirectory=&lt;Directory&gt;</value>
+  </data>
+  <data name="ReportFileNameDescription" xml:space="preserve">
+    <value>Reports will be saved/appended to the specified filename.
+The following placeholders can be used: &lt;FileName&gt;, &lt;FileNameWithoutExtension&gt;, &lt;FileExtension&gt;, &lt;ReportName&gt;, ReportFileExtension</value>
+  </data>
+  <data name="ReportFileNameExample" xml:space="preserve">
+    <value>--ReportFileName=&lt;FileName&gt;</value>
   </data>
   <data name="ReportsDescription" xml:space="preserve">
     <value>Select reports to use. Use without arguments to list available reports</value>
@@ -239,28 +247,28 @@ First param (max) sets a global limit. (path,max) pairs sets limits per path.</v
     <value>--Reports</value>
   </data>
   <data name="SaveErrorsDescription" xml:space="preserve">
-    <value />
+    <value>Errors occuring during program execution will be saved to disk.</value>
   </data>
   <data name="SaveErrorsExample" xml:space="preserve">
-    <value />
+    <value>--SaveErrors</value>
   </data>
   <data name="ShowDisplayJitterDescription" xml:space="preserve">
-    <value />
+    <value>Displays the time taken to calculate progression stats and drawing to console</value>
   </data>
   <data name="ShowDisplayJitterExample" xml:space="preserve">
-    <value />
+    <value>--ShowDisplayJitter</value>
   </data>
   <data name="SkipEnvironmentElementDescription" xml:space="preserve">
-    <value />
+    <value>Skip the environment element in error files</value>
   </data>
   <data name="SkipEnvironmentElementExample" xml:space="preserve">
-    <value />
+    <value>--SkipEnvironmentElement</value>
   </data>
   <data name="SkipLogPathDescription" xml:space="preserve">
-    <value />
+    <value>Filepaths contained in the specified file will not be processed</value>
   </data>
   <data name="SkipLogPathExample" xml:space="preserve">
-    <value />
+    <value>--SkipLogPath=&lt;FilePath&gt;</value>
   </data>
   <data name="WithExtensionsDescription" xml:space="preserve">
     <value>Only/Don't Process files with selected Extensions</value>

@@ -116,7 +116,8 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Searches the filename for the calculated CRC32 hash. If not present or different a line with the caluclated hash and the full path of the file is appended to the specified path. 
+        ///The regex pattern should contain the placeholder &quot;&lt;CRC32&gt;&quot; which is replaced by the calculated hash prior matching..
         /// </summary>
         internal static string CRC32ErrorDescription {
             get {
@@ -125,7 +126,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to --CRC32Error=&lt;Filepath&gt;:&lt;RegexPattern&gt;.
         /// </summary>
         internal static string CRC32ErrorExample {
             get {
@@ -134,7 +135,25 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Will set --SkipLogPath and --ProcessedLogPath to the specified filepath.
+        /// </summary>
+        internal static string DoneLogPathDescription {
+            get {
+                return ResourceManager.GetString("DoneLogPathDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to --DoneLogPath=&lt;Filepath&gt;.
+        /// </summary>
+        internal static string DoneLogPathExample {
+            get {
+                return ResourceManager.GetString("DoneLogPathExample", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to --ErrorDirectory=&lt;DirectoryPath&gt;.
         /// </summary>
         internal static string ErrorDirectoryDescription {
             get {
@@ -143,29 +162,11 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
-        /// </summary>
-        internal static string ErrorDirectoryDescription1 {
-            get {
-                return ResourceManager.GetString("ErrorDirectoryDescription1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to If --SaveErrors is specified the error files will be placed in the specified path.
         /// </summary>
         internal static string ErrorDirectoryExample {
             get {
                 return ResourceManager.GetString("ErrorDirectoryExample", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to .
-        /// </summary>
-        internal static string ErrorDirectoryExample1 {
-            get {
-                return ResourceManager.GetString("ErrorDirectoryExample1", resourceCulture);
             }
         }
         
@@ -188,7 +189,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to The cursor position of the console will not be explicitly set. This option will disable most progress output..
         /// </summary>
         internal static string ForwardConsoleCursorOnlyDescription {
             get {
@@ -197,7 +198,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to --ForwardConsoleCursorOnly.
         /// </summary>
         internal static string ForwardConsoleCursorOnlyExample {
             get {
@@ -206,7 +207,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Hides buffer bars.
         /// </summary>
         internal static string HideBuffersDescription {
             get {
@@ -215,7 +216,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to --HideBuffers.
         /// </summary>
         internal static string HideBuffersExample {
             get {
@@ -224,7 +225,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Hides file progress.
         /// </summary>
         internal static string HideFileProgressDescription {
             get {
@@ -233,7 +234,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to --HideFileProgress.
         /// </summary>
         internal static string HideFileProgressExample {
             get {
@@ -242,7 +243,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Hides total progress.
         /// </summary>
         internal static string HideTotalProgressDescription {
             get {
@@ -251,7 +252,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to --HideTotalProgress.
         /// </summary>
         internal static string HideTotalProgressExample {
             get {
@@ -260,7 +261,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Various places may include personal data. Currently this only affects error files, which will then include the full filepath.
         /// </summary>
         internal static string IncludePersonalDataDescription {
             get {
@@ -269,7 +270,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to --IncludePersonalData.
         /// </summary>
         internal static string IncludePersonalDataExample {
             get {
@@ -296,7 +297,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Pause console before exiting.
         /// </summary>
         internal static string PauseBeforeExitDescription {
             get {
@@ -305,7 +306,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to --PauseBeforeExit.
         /// </summary>
         internal static string PauseBeforeExitExample {
             get {
@@ -314,7 +315,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Print calculated hashes in hexadecimal format to console.
         /// </summary>
         internal static string PrintHashesDescription {
             get {
@@ -323,7 +324,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to --PrintHashes.
         /// </summary>
         internal static string PrintHashesExample {
             get {
@@ -332,7 +333,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Print generated reports to console.
         /// </summary>
         internal static string PrintReportsDescription {
             get {
@@ -341,7 +342,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to --PrintReports.
         /// </summary>
         internal static string PrintReportsExample {
             get {
@@ -350,7 +351,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Appends the full filepath to the specified path.
         /// </summary>
         internal static string ProcessedLogPathDescription {
             get {
@@ -359,7 +360,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to --ProcessedLogPath=&lt;Filepath&gt;.
         /// </summary>
         internal static string ProcessedLogPathExample {
             get {
@@ -386,7 +387,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Reports will be saved to the specified directory.
         /// </summary>
         internal static string ReportDirectoryDescription {
             get {
@@ -395,11 +396,30 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to --ReportDirectory=&lt;Directory&gt;.
         /// </summary>
         internal static string ReportDirectoryExample {
             get {
                 return ResourceManager.GetString("ReportDirectoryExample", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reports will be saved/appended to the specified filename.
+        ///The following placeholders can be used: &lt;FileName&gt;, &lt;FileNameWithoutExtension&gt;, &lt;FileExtension&gt;, &lt;ReportName&gt;, ReportFileExtension.
+        /// </summary>
+        internal static string ReportFileNameDescription {
+            get {
+                return ResourceManager.GetString("ReportFileNameDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to --ReportFileName=&lt;FileName&gt;.
+        /// </summary>
+        internal static string ReportFileNameExample {
+            get {
+                return ResourceManager.GetString("ReportFileNameExample", resourceCulture);
             }
         }
         
@@ -422,7 +442,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Errors occuring during program execution will be saved to disk..
         /// </summary>
         internal static string SaveErrorsDescription {
             get {
@@ -431,7 +451,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to --SaveErrors.
         /// </summary>
         internal static string SaveErrorsExample {
             get {
@@ -440,7 +460,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Displays the time taken to calculate progression stats and drawing to console.
         /// </summary>
         internal static string ShowDisplayJitterDescription {
             get {
@@ -449,7 +469,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to --ShowDisplayJitter.
         /// </summary>
         internal static string ShowDisplayJitterExample {
             get {
@@ -458,7 +478,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Skip the environment element in error files.
         /// </summary>
         internal static string SkipEnvironmentElementDescription {
             get {
@@ -467,7 +487,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to --SkipEnvironmentElement.
         /// </summary>
         internal static string SkipEnvironmentElementExample {
             get {
@@ -476,7 +496,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Filepaths contained in the specified file will not be processed.
         /// </summary>
         internal static string SkipLogPathDescription {
             get {
@@ -485,7 +505,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to --SkipLogPath=&lt;FilePath&gt;.
         /// </summary>
         internal static string SkipLogPathExample {
             get {
