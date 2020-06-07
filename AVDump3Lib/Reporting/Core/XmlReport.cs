@@ -15,15 +15,20 @@ namespace AVDump3Lib.Reporting.Core {
 		public string FileExtension { get; } = "xml";
 
 		public string ReportToString(Encoding encoding) {
-			using var memStream = new MemoryStream();
-			using(var xmlWriter = XmlWriter.Create(memStream, new XmlWriterSettings {
+			var settings = new XmlWriterSettings {
 				Indent = true,
 				NewLineChars = "\n",
 				CheckCharacters = false,
 				Encoding = Encoding.UTF8,
 				OmitXmlDeclaration = true,
 				ConformanceLevel = ConformanceLevel.Fragment
-			})) {
+			};
+
+			return ReportToString(settings);
+		}
+		public string ReportToString(XmlWriterSettings settings) {
+			using var memStream = new MemoryStream();
+			using(var xmlWriter = XmlWriter.Create(memStream, settings)) {
 				Report.Root.WriteTo(xmlWriter);
 			}
 			memStream.Position = 0;
