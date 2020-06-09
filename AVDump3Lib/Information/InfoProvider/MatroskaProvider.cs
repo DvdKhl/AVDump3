@@ -17,7 +17,7 @@ using System.Linq;
 
 namespace AVDump3Lib.Information.InfoProvider {
 	public class MatroskaProvider : MediaProvider {
-		public MatroskaFile MFI { get; private set; }
+		public MatroskaFile? MFI { get; private set; }
 
 		private double CalcDeviation(ReadOnlyCollection<ClusterSection.SampleRateCountPair> histogram) {
 			var count = histogram.Sum(i => i.Count);
@@ -26,9 +26,9 @@ namespace AVDump3Lib.Information.InfoProvider {
 			return Math.Sqrt(sqrSum / count - mean * mean);
 		}
 
-		public MatroskaProvider(MatroskaFile mfi) : base("MatroskaProvider") { Populate(mfi); }
+		public MatroskaProvider(MatroskaFile? mfi) : base("MatroskaProvider") { Populate(mfi); }
 
-		private void Populate(MatroskaFile mfi) {
+		private void Populate(MatroskaFile? mfi) {
 			MFI = mfi;
 			if(MFI == null) {
 				return;
@@ -113,7 +113,12 @@ namespace AVDump3Lib.Information.InfoProvider {
 			Add(chapter, Chapter.PhysicalEquivalentType, (int?)atom.ChapterPhysicalEquiv);
 			if(atom.ChapterTrack != null) foreach(var tid in atom.ChapterTrack.ChapterTrackNumbers) Add(chapter, Chapter.AssociatedTrackType, (int)tid);
 			Add(chapter, Chapter.SegmentIdType, atom.ChapterSegmentUId);
-			foreach(var chapterDisplay in atom.ChapterDisplays) Add(chapter, Chapter.TitleType, new ChapterTitle(chapterDisplay.ChapterString, chapterDisplay.ChapterLanguages, chapterDisplay.ChapterCountries));
+
+			var titles = ImmutableArray.CreateBuilder<ChapterTitle>();
+			foreach(var chapterDisplay in atom.ChapterDisplays) titles.Add(new ChapterTitle(chapterDisplay.ChapterString, chapterDisplay.ChapterLanguages, chapterDisplay.ChapterCountries));
+			Add(chapter, Chapter.TitlesType, titles.ToImmutable());
+
+
 			foreach(var subAtom in atom.ChapterAtoms) PopulateChaptersSub(subAtom, chapter);
 			Add(chapter, Chapter.HasOperationsType, atom.ChapterProcesses.Count != 0);
 		}
@@ -242,52 +247,52 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 
 
-		private AspectRatioBehaviors Convert(VideoSection.ARType t) {
+		private AspectRatioBehavior Convert(VideoSection.ARType t) {
 			return t switch
 			{
-				VideoSection.ARType.FreeResizing => AspectRatioBehaviors.FreeResizing,
-				VideoSection.ARType.KeepAR => AspectRatioBehaviors.KeepAR,
-				VideoSection.ARType.Fixed => AspectRatioBehaviors.Fixed,
-				_ => AspectRatioBehaviors.Unknown,
+				VideoSection.ARType.FreeResizing => AspectRatioBehavior.FreeResizing,
+				VideoSection.ARType.KeepAR => AspectRatioBehavior.KeepAR,
+				VideoSection.ARType.Fixed => AspectRatioBehavior.Fixed,
+				_ => AspectRatioBehavior.Unknown,
 			};
 		}
 
-		private DisplayUnits Convert(VideoSection.Unit u) {
+		private DisplayUnit Convert(VideoSection.Unit u) {
 			return u switch
 			{
-				VideoSection.Unit.Pixels => DisplayUnits.Pixel,
-				VideoSection.Unit.Centimeters => DisplayUnits.Meter,
-				VideoSection.Unit.Inches => DisplayUnits.Meter,
-				VideoSection.Unit.AspectRatio => DisplayUnits.AspectRatio,
-				_ => DisplayUnits.Unknown,
+				VideoSection.Unit.Pixels => DisplayUnit.Pixel,
+				VideoSection.Unit.Centimeters => DisplayUnit.Meter,
+				VideoSection.Unit.Inches => DisplayUnit.Meter,
+				VideoSection.Unit.AspectRatio => DisplayUnit.AspectRatio,
+				_ => DisplayUnit.Unknown,
 			};
 		}
-		private StereoModes Convert(VideoSection.StereoModes s) {
+		private StereoMode Convert(VideoSection.StereoModes s) {
 			return s switch
 			{
-				VideoSection.StereoModes.Mono => StereoModes.Mono,
-				VideoSection.StereoModes.LeftRight => StereoModes.LeftRight,
-				VideoSection.StereoModes.BottomTop => StereoModes.TopBottom | StereoModes.Reversed,
-				VideoSection.StereoModes.TopBottom => StereoModes.TopBottom,
-				VideoSection.StereoModes.CheckBoardRight => StereoModes.Checkboard | StereoModes.Reversed,
-				VideoSection.StereoModes.CheckboardLeft => StereoModes.Checkboard,
-				VideoSection.StereoModes.RowInterleavedRight => StereoModes.RowInterleaved | StereoModes.Reversed,
-				VideoSection.StereoModes.RowInterleavedLeft => StereoModes.RowInterleaved,
-				VideoSection.StereoModes.ColumnInterleavedRight => StereoModes.ColumnInterleaved | StereoModes.Reversed,
-				VideoSection.StereoModes.ColumnInterleavedLeft => StereoModes.ColumnInterleaved,
-				VideoSection.StereoModes.AnaGlyphCyanRed => StereoModes.AnaGlyph | StereoModes.CyanRed,
-				VideoSection.StereoModes.RightLeft => StereoModes.LeftRight | StereoModes.Reversed,
-				VideoSection.StereoModes.AnaGlyphGreenMagenta => StereoModes.AnaGlyph | StereoModes.GreenMagenta,
-				VideoSection.StereoModes.AlternatingFramesRight => StereoModes.FrameAlternating | StereoModes.Reversed,
-				VideoSection.StereoModes.AlternatingFramesLeft => StereoModes.FrameAlternating,
-				_ => StereoModes.Other,
+				VideoSection.StereoModes.Mono => StereoMode.Mono,
+				VideoSection.StereoModes.LeftRight => StereoMode.LeftRight,
+				VideoSection.StereoModes.BottomTop => StereoMode.TopBottom | StereoMode.Reversed,
+				VideoSection.StereoModes.TopBottom => StereoMode.TopBottom,
+				VideoSection.StereoModes.CheckBoardRight => StereoMode.Checkboard | StereoMode.Reversed,
+				VideoSection.StereoModes.CheckboardLeft => StereoMode.Checkboard,
+				VideoSection.StereoModes.RowInterleavedRight => StereoMode.RowInterleaved | StereoMode.Reversed,
+				VideoSection.StereoModes.RowInterleavedLeft => StereoMode.RowInterleaved,
+				VideoSection.StereoModes.ColumnInterleavedRight => StereoMode.ColumnInterleaved | StereoMode.Reversed,
+				VideoSection.StereoModes.ColumnInterleavedLeft => StereoMode.ColumnInterleaved,
+				VideoSection.StereoModes.AnaGlyphCyanRed => StereoMode.AnaGlyph | StereoMode.CyanRed,
+				VideoSection.StereoModes.RightLeft => StereoMode.LeftRight | StereoMode.Reversed,
+				VideoSection.StereoModes.AnaGlyphGreenMagenta => StereoMode.AnaGlyph | StereoMode.GreenMagenta,
+				VideoSection.StereoModes.AlternatingFramesRight => StereoMode.FrameAlternating | StereoMode.Reversed,
+				VideoSection.StereoModes.AlternatingFramesLeft => StereoMode.FrameAlternating,
+				_ => StereoMode.Other,
 			};
 		}
-		private StereoModes Convert(VideoSection.OldStereoModes? s) {
+		private StereoMode Convert(VideoSection.OldStereoModes? s) {
 			return (s.GetValueOrDefault(VideoSection.OldStereoModes.Mono)) switch
 			{
-				VideoSection.OldStereoModes.Mono => StereoModes.Mono,
-				_ => StereoModes.Other,
+				VideoSection.OldStereoModes.Mono => StereoMode.Mono,
+				_ => StereoMode.Other,
 			};
 		}
 	}

@@ -1,4 +1,5 @@
 ﻿using AVDump3Lib.Information.MetaInfo.Core;
+using ExtKnot.StringInvariants;
 using System.Resources;
 
 namespace AVDump3Lib.Reporting.Core {
@@ -10,7 +11,7 @@ namespace AVDump3Lib.Reporting.Core {
 
 	public delegate IReport CreateReport(FileMetaInfo fileMetaInfo);
 	public class ReportFactory : IReportFactory {
-		private CreateReport createReport;
+		private readonly CreateReport createReport;
 
 		public string Name { get; }
 		public string Description { get; }
@@ -25,7 +26,7 @@ namespace AVDump3Lib.Reporting.Core {
 
 
 		private static string GetDescription(string name) {
-			var description = Lang.ResourceManager.GetString(name.Replace("-", "") + "Description");
+			var description = Lang.ResourceManager.GetInvString(name.InvReplace("-", "") + "Description");
 			return !string.IsNullOrEmpty(description) ? description : "<NoDescriptionGiven>";
 		}
 

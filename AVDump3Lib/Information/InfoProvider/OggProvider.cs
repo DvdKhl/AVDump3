@@ -8,11 +8,11 @@ using System.Linq;
 
 namespace AVDump3Lib.Information.InfoProvider {
 	public class OggProvider : MediaProvider {
-		public OggFile FileInfo { get; private set; }
+		public OggFile? FileInfo { get; private set; }
 
-		public OggProvider(OggFile oggFile) : base("OggProvider") { Populate(oggFile); }
+		public OggProvider(OggFile? oggFile) : base("OggProvider") { Populate(oggFile); }
 
-		private void Populate(OggFile oggFile) {
+		private void Populate(OggFile? oggFile) {
 			if(oggFile == null) {
 				return;
 			}

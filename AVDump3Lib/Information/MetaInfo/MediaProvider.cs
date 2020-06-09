@@ -54,7 +54,7 @@ namespace AVDump3Lib.Information.MetaInfo {
 	}
 
 	#region MediaStream
-	public class MediaStream {
+	public static class MediaStream {
 		public static readonly MetaInfoItemType<ulong> IdType = new MetaInfoItemType<ulong>("Id");
 		public static readonly MetaInfoItemType<int> IndexType = new MetaInfoItemType<int>("Index");
 		public static readonly MetaInfoItemType<bool> IsEnabledType = new MetaInfoItemType<bool>("IsEnabled");
@@ -107,22 +107,22 @@ namespace AVDump3Lib.Information.MetaInfo {
 		public SampleRateCountPair(double rate, long count) { Rate = rate; Count = count; }
 		public override string ToString() { return string.Format(CultureInfo.InvariantCulture, "{0}, {1}", Rate, Count); }
 	}
-	public class AudioStream {
+	public static class AudioStream {
 		public static readonly MetaInfoItemType<int> ChannelCountType = new MetaInfoItemType<int>("ChannelCount");
 		public static readonly MetaInfoItemType<int> BitDepthType = new MetaInfoItemType<int>("BitDepth");
 	}
 
 	#region VideoStream
-	public class VideoStream {
+	public static class VideoStream {
 		public static readonly MetaInfoItemType<bool> IsInterlacedType = new MetaInfoItemType<bool>("IsInterlaced");
 		public static readonly MetaInfoItemType<bool> HasVariableFrameRateType = new MetaInfoItemType<bool>("HasVariableFrameRate");
 		public static readonly MetaInfoItemType<bool> HasAlphaType = new MetaInfoItemType<bool>("HasAlpha");
-		public static readonly MetaInfoItemType<StereoModes> StereoModeType = new MetaInfoItemType<StereoModes>("StereoMode");
+		public static readonly MetaInfoItemType<StereoMode> StereoModeType = new MetaInfoItemType<StereoMode>("StereoMode");
 
 		public static readonly MetaInfoItemType<Dimensions> PixelDimensionsType = new MetaInfoItemType<Dimensions>("PixelDimensions");
 		public static readonly MetaInfoItemType<Dimensions> DisplayDimensionsType = new MetaInfoItemType<Dimensions>("DisplayDimensions");
-		public static readonly MetaInfoItemType<DisplayUnits> DisplayUnitType = new MetaInfoItemType<DisplayUnits>("DisplayUnit");
-		public static readonly MetaInfoItemType<AspectRatioBehaviors> AspectRatioBehaviorType = new MetaInfoItemType<AspectRatioBehaviors>("AspectRatioBehavior");
+		public static readonly MetaInfoItemType<DisplayUnit> DisplayUnitType = new MetaInfoItemType<DisplayUnit>("DisplayUnit");
+		public static readonly MetaInfoItemType<AspectRatioBehavior> AspectRatioBehaviorType = new MetaInfoItemType<AspectRatioBehavior>("AspectRatioBehavior");
 
 		public static readonly MetaInfoItemType<double> DisplayAspectRatioType = new MetaInfoItemType<double>("DisplayAspectRatio");
 		public static readonly MetaInfoItemType<double> PixelAspectRatioType = new MetaInfoItemType<double>("PixelAspectRatio");
@@ -132,13 +132,11 @@ namespace AVDump3Lib.Information.MetaInfo {
 		public static readonly MetaInfoItemType<ChromeSubsampling> ChromaSubsamplingType = new MetaInfoItemType<ChromeSubsampling>("ChromaSubsampling");
 		public static readonly MetaInfoItemType<int> ColorSpaceType = new MetaInfoItemType<int>("ColorSpace");
 		public static readonly MetaInfoItemType<int> ColorBitDepthType = new MetaInfoItemType<int>("ColorBitDepth");
-
-
 	}
 
-	public enum StereoModes { Mono, LeftRight, TopBottom, Checkboard, RowInterleaved, ColumnInterleaved, FrameAlternating, Reversed = 1 << 30, Other = 1 << 31, AnaGlyph, CyanRed, GreenMagenta }
-	public enum DisplayUnits { Invalid, Pixel, Meter, AspectRatio, Unknown }
-	public enum AspectRatioBehaviors { Invalid, FreeResizing, KeepAR, Fixed, Unknown }
+	public enum StereoMode { Mono, LeftRight, TopBottom, Checkboard, RowInterleaved, ColumnInterleaved, FrameAlternating, Reversed = 1 << 30, Other = 1 << 31, AnaGlyph, CyanRed, GreenMagenta }
+	public enum DisplayUnit { Invalid, Pixel, Meter, AspectRatio, Unknown }
+	public enum AspectRatioBehavior { Invalid, FreeResizing, KeepAR, Fixed, Unknown }
 
 	public class ChromeSubsampling {
 		public int Y { get; }
@@ -187,7 +185,7 @@ namespace AVDump3Lib.Information.MetaInfo {
 	#endregion
 
 	#region Attachment
-	public class Attachment {
+	public static class Attachment {
 		public static readonly MetaInfoItemType<long> IdType = new MetaInfoItemType<long>("Id");
 		public static readonly MetaInfoItemType<long> SizeType = new MetaInfoItemType<long>("Size", "bytes");
 		public static readonly MetaInfoItemType<string> DescriptionType = new MetaInfoItemType<string>("Description");
@@ -197,22 +195,22 @@ namespace AVDump3Lib.Information.MetaInfo {
 	#endregion
 
 	#region Planes
-	public class CombineTrackPlanes {
+	public static class CombineTrackPlanes {
 		public static readonly MetaInfoItemType<CombineTrackPlane> CombineTrackPlaneType = new MetaInfoItemType<CombineTrackPlane>("CombineTrackPlane");
 
 	}
 	public class CombineTrackPlane {
 		public static readonly MetaInfoItemType<int> TrackIdType = new MetaInfoItemType<int>("TrackId");
-		public static readonly MetaInfoItemType<TrackPlaneTypes> TrackPlaneTypeType = new MetaInfoItemType<TrackPlaneTypes>("TrackPlaneTypes");
+		public static readonly MetaInfoItemType<TrackPlaneType> TrackPlaneTypeType = new MetaInfoItemType<TrackPlaneType>("TrackPlaneTypes");
 	}
-	public enum TrackPlaneTypes { Left, Right, Background }
-	public class JoinTrackBlocks {
+	public enum TrackPlaneType { Left, Right, Background }
+	public static class JoinTrackBlocks {
 		public static readonly MetaInfoItemType<int> TrackIdType = new MetaInfoItemType<int>("TrackId");
 	}
 	#endregion
 
 	#region Chapters
-	public class Chapters {
+	public static class Chapters {
 		public static readonly MetaInfoItemType<int> IdType = new MetaInfoItemType<int>("Id");
 		public static readonly MetaInfoItemType<string> FormatType = new MetaInfoItemType<string>("Format");
 		public static readonly MetaInfoItemType<bool> IsHiddenType = new MetaInfoItemType<bool>("IsHidden");
@@ -221,7 +219,7 @@ namespace AVDump3Lib.Information.MetaInfo {
 		public static readonly MetaInfoContainerType ChapterType = new MetaInfoContainerType("Chapter");
 	}
 
-	public class Chapter {
+	public static class Chapter {
 
 		public static readonly MetaInfoItemType<int> IdType = new MetaInfoItemType<int>("Id");
 		public static readonly MetaInfoItemType<string> IdStringType = new MetaInfoItemType<string>("IdString");
@@ -239,7 +237,7 @@ namespace AVDump3Lib.Information.MetaInfo {
 		public static readonly MetaInfoItemType<bool> IsHiddenType = new MetaInfoItemType<bool>("IsHidden");
 		public static readonly MetaInfoItemType<bool> IsEnabledType = new MetaInfoItemType<bool>("IsEnabled");
 
-		public static readonly MetaInfoItemType<ChapterTitle> TitleType = new MetaInfoItemType<ChapterTitle>("Title");
+		public static readonly MetaInfoItemType<ImmutableArray<ChapterTitle>> TitlesType = new MetaInfoItemType<ImmutableArray<ChapterTitle>>("Titles");
 
 		public static readonly MetaInfoItemType<bool> HasOperationsType = new MetaInfoItemType<bool>("HasOperations");
 	}
@@ -262,7 +260,7 @@ namespace AVDump3Lib.Information.MetaInfo {
 
 	#region Tags
 	public class TargetedTag {
-		public string TargetTitle { get; private set; }
+		public string TargetTitle { get; private set; } = "";
 		public TargetedTagType TargetType { get; private set; }
 
 		public ReadOnlyCollection<Tag> Tags { get; private set; }

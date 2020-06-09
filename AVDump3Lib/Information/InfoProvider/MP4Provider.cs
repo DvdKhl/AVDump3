@@ -9,14 +9,14 @@ using System.Linq;
 
 namespace AVDump3Lib.Information.InfoProvider {
 	public class MP4Provider : MediaProvider {
-		public MP4Node RootBox { get; private set; }
+		public MP4Node? RootBox { get; private set; }
 
 		public MP4Provider(string name) : base(name) {
 		}
 
-		public MP4Provider(MP4Node box) : base("MP4Provider") { Populate(box); }
+		public MP4Provider(MP4Node? box) : base("MP4Provider") { Populate(box); }
 
-		private void Populate(MP4Node box) {
+		private void Populate(MP4Node? box) {
 			RootBox = box;
 			if(RootBox == null) {
 				return;

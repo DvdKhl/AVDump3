@@ -383,9 +383,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 						languages.Add(languageChapters);
 					}
 
-
-
-					Add(chapter, Chapter.TitleType, new ChapterTitle(title, languages, Array.Empty<string>()));
+					Add(chapter, Chapter.TitlesType, ImmutableArray.Create(new ChapterTitle(title, languages, Array.Empty<string>())));
 				}
 			}
 
