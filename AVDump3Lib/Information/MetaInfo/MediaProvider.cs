@@ -17,6 +17,8 @@ namespace AVDump3Lib.Information.MetaInfo {
 		public MediaProvider(string name) : base(name, MediaProviderType) { }
 		public static readonly MetaInfoContainerType MediaProviderType = new MetaInfoContainerType("MediaProvider");
 
+		public static readonly MetaInfoItemType<string> FileTypeIdentifierType = new MetaInfoItemType<string>("FileTypeIdentifier"); //TODO
+
 		public static readonly MetaInfoItemType<long> FileSizeType = new MetaInfoItemType<long>("FileSize", "bytes");
 		public static readonly MetaInfoItemType<long> OverheadType = new MetaInfoItemType<long>("Overhead", "bytes");
 		public static readonly MetaInfoItemType<string> ContainerVersionType = new MetaInfoItemType<string>("ContainerVersion");

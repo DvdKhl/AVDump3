@@ -516,7 +516,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 		}
 	}
 	public class SMILFileType : FileType {
-		public SMILFileType() : base("", identifier: "SMIL") { PossibleExtensions = new string[] { "smil" }; fileType = MediaProvider.MediaStreamType; }
+		public SMILFileType() : base("", identifier: "SMIL") { PossibleExtensions = new string[] { "smil" }; }
 
 		public override void ElaborateCheck(Stream stream) {
 			if(!IsCandidate) return;
@@ -612,13 +612,36 @@ namespace AVDump3Lib.Information.InfoProvider {
 			if(str.IndexOf("% zerog") < 0) { IsCandidate = false; return; }
 		}
 	}
-	public class C7zFileType : FileType { public C7zFileType() : base(new byte[] { 0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C }, identifier: "compression/7z") => PossibleExtensions = new string[] { "7z" }; }
-	public class ZipFileType : FileType { public ZipFileType() : base(new byte[][] { new byte[] { 0x50, 0x4b, 0x03, 0x04 }, new byte[] { 0x50, 0x4b, 0x30, 0x30, 0x50, 0x4b } }, identifier: "compression/zip") => PossibleExtensions = new string[] { "zip" }; }
-	public class RarFileType : FileType { public RarFileType() : base(new byte[] { 0x52, 0x61, 0x72, 0x21 }, identifier: "compression/rar") => PossibleExtensions = new string[] { "rar" }; }
+	public class C7zFileType : FileType {
+		public C7zFileType() : base(new byte[] { 0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C }, identifier: "compression/7z") => PossibleExtensions = new string[] { "7z" };
+		public override void AddInfo(MetaDataProvider provider) {
+			if(!string.IsNullOrEmpty(identifier)) {
+				var container = new MetaInfoContainer(0, fileType);
+				provider.AddNode(container);
+				provider.Add(container, MediaProvider.FileTypeIdentifierType, identifier);
+			}
+		}
+	}
+	public class ZipFileType : FileType {
+		public ZipFileType() : base(new byte[][] { new byte[] { 0x50, 0x4b, 0x03, 0x04 }, new byte[] { 0x50, 0x4b, 0x30, 0x30, 0x50, 0x4b } }, identifier: "compression/zip") => PossibleExtensions = new string[] { "zip" };
+		public override void AddInfo(MetaDataProvider provider) {
+			if(!string.IsNullOrEmpty(identifier)) {
+				provider.Add(MediaProvider.FileTypeIdentifierType, identifier);
+			}
+		}
+	}
+	public class RarFileType : FileType {
+		public RarFileType() : base(new byte[] { 0x52, 0x61, 0x72, 0x21 }, identifier: "compression/rar") => PossibleExtensions = new string[] { "rar" };
+		public override void AddInfo(MetaDataProvider provider) {
+			if(!string.IsNullOrEmpty(identifier)) {
+				provider.Add(MediaProvider.FileTypeIdentifierType, identifier);
+			}
+		}
+	}
 	public class RaFileType : FileType { public RaFileType() : base(".ra" + (char)0xfd) { PossibleExtensions = new string[] { "ra" }; fileType = MediaProvider.AudioStreamType; } }
 	public class FlacFileType : FileType { public FlacFileType() : base("fLaC") { PossibleExtensions = new string[] { "flac" }; fileType = MediaProvider.AudioStreamType; } }
 	public class AviFileType : FileType { public AviFileType() : base("RIFF") { PossibleExtensions = new string[] { "avi" }; fileType = MediaProvider.VideoStreamType; } public override void ElaborateCheck(Stream stream) => IsCandidate &= Check(stream, 8, "AVI LIST"); }
-	public class WavFileType : FileType { public WavFileType() : base(new string[] { "RIFX", "RIFF" }) => PossibleExtensions = new string[] { "wav" }; public override void ElaborateCheck(Stream stream) => IsCandidate &= Check(stream, 8, "WAVE"); }
+	public class WavFileType : FileType { public WavFileType() : base(new string[] { "RIFX", "RIFF" }) { PossibleExtensions = new string[] { "wav" }; fileType = MediaProvider.AudioStreamType; } public override void ElaborateCheck(Stream stream) => IsCandidate &= Check(stream, 8, "WAVE"); }
 
 	public abstract class FileType : IFileType {
 		private byte[][] magicBytesLst;
