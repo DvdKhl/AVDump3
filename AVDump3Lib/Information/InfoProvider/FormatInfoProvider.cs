@@ -616,9 +616,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 		public C7zFileType() : base(new byte[] { 0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C }, identifier: "compression/7z") => PossibleExtensions = new string[] { "7z" };
 		public override void AddInfo(MetaDataProvider provider) {
 			if(!string.IsNullOrEmpty(identifier)) {
-				var container = new MetaInfoContainer(0, fileType);
-				provider.AddNode(container);
-				provider.Add(container, MediaProvider.FileTypeIdentifierType, identifier);
+				provider.Add(MediaProvider.FileTypeIdentifierType, identifier);
 			}
 		}
 	}
