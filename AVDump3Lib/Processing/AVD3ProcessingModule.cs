@@ -102,12 +102,12 @@ namespace AVDump3Lib.Processing {
 		}
 
 
-		public IStreamProvider CreateFileStreamProvider(string[] paths, PathPartitions pathPartitions, Action<string> onPathAccepted, Action<Exception> onError) {
+		public IStreamProvider CreateFileStreamProvider(string[] paths, bool recursive, PathPartitions pathPartitions, Action<string> onPathAccepted, Action<Exception> onError) {
 			var filePathFilterEventArgs = new FilePathFilterEventArgs();
 
 			var acceptedFileCountCursorTop = Console.CursorTop++;
 			var fileDiscoveryOn = DateTimeOffset.UtcNow;
-			var spp = new StreamFromPathsProvider(pathPartitions, paths, true,
+			var spp = new StreamFromPathsProvider(pathPartitions, paths, recursive,
 				path => {
 					filePathFilterEventArgs.Reset(path);
 					FilePathFilter(this, filePathFilterEventArgs);

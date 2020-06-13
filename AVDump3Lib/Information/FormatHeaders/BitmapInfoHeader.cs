@@ -27,7 +27,7 @@ namespace AVDump3Lib.Information.FormatHeaders {
 		public string FourCC { get { return new string(new char[] { (char)((Compression >> 00) & 0xFF), (char)((Compression >> 08) & 0xFF), (char)((Compression >> 16) & 0xFF), (char)((Compression >> 24) & 0xFF) }); } }
 
 		public BitmapInfoHeader(byte[] b) {
-			if(b == null || b.Length < 40) throw new ArgumentException("Passed array need to be at least 40 bytes long", "b");
+			if(b == null || b.Length < 40) throw new ArgumentException("Passed array need to be at least 40 bytes long", nameof(b));
 
 			var pos = 0;
 			Size = BitConverter.ToUInt32(b, pos); pos += 4;

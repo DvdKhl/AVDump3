@@ -112,7 +112,6 @@ namespace AVDump3Lib.Information.InfoProvider {
 			Add(chapter, Chapter.SegmentChaptersIdType, (int?)atom.ChapterSegmentEditionUId);
 			Add(chapter, Chapter.PhysicalEquivalentType, (int?)atom.ChapterPhysicalEquiv);
 			if(atom.ChapterTrack != null) foreach(var tid in atom.ChapterTrack.ChapterTrackNumbers) Add(chapter, Chapter.AssociatedTrackType, (int)tid);
-			Add(chapter, Chapter.SegmentIdType, atom.ChapterSegmentUId);
 
 			var titles = ImmutableArray.CreateBuilder<ChapterTitle>();
 			foreach(var chapterDisplay in atom.ChapterDisplays) titles.Add(new ChapterTitle(chapterDisplay.ChapterString, chapterDisplay.ChapterLanguages, chapterDisplay.ChapterCountries));

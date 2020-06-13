@@ -137,8 +137,8 @@ First param (max) sets a global limit. (path,max) pairs sets limits per path.</v
     <value>--Consumers=&lt;ConsumerName1&gt;[,&lt;ConsumerName2&gt;,...]</value>
   </data>
   <data name="CRC32ErrorDescription" xml:space="preserve">
-    <value>Searches the filename for the calculated CRC32 hash. If not present or different a line with the caluclated hash and the full path of the file is appended to the specified path. 
-The regex pattern should contain the placeholder "&lt;CRC32&gt;" which is replaced by the calculated hash prior matching.</value>
+    <value>Searches the filename for the calculated CRC32 hash. If not present or different a line with the caluclated hash and the full path of the file is appended to the specified path
+The regex pattern should contain the placeholder "&lt;CRC32&gt;" which is replaced by the calculated hash prior matching</value>
   </data>
   <data name="CRC32ErrorExample" xml:space="preserve">
     <value>--CRC32Error=&lt;Filepath&gt;:&lt;RegexPattern&gt;</value>
@@ -162,7 +162,7 @@ The regex pattern should contain the placeholder "&lt;CRC32&gt;" which is replac
     <value>--EDPath=extdiff.txt</value>
   </data>
   <data name="ForwardConsoleCursorOnlyDescription" xml:space="preserve">
-    <value>The cursor position of the console will not be explicitly set. This option will disable most progress output.</value>
+    <value>The cursor position of the console will not be explicitly set. This option will disable most progress output</value>
   </data>
   <data name="ForwardConsoleCursorOnlyExample" xml:space="preserve">
     <value>--ForwardConsoleCursorOnly</value>
@@ -234,7 +234,7 @@ The regex pattern should contain the placeholder "&lt;CRC32&gt;" which is replac
     <value>--ReportDirectory=&lt;Directory&gt;</value>
   </data>
   <data name="ReportFileNameDescription" xml:space="preserve">
-    <value>Reports will be saved/appended to the specified filename.
+    <value>Reports will be saved/appended to the specified filename
 The following placeholders can be used: &lt;FileName&gt;, &lt;FileNameWithoutExtension&gt;, &lt;FileExtension&gt;, &lt;ReportName&gt;, ReportFileExtension</value>
   </data>
   <data name="ReportFileNameExample" xml:space="preserve">
@@ -247,7 +247,7 @@ The following placeholders can be used: &lt;FileName&gt;, &lt;FileNameWithoutExt
     <value>--Reports</value>
   </data>
   <data name="SaveErrorsDescription" xml:space="preserve">
-    <value>Errors occuring during program execution will be saved to disk.</value>
+    <value>Errors occuring during program execution will be saved to disk</value>
   </data>
   <data name="SaveErrorsExample" xml:space="preserve">
     <value>--SaveErrors</value>

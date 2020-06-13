@@ -220,6 +220,8 @@ namespace AVDump3CL {
 
 
 		public NullStreamProvider CreateNullStreamProvider() {
+			if(settings.Diagnostics.NullStreamTest == null) throw new AVD3CLException("Called CreateNullStreamProvider where Diagnostics.NullStreamTest was null");
+
 			var nsp = new NullStreamProvider(
 				settings.Diagnostics.NullStreamTest.StreamCount,
 				settings.Diagnostics.NullStreamTest.StreamLength,
@@ -274,6 +276,7 @@ namespace AVDump3CL {
 			}
 
 			if(settings.Processing.PauseBeforeExit) {
+				Console.WriteLine("Program execution has finished. Press any key to exit.");
 				Console.Read();
 			}
 		}
@@ -282,7 +285,7 @@ namespace AVDump3CL {
 			var acceptedFiles = 0;
 			var fileDiscoveryOn = DateTimeOffset.UtcNow;
 			var sp = (StreamFromPathsProvider)processingModule.CreateFileStreamProvider(
-				paths, settings.FileDiscovery.Concurrent,
+				paths, settings.FileDiscovery.Recursive, settings.FileDiscovery.Concurrent,
 				path => {
 					if(fileDiscoveryOn.AddSeconds(1) < DateTimeOffset.UtcNow) {
 						Console.WriteLine("Accepted files: " + acceptedFiles);
@@ -438,7 +441,7 @@ namespace AVDump3CL {
 
 			success &= (await Task.WhenAll(fileProcessedEventArgs.ProcessingTasks).ConfigureAwait(false)).All(x => x);
 
-			if(settings.FileDiscovery.ProcessedLogPath != null && success) {
+			if(!string.IsNullOrEmpty(settings.FileDiscovery.ProcessedLogPath) && success) {
 				lock(settings.FileDiscovery) File.AppendAllText(settings.FileDiscovery.ProcessedLogPath, filePath + "\n");
 			}
 
@@ -451,8 +454,7 @@ namespace AVDump3CL {
 	}
 
 	public class AVD3CLException : AVD3LibException {
-		public AVD3CLException(string message, Exception innerException) : base(message, innerException) {
-
-		}
+		public AVD3CLException(string message, Exception innerException) : base(message, innerException) { }
+		public AVD3CLException(string message) : base(message) { }
 	}
 }

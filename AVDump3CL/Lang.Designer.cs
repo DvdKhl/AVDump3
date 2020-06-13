@@ -116,8 +116,8 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Searches the filename for the calculated CRC32 hash. If not present or different a line with the caluclated hash and the full path of the file is appended to the specified path. 
-        ///The regex pattern should contain the placeholder &quot;&lt;CRC32&gt;&quot; which is replaced by the calculated hash prior matching..
+        ///   Looks up a localized string similar to Searches the filename for the calculated CRC32 hash. If not present or different a line with the caluclated hash and the full path of the file is appended to the specified path
+        ///The regex pattern should contain the placeholder &quot;&lt;CRC32&gt;&quot; which is replaced by the calculated hash prior matching.
         /// </summary>
         internal static string CRC32ErrorDescription {
             get {
@@ -189,7 +189,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The cursor position of the console will not be explicitly set. This option will disable most progress output..
+        ///   Looks up a localized string similar to The cursor position of the console will not be explicitly set. This option will disable most progress output.
         /// </summary>
         internal static string ForwardConsoleCursorOnlyDescription {
             get {
@@ -405,7 +405,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Reports will be saved/appended to the specified filename.
+        ///   Looks up a localized string similar to Reports will be saved/appended to the specified filename
         ///The following placeholders can be used: &lt;FileName&gt;, &lt;FileNameWithoutExtension&gt;, &lt;FileExtension&gt;, &lt;ReportName&gt;, ReportFileExtension.
         /// </summary>
         internal static string ReportFileNameDescription {
@@ -442,7 +442,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Errors occuring during program execution will be saved to disk..
+        ///   Looks up a localized string similar to Errors occuring during program execution will be saved to disk.
         /// </summary>
         internal static string SaveErrorsDescription {
             get {

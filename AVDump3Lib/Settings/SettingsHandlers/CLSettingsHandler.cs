@@ -19,7 +19,7 @@ namespace AVDump3Lib.Settings.CLArguments {
 	}
 
 	public interface ICLConvert {
-		string ToCLString(SettingsProperty prop, object? obj);
+		string? ToCLString(SettingsProperty prop, object? obj);
 		object? FromCLString(SettingsProperty prop, string? str);
 	}
 
@@ -152,7 +152,7 @@ namespace AVDump3Lib.Settings.CLArguments {
 					defaultValue = prop.DefaultValue?.ToString();
 				}
 
-				PrintLine(argToString(prop).PadRight(descPad, ' ') + " | " + example + " (" + (defaultValue ?? "<null>") + ")");
+				PrintLine(argToString(prop).PadRight(descPad, ' ') + " | " + example + " (" + ("".InvEquals(defaultValue) ? "▶8 <Empty>◀" : defaultValue ?? "▶8 <null>◀") + ")");
 				if(detailed && !string.IsNullOrEmpty(description)) {
 					if(!string.IsNullOrEmpty(description)) {
 						PrintLine(!Utils.UsingWindows ? description : "▶8 " + description + "◀");
