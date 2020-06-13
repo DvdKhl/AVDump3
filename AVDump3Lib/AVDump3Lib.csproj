@@ -13,8 +13,8 @@
     <NeutralLanguage>en</NeutralLanguage>
     <ApplicationIcon></ApplicationIcon>
     <Platforms>AnyCPU;x64</Platforms>
-    <AssemblyVersion>3.0.8076.0</AssemblyVersion>
-    <FileVersion>3.0.8076.0</FileVersion>
+    <AssemblyVersion>3.0.8077.0</AssemblyVersion>
+    <FileVersion>3.0.8077.0</FileVersion>
     <Configurations>Debug;Release;GithubWorkflow</Configurations>
     <Nullable>enable</Nullable>
   </PropertyGroup>

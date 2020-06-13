@@ -54,6 +54,13 @@ namespace AVDump3CL {
 		private static readonly CLSettingsHandler clSettingsHandler = new CLSettingsHandler();
 
 		static void Main(string[] args) {
+			//Environment.CurrentDirectory = @"D:\Projects\C#\AVDump3\AVDump3CL\bin\x64\Release\netcoreapp3.1\AVD3 Build 8076";
+			//var appHashFiles = new[] { "AVDump3CL.exe", "AVDump3CL.dll", "AVD3AniDBModule.deps.json", "AVDump3CL.runtimeconfig.json", "BXmlLib.dll", "AVDump3NativeLib.dll", "AVDump3NativeLib.so", "AVDump3Lib.dll", "AVD3AniDBModule.dll", "AVD3AniDBModule.deps.json" };
+			//var milHashFiles = new[] { "MediaInfo.dll", "MediaInfo.so" };
+			//var appHash = BitConverter.ToString(SHA1.Create().ComputeHash(appHashFiles.SelectMany(x => File.ReadAllBytes(x)).ToArray())).Replace("-", "");
+			//var milHash = BitConverter.ToString(SHA1.Create().ComputeHash(milHashFiles.SelectMany(x => File.ReadAllBytes(x)).ToArray())).Replace("-", "");
+			//var hashes = $"App={appHash} Mil={milHash}";
+
 			if(args.Length > 0 && args[0].Equals("FROMFILE")) {
 				if(args.Length < 2 || !File.Exists(args[1])) {
 					Console.WriteLine("FROMFILE: File not found");

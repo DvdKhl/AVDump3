@@ -119,7 +119,7 @@ namespace AVDump3Lib.Information.MetaInfo {
 		public static readonly MetaInfoItemType<bool> IsInterlacedType = new MetaInfoItemType<bool>("IsInterlaced");
 		public static readonly MetaInfoItemType<bool> HasVariableFrameRateType = new MetaInfoItemType<bool>("HasVariableFrameRate");
 		public static readonly MetaInfoItemType<bool> HasAlphaType = new MetaInfoItemType<bool>("HasAlpha");
-		public static readonly MetaInfoItemType<StereoMode> StereoModeType = new MetaInfoItemType<StereoMode>("StereoMode");
+		public static readonly MetaInfoItemType<StereoModes> StereoModeType = new MetaInfoItemType<StereoModes>("StereoMode");
 
 		public static readonly MetaInfoItemType<Dimensions> PixelDimensionsType = new MetaInfoItemType<Dimensions>("PixelDimensions");
 		public static readonly MetaInfoItemType<Dimensions> DisplayDimensionsType = new MetaInfoItemType<Dimensions>("DisplayDimensions");
@@ -136,7 +136,22 @@ namespace AVDump3Lib.Information.MetaInfo {
 		public static readonly MetaInfoItemType<int> ColorBitDepthType = new MetaInfoItemType<int>("ColorBitDepth");
 	}
 
-	public enum StereoMode { Mono, LeftRight, TopBottom, Checkboard, RowInterleaved, ColumnInterleaved, FrameAlternating, Reversed = 1 << 30, Other = 1 << 31, AnaGlyph, CyanRed, GreenMagenta }
+	[Flags]
+	public enum StereoModes {
+		Invalid = 0,
+		Mono = 1 << 0,
+		LeftRight = 1 << 1,
+		TopBottom = 1 << 2,
+		Checkboard = 1 << 3,
+		RowInterleaved = 1 << 4,
+		ColumnInterleaved = 1 << 5,
+		FrameAlternating = 1 << 6,
+		AnaGlyph = 1 << 7,
+		CyanRed = 1 << 8,
+		GreenMagenta = 1 << 9,
+		Reversed = 1 << 30,
+		Other = 1 << 31
+	}
 	public enum DisplayUnit { Invalid, Pixel, Meter, AspectRatio, Unknown }
 	public enum AspectRatioBehavior { Invalid, FreeResizing, KeepAR, Fixed, Unknown }
 
