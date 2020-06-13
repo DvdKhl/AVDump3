@@ -108,7 +108,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 			Add(chapter, Chapter.TimeEndType, atom.ChapterTimeEnd.OnNotNullReturn(v => v / 1000000000d));
 			Add(chapter, Chapter.IsHiddenType, atom.ChapterFlags.HasFlag(ChapterAtomSection.Options.Hidden));
 			Add(chapter, Chapter.IsEnabledType, atom.ChapterFlags.HasFlag(ChapterAtomSection.Options.Enabled));
-			Add(chapter, Chapter.SegmentIdType, atom.ChapterSegmentUId);
+			if(atom.ChapterSegmentUId != null) Add(chapter, Chapter.SegmentIdType, atom.ChapterSegmentUId); //Can't use OnNotNullReturn. Null converts to ReadOnlyMemory<byte>[0]
 			Add(chapter, Chapter.SegmentChaptersIdType, (int?)atom.ChapterSegmentEditionUId);
 			Add(chapter, Chapter.PhysicalEquivalentType, (int?)atom.ChapterPhysicalEquiv);
 			if(atom.ChapterTrack != null) foreach(var tid in atom.ChapterTrack.ChapterTrackNumbers) Add(chapter, Chapter.AssociatedTrackType, (int)tid);
