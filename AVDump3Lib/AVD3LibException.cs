@@ -107,6 +107,6 @@ namespace AVDump3Lib {
 
 		public object Data { get; private set; }
 		public SensitiveData(object data) { Data = data; }
-		public override string ToString() { return "Hidden(" + ComputeHash(Data?.ToString()) + ")"; }
+		public override string ToString() { return "Hidden(" + ComputeHash(Data?.ToString() ?? "") + ")"; }
 	}
 }
