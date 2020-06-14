@@ -29,8 +29,8 @@ namespace AVDump3Lib.Information.InfoProvider {
 		public MatroskaProvider(MatroskaFile? mfi) : base("MatroskaProvider") { Populate(mfi); }
 
 		private void Populate(MatroskaFile? mfi) {
+			if(!(mfi?.HasMetaData() ?? false)) return;
 			MFI = mfi;
-			if(MFI == null) return;
 
 			Add(FileSizeType, MFI.SectionSize);
 			Add(ContainerVersionType, $"DocType={MFI.EbmlHeader.DocType} DocTypeVersion={MFI.EbmlHeader.DocTypeVersion}");
