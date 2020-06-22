@@ -28,7 +28,6 @@ namespace AVDump3Lib.Processing {
 
 		internal void Reset(string filePath) { FilePath = filePath; Accepted = true; }
 	}
-
 	public class AVD3ProcessingModule : IAVD3ProcessingModule {
 		private static class NativeMethods {
 			[DllImport("AVDump3NativeLib")]

@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -20,6 +21,7 @@ namespace AVDump3CL {
 		public ReportingSettings Reporting { get; }
 		public DisplaySettings Display { get; }
 		public DiagnosticsSettings Diagnostics { get; }
+		public FileMoveSettings FileMove { get; }
 
 		public bool UseNtfsAlternateStreams { get; set; }
 
@@ -29,6 +31,7 @@ namespace AVDump3CL {
 			Reporting = new ReportingSettings();
 			Display = new DisplaySettings();
 			Diagnostics = new DiagnosticsSettings();
+			FileMove = new FileMoveSettings();
 		}
 	}
 
@@ -160,6 +163,14 @@ namespace AVDump3CL {
 			set => SetValue(ProducerMaxReadLengthProperty, value);
 		}
 
+		public SettingsProperty FileMoveProperty { get; }
+		public string FileMove {
+			get => (string)GetRequiredValue(FileMoveProperty);
+			set => SetValue(FileMoveProperty, value);
+		}
+
+
+
 
 		[CLNames("PBExit")]
 		public SettingsProperty PauseBeforeExitProperty { get; }
@@ -188,6 +199,7 @@ namespace AVDump3CL {
 			ConsumersProperty = Register(nameof(Consumers), Array.Empty<ConsumerSettings>());
 			PrintAvailableSIMDsProperty = Register(nameof(PrintAvailableSIMDs), false);
 			PauseBeforeExitProperty = Register(nameof(PauseBeforeExit), false);
+			FileMoveProperty = Register(nameof(FileMove), "");
 		}
 
 		string? ICLConvert.ToCLString(SettingsProperty property, object? obj) {
@@ -219,6 +231,59 @@ namespace AVDump3CL {
 		}
 	}
 
+
+	public enum FileMoveMode { None, Placeholder, CSharpScriptFile, CSharpScriptInline }
+
+	public class FileMoveSettings : SettingsObject, ICLConvert {
+		public FileMoveSettings() : base("FileMove", Lang.ResourceManager) { }
+
+
+		public SettingsProperty MaxPendingFileMovesProperty { get; }
+		public int MaxPendingFileMoves {
+			get => (int)GetRequiredValue(MaxPendingFileMovesProperty);
+			set => SetValue(MaxPendingFileMovesProperty, value);
+		}
+		public SettingsProperty MaxConcurrentFileMovesProperty { get; }
+		public int MaxConcurrentFileMoves {
+			get => (int)GetRequiredValue(MaxConcurrentFileMovesProperty);
+			set => SetValue(MaxConcurrentFileMovesProperty, value);
+		}
+
+		public SettingsProperty ModeProperty { get; }
+		public FileMoveMode Mode {
+			get => (FileMoveMode)GetRequiredValue(ModeProperty);
+			set => SetValue(ModeProperty, value);
+		}
+
+		public SettingsProperty PatternProperty { get; }
+		public string Pattern {
+			get => (string)GetRequiredValue(PatternProperty);
+			set => SetValue(PatternProperty, value);
+		}
+
+
+		public SettingsProperty DisableFileMoveProperty { get; }
+		public bool DisableFileMove {
+			get => (bool)GetRequiredValue(DisableFileMoveProperty);
+			set => SetValue(DisableFileMoveProperty, value);
+		}
+
+
+		public SettingsProperty DisableFileRenameProperty { get; }
+		public bool DisableFileRename {
+			get => (bool)GetRequiredValue(DisableFileRenameProperty);
+			set => SetValue(DisableFileRenameProperty, value);
+		}
+
+		public SettingsProperty ReplacementsProperty { get; }
+		public IEnumerable<(string Value, string Replacement)> Replacements {
+			get => (IEnumerable<(string, string)>)GetRequiredValue(ReplacementsProperty);
+			set => SetValue(ReplacementsProperty, value);
+		}
+
+		object? ICLConvert.FromCLString(SettingsProperty prop, string? str) => throw new NotImplementedException();
+		string? ICLConvert.ToCLString(SettingsProperty prop, object? obj) => throw new NotImplementedException();
+	}
 
 	public class ReportingSettings : SettingsObject, ICLConvert {
 
@@ -261,8 +326,8 @@ namespace AVDump3CL {
 		}
 
 		public SettingsProperty CRC32ErrorProperty { get; }
-		public (string Path, string Pattern) CRC32Error {
-			get => ((string, string))GetRequiredValue(CRC32ErrorProperty);
+		public (string Path, string Pattern)? CRC32Error {
+			get => ((string, string)?)GetValue(CRC32ErrorProperty);
 			set => SetValue(CRC32ErrorProperty, value);
 		}
 
@@ -273,7 +338,7 @@ namespace AVDump3CL {
 			ReportDirectoryProperty = Register(nameof(ReportDirectory), Environment.CurrentDirectory);
 			ReportFileNameProperty = Register(nameof(ReportFileName), "<FileName>.<ReportName>.<ReportFileExtension>");
 			ExtensionDifferencePathProperty = Register(nameof(ExtensionDifferencePath), "");
-			CRC32ErrorProperty = Register(nameof(CRC32Error), ("", "(?i)<CRC32>"));
+			CRC32ErrorProperty = Register(nameof(CRC32Error), default((string, string)));
 		}
 
 		string? ICLConvert.ToCLString(SettingsProperty property, object? obj) {
@@ -293,7 +358,7 @@ namespace AVDump3CL {
 
 			} else if(property == CRC32ErrorProperty) {
 				var parts = str?.Split(':') ?? Array.Empty<string>();
-				var retVal = parts.Length == 1 ? (parts[0], (((string, string))(property.DefaultValue ?? ("", ""))).Item2) : (parts[0], parts[1]);
+				var retVal = parts.Length == 1 ? (parts[0], "(?i)<CRC32>") : (parts[0], parts[1]);
 
 				Regex.IsMatch("12345678", retVal.Item2.Replace("<CRC32>", "12345678")); //Throw Early on invalid Regex
 
@@ -344,6 +409,7 @@ namespace AVDump3CL {
 			ForwardConsoleCursorOnlyProperty = Register(nameof(ForwardConsoleCursorOnly), false);
 		}
 	}
+
 
 	public class NullStreamTestSettings {
 		public NullStreamTestSettings(int streamCount, long streamLength, int parallelStreamCount) {

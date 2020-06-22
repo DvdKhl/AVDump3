@@ -1,6 +1,7 @@
 using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks;
 using BXmlLib;
 using BXmlLib.DocTypes.Matroska;
+using ExtKnot.StringInvariants;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -153,17 +154,17 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster {
 			private void ExtractSubtitleInfo() {
 				var assOrSsaContent = Encoding.UTF8.GetString(mkvTrack.CodecPrivate);
 
-				var eventSectionStart = assOrSsaContent.IndexOf("[Events]");
+				var eventSectionStart = assOrSsaContent.InvIndexOf("[Events]");
 				if(eventSectionStart < 0) return;
 
-				var formatStart = assOrSsaContent.IndexOf("Format:", eventSectionStart);
+				var formatStart = assOrSsaContent.InvIndexOf("Format:", eventSectionStart);
 				if(formatStart < 0) return;
 				formatStart += 7;
 
-				var formatEnd = assOrSsaContent.IndexOf("\n", formatStart) - 1;
+				var formatEnd = assOrSsaContent.InvIndexOf("\n", formatStart) - 1;
 				if(formatEnd < 0) return;
 
-				var columns = assOrSsaContent.Substring(formatStart, formatEnd - formatStart).Replace(" ", "").Split(',');
+				var columns = assOrSsaContent.Substring(formatStart, formatEnd - formatStart).InvReplace(" ", "").Split(',');
 				var startIndex = Array.IndexOf(columns, "Start");
 				var endIndex = Array.IndexOf(columns, "End");
 

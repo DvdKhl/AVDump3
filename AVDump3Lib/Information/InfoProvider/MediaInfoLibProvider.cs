@@ -121,6 +121,9 @@ namespace AVDump3Lib.Information.InfoProvider {
 			if(Environment.OSVersion.ToString().InvIndexOf("Windows") == -1) {
 				UsingUTF32Encoding = true;
 				Option("setlocale_LC_CTYPE", "");
+				Option("FileTestContinuousFileNames", "0");
+
+
 			} else {
 				UsingUTF32Encoding = false;
 			}
@@ -454,6 +457,15 @@ namespace AVDump3Lib.Information.InfoProvider {
 				} else if(milInfoCommercial.InvContains("mlp")) {
 					Add(SuggestedFileExtensionType, ImmutableArray.Create("mlp"));
 				}
+
+			} else if(milInfo.Contains("ts")) {
+				Add(SuggestedFileExtensionType, ImmutableArray.Create("ts"));
+
+			} else if(milInfo.Contains("m2ts")) {
+				Add(SuggestedFileExtensionType, ImmutableArray.Create("m2ts"));
+
+			} else if(milInfo.Contains("wav")) {
+				Add(SuggestedFileExtensionType, ImmutableArray.Create("wav"));
 			}
 
 			if(Select(SuggestedFileExtensionType) == null) {

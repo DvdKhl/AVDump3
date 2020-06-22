@@ -10,8 +10,7 @@ using System.Threading.Tasks;
 
 namespace AVDump3Lib.Processing.StreamConsumer {
 	public interface IStreamConsumerCollection {
-		event EventHandler<ConsumingStreamEventArgs> ConsumingStream;
-		void ConsumeStreams(CancellationToken ct, IBytesReadProgress progress);
+		void ConsumeStreams(EventHandler<ConsumingStreamEventArgs> consumingStream, CancellationToken ct, IBytesReadProgress progress);
 	}
 
 	public interface IBytesReadProgress : IProgress<BlockStreamProgress> {
@@ -21,8 +20,6 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 
 
 	public class StreamConsumerCollection : IStreamConsumerCollection {
-		public event EventHandler<ConsumingStreamEventArgs> ConsumingStream;
-
 		private readonly IStreamConsumerFactory streamConsumerFactory;
 		private readonly IStreamProvider streamProvider;
 		private readonly object isRunningSyncRoot = new object();
@@ -35,7 +32,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 
 		public bool IsRunning { get; private set; }
 
-		public void ConsumeStreams(CancellationToken ct, IBytesReadProgress progress) {
+		public void ConsumeStreams(EventHandler<ConsumingStreamEventArgs> consumingStream, CancellationToken ct, IBytesReadProgress progress) {
 			lock(isRunningSyncRoot) {
 				if(IsRunning) throw new InvalidOperationException();
 				IsRunning = true;
@@ -52,7 +49,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 
 						counter.AddCount();
 						Task.Factory.StartNew(() => {
-							ConsumeStream(providedStream, progress, cts.Token);
+							ConsumeStream(providedStream, consumingStream, progress, cts.Token);
 						}, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current).ContinueWith(t => {
 							providedStream.Dispose();
 							if(t.IsFaulted || t.IsCanceled) {
@@ -76,10 +73,10 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 
 			lock(isRunningSyncRoot) IsRunning = false;
 		}
-		private void ConsumeStream(ProvidedStream providedStream, IBytesReadProgress progress, CancellationToken ct) {
+		private void ConsumeStream(ProvidedStream providedStream, EventHandler<ConsumingStreamEventArgs> consumingStream, IBytesReadProgress progress, CancellationToken ct) {
 			var tcs = new TaskCompletionSource<IReadOnlyCollection<IBlockConsumer>>();
-			var eventArgs = new ConsumingStreamEventArgs(providedStream.Tag, tcs.Task);
-			ConsumingStream?.Invoke(this, eventArgs);
+			var eventArgs = new ConsumingStreamEventArgs(providedStream.Tag, tcs.Task, ct);
+			consumingStream?.Invoke(this, eventArgs);
 
 			//Thread.CurrentThread.Priority = ThreadPriority.Highest;
 
@@ -154,16 +151,18 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 	public class ConsumingStreamEventArgs : EventArgs {
 		public object Tag { get; private set; }
 
-		public event EventHandler<StreamConsumerExceptionEventArgs> OnException;
+		public event EventHandler<StreamConsumerExceptionEventArgs> OnException = delegate { };
 		public Task<IReadOnlyCollection<IBlockConsumer>> FinishedProcessing { get; private set; }
+		public CancellationToken CT { get; }
 
 		internal void RaiseOnException(object sender, StreamConsumerExceptionEventArgs ex) {
 			OnException?.Invoke(sender, ex);
 		}
 
-		public ConsumingStreamEventArgs(object tag, Task<IReadOnlyCollection<IBlockConsumer>> finishedProcessing) {
-			Tag = tag;
+		public ConsumingStreamEventArgs(object tag, Task<IReadOnlyCollection<IBlockConsumer>> finishedProcessing, CancellationToken ct) {
 			FinishedProcessing = finishedProcessing;
+			Tag = tag;
+			CT = ct;
 		}
 	}
 

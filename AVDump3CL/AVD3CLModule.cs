@@ -14,6 +14,7 @@ using AVDump3Lib.Reporting;
 using AVDump3Lib.Settings;
 using AVDump3Lib.Settings.CLArguments;
 using ExtKnot.StringInvariants;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -41,11 +42,16 @@ namespace AVDump3CL {
 		public string FilePath { get; }
 		public ReadOnlyCollection<IBlockConsumer> BlockConsumers { get; }
 
-		private List<Task<bool>> processingTasks = new List<Task<bool>>();
+		private readonly List<Task<bool>> processingTasks = new List<Task<bool>>();
+		private readonly Dictionary<string, string> fileMoveTokens = new Dictionary<string, string>();
+
+		public IEnumerable<Task<bool>> ProcessingTasks => processingTasks;
+		public IReadOnlyDictionary<string, string> FileMoveTokens => fileMoveTokens;
 
 		public void AddProcessingTask(Task<bool> processingTask) => processingTasks.Add(processingTask);
 
-		public IEnumerable<Task<bool>> ProcessingTasks => processingTasks;
+		public void AddFileMoveToken(string key, string value) => fileMoveTokens.Add(key, value);
+
 
 		public AVD3CLFileProcessedEventArgs(string filePath, IEnumerable<IBlockConsumer> blockConsumers) {
 			FilePath = filePath;
@@ -212,7 +218,7 @@ namespace AVDump3CL {
 
 			CreateDirectoryChain(settings.FileDiscovery.ProcessedLogPath);
 			CreateDirectoryChain(settings.FileDiscovery.SkipLogPath);
-			CreateDirectoryChain(settings.Reporting.CRC32Error.Path);
+			CreateDirectoryChain(settings.Reporting.CRC32Error?.Path);
 			CreateDirectoryChain(settings.Reporting.ExtensionDifferencePath);
 			CreateDirectoryChain(settings.Reporting.ReportDirectory, true);
 			CreateDirectoryChain(settings.Diagnostics.ErrorDirectory, true);
@@ -250,8 +256,6 @@ namespace AVDump3CL {
 				cl.IsProcessing = true;
 				cl.Display(bytesReadProgress.GetProgress);
 
-				streamConsumerCollection.ConsumingStream += ConsumingStream;
-
 				void cancelKeyHandler(object s, ConsoleCancelEventArgs e) {
 					Console.CancelKeyPress -= cancelKeyHandler;
 					e.Cancel = true;
@@ -260,7 +264,7 @@ namespace AVDump3CL {
 				Console.CancelKeyPress += cancelKeyHandler;
 				Console.CursorVisible = false;
 				try {
-					streamConsumerCollection.ConsumeStreams(cts.Token, bytesReadProgress);
+					streamConsumerCollection.ConsumeStreams(ConsumingStream, cts.Token, bytesReadProgress);
 					cl.IsProcessing = false;
 					ProcessingFinished?.Invoke(this, EventArgs.Empty);
 
@@ -322,8 +326,8 @@ namespace AVDump3CL {
 			};
 
 			var blockConsumers = await e.FinishedProcessing.ConfigureAwait(false);
-
 			if(hasProcessingError) return;
+
 
 			var linesToWrite = new List<string>(32);
 			if(settings.Reporting.PrintHashes || settings.Reporting.PrintReports) {
@@ -349,15 +353,15 @@ namespace AVDump3CL {
 
 			var fileMetaInfo = new FileMetaInfo(new FileInfo(filePath), infoProviders);
 
-			if(!string.IsNullOrEmpty(settings.Reporting.CRC32Error.Path)) {
+			if(!string.IsNullOrEmpty(settings.Reporting.CRC32Error?.Path)) {
 				var hashProvider = fileMetaInfo.CondensedProviders.Where(x => x.Type == HashProvider.HashProviderType).Single();
 				var crc32Hash = (ReadOnlyMemory<byte>)hashProvider.Items.First(x => x.Type.Key.Equals("CRC32")).Value;
 				var crc32HashStr = BitConverter.ToString(crc32Hash.ToArray(), 0).Replace("-", "");
 
-				if(!Regex.IsMatch(fileMetaInfo.FileInfo.FullName, settings.Reporting.CRC32Error.Pattern.Replace("<CRC32>", crc32HashStr))) {
+				if(!Regex.IsMatch(fileMetaInfo.FileInfo.FullName, settings.Reporting.CRC32Error?.Pattern.Replace("<CRC32>", crc32HashStr))) {
 					lock(settings.Reporting) {
 						File.AppendAllText(
-							settings.Reporting.CRC32Error.Path,
+							settings.Reporting.CRC32Error?.Path,
 							crc32HashStr + " " + fileMetaInfo.FileInfo.FullName + Environment.NewLine
 						);
 					}
@@ -440,6 +444,17 @@ namespace AVDump3CL {
 			}
 
 			success &= (await Task.WhenAll(fileProcessedEventArgs.ProcessingTasks).ConfigureAwait(false)).All(x => x);
+
+			if(success && settings.FileMove.Mode != FileMoveMode.None) {
+				try {
+					await Task.Run(() => File.Move(filePath, "")).ConfigureAwait(false);
+
+
+				} catch(Exception) {
+					success = false;
+					throw;
+				}
+			}
 
 			if(!string.IsNullOrEmpty(settings.FileDiscovery.ProcessedLogPath) && success) {
 				lock(settings.FileDiscovery) File.AppendAllText(settings.FileDiscovery.ProcessedLogPath, filePath + "\n");
