@@ -30,7 +30,7 @@ namespace AVDump3CL {
 			public StreamConsumerProgressInfo(ProvidedStream providedStream, IStreamConsumer streamConsumer) {
 				Filename = (string)providedStream.Tag;
 				StreamConsumer = streamConsumer;
-				BytesRead = new long[streamConsumer.BlockConsumers.Count + 1];
+				BytesRead = new long[streamConsumer.BlockConsumers.Length + 1];
 				Length = providedStream.Stream.Length;
 			}
 		}

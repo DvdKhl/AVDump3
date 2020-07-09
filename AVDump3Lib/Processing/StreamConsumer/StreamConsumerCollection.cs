@@ -3,6 +3,7 @@ using AVDump3Lib.Processing.BlockConsumers;
 using AVDump3Lib.Processing.StreamProvider;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -51,7 +52,6 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 						Task.Factory.StartNew(() => {
 							ConsumeStream(providedStream, consumingStream, progress, cts.Token);
 						}, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current).ContinueWith(t => {
-							providedStream.Dispose();
 							if(t.IsFaulted || t.IsCanceled) {
 								if(firstChanceException == null) firstChanceException = t.Exception?.Flatten();
 								cts.Cancel();
@@ -74,7 +74,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 			lock(isRunningSyncRoot) IsRunning = false;
 		}
 		private void ConsumeStream(ProvidedStream providedStream, EventHandler<ConsumingStreamEventArgs> consumingStream, IBytesReadProgress progress, CancellationToken ct) {
-			var tcs = new TaskCompletionSource<IReadOnlyCollection<IBlockConsumer>>();
+			var tcs = new TaskCompletionSource<ImmutableArray<IBlockConsumer>>();
 			var eventArgs = new ConsumingStreamEventArgs(providedStream.Tag, tcs.Task, ct);
 			consumingStream?.Invoke(this, eventArgs);
 
@@ -116,13 +116,15 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 						throw new StreamConsumerCollectionException("Unhandled exception in StreamConsumerCollectionException", ex);
 					}
 				} while(retry);
+				providedStream.Dispose();
 
 				try {
-					tcs.SetResult(streamConsumer?.BlockConsumers ?? Array.Empty<IBlockConsumer>());
+					tcs.SetResult(streamConsumer?.BlockConsumers ?? ImmutableArray<IBlockConsumer>.Empty);
 				} catch(Exception ex) {
 					throw new StreamConsumerCollectionException("After stream processing exception", ex);
 				}
 
+				eventArgs.ResumeNext.Wait(ct);
 
 			} catch(OperationCanceledException ex) {
 				throw;
@@ -132,7 +134,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 				throw;
 				//TODO
 			} finally {
-				var blockConsumers = streamConsumer?.BlockConsumers ?? Array.Empty<IBlockConsumer>();
+				var blockConsumers = streamConsumer?.BlockConsumers ?? ImmutableArray<IBlockConsumer>.Empty;
 				foreach(var blockConsumer in blockConsumers) blockConsumer.Dispose();
 			}
 		}
@@ -152,14 +154,15 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 		public object Tag { get; private set; }
 
 		public event EventHandler<StreamConsumerExceptionEventArgs> OnException = delegate { };
-		public Task<IReadOnlyCollection<IBlockConsumer>> FinishedProcessing { get; private set; }
+		public Task<ImmutableArray<IBlockConsumer>> FinishedProcessing { get; private set; }
 		public CancellationToken CT { get; }
+		public ManualResetEventSlim ResumeNext { get; } = new ManualResetEventSlim(false);
 
 		internal void RaiseOnException(object sender, StreamConsumerExceptionEventArgs ex) {
 			OnException?.Invoke(sender, ex);
 		}
 
-		public ConsumingStreamEventArgs(object tag, Task<IReadOnlyCollection<IBlockConsumer>> finishedProcessing, CancellationToken ct) {
+		public ConsumingStreamEventArgs(object tag, Task<ImmutableArray<IBlockConsumer>> finishedProcessing, CancellationToken ct) {
 			FinishedProcessing = finishedProcessing;
 			Tag = tag;
 			CT = ct;

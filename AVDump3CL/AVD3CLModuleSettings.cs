@@ -235,19 +235,7 @@ namespace AVDump3CL {
 	public enum FileMoveMode { None, Placeholder, CSharpScriptFile, CSharpScriptInline }
 
 	public class FileMoveSettings : SettingsObject, ICLConvert {
-		public FileMoveSettings() : base("FileMove", Lang.ResourceManager) { }
 
-
-		public SettingsProperty MaxPendingFileMovesProperty { get; }
-		public int MaxPendingFileMoves {
-			get => (int)GetRequiredValue(MaxPendingFileMovesProperty);
-			set => SetValue(MaxPendingFileMovesProperty, value);
-		}
-		public SettingsProperty MaxConcurrentFileMovesProperty { get; }
-		public int MaxConcurrentFileMoves {
-			get => (int)GetRequiredValue(MaxConcurrentFileMovesProperty);
-			set => SetValue(MaxConcurrentFileMovesProperty, value);
-		}
 
 		public SettingsProperty ModeProperty { get; }
 		public FileMoveMode Mode {
@@ -281,8 +269,29 @@ namespace AVDump3CL {
 			set => SetValue(ReplacementsProperty, value);
 		}
 
-		object? ICLConvert.FromCLString(SettingsProperty prop, string? str) => throw new NotImplementedException();
-		string? ICLConvert.ToCLString(SettingsProperty prop, object? obj) => throw new NotImplementedException();
+
+		public FileMoveSettings() : base("FileMove", Lang.ResourceManager) {
+			ModeProperty = Register(nameof(Mode), FileMoveMode.None);
+			PatternProperty = Register(nameof(Pattern), "");
+			DisableFileMoveProperty = Register(nameof(DisableFileMove), false);
+			DisableFileRenameProperty = Register(nameof(DisableFileRename), false);
+			ReplacementsProperty = Register(nameof(Replacements), Enumerable.Empty<(string Value, string Replacement)>());
+		}
+
+		object? ICLConvert.FromCLString(SettingsProperty prop, string? str) {
+			if(prop == ModeProperty) {
+				return Enum.Parse<FileMoveMode>(str);
+			}
+			return Convert.ChangeType(str, prop.ValueType);
+		}
+
+		string? ICLConvert.ToCLString(SettingsProperty prop, object? obj) {
+			if(prop == ReplacementsProperty) {
+				return "{ " + string.Join(", ", Replacements.Select(x => $"({x.Replacement}, {x.Value})")) + " }";
+			}
+
+			return obj?.ToString();
+		}
 	}
 
 	public class ReportingSettings : SettingsObject, ICLConvert {

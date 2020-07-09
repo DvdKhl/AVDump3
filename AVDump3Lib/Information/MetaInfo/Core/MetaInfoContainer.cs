@@ -48,7 +48,5 @@ namespace AVDump3Lib.Information.MetaInfo.Core {
 			return items.OfType<MetaInfoItem<TValue>>().FirstOrDefault(x => x.Type.Key.InvEquals(typeName));
 		}
 
-
-
 	}
 }

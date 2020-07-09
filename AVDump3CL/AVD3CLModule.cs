@@ -15,6 +15,9 @@ using AVDump3Lib.Settings;
 using AVDump3Lib.Settings.CLArguments;
 using ExtKnot.StringInvariants;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -39,8 +42,7 @@ namespace AVDump3CL {
 	}
 
 	public class AVD3CLFileProcessedEventArgs : EventArgs {
-		public string FilePath { get; }
-		public ReadOnlyCollection<IBlockConsumer> BlockConsumers { get; }
+		public FileMetaInfo FileMetaInfo { get; }
 
 		private readonly List<Task<bool>> processingTasks = new List<Task<bool>>();
 		private readonly Dictionary<string, string> fileMoveTokens = new Dictionary<string, string>();
@@ -52,11 +54,7 @@ namespace AVDump3CL {
 
 		public void AddFileMoveToken(string key, string value) => fileMoveTokens.Add(key, value);
 
-
-		public AVD3CLFileProcessedEventArgs(string filePath, IEnumerable<IBlockConsumer> blockConsumers) {
-			FilePath = filePath;
-			BlockConsumers = Array.AsReadOnly(blockConsumers.ToArray());
-		}
+		public AVD3CLFileProcessedEventArgs(FileMetaInfo fileMetaInfo) => FileMetaInfo = fileMetaInfo;
 	}
 
 
@@ -71,6 +69,20 @@ namespace AVDump3CL {
 		void WriteLine(params string[] values);
 	}
 
+	public interface IAVDMoveFileExtension {
+		void BuildServiceCollection(IServiceCollection services);
+	}
+
+	public class AVDMoveFileScriptGlobal {
+		public AVDMoveFileScriptGlobal(Dictionary<string, string> placeholders, IServiceProvider serviceProvider) {
+			Placeholders = placeholders ?? throw new ArgumentNullException(nameof(placeholders));
+			ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+		}
+
+		public Dictionary<string, string> Placeholders { get; }
+		public IServiceProvider ServiceProvider { get; }
+	}
+
 
 	public class AVD3CLModule : IAVD3CLModule {
 		public event EventHandler<AVD3CLModuleExceptionEventArgs>? ExceptionThrown;
@@ -80,6 +92,8 @@ namespace AVDump3CL {
 		public event EventHandler<StringBuilder> AdditionalLines { add { cl.AdditionalLines += value; } remove { cl.AdditionalLines -= value; } }
 
 		private HashSet<string> filePathsToSkip = new HashSet<string>();
+		private IServiceProvider fileMoveServiceProvider;
+		private ScriptRunner<string> fileMoveScriptRunner;
 
 		private readonly AVD3CLModuleSettings settings = new AVD3CLModuleSettings();
 		private readonly object fileSystemLock = new object();
@@ -127,6 +141,13 @@ namespace AVDump3CL {
 		}
 
 		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) {
+			var services = new ServiceCollection();
+			foreach(var module in modules.OfType<IAVDMoveFileExtension>()) {
+				module.BuildServiceCollection(services);
+			}
+			fileMoveServiceProvider = services.BuildServiceProvider();
+
+
 			processingModule = modules.OfType<IAVD3ProcessingModule>().Single();
 			processingModule.BlockConsumerFilter += (s, e) => {
 				if(settings.Processing.Consumers.Any(x => e.BlockConsumerName.InvEqualsOrdCI(x.Name))) {
@@ -153,6 +174,7 @@ namespace AVDump3CL {
 			settingsgModule.RegisterSettings(settings.FileDiscovery);
 			settingsgModule.RegisterSettings(settings.Processing);
 			settingsgModule.RegisterSettings(settings.Reporting);
+			settingsgModule.RegisterSettings(settings.FileMove);
 
 			settingsgModule.AfterConfiguration += AfterConfiguration;
 		}
@@ -214,6 +236,23 @@ namespace AVDump3CL {
 				args.Cancel();
 			}
 
+			if(settings.FileMove.Mode != FileMoveMode.None) {
+				var scriptString = settings.FileMove.Mode switch
+				{
+					FileMoveMode.Placeholder => string.Join("\n",
+						"var filePath = \"" + settings.FileMove.Pattern.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\";",
+						"foreach(var placeholder in Placeholders) {",
+						"	filePath = filePath.Replace(\"{\" + placeholder.Key + \"}\", placeholder.Value);",
+						"}",
+						"return filePath;"
+					),
+					FileMoveMode.CSharpScriptFile => File.ReadAllText(settings.FileMove.Pattern),
+					FileMoveMode.CSharpScriptInline => throw new NotImplementedException(),
+					_ => throw new InvalidOperationException(),
+				};
+				var fileMoveScript = CSharpScript.Create<string>(scriptString, ScriptOptions.Default.WithReferences(AppDomain.CurrentDomain.GetAssemblies()), typeof(AVDMoveFileScriptGlobal));
+				fileMoveScriptRunner = fileMoveScript.CreateDelegate();
+			}
 
 
 			CreateDirectoryChain(settings.FileDiscovery.ProcessedLogPath);
@@ -325,8 +364,65 @@ namespace AVDump3CL {
 				OnException(new AVD3CLException("ConsumingStream", args.Cause) { Data = { { "FileName", new SensitiveData(fileName) } } });
 			};
 
-			var blockConsumers = await e.FinishedProcessing.ConfigureAwait(false);
-			if(hasProcessingError) return;
+
+			try {
+				var blockConsumers = await e.FinishedProcessing.ConfigureAwait(false);
+				if(hasProcessingError) return;
+
+
+				var fileMetaInfo = CreateFileMetaInfo(filePath, blockConsumers);
+
+				var success = fileMetaInfo != null;
+				success = success && await HandleReporting(fileMetaInfo);
+				success = success && await HandleEvent(fileMetaInfo);
+
+
+				var fileMoveResult = await HandleFileMove(fileMetaInfo);
+				success = success && fileMoveResult.Success;
+
+				//if(UseNtfsAlternateStreams) {
+				//	using(var altStreamHandle = NtfsAlternateStreams.SafeCreateFile(
+				//		NtfsAlternateStreams.BuildStreamPath((string)e.Tag, "AVDump3.xml"),
+				//		NtfsAlternateStreams.ToNative(FileAccess.ReadWrite), FileShare.None,
+				//		IntPtr.Zero, FileMode.OpenOrCreate, 0, IntPtr.Zero))
+				//	using(var altStream = new FileStream(altStreamHandle, FileAccess.ReadWrite)) {
+				//		var avd3Elem = new XElement("AVDump3",
+				//		  new XElement("Revision",
+				//			new XAttribute("Build", Assembly.GetExecutingAssembly().GetName().Version.Build),
+				//			blockConsumers.OfType<HashCalculator>().Select(hc =>
+				//			  new XElement(hc.HashAlgorithmType.Key, BitConverter.ToString(hc.HashAlgorithm.Hash).Replace("-", ""))
+				//			)
+				//		  )
+				//		);
+				//		avd3Elem.Save(altStream, SaveOptions.None);
+				//	}
+				//}
+
+				if(!string.IsNullOrEmpty(settings.FileDiscovery.ProcessedLogPath) && success) {
+					lock(settings.FileDiscovery) File.AppendAllText(settings.FileDiscovery.ProcessedLogPath, fileMoveResult.MovedFilePath + "\n");
+				}
+
+			} finally {
+				e.ResumeNext.Set();
+			}
+		}
+
+		private FileMetaInfo? CreateFileMetaInfo(string filePath, ImmutableArray<IBlockConsumer> blockConsumers) {
+			var fileName = Path.GetFileName(filePath);
+
+			try {
+				var infoSetup = new InfoProviderSetup(filePath, blockConsumers);
+				var infoProviders = informationModule.InfoProviderFactories.Select(x => x.Create(infoSetup)).ToArray();
+				return new FileMetaInfo(new FileInfo(filePath), infoProviders);
+
+			} catch(Exception ex) {
+				OnException(new AVD3CLException("CreatingInfoProviders", ex) { Data = { { "FileName", new SensitiveData(fileName) } } });
+				return null;
+			}
+		}
+
+		private async Task<bool> HandleReporting(FileMetaInfo fileMetaInfo) {
+			var fileName = Path.GetFileName(fileMetaInfo.FileInfo.FullName);
 
 
 			var linesToWrite = new List<string>(32);
@@ -335,24 +431,11 @@ namespace AVDump3CL {
 			}
 
 			if(settings.Reporting.PrintHashes) {
-				foreach(var bc in blockConsumers.OfType<HashCalculator>()) {
-					linesToWrite.Add(bc.Name + " => " + BitConverter.ToString(bc.HashValue.ToArray()).Replace("-", ""));
+				foreach(var item in fileMetaInfo.Providers.OfType<HashProvider>().FirstOrDefault().Items.OfType<MetaInfoItem<ImmutableArray<byte>>>()) {
+					linesToWrite.Add(item.Type.Key + " => " + BitConverter.ToString(item.Value.ToArray()).Replace("-", ""));
 				}
 				linesToWrite.Add("");
 			}
-
-			MetaDataProvider[] infoProviders;
-			try {
-				var infoSetup = new InfoProviderSetup(filePath, blockConsumers);
-				infoProviders = informationModule.InfoProviderFactories.Select(x => x.Create(infoSetup)).ToArray();
-
-			} catch(Exception ex) {
-				OnException(new AVD3CLException("CreatingInfoProviders", ex) { Data = { { "FileName", new SensitiveData(fileName) } } });
-				return;
-			}
-
-			var fileMetaInfo = new FileMetaInfo(new FileInfo(filePath), infoProviders);
-
 			if(!string.IsNullOrEmpty(settings.Reporting.CRC32Error?.Path)) {
 				var hashProvider = fileMetaInfo.CondensedProviders.Where(x => x.Type == HashProvider.HashProviderType).Single();
 				var crc32Hash = (ReadOnlyMemory<byte>)hashProvider.Items.First(x => x.Type.Key.Equals("CRC32")).Value;
@@ -416,51 +499,47 @@ namespace AVDump3CL {
 				}
 			}
 			cl.Writeline(linesToWrite);
+			return success;
+		}
+		private async Task<(bool Success, string MovedFilePath)> HandleFileMove(FileMetaInfo fileMetaInfo) {
+			var success = true;
 
-			//if(UseNtfsAlternateStreams) {
-			//	using(var altStreamHandle = NtfsAlternateStreams.SafeCreateFile(
-			//		NtfsAlternateStreams.BuildStreamPath((string)e.Tag, "AVDump3.xml"),
-			//		NtfsAlternateStreams.ToNative(FileAccess.ReadWrite), FileShare.None,
-			//		IntPtr.Zero, FileMode.OpenOrCreate, 0, IntPtr.Zero))
-			//	using(var altStream = new FileStream(altStreamHandle, FileAccess.ReadWrite)) {
-			//		var avd3Elem = new XElement("AVDump3",
-			//		  new XElement("Revision",
-			//			new XAttribute("Build", Assembly.GetExecutingAssembly().GetName().Version.Build),
-			//			blockConsumers.OfType<HashCalculator>().Select(hc =>
-			//			  new XElement(hc.HashAlgorithmType.Key, BitConverter.ToString(hc.HashAlgorithm.Hash).Replace("-", ""))
-			//			)
-			//		  )
-			//		);
-			//		avd3Elem.Save(altStream, SaveOptions.None);
-			//	}
-			//}
-
-			var fileProcessedEventArgs = new AVD3CLFileProcessedEventArgs(filePath, blockConsumers);
-			try {
-				FileProcessed?.Invoke(this, fileProcessedEventArgs);
-			} catch(Exception ex) {
-				OnException(new AVD3CLException("FileProcessedEvent", ex) { Data = { { "FileName", new SensitiveData(fileName) } } });
-				success = false;
-			}
-
-			success &= (await Task.WhenAll(fileProcessedEventArgs.ProcessingTasks).ConfigureAwait(false)).All(x => x);
-
-			if(success && settings.FileMove.Mode != FileMoveMode.None) {
+			var destFilePath = fileMetaInfo.FileInfo.FullName;
+			if(settings.FileMove.Mode != FileMoveMode.None) {
 				try {
-					await Task.Run(() => File.Move(filePath, "")).ConfigureAwait(false);
+					var placeholders = new Dictionary<string, string>() {
+						{ "FullName", fileMetaInfo.FileInfo.FullName },
+						{ "FileName", fileMetaInfo.FileInfo.Name },
+						{ "FileNameWithoutExtension", Path.GetFileNameWithoutExtension(fileMetaInfo.FileInfo.FullName) },
+						{ "DirectoryName", fileMetaInfo.FileInfo.DirectoryName },
+						{ "DetectedExtension", fileMetaInfo.CondensedProviders.OfType<MediaProvider>().FirstOrDefault()?.Select(MediaProvider.SuggestedFileExtensionType)?.Value.FirstOrDefault() ?? fileMetaInfo.FileInfo.Extension }
+					};
 
+
+					destFilePath = await fileMoveScriptRunner(new AVDMoveFileScriptGlobal(placeholders, fileMoveServiceProvider));
+					await Task.Run(() => fileMetaInfo.FileInfo.MoveTo(destFilePath)).ConfigureAwait(false);
 
 				} catch(Exception) {
 					success = false;
-					throw;
 				}
 			}
-
-			if(!string.IsNullOrEmpty(settings.FileDiscovery.ProcessedLogPath) && success) {
-				lock(settings.FileDiscovery) File.AppendAllText(settings.FileDiscovery.ProcessedLogPath, filePath + "\n");
-			}
-
+			return (success, destFilePath);
 		}
+		private async Task<bool> HandleEvent(FileMetaInfo fileMetaInfo) {
+			var success = true;
+
+			var fileProcessedEventArgs = new AVD3CLFileProcessedEventArgs(fileMetaInfo);
+			try {
+				FileProcessed?.Invoke(this, fileProcessedEventArgs);
+			} catch(Exception ex) {
+				OnException(new AVD3CLException("FileProcessedEvent", ex) { Data = { { "FilePath", new SensitiveData(fileMetaInfo.FileInfo.FullName) } } });
+				success = false;
+			}
+			success &= (await Task.WhenAll(fileProcessedEventArgs.ProcessingTasks).ConfigureAwait(false)).All(x => x);
+
+			return success;
+		}
+
 
 		public void WriteLine(params string[] values) => cl.Writeline(values);
 

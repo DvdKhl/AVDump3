@@ -80,7 +80,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 			}
 
 			if(MFI.Segment.Chapters != null) {
-				foreach(var edition in MFI.Segment.Chapters.Items) PopulateChapters(edition);
+				foreach(var edition in MFI.Segment.Chapters.Items.Where(x => x.ChapterAtoms.Any())) PopulateChapters(edition);
 			}
 		}
 

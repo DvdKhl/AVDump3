@@ -2,6 +2,7 @@
 using AVDump3Lib.Processing.BlockConsumers;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -14,7 +15,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 		event StreamConsumerEventHandler Finished;
 		bool RanToCompletion { get; }
 		Guid Id { get; }
-		IReadOnlyList<IBlockConsumer> BlockConsumers { get; }
+		ImmutableArray<IBlockConsumer> BlockConsumers { get; }
 		IBlockStream BlockStream { get; }
 		void ConsumeStream(IProgress<BlockStreamProgress> progress, CancellationToken ct);
 	}
@@ -29,13 +30,13 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 		public Guid Id { get; } = Guid.NewGuid();
 
 		public IBlockStream BlockStream { get; }
-		public IReadOnlyList<IBlockConsumer> BlockConsumers { get; }
+		public ImmutableArray<IBlockConsumer> BlockConsumers { get; }
 
 		public bool RanToCompletion { get; private set; }
 
 		public StreamConsumer(IBlockStream blockStream, IEnumerable<IBlockConsumer> blockConsumers) {
 			this.blockConsumers = blockConsumers.ToArray();
-			BlockConsumers = Array.AsReadOnly(this.blockConsumers);
+			BlockConsumers = this.blockConsumers.ToImmutableArray();
 
 			BlockStream = blockStream;
 		}
