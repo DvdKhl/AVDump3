@@ -74,12 +74,12 @@ namespace AVDump3CL {
 	}
 
 	public class AVDMoveFileScriptGlobal {
-		public AVDMoveFileScriptGlobal(Dictionary<string, string> placeholders, IServiceProvider serviceProvider) {
-			Placeholders = placeholders ?? throw new ArgumentNullException(nameof(placeholders));
+		public AVDMoveFileScriptGlobal(Func<string, string> getHandler, IServiceProvider serviceProvider) {
+			Get = getHandler ?? throw new ArgumentNullException(nameof(getHandler));
 			ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
 		}
 
-		public Dictionary<string, string> Placeholders { get; }
+		public Func<string, string> Get { get; }
 		public IServiceProvider ServiceProvider { get; }
 	}
 
@@ -239,13 +239,7 @@ namespace AVDump3CL {
 			if(settings.FileMove.Mode != FileMoveMode.None) {
 				var scriptString = settings.FileMove.Mode switch
 				{
-					FileMoveMode.Placeholder => string.Join("\n",
-						"var filePath = \"" + settings.FileMove.Pattern.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\";",
-						"foreach(var placeholder in Placeholders) {",
-						"	filePath = filePath.Replace(\"{\" + placeholder.Key + \"}\", placeholder.Value);",
-						"}",
-						"return filePath;"
-					),
+					FileMoveMode.Placeholder => "return \"" + Regex.Replace(settings.FileMove.Pattern.Replace("\\", "\\\\").Replace("\"", "\\\""), @"\{([^\}]+)\}", @"Get(""\1"")") + "\";",
 					FileMoveMode.CSharpScriptFile => File.ReadAllText(settings.FileMove.Pattern),
 					FileMoveMode.CSharpScriptInline => throw new NotImplementedException(),
 					_ => throw new InvalidOperationException(),
@@ -507,16 +501,18 @@ namespace AVDump3CL {
 			var destFilePath = fileMetaInfo.FileInfo.FullName;
 			if(settings.FileMove.Mode != FileMoveMode.None) {
 				try {
-					var placeholders = new Dictionary<string, string>() {
-						{ "FullName", fileMetaInfo.FileInfo.FullName },
-						{ "FileName", fileMetaInfo.FileInfo.Name },
-						{ "FileNameWithoutExtension", Path.GetFileNameWithoutExtension(fileMetaInfo.FileInfo.FullName) },
-						{ "DirectoryName", fileMetaInfo.FileInfo.DirectoryName },
-						{ "DetectedExtension", fileMetaInfo.CondensedProviders.OfType<MediaProvider>().FirstOrDefault()?.Select(MediaProvider.SuggestedFileExtensionType)?.Value.FirstOrDefault() ?? fileMetaInfo.FileInfo.Extension }
+					string GetValue(string key) => key switch {
+						"FullName" => fileMetaInfo.FileInfo.FullName,
+						"FileName" => fileMetaInfo.FileInfo.Name,
+						"FileExtension" => fileMetaInfo.FileInfo.Extension,
+						"FileNameWithoutExtension" => Path.GetFileNameWithoutExtension(fileMetaInfo.FileInfo.FullName),
+						"DirectoryName" => fileMetaInfo.FileInfo.DirectoryName,
+						"DetectedExtension" => fileMetaInfo.CondensedProviders.OfType<MediaProvider>().FirstOrDefault()?.Select(MediaProvider.SuggestedFileExtensionType)?.Value.FirstOrDefault() ?? fileMetaInfo.FileInfo.Extension,
+						_ => "",
 					};
 
 
-					destFilePath = await fileMoveScriptRunner(new AVDMoveFileScriptGlobal(placeholders, fileMoveServiceProvider));
+					destFilePath = await fileMoveScriptRunner(new AVDMoveFileScriptGlobal(GetValue, fileMoveServiceProvider));
 					await Task.Run(() => fileMetaInfo.FileInfo.MoveTo(destFilePath)).ConfigureAwait(false);
 
 				} catch(Exception) {
