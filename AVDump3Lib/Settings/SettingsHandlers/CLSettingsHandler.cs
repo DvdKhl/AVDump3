@@ -139,11 +139,11 @@ namespace AVDump3Lib.Settings.CLArguments {
 
 
 			var resMan = argGroup.ResourceManager;
-			PrintLine(("▶2 NameSpace◀: " + argGroup.Name).PadRight(descPad, ' ') + resMan?.GetInvString($"{argGroup.Name}Description").OnNotNullReturn(s => " | ▶8 " + s + "◀"));
+			PrintLine(("▶2 NameSpace◀: " + argGroup.Name).PadRight(descPad, ' ') + resMan?.GetInvString($"{argGroup.Name}.Description").OnNotNullReturn(s => " | ▶8 " + s + "◀"));
 			Console.WriteLine();
 			foreach(var prop in argGroup.Properties) {
-				var example = resMan?.GetInvString($"{prop.Name}Example");
-				var description = resMan?.GetInvString($"{prop.Name}Description");
+				var example = resMan?.GetInvString($"{argGroup.Name}.{prop.Name}.Example");
+				var description = resMan?.GetInvString($"{argGroup.Name}.{prop.Name}.Description");
 
 				string? defaultValue;
 				if(argGroup is ICLConvert clCOnvert) {

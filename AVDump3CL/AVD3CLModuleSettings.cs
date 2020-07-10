@@ -163,15 +163,6 @@ namespace AVDump3CL {
 			set => SetValue(ProducerMaxReadLengthProperty, value);
 		}
 
-		public SettingsProperty FileMoveProperty { get; }
-		public string FileMove {
-			get => (string)GetRequiredValue(FileMoveProperty);
-			set => SetValue(FileMoveProperty, value);
-		}
-
-
-
-
 		[CLNames("PBExit")]
 		public SettingsProperty PauseBeforeExitProperty { get; }
 		public bool PauseBeforeExit {
@@ -199,7 +190,6 @@ namespace AVDump3CL {
 			ConsumersProperty = Register(nameof(Consumers), Array.Empty<ConsumerSettings>());
 			PrintAvailableSIMDsProperty = Register(nameof(PrintAvailableSIMDs), false);
 			PauseBeforeExitProperty = Register(nameof(PauseBeforeExit), false);
-			FileMoveProperty = Register(nameof(FileMove), "");
 		}
 
 		string? ICLConvert.ToCLString(SettingsProperty property, object? obj) {
@@ -269,8 +259,14 @@ namespace AVDump3CL {
 			set => SetValue(ReplacementsProperty, value);
 		}
 
+		public SettingsProperty LogPathProperty { get; }
+		public string LogPath {
+			get => (string)GetRequiredValue(LogPathProperty);
+			set => SetValue(LogPathProperty, value);
+		}
 
 		public FileMoveSettings() : base("FileMove", Lang.ResourceManager) {
+			LogPathProperty = Register(nameof(LogPath), "");
 			ModeProperty = Register(nameof(Mode), FileMoveMode.None);
 			PatternProperty = Register(nameof(Pattern), "");
 			DisableFileMoveProperty = Register(nameof(DisableFileMove), false);
@@ -279,6 +275,9 @@ namespace AVDump3CL {
 		}
 
 		object? ICLConvert.FromCLString(SettingsProperty prop, string? str) {
+			if(prop == ReplacementsProperty) {
+				return (str ?? "").Split(';').Select(x => x.Split(',')).Select(x => (x[0], x[1]));
+			}
 			if(prop == ModeProperty) {
 				return Enum.Parse<FileMoveMode>(str);
 			}
@@ -287,7 +286,7 @@ namespace AVDump3CL {
 
 		string? ICLConvert.ToCLString(SettingsProperty prop, object? obj) {
 			if(prop == ReplacementsProperty) {
-				return "{ " + string.Join(", ", Replacements.Select(x => $"({x.Replacement}, {x.Value})")) + " }";
+				return string.Join(", ", Replacements.Select(x => $"({x.Replacement}, {x.Value})"));
 			}
 
 			return obj?.ToString();

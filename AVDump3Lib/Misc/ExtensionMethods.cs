@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Xml.Linq;
 
@@ -12,6 +14,11 @@ namespace AVDump3Lib.Misc {
 		//}
 		public static TResult OnNotNullReturn<TResult, TSource>(this TSource n, Func<TSource, TResult> transform) {
 			return n != null ? transform(n) : default;
+		}
+		public static TResult Transform<TResult, TSource>(this TSource n, Func<TSource, TResult> transform) {
+			if(n == null) throw new ArgumentNullException(nameof(n));
+			if(transform == null) throw new ArgumentNullException(nameof(transform));
+			return transform(n);
 		}
 
 		public static void OnNotNull<TSource>(this TSource n, Action<TSource> transform) { if(n != null) transform(n); }
@@ -44,107 +51,51 @@ namespace AVDump3Lib.Misc {
 	}
 
 	public class BitConverterEx {
-		public const string Base2 = "01";
-		public const string Base4 = "0123";
-		public const string Base8 = "01234567";
-		public const string Base10 = "0123456789";
-		public const string Base16 = "0123456789ABCDEF";
-		public const string Base32Hex = "0123456789ABCDEFGHIJKLMNOPQRSTUV";
-		public const string Base32Z = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-		public const string Base32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-		public const string Base36 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-		public const string Base62 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-		public const string Base64 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/";
+		public static readonly ImmutableDictionary<string, string> Bases = ImmutableDictionary.CreateRange(
+			new KeyValuePair<string, string>[] {
+				new KeyValuePair<string, string>("2", "01"),
+				new KeyValuePair<string, string>("4", "0123"),
+				new KeyValuePair<string, string>("8", "01234567"),
+				new KeyValuePair<string, string>("10", "0123456789"),
+				new KeyValuePair<string, string>("16", "0123456789ABCDEF"),
+				new KeyValuePair<string, string>("32Hex", "0123456789ABCDEFGHIJKLMNOPQRSTUV"),
+				new KeyValuePair<string, string>("32Z", "0123456789ABCDEFGHJKMNPQRSTVWXYZ"),
+				new KeyValuePair<string, string>("32", "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"),
+				new KeyValuePair<string, string>("36", "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"),
+				new KeyValuePair<string, string>("62", "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"),
+				new KeyValuePair<string, string>("64", "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/")
+			}
+		);
 
-		public static string ToBase32String(byte[] inArray, string symbols = Base32) {
-			if(inArray == null) return null;
 
-			var len = inArray.Length;
-			// divide the input into 40-bit groups, so let's see, 
-			// how many groups of 5 bytes can we get out of it?
-			var numberOfGroups = len / 5;
-			// and how many remaining bytes are there?
-			var numberOfRemainingBytes = len - 5 * numberOfGroups;
 
-			// after this, we're gonna split it into eight 5 bit
-			// values. 
-			var sb = new StringBuilder();
-			//int resultLen = 4*((len + 2)/3);
-			//StringBuffer result = new StringBuffer(resultLen);
+		public static string ToBase(byte[] valueAsArray, string digits, int pad = -1) {
+			if(digits == null) throw new ArgumentNullException(nameof(digits));
+			if(digits.Length < 2) throw new ArgumentOutOfRangeException(nameof(digits), "Expected string with at least two digits");
 
-			// Translate all full groups from byte array elements to Base64
-			var byteIndexer = 0;
-			for(var i = 0; i < numberOfGroups; i++) {
-				var b0 = inArray[byteIndexer++];
-				var b1 = inArray[byteIndexer++];
-				var b2 = inArray[byteIndexer++];
-				var b3 = inArray[byteIndexer++];
-				var b4 = inArray[byteIndexer++];
+			if(pad == -1) pad = (int)Math.Ceiling(Math.Log(1L << (8 * valueAsArray.Length), digits.Length));
 
-				// first 5 bits from byte 0
-				sb.Append(symbols[b0 >> 3]);
-				// the remaining 3, plus 2 from the next one
-				sb.Append(symbols[(b0 << 2) & 0x1F | (b1 >> 6)]);
-				// get bit 3, 4, 5, 6, 7 from byte 1
-				sb.Append(symbols[(b1 >> 1) & 0x1F]);
-				// then 1 bit from byte 1, and 4 from byte 2
-				sb.Append(symbols[(b1 << 4) & 0x1F | (b2 >> 4)]);
-				// 4 bits from byte 2, 1 from byte3
-				sb.Append(symbols[(b2 << 1) & 0x1F | (b3 >> 7)]);
-				// get bit 2, 3, 4, 5, 6 from byte 3
-				sb.Append(symbols[(b3 >> 2) & 0x1F]);
-				// 2 last bits from byte 3, 3 from byte 4
-				sb.Append(symbols[(b3 << 3) & 0x1F | (b4 >> 5)]);
-				// the last 5 bits
-				sb.Append(symbols[b4 & 0x1F]);
+			var value = new BigInteger(valueAsArray, true, true);
+			var sb = new StringBuilder(pad);
+
+			do {
+				value = BigInteger.DivRem(value, digits.Length, out var rem);
+				sb.Append(digits[(int)rem]);
+			} while(value > 0);
+
+			if(sb.Length < pad) sb.Append(digits[0], pad - sb.Length);
+
+			// reverse it
+			for(int i = 0, j = sb.Length - 1; i < j; i++, j--) {
+				var t = sb[i];
+				sb[i] = sb[j];
+				sb[j] = t;
 			}
 
-			// Now, is there any remaining bytes?
-			if(numberOfRemainingBytes > 0) {
-				var b0 = inArray[byteIndexer++];
-				// as usual, get the first 5 bits
-				sb.Append(symbols[b0 >> 3]);
-				// now let's see, depending on the 
-				// number of remaining bytes, we do different
-				// things
-				switch(numberOfRemainingBytes) {
-					case 1:
-						// use the remaining 3 bits, padded with five 0 bits
-						sb.Append(symbols[(b0 << 2) & 0x1F]);
-						//						sb.Append("======");
-						break;
-					case 2:
-						var b1 = inArray[byteIndexer++];
-						sb.Append(symbols[(b0 << 2) & 0x1F | (b1 >> 6)]);
-						sb.Append(symbols[(b1 >> 1) & 0x1F]);
-						sb.Append(symbols[(b1 << 4) & 0x1F]);
-						//						sb.Append("====");
-						break;
-					case 3:
-						b1 = inArray[byteIndexer++];
-						var b2 = inArray[byteIndexer++];
-						sb.Append(symbols[(b0 << 2) & 0x1F | (b1 >> 6)]);
-						sb.Append(symbols[(b1 >> 1) & 0x1F]);
-						sb.Append(symbols[(b1 << 4) & 0x1F | (b2 >> 4)]);
-						sb.Append(symbols[(b2 << 1) & 0x1F]);
-						//						sb.Append("===");
-						break;
-					case 4:
-						b1 = inArray[byteIndexer++];
-						b2 = inArray[byteIndexer++];
-						var b3 = inArray[byteIndexer++];
-						sb.Append(symbols[(b0 << 2) & 0x1F | (b1 >> 6)]);
-						sb.Append(symbols[(b1 >> 1) & 0x1F]);
-						sb.Append(symbols[(b1 << 4) & 0x1F | (b2 >> 4)]);
-						sb.Append(symbols[(b2 << 1) & 0x1F | (b3 >> 7)]);
-						sb.Append(symbols[(b3 >> 2) & 0x1F]);
-						sb.Append(symbols[(b3 << 3) & 0x1F]);
-						//						sb.Append("=");
-						break;
-				}
-			}
 			return sb.ToString();
+
 		}
-		public static string ToBase16String(byte[] value) { return string.Concat(value.Select(b => b.ToString("X2"))); } //TODO: Improve
+
+
 	}
 }

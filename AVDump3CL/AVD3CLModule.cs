@@ -239,7 +239,7 @@ namespace AVDump3CL {
 			if(settings.FileMove.Mode != FileMoveMode.None) {
 				var scriptString = settings.FileMove.Mode switch
 				{
-					FileMoveMode.Placeholder => "return \"" + Regex.Replace(settings.FileMove.Pattern.Replace("\\", "\\\\").Replace("\"", "\\\""), @"\{([^\}]+)\}", @"Get(""\1"")") + "\";",
+					FileMoveMode.Placeholder => "return \"" + Regex.Replace(settings.FileMove.Pattern.Replace("\\", "\\\\").Replace("\"", "\\\""), @"\{([A-Za-z0-9-]+)\}", @""" + Get(""$1"") + """) + "\";",
 					FileMoveMode.CSharpScriptFile => File.ReadAllText(settings.FileMove.Pattern),
 					FileMoveMode.CSharpScriptInline => throw new NotImplementedException(),
 					_ => throw new InvalidOperationException(),
@@ -369,10 +369,7 @@ namespace AVDump3CL {
 				var success = fileMetaInfo != null;
 				success = success && await HandleReporting(fileMetaInfo);
 				success = success && await HandleEvent(fileMetaInfo);
-
-
-				var fileMoveResult = await HandleFileMove(fileMetaInfo);
-				success = success && fileMoveResult.Success;
+				success = success && await HandleFileMove(fileMetaInfo);
 
 				//if(UseNtfsAlternateStreams) {
 				//	using(var altStreamHandle = NtfsAlternateStreams.SafeCreateFile(
@@ -393,7 +390,7 @@ namespace AVDump3CL {
 				//}
 
 				if(!string.IsNullOrEmpty(settings.FileDiscovery.ProcessedLogPath) && success) {
-					lock(settings.FileDiscovery) File.AppendAllText(settings.FileDiscovery.ProcessedLogPath, fileMoveResult.MovedFilePath + "\n");
+					lock(settings.FileDiscovery) File.AppendAllText(settings.FileDiscovery.ProcessedLogPath, fileMetaInfo.FileInfo.FullName + "\n");
 				}
 
 			} finally {
@@ -495,31 +492,63 @@ namespace AVDump3CL {
 			cl.Writeline(linesToWrite);
 			return success;
 		}
-		private async Task<(bool Success, string MovedFilePath)> HandleFileMove(FileMetaInfo fileMetaInfo) {
+		private async Task<bool> HandleFileMove(FileMetaInfo fileMetaInfo) {
 			var success = true;
 
 			var destFilePath = fileMetaInfo.FileInfo.FullName;
 			if(settings.FileMove.Mode != FileMoveMode.None) {
 				try {
-					string GetValue(string key) => key switch {
-						"FullName" => fileMetaInfo.FileInfo.FullName,
-						"FileName" => fileMetaInfo.FileInfo.Name,
-						"FileExtension" => fileMetaInfo.FileInfo.Extension,
-						"FileNameWithoutExtension" => Path.GetFileNameWithoutExtension(fileMetaInfo.FileInfo.FullName),
-						"DirectoryName" => fileMetaInfo.FileInfo.DirectoryName,
-						"DetectedExtension" => fileMetaInfo.CondensedProviders.OfType<MediaProvider>().FirstOrDefault()?.Select(MediaProvider.SuggestedFileExtensionType)?.Value.FirstOrDefault() ?? fileMetaInfo.FileInfo.Extension,
-						_ => "",
-					};
+					string GetValue(string key) {
+						var value = key switch
+						{
+							"FullName" => fileMetaInfo.FileInfo.FullName,
+							"FileName" => fileMetaInfo.FileInfo.Name,
+							"FileExtension" => fileMetaInfo.FileInfo.Extension,
+							"FileNameWithoutExtension" => Path.GetFileNameWithoutExtension(fileMetaInfo.FileInfo.FullName),
+							"DirectoryName" => fileMetaInfo.FileInfo.DirectoryName,
+							"DetectedExtension" => fileMetaInfo.CondensedProviders.OfType<MediaProvider>().FirstOrDefault()?.Select(MediaProvider.SuggestedFileExtensionType)?.Value.FirstOrDefault() ?? fileMetaInfo.FileInfo.Extension,
+							_ => "",
+						};
 
+						if(key.StartsWith("Hash")) {
+							var m = Regex.Match(key, @"Hash-(?<Name>[^-]+)-(?<Base>\d+)-(?<Case>UC|LC)");
+							if(m.Success) {
+								var hashName = m.Groups["Name"].Value;
+								var withBase = m.Groups["Base"].Value;
+								var useUppercase = m.Groups["Case"].Value.InvEqualsOrd("UC");
+
+								var hashData = fileMetaInfo.CondensedProviders.OfType<HashProvider>().FirstOrDefault()?.Select<HashInfoItemType, ReadOnlyMemory<byte>>(hashName).Value.ToArray();
+								if(hashData != null) value = BitConverterEx.ToBase(hashData, BitConverterEx.Bases[withBase]).Transform(x => useUppercase ? x.ToInvUpper() : x.ToInvLower());
+							}
+						}
+						return value;
+					}
 
 					destFilePath = await fileMoveScriptRunner(new AVDMoveFileScriptGlobal(GetValue, fileMoveServiceProvider));
-					await Task.Run(() => fileMetaInfo.FileInfo.MoveTo(destFilePath)).ConfigureAwait(false);
+
+					if(settings.FileMove.DisableFileMove) {
+						destFilePath = Path.Combine(Path.GetDirectoryName(fileMetaInfo.FileInfo.FullName) ?? "", Path.GetFileName(destFilePath));
+					}
+					if(settings.FileMove.DisableFileRename) {
+						destFilePath = Path.Combine(Path.GetDirectoryName(destFilePath) ?? "", Path.GetFileName(fileMetaInfo.FileInfo.FullName));
+					}
+
+					await Task.Run(() => {
+						var originalPath = fileMetaInfo.FileInfo.FullName;
+						fileMetaInfo.FileInfo.MoveTo(destFilePath);
+
+						if(!string.IsNullOrEmpty(settings.FileMove.LogPath)) {
+							lock(settings.FileMove.LogPathProperty) {
+								File.AppendAllText(settings.FileMove.LogPath, originalPath + " => " + destFilePath + Environment.NewLine);
+							}
+						}
+					}).ConfigureAwait(false);
 
 				} catch(Exception) {
 					success = false;
 				}
 			}
-			return (success, destFilePath);
+			return success;
 		}
 		private async Task<bool> HandleEvent(FileMetaInfo fileMetaInfo) {
 			var success = true;
