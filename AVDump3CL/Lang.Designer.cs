@@ -422,10 +422,10 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Available Placeholders:
+        ///   Looks up a localized string similar to Available Placeholders ${Name}:
         ///FullName, FileName, FileExtension, FileNameWithoutExtension, DirectoryName,
-        ///DetectedExtension,
-        ///Hash-&lt;Name&gt;-&lt;2|4|8|10|16|32|32Hex|32Z|36|62|64&gt;-&lt;UC|LC&gt;.
+        ///SuggestedExtension,
+        ///Hash-&lt;Name&gt;-&lt;2|4|8|10|16|32|32Hex|32Z|36|62|64&gt;-&lt;OC|UC|LC&gt;.
         /// </summary>
         internal static string FileMove_Pattern_Description {
             get {
@@ -434,7 +434,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to --FileMove.Pattern={DirectoryName}\{FileNameWithoutExtension}[{Hash-CRC32-16-UC}]{DetectedExtension}.
+        ///   Looks up a localized string similar to --FileMove.Pattern=${DirectoryName}\${FileNameWithoutExtension}[${Hash-CRC32-16-UC}]${SuggestedExtension}.
         /// </summary>
         internal static string FileMove_Pattern_Example {
             get {
@@ -516,7 +516,7 @@ namespace AVDump3CL {
         
         /// <summary>
         ///   Looks up a localized string similar to Searches the filename for the calculated CRC32 hash. If not present or different a line with the caluclated hash and the full path of the file is appended to the specified path
-        ///The regex pattern should contain the placeholder &quot;&lt;CRC32&gt;&quot; which is replaced by the calculated hash prior matching.
+        ///The regex pattern should contain the placeholder ${CRC32} which is replaced by the calculated hash prior matching.
         /// </summary>
         internal static string Reporting_CRC32Error_Description {
             get {
@@ -607,7 +607,7 @@ namespace AVDump3CL {
         
         /// <summary>
         ///   Looks up a localized string similar to Reports will be saved/appended to the specified filename
-        ///The following placeholders can be used: &lt;FileName&gt;, &lt;FileNameWithoutExtension&gt;, &lt;FileExtension&gt;, &lt;ReportName&gt;, ReportFileExtension.
+        ///The following placeholders ${Name} can be used: FileName, FileNameWithoutExtension, FileExtension, ReportName, ReportFileExtension.
         /// </summary>
         internal static string Reporting_ReportFileName_Description {
             get {

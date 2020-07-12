@@ -239,7 +239,7 @@ namespace AVDump3CL {
 			if(settings.FileMove.Mode != FileMoveMode.None) {
 				var scriptString = settings.FileMove.Mode switch
 				{
-					FileMoveMode.Placeholder => "return \"" + Regex.Replace(settings.FileMove.Pattern.Replace("\\", "\\\\").Replace("\"", "\\\""), @"\{([A-Za-z0-9-]+)\}", @""" + Get(""$1"") + """) + "\";",
+					FileMoveMode.Placeholder => "return \"" + Regex.Replace(settings.FileMove.Pattern.Replace("\\", "\\\\").Replace("\"", "\\\""), @"\$\{([A-Za-z0-9-]+)\}", @""" + Get(""$1"") + """) + "\";",
 					FileMoveMode.CSharpScriptFile => File.ReadAllText(settings.FileMove.Pattern),
 					FileMoveMode.CSharpScriptInline => throw new NotImplementedException(),
 					_ => throw new InvalidOperationException(),
@@ -432,7 +432,7 @@ namespace AVDump3CL {
 				var crc32Hash = (ReadOnlyMemory<byte>)hashProvider.Items.First(x => x.Type.Key.Equals("CRC32")).Value;
 				var crc32HashStr = BitConverter.ToString(crc32Hash.ToArray(), 0).Replace("-", "");
 
-				if(!Regex.IsMatch(fileMetaInfo.FileInfo.FullName, settings.Reporting.CRC32Error?.Pattern.Replace("<CRC32>", crc32HashStr))) {
+				if(!Regex.IsMatch(fileMetaInfo.FileInfo.FullName, settings.Reporting.CRC32Error?.Pattern.Replace("${CRC32}", crc32HashStr))) {
 					lock(settings.Reporting) {
 						File.AppendAllText(
 							settings.Reporting.CRC32Error?.Path,
@@ -473,11 +473,11 @@ namespace AVDump3CL {
 						}
 
 						var reportFileName = settings.Reporting.ReportFileName;
-						reportFileName = reportFileName.Replace("<FileName>", fileName);
-						reportFileName = reportFileName.Replace("<FileNameWithoutExtension>", Path.GetFileNameWithoutExtension(fileName));
-						reportFileName = reportFileName.Replace("<FileExtension>", Path.GetExtension(fileName).Replace(".", ""));
-						reportFileName = reportFileName.Replace("<ReportName>", reportItem.Name);
-						reportFileName = reportFileName.Replace("<ReportFileExtension>", reportItem.Report.FileExtension);
+						reportFileName = reportFileName.Replace("${FileName}", fileName);
+						reportFileName = reportFileName.Replace("${FileNameWithoutExtension}", Path.GetFileNameWithoutExtension(fileName));
+						reportFileName = reportFileName.Replace("${FileExtension}", Path.GetExtension(fileName).Replace(".", ""));
+						reportFileName = reportFileName.Replace("${ReportName}", reportItem.Name);
+						reportFileName = reportFileName.Replace("${ReportFileExtension}", reportItem.Report.FileExtension);
 
 						lock(fileSystemLock) {
 							reportItem.Report.SaveToFile(Path.Combine(settings.Reporting.ReportDirectory, reportFileName), Utils.UTF8EncodingNoBOM);
@@ -498,6 +498,9 @@ namespace AVDump3CL {
 			var destFilePath = fileMetaInfo.FileInfo.FullName;
 			if(settings.FileMove.Mode != FileMoveMode.None) {
 				try {
+					var metaDataProvider = fileMetaInfo.CondensedProviders.FirstOrDefault(x => x.Type == MediaProvider.MediaProviderType);
+					var detExts = metaDataProvider.Select(MediaProvider.SuggestedFileExtensionType)?.Value ?? ImmutableArray.Create<string>();
+
 					string GetValue(string key) {
 						var value = key switch
 						{
@@ -506,19 +509,19 @@ namespace AVDump3CL {
 							"FileExtension" => fileMetaInfo.FileInfo.Extension,
 							"FileNameWithoutExtension" => Path.GetFileNameWithoutExtension(fileMetaInfo.FileInfo.FullName),
 							"DirectoryName" => fileMetaInfo.FileInfo.DirectoryName,
-							"DetectedExtension" => fileMetaInfo.CondensedProviders.OfType<MediaProvider>().FirstOrDefault()?.Select(MediaProvider.SuggestedFileExtensionType)?.Value.FirstOrDefault() ?? fileMetaInfo.FileInfo.Extension,
+							"SuggestedExtension" => detExts.FirstOrDefault()?.Transform(x => "." + x) ?? fileMetaInfo.FileInfo.Extension,
 							_ => "",
 						};
 
 						if(key.StartsWith("Hash")) {
-							var m = Regex.Match(key, @"Hash-(?<Name>[^-]+)-(?<Base>\d+)-(?<Case>UC|LC)");
+							var m = Regex.Match(key, @"Hash-(?<Name>[^-]+)-(?<Base>\d+)-(?<Case>UC|LC|OC)");
 							if(m.Success) {
 								var hashName = m.Groups["Name"].Value;
 								var withBase = m.Groups["Base"].Value;
-								var useUppercase = m.Groups["Case"].Value.InvEqualsOrd("UC");
+								var letterCase = m.Groups["Case"].Value;
 
-								var hashData = fileMetaInfo.CondensedProviders.OfType<HashProvider>().FirstOrDefault()?.Select<HashInfoItemType, ReadOnlyMemory<byte>>(hashName).Value.ToArray();
-								if(hashData != null) value = BitConverterEx.ToBase(hashData, BitConverterEx.Bases[withBase]).Transform(x => useUppercase ? x.ToInvUpper() : x.ToInvLower());
+								var hashData = fileMetaInfo.CondensedProviders.FirstOrDefault(x => x.Type == HashProvider.HashProviderType)?.Select<HashInfoItemType, ReadOnlyMemory<byte>>(hashName).Value.ToArray();
+								if(hashData != null) value = BitConverterEx.ToBase(hashData, BitConverterEx.Bases[withBase]).Transform(x => letterCase switch { "UC" => x.ToInvUpper(), "LC" => x.ToInvLower(), "OC" => x, _ => x });
 							}
 						}
 						return value;
@@ -533,16 +536,18 @@ namespace AVDump3CL {
 						destFilePath = Path.Combine(Path.GetDirectoryName(destFilePath) ?? "", Path.GetFileName(fileMetaInfo.FileInfo.FullName));
 					}
 
-					await Task.Run(() => {
-						var originalPath = fileMetaInfo.FileInfo.FullName;
-						fileMetaInfo.FileInfo.MoveTo(destFilePath);
+					if(!string.Equals(destFilePath, fileMetaInfo.FileInfo.FullName, StringComparison.Ordinal)) {
+						await Task.Run(() => {
+							var originalPath = fileMetaInfo.FileInfo.FullName;
+							fileMetaInfo.FileInfo.MoveTo(destFilePath);
 
-						if(!string.IsNullOrEmpty(settings.FileMove.LogPath)) {
-							lock(settings.FileMove.LogPathProperty) {
-								File.AppendAllText(settings.FileMove.LogPath, originalPath + " => " + destFilePath + Environment.NewLine);
+							if(!string.IsNullOrEmpty(settings.FileMove.LogPath)) {
+								lock(settings.FileMove.LogPathProperty) {
+									File.AppendAllText(settings.FileMove.LogPath, originalPath + " => " + destFilePath + Environment.NewLine);
+								}
 							}
-						}
-					}).ConfigureAwait(false);
+						}).ConfigureAwait(false);
+					}
 
 				} catch(Exception) {
 					success = false;

@@ -344,7 +344,7 @@ namespace AVDump3CL {
 			PrintReportsProperty = Register(nameof(PrintReports), false);
 			ReportsProperty = Register(nameof(Reports), Array.Empty<string>());
 			ReportDirectoryProperty = Register(nameof(ReportDirectory), Environment.CurrentDirectory);
-			ReportFileNameProperty = Register(nameof(ReportFileName), "<FileName>.<ReportName>.<ReportFileExtension>");
+			ReportFileNameProperty = Register(nameof(ReportFileName), "${FileName}.${ReportName}.${ReportFileExtension}");
 			ExtensionDifferencePathProperty = Register(nameof(ExtensionDifferencePath), "");
 			CRC32ErrorProperty = Register(nameof(CRC32Error), default((string, string)));
 		}
@@ -366,9 +366,9 @@ namespace AVDump3CL {
 
 			} else if(property == CRC32ErrorProperty) {
 				var parts = str?.Split(':') ?? Array.Empty<string>();
-				var retVal = parts.Length == 1 ? (parts[0], "(?i)<CRC32>") : (parts[0], parts[1]);
+				var retVal = parts.Length == 1 ? (parts[0], "(?i)${CRC32}") : (parts[0], parts[1]);
 
-				Regex.IsMatch("12345678", retVal.Item2.Replace("<CRC32>", "12345678")); //Throw Early on invalid Regex
+				Regex.IsMatch("12345678", retVal.Item2.Replace("${CRC32}", "12345678")); //Throw Early on invalid Regex
 
 				return retVal;
 

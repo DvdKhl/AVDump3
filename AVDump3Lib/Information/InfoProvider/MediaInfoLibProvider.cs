@@ -396,7 +396,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 		private void AddSuggestedFileExtension(MediaInfoLibNativeMethods mil, bool hasAudio, bool hasVideo, bool hasSubtitle) {
 			var fileExt = (mil.Get("FileExtension") ?? "").ToInvLower();
-			var milInfo = (mil.Get("Format/Extensions") ?? "").ToInvLower().Split(' ');
+			var milInfo = (mil.Get("Format/Extensions") ?? "").ToInvLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
 			var milInfoCommercial = (mil.Get("Format_Commercial") ?? "").ToInvLower();
 
 
@@ -415,21 +415,16 @@ namespace AVDump3Lib.Information.InfoProvider {
 				} else {
 					Add(SuggestedFileExtensionType, ImmutableArray.Create(fileExt.Equals("mpeg", StringComparison.OrdinalIgnoreCase) ? "mpeg" : "mpg"));
 				}
-			} else if((milInfo.Contains("mp1") && milInfo.Contains("mp2") && milInfo.Contains("mp3")) || milInfo.Contains("wav")) {
+			} else if(milInfo.Contains("mp1") && milInfo.Contains("mp2") && milInfo.Contains("mp3")) {
 				switch(mil.Get("Format_Profile", MediaInfoLibNativeMethods.StreamTypes.Audio)) {
 					case "Layer 1": Add(SuggestedFileExtensionType, ImmutableArray.Create("mp1")); break;
 					case "Layer 2": Add(SuggestedFileExtensionType, ImmutableArray.Create("mp2")); break;
 					case "Layer 3": Add(SuggestedFileExtensionType, ImmutableArray.Create("mp3")); break;
+					default: Add(SuggestedFileExtensionType, ImmutableArray.Create(milInfo[0])); break;
 				}
 
+
 			} else if(milInfo.Contains("mp4") && milInfo.Contains("m4a") && milInfo.Contains("m4v")) {
-				//	if(hasSubtitle || (hasVideo && hasAudio)) {
-				//		Add(SuggestedFileExtensionType, ImmutableArray.Create("mp4"));
-				//	} else if(hasVideo && !hasAudio) {
-				//		Add(SuggestedFileExtensionType, ImmutableArray.Create("m4v"));
-				//	} else if(!hasVideo && hasAudio) {
-				//		Add(SuggestedFileExtensionType, ImmutableArray.Create("m4a"));
-				//	}
 				if(!hasVideo && hasAudio && !hasSubtitle) {
 					Add(SuggestedFileExtensionType, ImmutableArray.Create("m4a"));
 				} else if(hasVideo && !hasAudio && !hasSubtitle) {
@@ -449,6 +444,8 @@ namespace AVDump3Lib.Information.InfoProvider {
 					milInfo = mil.Get("Audio_Codec_List").ToInvLower().Split(' ');
 					if(milInfo.Contains("truehd")) {
 						Add(SuggestedFileExtensionType, ImmutableArray.Create("thd"));
+					} else {
+						Add(SuggestedFileExtensionType, ImmutableArray.Create("dts"));
 					}
 				}
 			} else if(milInfo.Contains("mlp") || milInfo.Length == 0 || string.IsNullOrEmpty(milInfo[0])) {
@@ -458,15 +455,42 @@ namespace AVDump3Lib.Information.InfoProvider {
 					Add(SuggestedFileExtensionType, ImmutableArray.Create("mlp"));
 				}
 
-			} else if(milInfo.Contains("ts")) {
+
+			} else if(milInfo.Contains("mkv")) {
+				if(hasVideo) {
+					Add(SuggestedFileExtensionType, ImmutableArray.Create("mkv"));
+				} else if(hasAudio) {
+					Add(SuggestedFileExtensionType, ImmutableArray.Create("mka"));
+				} else if(hasSubtitle) {
+					Add(SuggestedFileExtensionType, ImmutableArray.Create("mks"));
+				}
+
+				if(!hasVideo && hasAudio && !hasSubtitle) {
+					Add(SuggestedFileExtensionType, ImmutableArray.Create("m4a"));
+				} else if(hasVideo && !hasAudio && !hasSubtitle) {
+					Add(SuggestedFileExtensionType, ImmutableArray.Create("m4v"));
+				} else {
+					Add(SuggestedFileExtensionType, ImmutableArray.Create("mp4"));
+				}
+			}
+
+			if(milInfo.Contains("ts")) {
 				Add(SuggestedFileExtensionType, ImmutableArray.Create("ts"));
 
-			} else if(milInfo.Contains("m2ts")) {
+			} else if(milInfo.Contains("m2ts") || milInfo.Contains("m2t")) {
 				Add(SuggestedFileExtensionType, ImmutableArray.Create("m2ts"));
 
 			} else if(milInfo.Contains("wav")) {
 				Add(SuggestedFileExtensionType, ImmutableArray.Create("wav"));
+
+			} else if(milInfo.Contains("m4v")) {
+				Add(SuggestedFileExtensionType, ImmutableArray.Create("m4v"));
+
+			} else if(milInfo.Contains("avc")) {
+				Add(SuggestedFileExtensionType, ImmutableArray.Create("avc"));
 			}
+
+
 
 			if(Select(SuggestedFileExtensionType) == null) {
 				if(milInfo.Contains("rm") || milInfo.Contains("rmvb")) {

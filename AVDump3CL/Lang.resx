@@ -138,7 +138,7 @@ First param (max) sets a global limit. (path,max) pairs sets limits per path.</v
   </data>
   <data name="Reporting.CRC32Error.Description" xml:space="preserve">
     <value>Searches the filename for the calculated CRC32 hash. If not present or different a line with the caluclated hash and the full path of the file is appended to the specified path
-The regex pattern should contain the placeholder "&lt;CRC32&gt;" which is replaced by the calculated hash prior matching</value>
+The regex pattern should contain the placeholder ${CRC32} which is replaced by the calculated hash prior matching</value>
   </data>
   <data name="Reporting.CRC32Error.Example" xml:space="preserve">
     <value>--CRC32Error=&lt;Filepath&gt;:&lt;RegexPattern&gt;</value>
@@ -235,7 +235,7 @@ The regex pattern should contain the placeholder "&lt;CRC32&gt;" which is replac
   </data>
   <data name="Reporting.ReportFileName.Description" xml:space="preserve">
     <value>Reports will be saved/appended to the specified filename
-The following placeholders can be used: &lt;FileName&gt;, &lt;FileNameWithoutExtension&gt;, &lt;FileExtension&gt;, &lt;ReportName&gt;, ReportFileExtension</value>
+The following placeholders ${Name} can be used: FileName, FileNameWithoutExtension, FileExtension, ReportName, ReportFileExtension</value>
   </data>
   <data name="Reporting.ReportFileName.Example" xml:space="preserve">
     <value>--ReportFileName=&lt;FileName&gt;</value>
@@ -301,13 +301,13 @@ The following placeholders can be used: &lt;FileName&gt;, &lt;FileNameWithoutExt
     <value>--FileMove.DisableFileRename</value>
   </data>
   <data name="FileMove.Pattern.Description" xml:space="preserve">
-    <value>Available Placeholders:
+    <value>Available Placeholders ${Name}:
 FullName, FileName, FileExtension, FileNameWithoutExtension, DirectoryName,
-DetectedExtension,
-Hash-&lt;Name&gt;-&lt;2|4|8|10|16|32|32Hex|32Z|36|62|64&gt;-&lt;UC|LC&gt;</value>
+SuggestedExtension,
+Hash-&lt;Name&gt;-&lt;2|4|8|10|16|32|32Hex|32Z|36|62|64&gt;-&lt;OC|UC|LC&gt;</value>
   </data>
   <data name="FileMove.Pattern.Example" xml:space="preserve">
-    <value>--FileMove.Pattern={DirectoryName}\{FileNameWithoutExtension}[{Hash-CRC32-16-UC}]{DetectedExtension}</value>
+    <value>--FileMove.Pattern=${DirectoryName}\${FileNameWithoutExtension}[${Hash-CRC32-16-UC}]${SuggestedExtension}</value>
   </data>
   <data name="FileMove.Replacements.Description" xml:space="preserve">
     <value />
