@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="AVDump3Gui.Views.MainWindow"
-        Icon="/Assets/avalonia-logo.ico"
-        Title="AVDump3Gui">
+        Icon="/Assets/AVD3Icon.ico"
+        Title="AVDump3">
 
 
   <TabControl TabStripPlacement="Left">
@@ -19,7 +19,7 @@
       </DataGrid>
     </TabItem>
     <TabItem FontSize="64" FontFamily="Segoe UI Symbol" Header="⚙">
-      <HeaderedItemsControl Items="{Binding SettingGroups}" Width="640" >
+      <HeaderedItemsControl Items="{Binding SettingGroups}" Width="800" HorizontalAlignment="Left">
         <HeaderedItemsControl.Template>
           <ControlTemplate TargetType="{x:Type HeaderedItemsControl}">
             <Border>
@@ -29,7 +29,7 @@
                   <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
                 <ContentPresenter  Grid.Row="0" Content="{TemplateBinding Header}" />
-                <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Grid.Row="1">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden" Grid.Row="1">
                   <ItemsPresenter Items="{TemplateBinding Items}" />
                 </ScrollViewer>
               </Grid>
@@ -51,10 +51,24 @@
                     <StackPanel Margin="0,4,0,16">
                       <TextBlock Text="{Binding Name}" FontWeight="Bold" />
                       <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
-                      <UniformGrid Columns="2" Rows="1">
-                        <TextBox Text="{Binding Example}" TextWrapping="Wrap" />
-                        <TextBox Text="{Binding DefaultValue}" IsReadOnly="True" />
-                      </UniformGrid>
+
+                      <Grid>
+                        <Grid.RowDefinitions>
+                          <RowDefinition />
+                          <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="Auto" />
+                          <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Default: " Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" />
+                        <TextBlock Text="Current: " Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" />
+                        <TextBox Text="{Binding DefaultValue}" IsReadOnly="True" Background="LightGray" Grid.Column="1" Grid.Row="0" />
+                        <TextBox Text="{Binding Example}" TextWrapping="Wrap" Grid.Column="1" Grid.Row="1" />
+                      </Grid>
+                      
+                      
                     </StackPanel>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>

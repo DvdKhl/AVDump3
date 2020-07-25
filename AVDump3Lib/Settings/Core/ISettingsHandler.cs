@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AVDump3Lib.Settings.Core {
 	public interface ISettingsHandler {
-		void Register(params SettingsObject[] settingsObjects);
+		void Register(IEnumerable<SettingsGroup> settingsGroups);
 	}
 
 }

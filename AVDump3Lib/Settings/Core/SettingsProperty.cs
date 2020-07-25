@@ -1,28 +1,36 @@
 ﻿using ExtKnot.StringInvariants;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Resources;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace AVDump3Lib.Settings.Core {
-	public class SettingsProperty {
-		private readonly SettingsObject settingsObject;
+	public interface ISettingsProperty {
+		ImmutableArray<string> AlternativeNames { get; }
+		object? DefaultValue { get; }
+		string Name { get; }
+		Type ValueType { get; }
+	}
 
-		public string Name { get; private set; }
-		public Type ValueType { get; private set; }
-		public object? DefaultValue { get; private set; }
+	public class SettingsProperty : ISettingsProperty {
+		public string Name { get; }
+		public ImmutableArray<string> AlternativeNames { get; private set; }
 
-		public string Description => settingsObject.ResourceManager.GetInvString($"{settingsObject.Name}.{Name}.Description");
-		public string Example => settingsObject.ResourceManager.GetInvString($"{settingsObject.Name}.{Name}.Example");
+		public Type ValueType { get; }
+		public object? DefaultValue { get; }
 
-		public SettingsProperty(SettingsObject settingsObject, string name, Type valueType, object? defaultValue) {
-			this.settingsObject = settingsObject;
+
+		public SettingsProperty(string name, IEnumerable<string> alternativeNames, Type valueType, object? defaultValue) {
 			Name = name;
+			AlternativeNames = alternativeNames?.ToImmutableArray() ?? throw new ArgumentNullException(nameof(alternativeNames));
+
 			ValueType = valueType;
 			DefaultValue = defaultValue;
 		}
 
+		public static SettingsProperty From<TType>(string name, IEnumerable<string> alternativeNames, TType defaultValue) => new SettingsProperty(name, alternativeNames, typeof(TType), defaultValue);
 	}
 }

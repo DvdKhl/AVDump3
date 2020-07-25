@@ -1,6 +1,7 @@
 ﻿using AVDump3Lib.Processing.BlockBuffers;
 using AVDump3Lib.Processing.StreamConsumer;
 using AVDump3Lib.Processing.StreamProvider;
+using AVDump3UI;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

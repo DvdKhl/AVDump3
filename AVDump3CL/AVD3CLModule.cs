@@ -14,6 +14,8 @@ using AVDump3Lib.Processing.StreamProvider;
 using AVDump3Lib.Reporting;
 using AVDump3Lib.Settings;
 using AVDump3Lib.Settings.CLArguments;
+using AVDump3Lib.Settings.Core;
+using AVDump3UI;
 using ExtKnot.StringInvariants;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -75,9 +77,9 @@ namespace AVDump3CL {
 
 
 	public class AVD3CLModule : IAVD3CLModule, IFileMoveConfigure {
-		public event EventHandler<AVD3CLModuleExceptionEventArgs>? ExceptionThrown;
-		public event EventHandler<AVD3CLFileProcessedEventArgs>? FileProcessed;
-		public event EventHandler ProcessingFinished;
+		public event EventHandler<AVD3CLModuleExceptionEventArgs>? ExceptionThrown = delegate { };
+		public event EventHandler<AVD3CLFileProcessedEventArgs>? FileProcessed = delegate { };
+		public event EventHandler ProcessingFinished = delegate {};
 
 		public event EventHandler<StringBuilder> AdditionalLines { add { cl.AdditionalLines += value; } remove { cl.AdditionalLines -= value; } }
 
@@ -86,7 +88,7 @@ namespace AVDump3CL {
 		//private IServiceProvider fileMoveServiceProvider;
 		//private ScriptRunner<string> fileMoveScriptRunner;
 
-		private readonly AVD3CLModuleSettings settings = new AVD3CLModuleSettings();
+		private AVD3CLModuleSettings? settings;
 		private readonly object fileSystemLock = new object();
 		private readonly List<WaitHandle> shutdownDelayHandles = new List<WaitHandle>();
 
@@ -96,11 +98,10 @@ namespace AVDump3CL {
 		private IAVD3InformationModule informationModule;
 		private IAVD3ReportingModule reportingModule;
 
-		private AVD3CL cl;
+		private AVD3CL? cl;
 
 		public AVD3CLModule() {
 			AppDomain.CurrentDomain.UnhandledException += UnhandleException;
-			cl = new AVD3CL(settings.Display);
 		}
 
 		private void UnhandleException(object sender, UnhandledExceptionEventArgs e) {
@@ -114,11 +115,11 @@ namespace AVDump3CL {
 
 		private void OnException(AVD3CLException ex) {
 			var exElem = ex.ToXElement(
-				settings.Diagnostics.SkipEnvironmentElement,
-				settings.Diagnostics.IncludePersonalData
+				settings?.Diagnostics.SkipEnvironmentElement ?? false,
+				settings?.Diagnostics.IncludePersonalData ?? false
 			);
 
-			if(settings.Diagnostics.SaveErrors) {
+			if(settings?.Diagnostics.SaveErrors ?? false) {
 				lock(fileSystemLock) {
 					Directory.CreateDirectory(settings.Diagnostics.ErrorDirectory);
 					var filePath = Path.Combine(settings.Diagnostics.ErrorDirectory, "AVD3Error" + ex.ThrownOn.ToString("yyyyMMdd HHmmssffff") + ".xml");
@@ -130,7 +131,13 @@ namespace AVDump3CL {
 			}
 
 			var exception = ex.GetBaseException() ?? ex;
-			cl.Writeline("Error " + exception.GetType() + ": " + exception.Message);
+
+			if(cl != null) {
+				cl.Writeline("Error " + exception.GetType() + ": " + exception.Message);
+			} else {
+				Console.WriteLine("Error " + exception.GetType() + ": " + exception.Message);
+			}
+
 			ExceptionThrown?.Invoke(this, new AVD3CLModuleExceptionEventArgs(exElem));
 			//TODO Raise Event for modules to listen to
 		}
@@ -140,12 +147,14 @@ namespace AVDump3CL {
 
 			processingModule = modules.OfType<IAVD3ProcessingModule>().Single();
 			processingModule.BlockConsumerFilter += (s, e) => {
-				if(settings.Processing.Consumers.Any(x => e.BlockConsumerName.InvEqualsOrdCI(x.Name))) {
+				if(settings?.Processing.Consumers.Any(x => e.BlockConsumerName.InvEqualsOrdCI(x.Name)) ?? false) {
 					e.Accept();
 				}
 			};
 
 			processingModule.FilePathFilter += (s, e) => {
+				if(settings == null) throw new InvalidOperationException("Called FilePathFilter when settings is null");
+
 				var accept = settings.FileDiscovery.WithExtensions.Allow == (
 					settings.FileDiscovery.WithExtensions.Items.Count == 0 ||
 					settings.FileDiscovery.WithExtensions.Items.Any(
@@ -159,17 +168,26 @@ namespace AVDump3CL {
 			reportingModule = modules.OfType<IAVD3ReportingModule>().Single();
 
 			var settingsgModule = modules.OfType<IAVD3SettingsModule>().Single();
-			settingsgModule.RegisterSettings(settings.Diagnostics);
-			settingsgModule.RegisterSettings(settings.Display);
-			settingsgModule.RegisterSettings(settings.FileDiscovery);
-			settingsgModule.RegisterSettings(settings.Processing);
-			settingsgModule.RegisterSettings(settings.Reporting);
-			settingsgModule.RegisterSettings(settings.FileMove);
 
-			settingsgModule.AfterConfiguration += AfterConfiguration;
+
+			settingsgModule.RegisterSettings(new[]{
+				FileDiscoverySettings.CreateSettingsGroup(Lang.ResourceManager),
+				ProcessingSettings.CreateSettingsGroup(Lang.ResourceManager),
+				ReportingSettings.CreateSettingsGroup(Lang.ResourceManager),
+				FileMoveSettings.CreateSettingsGroup(Lang.ResourceManager),
+				DisplaySettings.CreateSettingsGroup(Lang.ResourceManager),
+				DiagnosticsSettings.CreateSettingsGroup(Lang.ResourceManager)
+			});
+
+			settingsgModule.ConfigurationFinished += ConfigurationFinished;
 		}
 		public ModuleInitResult Initialized() => new ModuleInitResult(false);
-		public void AfterConfiguration(object? sender, ModuleInitResult args) {
+
+		public void ConfigurationFinished(object? sender, SettingsModuleInitResult args) {
+			settings = new AVD3CLModuleSettings(args.Store);
+
+			cl = new AVD3CL(settings.Display);
+
 			processingModule.RegisterDefaultBlockConsumers((settings.Processing.Consumers ?? Array.Empty<ProcessingSettings.ConsumerSettings>()).ToDictionary(x => x.Name, x => x.Arguments));
 
 			if(settings.Processing.Consumers == null) {
@@ -582,7 +600,7 @@ namespace AVDump3CL {
 								fileMetaInfo.FileInfo.MoveTo(destFilePath);
 
 								if(!string.IsNullOrEmpty(settings.FileMove.LogPath)) {
-									lock(settings.FileMove.LogPathProperty) {
+									lock(fileSystemLock) {
 										File.AppendAllText(settings.FileMove.LogPath, originalPath + " => " + destFilePath + Environment.NewLine);
 									}
 								}

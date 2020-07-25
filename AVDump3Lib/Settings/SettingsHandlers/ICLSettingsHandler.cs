@@ -6,6 +6,5 @@ namespace AVDump3Lib.Settings.CLArguments {
 		bool ParseArgs(string[] args, ICollection<string> unnamedArgs);
 		void PrintHelp(bool detailed);
 		void PrintHelpTopic(string topic, bool detailed);
-		void Register(params SettingsObject[] settingsObjects);
 	}
 }

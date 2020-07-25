@@ -21,7 +21,6 @@ namespace AVDump3CL {
 
 			var serviceCollection = new ServiceCollection();
 
-			serviceCollection.AddScoped<ISettingsHandler, CLSettingsHandler>();
 			serviceCollection.AddSingleton<IAVD3InformationModule, AVD3InformationModule>();
 			serviceCollection.AddSingleton<IAVD3ProcessingModule, AVD3ProcessingModule>();
 			serviceCollection.AddSingleton<IAVD3ReportingModule, AVD3ReportingModule>();
@@ -51,8 +50,6 @@ namespace AVDump3CL {
 	}
 
 	class Program {
-		private static readonly CLSettingsHandler clSettingsHandler = new CLSettingsHandler();
-
 		static void Main(string[] args) {
 			if(args.Length > 0 && args[0].Equals("FROMFILE")) {
 				if(args.Length < 2 || !File.Exists(args[1])) {
@@ -72,17 +69,37 @@ namespace AVDump3CL {
 			var moduleManagement = CreateModules();
 			moduleManagement.RaiseIntialize();
 
-			var pathsToProcess = new List<string>();
+			var settingsModule = moduleManagement.GetModule<AVD3SettingsModule>();
+			
+
+			string[] pathsToProcess;
 			try {
-				if(!clSettingsHandler.ParseArgs(args, pathsToProcess)) {
+				var parseResult = CLSettingsHandler.ParseArgs(settingsModule.SettingsGroups, args);
+
+				if(!parseResult.Success) {
+					Console.WriteLine(parseResult.Message);
 					if(Utils.UsingWindows) Console.Read();
 					return;
 				}
+
+				if(parseResult.PrintHelp) {
+					CLSettingsHandler.PrintHelp(settingsModule.SettingsGroups, parseResult.PrintHelpTopic, args.Length != 0);
+				}
+
+
+				var settingsStore = settingsModule.BuildStore();
+				foreach(var settingValue in parseResult.SettingValues) {
+					settingsStore.SetPropertyValue(settingValue.Key, settingValue.Value);
+				}
+
+				pathsToProcess = parseResult.UnnamedArgs.ToArray();
+
 			} catch(Exception ex) {
 				Console.WriteLine("Error while parsing commandline arguments:");
 				Console.WriteLine(ex.Message);
 				return;
 			}
+
 
 			var moduleInitResult = moduleManagement.RaiseInitialized();
 			if(moduleInitResult.CancelStartup) {
@@ -103,7 +120,7 @@ namespace AVDump3CL {
 			moduleManagement.LoadModuleFromType(typeof(AVD3InformationModule));
 			moduleManagement.LoadModuleFromType(typeof(AVD3ProcessingModule));
 			moduleManagement.LoadModuleFromType(typeof(AVD3ReportingModule));
-			moduleManagement.LoadModuleFromType(typeof(AVD3SettingsModule), clSettingsHandler);
+			moduleManagement.LoadModuleFromType(typeof(AVD3SettingsModule));
 			moduleManagement.LoadModuleFromType(typeof(AVD3CLModule));
 			return moduleManagement;
 		}
