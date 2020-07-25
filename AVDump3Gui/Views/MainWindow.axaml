@@ -1,0 +1,72 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:AVDump3Gui.ViewModels;assembly=AVDump3Gui"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="AVDump3Gui.Views.MainWindow"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="AVDump3Gui">
+
+
+  <TabControl TabStripPlacement="Left">
+    <TabItem FontSize="64" FontFamily="Segoe UI Symbol" Header="▶">
+      <DataGrid Items="{Binding Files}" >
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="DirectoryName" Binding="{Binding Info.DirectoryName}" />
+          <DataGridTextColumn Header="FileName" Binding="{Binding Info.Name}" />
+        </DataGrid.Columns>
+      </DataGrid>
+    </TabItem>
+    <TabItem FontSize="64" FontFamily="Segoe UI Symbol" Header="⚙">
+      <HeaderedItemsControl Items="{Binding SettingGroups}" Width="640" >
+        <HeaderedItemsControl.Template>
+          <ControlTemplate TargetType="{x:Type HeaderedItemsControl}">
+            <Border>
+              <Grid>
+                <Grid.RowDefinitions>
+                  <RowDefinition Height="Auto" />
+                  <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <ContentPresenter  Grid.Row="0" Content="{TemplateBinding Header}" />
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible" Grid.Row="1">
+                  <ItemsPresenter Items="{TemplateBinding Items}" />
+                </ScrollViewer>
+              </Grid>
+            </Border>
+          </ControlTemplate>
+        </HeaderedItemsControl.Template>
+
+        <HeaderedItemsControl.Header>
+          <TextBlock TextAlignment="Center" FontSize="32" Text="Settings" />
+        </HeaderedItemsControl.Header>
+        <HeaderedItemsControl.ItemTemplate>
+          <DataTemplate>
+            <StackPanel Margin="0,0,8,0">
+              <TextBlock FontSize="24" Text="{Binding Name}" />
+              <TextBlock FontSize="10" Text="{Binding Description}" />
+              <ItemsControl Items="{Binding Properties}" Margin="16,0,0,0">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <StackPanel Margin="0,4,0,16">
+                      <TextBlock Text="{Binding Name}" FontWeight="Bold" />
+                      <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+                      <UniformGrid Columns="2" Rows="1">
+                        <TextBox Text="{Binding Example}" TextWrapping="Wrap" />
+                        <TextBox Text="{Binding DefaultValue}" IsReadOnly="True" />
+                      </UniformGrid>
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </DataTemplate>
+        </HeaderedItemsControl.ItemTemplate>
+
+
+      </HeaderedItemsControl>
+    </TabItem>
+  </TabControl>
+
+
+</Window>

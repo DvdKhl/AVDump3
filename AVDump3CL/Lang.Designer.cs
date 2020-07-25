@@ -413,7 +413,7 @@ namespace AVDump3CL {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to --FileMove.Mode=&lt;None|Placeholder|CSharpScriptFile&gt;.
+        ///   Looks up a localized string similar to --FileMove.Mode=&lt;None|PlaceholderInline|PlaceholderFile|CSharpScriptInline|CSharpScriptFile|DotNetAssembly&gt;.
         /// </summary>
         internal static string FileMove_Mode_Example {
             get {
@@ -423,8 +423,7 @@ namespace AVDump3CL {
         
         /// <summary>
         ///   Looks up a localized string similar to Available Placeholders ${Name}:
-        ///FullName, FileName, FileExtension, FileNameWithoutExtension, DirectoryName,
-        ///SuggestedExtension,
+        ///FullName, FileName, FileExtension, FileNameWithoutExtension, DirectoryName, SuggestedExtension,
         ///Hash-&lt;Name&gt;-&lt;2|4|8|10|16|32|32Hex|32Z|36|62|64&gt;-&lt;OC|UC|LC&gt;.
         /// </summary>
         internal static string FileMove_Pattern_Description {
@@ -517,6 +516,7 @@ namespace AVDump3CL {
         /// <summary>
         ///   Looks up a localized string similar to Searches the filename for the calculated CRC32 hash. If not present or different a line with the caluclated hash and the full path of the file is appended to the specified path
         ///The regex pattern should contain the placeholder ${CRC32} which is replaced by the calculated hash prior matching.
+        ///Consumer CRC32 will be force enabled!.
         /// </summary>
         internal static string Reporting_CRC32Error_Description {
             get {

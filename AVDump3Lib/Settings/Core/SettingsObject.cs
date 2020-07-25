@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ExtKnot.StringInvariants;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Resources;
@@ -16,7 +17,7 @@ namespace AVDump3Lib.Settings.Core {
 		public ResourceManager ResourceManager { get; }
 
 		protected SettingsProperty Register<TType>(string propertyName, TType defaultValue) {
-			var settingsProperty = new SettingsProperty(propertyName, typeof(TType), defaultValue);
+			var settingsProperty = new SettingsProperty(this, propertyName, typeof(TType), defaultValue);
 			Properties.Add(settingsProperty);
 
 			return settingsProperty;
@@ -28,9 +29,13 @@ namespace AVDump3Lib.Settings.Core {
 			ResourceManager = resourceManager ?? throw new ArgumentNullException(nameof(resourceManager));
 		}
 
+		public string Description => ResourceManager.GetInvString($"{Name}.Description");
+
 		public void UnsetValue(SettingsProperty property) => values.Remove(property);
 		public void SetValue(SettingsProperty property, object? value) => values[property] = value;
 		public object? GetValue(SettingsProperty property) => values.TryGetValue(property, out var value) ? value : (property ?? throw new ArgumentNullException(nameof(property))).DefaultValue;
 		public object GetRequiredValue(SettingsProperty property) => (values.TryGetValue(property, out var value) ? value : (property ?? throw new ArgumentNullException(nameof(property))).DefaultValue) ?? throw new Exception("Required value was null");
 	}
+
+
 }

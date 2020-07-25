@@ -11,13 +11,12 @@ using System.Xml.Linq;
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 	public class MatroskaFile : Section {
 		public EbmlHeaderSection EbmlHeader { get; private set; }
-		public SegmentSection Segment { get; private set; }
+		public SegmentSection? Segment { get; private set; }
 		private long lastFilePosition;
 
 		public bool HasMetaData() {
 			var isValid = Segment != null && Segment.SegmentInfo != null && Segment.Tracks != null;
-
-			if(Segment.SectionSize.HasValue) {
+			if(Segment?.SectionSize.HasValue ?? false) {
 				isValid = isValid && SectionSize - Segment.SectionSize < (1 << 20) && SectionSize / Segment.SectionSize < 1.01;
 				isValid = isValid && lastFilePosition - Segment.SectionSize < (1 << 20) && lastFilePosition / Segment.SectionSize < 1.01;
 			}

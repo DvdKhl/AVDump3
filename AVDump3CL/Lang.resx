@@ -138,7 +138,8 @@ First param (max) sets a global limit. (path,max) pairs sets limits per path.</v
   </data>
   <data name="Reporting.CRC32Error.Description" xml:space="preserve">
     <value>Searches the filename for the calculated CRC32 hash. If not present or different a line with the caluclated hash and the full path of the file is appended to the specified path
-The regex pattern should contain the placeholder ${CRC32} which is replaced by the calculated hash prior matching</value>
+The regex pattern should contain the placeholder ${CRC32} which is replaced by the calculated hash prior matching.
+Consumer CRC32 will be force enabled!</value>
   </data>
   <data name="Reporting.CRC32Error.Example" xml:space="preserve">
     <value>--CRC32Error=&lt;Filepath&gt;:&lt;RegexPattern&gt;</value>
@@ -286,7 +287,7 @@ The following placeholders ${Name} can be used: FileName, FileNameWithoutExtensi
     <value />
   </data>
   <data name="FileMove.Mode.Example" xml:space="preserve">
-    <value>--FileMove.Mode=&lt;None|Placeholder|CSharpScriptFile&gt;</value>
+    <value>--FileMove.Mode=&lt;None|PlaceholderInline|PlaceholderFile|CSharpScriptInline|CSharpScriptFile|DotNetAssembly&gt;</value>
   </data>
   <data name="FileMove.DisableFileMove.Description" xml:space="preserve">
     <value />
@@ -302,8 +303,7 @@ The following placeholders ${Name} can be used: FileName, FileNameWithoutExtensi
   </data>
   <data name="FileMove.Pattern.Description" xml:space="preserve">
     <value>Available Placeholders ${Name}:
-FullName, FileName, FileExtension, FileNameWithoutExtension, DirectoryName,
-SuggestedExtension,
+FullName, FileName, FileExtension, FileNameWithoutExtension, DirectoryName, SuggestedExtension,
 Hash-&lt;Name&gt;-&lt;2|4|8|10|16|32|32Hex|32Z|36|62|64&gt;-&lt;OC|UC|LC&gt;</value>
   </data>
   <data name="FileMove.Pattern.Example" xml:space="preserve">

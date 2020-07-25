@@ -57,7 +57,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.7.0-2.final" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.0-preview.6.20305.6" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.2-dev-10280" />
   </ItemGroup>

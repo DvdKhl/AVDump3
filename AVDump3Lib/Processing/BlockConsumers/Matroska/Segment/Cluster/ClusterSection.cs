@@ -22,7 +22,10 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster {
 			foreach(var track in tracks) {
 				var trackNumber = (int)track.TrackNumber.Value;
 				if(Tracks.TryGetValue(~trackNumber, out var clusterTrack)) {
-					Tracks.Add(trackNumber, new Track(trackNumber, track.TrackTimecodeScale ?? 1d, track));
+					var replaceTrack = new Track(trackNumber, track.TrackTimecodeScale ?? 1d, track);
+					replaceTrack.Timecodes.AddRange(clusterTrack.Timecodes);
+
+					Tracks.Add(trackNumber, replaceTrack);
 					Tracks.Remove(~trackNumber);
 				} else {
 					Tracks.Add(trackNumber, new Track(trackNumber, track.TrackTimecodeScale ?? 1d, track));

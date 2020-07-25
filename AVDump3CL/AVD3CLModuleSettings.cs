@@ -97,12 +97,10 @@ namespace AVDump3CL {
 		}
 
 		string? ICLConvert.ToCLString(SettingsProperty property, object? obj) {
-			if(property == WithExtensionsProperty) {
-				var value = (FileExtensionsSetting?)obj;
-				return ((value?.Allow ?? false) ? "" : "-") + string.Join(",", value.Items);
+			if(property == WithExtensionsProperty && obj is FileExtensionsSetting extSettings) {
+				return (extSettings.Allow ? "" : "-") + string.Join(",", extSettings.Items);
 
-			} else if(property == ConcurrentProperty) {
-				var value = (PathPartitions?)obj;
+			} else if(property == ConcurrentProperty && obj is PathPartitions value) {
 				return value.ConcurrentCount + (value.Partitions.Count > 0 ? ":" : "") + string.Join(",", value.Partitions.Select(x => x.Path + "," + x.ConcurrentCount));
 			}
 
@@ -222,15 +220,19 @@ namespace AVDump3CL {
 	}
 
 
-	public enum FileMoveMode { None, Placeholder, CSharpScriptFile, CSharpScriptInline }
+	public enum FileMoveMode { None, PlaceholderInline, PlaceholderFile, CSharpScriptInline, CSharpScriptFile, DotNetAssembly}
 
 	public class FileMoveSettings : SettingsObject, ICLConvert {
-
-
 		public SettingsProperty ModeProperty { get; }
 		public FileMoveMode Mode {
 			get => (FileMoveMode)GetRequiredValue(ModeProperty);
 			set => SetValue(ModeProperty, value);
+		}
+
+		public SettingsProperty TestProperty { get; }
+		public bool Test {
+			get => (bool)GetRequiredValue(TestProperty);
+			set => SetValue(TestProperty, value);
 		}
 
 		public SettingsProperty PatternProperty { get; }
@@ -245,6 +247,7 @@ namespace AVDump3CL {
 			get => (bool)GetRequiredValue(DisableFileMoveProperty);
 			set => SetValue(DisableFileMoveProperty, value);
 		}
+
 
 
 		public SettingsProperty DisableFileRenameProperty { get; }
@@ -266,6 +269,7 @@ namespace AVDump3CL {
 		}
 
 		public FileMoveSettings() : base("FileMove", Lang.ResourceManager) {
+			TestProperty = Register(nameof(Test), false);
 			LogPathProperty = Register(nameof(LogPath), "");
 			ModeProperty = Register(nameof(Mode), FileMoveMode.None);
 			PatternProperty = Register(nameof(Pattern), "");
@@ -278,7 +282,7 @@ namespace AVDump3CL {
 			if(prop == ReplacementsProperty) {
 				return (str ?? "").Split(';').Select(x => x.Split(',')).Select(x => (x[0], x[1]));
 			}
-			if(prop == ModeProperty) {
+			if(prop == ModeProperty && str != null) {
 				return Enum.Parse<FileMoveMode>(str);
 			}
 			return Convert.ChangeType(str, prop.ValueType);

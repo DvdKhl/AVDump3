@@ -224,7 +224,7 @@ namespace AVDump3CL {
 		private int maxFCount;
 		private int maxCursorPos;
 		private int state;
-		private int sbLineCount;
+		private int sbLineCount, sbLineCountPrev;
 		private bool hasLastDisplay;
 		private BytesReadProgress.Progress curP, prevP;
 		private readonly float[] totalSpeedAverages = new float[3];
@@ -293,7 +293,7 @@ namespace AVDump3CL {
 
 			if(!settings.ForwardConsoleCursorOnly) {
 
-				if(state == 0) { 
+				if(state == 0) {
 					prevP = curP;
 					curP = getProgress();
 				}
@@ -339,6 +339,7 @@ namespace AVDump3CL {
 				maxCursorPos = Math.Max(maxCursorPos, Console.CursorTop);
 				Console.SetCursorPosition(0, Math.Max(0, Console.CursorTop - sbLineCount));
 
+				sbLineCountPrev = sbLineCount;
 				sbLineCount = 0;
 				if(IsProcessing) {
 					Display(sb, interpolationFactor);
@@ -541,6 +542,21 @@ namespace AVDump3CL {
 			lock(timer) {
 				timer.Dispose();
 			}
+		}
+
+		public IDisposable LockConsole() {
+			Monitor.Enter(timer);
+
+			Console.SetCursorPosition(0, Math.Max(0, Console.CursorTop + sbLineCountPrev));
+			Console.WriteLine();
+
+			return new ProxyDisposable(() => Monitor.Exit(timer));
+		}
+
+		private class ProxyDisposable : IDisposable {
+			private readonly Action dispose;
+			public ProxyDisposable(Action dispose) => this.dispose = dispose;
+			public void Dispose() => dispose();
 		}
 	}
 }

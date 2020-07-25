@@ -67,6 +67,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 				new SubFileType(),
 				new TmpFileType(),
 				new PJSFileType(),
+				new WebvttFileType(),
 				new JSFileType(),
 				new RTFileType(),
 				new SMILFileType(),
@@ -243,6 +244,8 @@ namespace AVDump3Lib.Information.InfoProvider {
 			using var sr = new StreamReader(stream, Encoding.UTF8, true, 2048, true);
 
 			foreach(var line in ReadLines(sr, 1024)) {
+				if(count == 0 && line.InvContainsOrdCI("webvtt")) break;
+
 				if(regexParse.IsMatch(line)) count++;
 				if(count > 20) break;
 
@@ -276,7 +279,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 		public override void ElaborateCheck(Stream stream) {
 			if(!IsCandidate) return;
 
-			IsCandidate = stream.ReadByte() != 0x1A && stream.ReadByte() != 0x45 && stream.ReadByte() != 0xDF && stream.ReadByte() != 0xA3;
+			IsCandidate = stream.ReadByte() != 0x1A && stream.ReadByte() != 0x45 && stream.ReadByte() != 0xDF && stream.ReadByte() != 0xA3; //Skip Matroska files
 			stream.Position = 0;
 			if(!IsCandidate) return;
 
@@ -304,19 +307,31 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 			if(pos == -1) {
 				pos = str.InvIndexOfOrdCI("scripttype:");
-				if(pos < 0) { IsCandidate = false; return; }
-				if((pos = str.InvIndexOfOrdCI("v4.00", pos, 20)) < 0) { IsCandidate = false; return; }
+				if(pos < 0) {
+					IsCandidate = false;
+					return;
+				}
+				if((pos = str.InvIndexOfOrdCI("v4.00", pos, 20)) < 0) {
+					IsCandidate = false;
+					return;
+				}
 				pos += 5;
 			}
 			if(pos == -1) {
 				pos = str.InvIndexOfOrdCI("scripttype:");
-				if(pos < 0) { IsCandidate = false; return; }
-				if((pos = str.InvIndexOfOrdCI("v3.00", pos, 20)) < 0) { IsCandidate = false; return; }
+				if(pos < 0) {
+					IsCandidate = false;
+					return;
+				}
+				if((pos = str.InvIndexOfOrdCI("v3.00", pos, 20)) < 0) {
+					IsCandidate = false;
+					return;
+				}
 				pos += 5;
 			}
 
 
-			if(stream.Length > pos + 2) {
+			if(pos + 2 < stream.Length) {
 				PossibleExtensions = new string[] { str[pos] == '+' ? "ass" : "ssa" };
 				identifier += PossibleExtensions[0];
 			} else {
@@ -499,6 +514,32 @@ namespace AVDump3Lib.Information.InfoProvider {
 			var length = sr.Read(chars, 0, chars.Length);
 			var str = new string(chars, 0, length).ToLowerInvariant();
 			IsCandidate = str.Contains("script=xombiesub");
+		}
+	}
+	public class WebvttFileType : FileType {
+		public WebvttFileType() : base(new byte[][]{
+			new byte[] { 0xFE, 0xFF, (byte)'W', (byte)'E', (byte)'B', (byte)'V', (byte)'T', (byte)'T' },
+			new byte[] { (byte)'W', (byte)'E', (byte)'B', (byte)'V', (byte)'T', (byte)'T' }
+		}, identifier: "text/vtt") { PossibleExtensions = new string[] { "vtt" }; fileType = MediaProvider.SubtitleStreamType; }
+
+		public override void ElaborateCheck(Stream stream) {
+			if(!IsCandidate) return;
+
+			using var sr = new StreamReader(stream, Encoding.UTF8, true, 2048, true);
+
+			int score = 0;
+			string? line;
+			while((line = sr.ReadLine()) != null) {
+				if(line.InvStartsWithOrdCI("region") || line.InvStartsWithOrdCI("style") || line.InvStartsWithOrdCI("note")) {
+					score += 10;
+				}
+				if(line.InvStartsWithOrdCI("-->")) {
+					score += 1;
+				}
+
+			}
+
+			IsCandidate = score > 10;
 		}
 	}
 	public class SUPFileType : FileType {

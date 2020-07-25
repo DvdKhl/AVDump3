@@ -1,4 +1,5 @@
 using BXmlLib;
+using BXmlLib.DataSource;
 using BXmlLib.DocType;
 using BXmlLib.DocTypes.Ebml;
 using System;
@@ -10,7 +11,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 		public long? SectionSize { get; protected set; }
 
 		internal void Read(IBXmlReader reader) {
-			SectionSize = reader.Header.DataLength;
+			SectionSize = reader.Header.DataLength != ~BXmlElementHeader.UnknownLength ? reader.Header.DataLength : default(long?);
 
 			using(reader.EnterElement()) {
 				try {
@@ -28,10 +29,14 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 					//TODO: Add Issue
 				}
 			}
+
+			if(reader.Header.DataLength == ~BXmlElementHeader.UnknownLength) {
+
+			}
 		}
 
 		internal void ContinueRead(IBXmlReader reader) {
-			SectionSize = reader.Header.DataLength;
+			SectionSize = reader.Header.DataLength != ~BXmlElementHeader.UnknownLength ? reader.Header.DataLength : default(long?);
 
 			try {
 				do {

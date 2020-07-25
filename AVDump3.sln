@@ -17,6 +17,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AVDump3Gui", "AVDump3Gui\AVDump3Gui.csproj", "{E5D6DE42-A4F6-4059-BFC7-5C020E97D74E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AVDump3UI", "AVDump3UI\AVDump3UI.csproj", "{800FA21D-E9B5-46B5-A3D2-D1F384EA5554}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,6 +64,30 @@ Global
 		{7F854E9E-7824-47A3-B560-3901B8F59DCA}.Release|Any CPU.ActiveCfg = Release|x64
 		{7F854E9E-7824-47A3-B560-3901B8F59DCA}.Release|x64.ActiveCfg = Release|x64
 		{7F854E9E-7824-47A3-B560-3901B8F59DCA}.Release|x64.Build.0 = Release|x64
+		{E5D6DE42-A4F6-4059-BFC7-5C020E97D74E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5D6DE42-A4F6-4059-BFC7-5C020E97D74E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5D6DE42-A4F6-4059-BFC7-5C020E97D74E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E5D6DE42-A4F6-4059-BFC7-5C020E97D74E}.Debug|x64.Build.0 = Debug|Any CPU
+		{E5D6DE42-A4F6-4059-BFC7-5C020E97D74E}.GithubWorkflow|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5D6DE42-A4F6-4059-BFC7-5C020E97D74E}.GithubWorkflow|Any CPU.Build.0 = Debug|Any CPU
+		{E5D6DE42-A4F6-4059-BFC7-5C020E97D74E}.GithubWorkflow|x64.ActiveCfg = Debug|Any CPU
+		{E5D6DE42-A4F6-4059-BFC7-5C020E97D74E}.GithubWorkflow|x64.Build.0 = Debug|Any CPU
+		{E5D6DE42-A4F6-4059-BFC7-5C020E97D74E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5D6DE42-A4F6-4059-BFC7-5C020E97D74E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5D6DE42-A4F6-4059-BFC7-5C020E97D74E}.Release|x64.ActiveCfg = Release|Any CPU
+		{E5D6DE42-A4F6-4059-BFC7-5C020E97D74E}.Release|x64.Build.0 = Release|Any CPU
+		{800FA21D-E9B5-46B5-A3D2-D1F384EA5554}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{800FA21D-E9B5-46B5-A3D2-D1F384EA5554}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{800FA21D-E9B5-46B5-A3D2-D1F384EA5554}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{800FA21D-E9B5-46B5-A3D2-D1F384EA5554}.Debug|x64.Build.0 = Debug|Any CPU
+		{800FA21D-E9B5-46B5-A3D2-D1F384EA5554}.GithubWorkflow|Any CPU.ActiveCfg = Debug|Any CPU
+		{800FA21D-E9B5-46B5-A3D2-D1F384EA5554}.GithubWorkflow|Any CPU.Build.0 = Debug|Any CPU
+		{800FA21D-E9B5-46B5-A3D2-D1F384EA5554}.GithubWorkflow|x64.ActiveCfg = Debug|Any CPU
+		{800FA21D-E9B5-46B5-A3D2-D1F384EA5554}.GithubWorkflow|x64.Build.0 = Debug|Any CPU
+		{800FA21D-E9B5-46B5-A3D2-D1F384EA5554}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{800FA21D-E9B5-46B5-A3D2-D1F384EA5554}.Release|Any CPU.Build.0 = Release|Any CPU
+		{800FA21D-E9B5-46B5-A3D2-D1F384EA5554}.Release|x64.ActiveCfg = Release|Any CPU
+		{800FA21D-E9B5-46B5-A3D2-D1F384EA5554}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
