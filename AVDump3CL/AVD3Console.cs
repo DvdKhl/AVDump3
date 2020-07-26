@@ -248,8 +248,15 @@ namespace AVDump3CL {
 		}
 
 		public IDisposable LockConsole() {
+			progressTimer.Change(Timeout.Infinite, Timeout.Infinite);
 			Monitor.Enter(progressWriteLock);
-			return new ProxyDisposable(() => Monitor.Exit(progressWriteLock));
+			Console.SetCursorPosition(0, maxTopCursorPos);
+
+			return new ProxyDisposable(() => {
+				maxTopCursorPos = Math.Max(maxTopCursorPos, Console.CursorTop);
+				Monitor.Exit(progressWriteLock);
+				progressTimer.Change(500, TickPeriod);
+			});
 		}
 
 		public void Dispose() => ((IDisposable)progressTimer).Dispose();

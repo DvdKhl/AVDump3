@@ -527,6 +527,8 @@ namespace AVDump3CL {
 		private async Task<bool> HandleFileMove(FileMetaInfo fileMetaInfo) {
 			var success = true;
 			if(fileMove != null) {
+				using var clLock = settings.FileMove.Test ? console.LockConsole() : null;
+
 				try {
 					var moveFile = true;
 					var actionKey = ' ';
@@ -552,7 +554,6 @@ namespace AVDump3CL {
 
 
 						if(settings.FileMove.Test) {
-							using var clLock = console.LockConsole();
 							System.Console.WriteLine();
 							System.Console.WriteLine();
 							System.Console.WriteLine("FileMove.Test Enabled" + (settings.FileMove.DisableFileMove ? " (DisableFileMove Enabled!)" : "") + (settings.FileMove.DisableFileRename ? " (DisableFileRename Enabled!)" : ""));
@@ -587,7 +588,10 @@ namespace AVDump3CL {
 								System.Console.WriteLine("(A) Repeat script execution automatically on sourcefile change");
 								System.Console.WriteLine("(M) Moving the file and continue");
 								System.Console.Write("User Input: ");
-								actionKey = (char)System.Console.Read();
+
+								while(System.Console.KeyAvailable) System.Console.ReadKey(true);
+								actionKey = char.ToUpperInvariant(System.Console.ReadKey().KeyChar);
+
 								if(actionKey == -1) actionKey = 'C';
 								System.Console.WriteLine();
 								System.Console.WriteLine();

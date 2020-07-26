@@ -9,6 +9,13 @@
         Title="AVDump3">
 
 
+  <Window.Background>
+    <LinearGradientBrush>
+      <GradientStop Offset="0.5" Color="#FFFFFFFF" />
+      <GradientStop Offset="1" Color="#FFCCCC00" />
+    </LinearGradientBrush>
+  </Window.Background>
+
   <TabControl TabStripPlacement="Left">
     <TabItem FontSize="64" FontFamily="Segoe UI Symbol" Header="▶">
       <DataGrid Items="{Binding Files}" >
@@ -67,8 +74,8 @@
                         <TextBox Text="{Binding DefaultValue}" IsReadOnly="True" Background="LightGray" Grid.Column="1" Grid.Row="0" />
                         <TextBox Text="{Binding Example}" TextWrapping="Wrap" Grid.Column="1" Grid.Row="1" />
                       </Grid>
-                      
-                      
+
+
                     </StackPanel>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
