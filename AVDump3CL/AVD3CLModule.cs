@@ -64,12 +64,12 @@ namespace AVDump3CL {
 	public interface IAVD3CLModule : IAVD3Module {
 		event EventHandler<AVD3CLModuleExceptionEventArgs> ExceptionThrown;
 		event EventHandler<AVD3CLFileProcessedEventArgs> FileProcessed;
-		event EventHandler<StringBuilder> AdditionalLines;
 		event EventHandler ProcessingFinished;
 
-		void RegisterShutdownDelay(WaitHandle waitHandle);
+		IAVD3Console Console { get; }
 
-		void WriteLine(params string[] values);
+		void RegisterShutdownDelay(WaitHandle waitHandle);
+		void WriteLine(string value);
 	}
 
 
@@ -79,9 +79,9 @@ namespace AVDump3CL {
 	public class AVD3CLModule : IAVD3CLModule, IFileMoveConfigure {
 		public event EventHandler<AVD3CLModuleExceptionEventArgs>? ExceptionThrown = delegate { };
 		public event EventHandler<AVD3CLFileProcessedEventArgs>? FileProcessed = delegate { };
-		public event EventHandler ProcessingFinished = delegate {};
+		public event EventHandler ProcessingFinished = delegate { };
 
-		public event EventHandler<StringBuilder> AdditionalLines { add { cl.AdditionalLines += value; } remove { cl.AdditionalLines -= value; } }
+		public IAVD3Console Console => console;
 
 		private IFileMoveScript fileMove;
 		private HashSet<string> filePathsToSkip = new HashSet<string>();
@@ -97,12 +97,16 @@ namespace AVDump3CL {
 		private IAVD3ProcessingModule processingModule;
 		private IAVD3InformationModule informationModule;
 		private IAVD3ReportingModule reportingModule;
+		private AVD3Console console = new AVD3Console();
 
-		private AVD3CL? cl;
+		private AVD3ProgressDisplay? progressDisplay;
+
 
 		public AVD3CLModule() {
 			AppDomain.CurrentDomain.UnhandledException += UnhandleException;
 		}
+
+
 
 		private void UnhandleException(object sender, UnhandledExceptionEventArgs e) {
 			var wrapEx = new AVD3CLException(
@@ -132,11 +136,7 @@ namespace AVDump3CL {
 
 			var exception = ex.GetBaseException() ?? ex;
 
-			if(cl != null) {
-				cl.Writeline("Error " + exception.GetType() + ": " + exception.Message);
-			} else {
-				Console.WriteLine("Error " + exception.GetType() + ": " + exception.Message);
-			}
+			console.WriteLine("Error " + exception.GetType() + ": " + exception.Message);
 
 			ExceptionThrown?.Invoke(this, new AVD3CLModuleExceptionEventArgs(exElem));
 			//TODO Raise Event for modules to listen to
@@ -186,37 +186,38 @@ namespace AVDump3CL {
 		public void ConfigurationFinished(object? sender, SettingsModuleInitResult args) {
 			settings = new AVD3CLModuleSettings(args.Store);
 
-			cl = new AVD3CL(settings.Display);
+			progressDisplay = new AVD3ProgressDisplay(settings.Display);
+			console.WriteProgress += progressDisplay.WriteProgress;
 
 			processingModule.RegisterDefaultBlockConsumers((settings.Processing.Consumers ?? Array.Empty<ProcessingSettings.ConsumerSettings>()).ToDictionary(x => x.Name, x => x.Arguments));
 
 			if(settings.Processing.Consumers == null) {
-				Console.WriteLine("Available Consumers: ");
+				System.Console.WriteLine("Available Consumers: ");
 				foreach(var blockConsumerFactory in processingModule.BlockConsumerFactories) {
-					Console.WriteLine(blockConsumerFactory.Name.PadRight(14) + " - " + blockConsumerFactory.Description);
+					System.Console.WriteLine(blockConsumerFactory.Name.PadRight(14) + " - " + blockConsumerFactory.Description);
 				}
 				args.Cancel();
 
 			} else if(settings.Processing.Consumers.Any()) {
 				var invalidBlockConsumerNames = settings.Processing.Consumers.Where(x => processingModule.BlockConsumerFactories.All(y => !y.Name.InvEqualsOrdCI(x.Name))).ToArray();
 				if(invalidBlockConsumerNames.Any()) {
-					Console.WriteLine("Invalid BlockConsumer(s): " + string.Join(", ", invalidBlockConsumerNames.Select(x => x.Name)));
+					System.Console.WriteLine("Invalid BlockConsumer(s): " + string.Join(", ", invalidBlockConsumerNames.Select<ProcessingSettings.ConsumerSettings, string>(x => x.Name)));
 					args.Cancel();
 				}
 			}
 
 
 			if(settings.Reporting.Reports == null) {
-				Console.WriteLine("Available Reports: ");
+				System.Console.WriteLine("Available Reports: ");
 				foreach(var reportFactory in reportingModule.ReportFactories) {
-					Console.WriteLine(reportFactory.Name.PadRight(14) + " - " + reportFactory.Description);
+					System.Console.WriteLine(reportFactory.Name.PadRight(14) + " - " + reportFactory.Description);
 				}
 				args.Cancel();
 
 			} else if(settings.Reporting.Reports.Any()) {
 				var invalidReportNames = settings.Reporting.Reports.Where(x => reportingModule.ReportFactories.All(y => !y.Name.InvEqualsOrdCI(x))).ToArray();
 				if(invalidReportNames.Any()) {
-					Console.WriteLine("Invalid Report: " + string.Join(", ", invalidReportNames));
+					System.Console.WriteLine("Invalid Report: " + string.Join(", ", invalidReportNames));
 					args.Cancel();
 				}
 			}
@@ -228,9 +229,9 @@ namespace AVDump3CL {
 			}
 
 			if(settings.Processing.PrintAvailableSIMDs) {
-				Console.WriteLine("Available SIMD Instructions: ");
+				System.Console.WriteLine("Available SIMD Instructions: ");
 				foreach(var flagValue in Enum.GetValues(typeof(CPUInstructions)).OfType<CPUInstructions>().Where(x => (x & processingModule.AvailableSIMD) != 0)) {
-					Console.WriteLine(flagValue);
+					System.Console.WriteLine(flagValue);
 				}
 				args.Cancel();
 			}
@@ -245,7 +246,7 @@ namespace AVDump3CL {
 			}
 
 			if(settings.Diagnostics.NullStreamTest != null && settings.Reporting.Reports?.Count > 0) {
-				Console.WriteLine("NullStreamTest cannot be used with reports");
+				System.Console.WriteLine("NullStreamTest cannot be used with reports");
 				args.Cancel();
 			}
 
@@ -269,7 +270,7 @@ namespace AVDump3CL {
 
 				} else {
 					if(!fileMove.CanReload) {
-						Console.WriteLine("FileMove cannot enter test mode because the choosen --FileMove.Mode cannot be reloaded. It needs to be file based!");
+						System.Console.WriteLine("FileMove cannot enter test mode because the choosen --FileMove.Mode cannot be reloaded. It needs to be file based!");
 						args.Cancel();
 					}
 				}
@@ -295,8 +296,8 @@ namespace AVDump3CL {
 				settings.Diagnostics.NullStreamTest.ParallelStreamCount
 			);
 
-			cl.TotalFiles = nsp.StreamCount;
-			cl.TotalBytes = nsp.StreamCount * nsp.StreamLength;
+			progressDisplay.TotalFiles = nsp.StreamCount;
+			progressDisplay.TotalBytes = nsp.StreamCount * nsp.StreamLength;
 
 			return nsp;
 		}
@@ -311,22 +312,25 @@ namespace AVDump3CL {
 				settings.Processing.ProducerMaxReadLength
 			);
 
-			using(cl)
+			using(console)
 			using(sp as IDisposable)
 			using(var cts = new CancellationTokenSource()) {
-				cl.IsProcessing = true;
-				cl.Display(bytesReadProgress.GetProgress);
+				progressDisplay.Initialize(bytesReadProgress.GetProgress);
+
+
+				console.StartProgressDisplay();
 
 				void cancelKeyHandler(object s, ConsoleCancelEventArgs e) {
-					Console.CancelKeyPress -= cancelKeyHandler;
+					System.Console.CancelKeyPress -= cancelKeyHandler;
 					e.Cancel = true;
 					cts.Cancel();
 				}
-				Console.CancelKeyPress += cancelKeyHandler;
-				Console.CursorVisible = false;
+				System.Console.CancelKeyPress += cancelKeyHandler;
+				System.Console.CursorVisible = false;
 				try {
 					streamConsumerCollection.ConsumeStreams(ConsumingStream, cts.Token, bytesReadProgress);
-					cl.IsProcessing = false;
+					console.StopProgressDisplay();
+
 					ProcessingFinished?.Invoke(this, EventArgs.Empty);
 
 					var shutdownDelayHandles = this.shutdownDelayHandles.ToArray();
@@ -335,14 +339,14 @@ namespace AVDump3CL {
 				} catch(OperationCanceledException) {
 
 				} finally {
-					cl.Stop();
-					Console.CursorVisible = true;
+					if(console.ShowingProgress) console.StopProgressDisplay();
+					System.Console.CursorVisible = true;
 				}
 			}
 
 			if(settings.Processing.PauseBeforeExit) {
-				Console.WriteLine("Program execution has finished. Press any key to exit.");
-				Console.Read();
+				System.Console.WriteLine("Program execution has finished. Press any key to exit.");
+				System.Console.Read();
 			}
 		}
 
@@ -353,22 +357,22 @@ namespace AVDump3CL {
 				paths, settings.FileDiscovery.Recursive, settings.FileDiscovery.Concurrent,
 				path => {
 					if(fileDiscoveryOn.AddSeconds(1) < DateTimeOffset.UtcNow) {
-						Console.WriteLine("Accepted files: " + acceptedFiles);
+						System.Console.WriteLine("Accepted files: " + acceptedFiles);
 						fileDiscoveryOn = DateTimeOffset.UtcNow;
 					}
 					acceptedFiles++;
 				},
 				ex => {
 					if(!(ex is UnauthorizedAccessException) || !RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-						Console.WriteLine("Filediscovery: " + ex.Message);
+						System.Console.WriteLine("Filediscovery: " + ex.Message);
 					}
 				}
 			);
-			Console.WriteLine("Accepted files: " + acceptedFiles);
-			Console.WriteLine();
+			System.Console.WriteLine("Accepted files: " + acceptedFiles);
+			System.Console.WriteLine();
 
-			cl.TotalFiles = sp.TotalFileCount;
-			cl.TotalBytes = sp.TotalBytes;
+			progressDisplay.TotalFiles = sp.TotalFileCount;
+			progressDisplay.TotalBytes = sp.TotalBytes;
 
 			return sp;
 		}
@@ -503,7 +507,7 @@ namespace AVDump3CL {
 					success = false;
 				}
 			}
-			cl.Writeline(linesToWrite);
+			console.WriteLine(linesToWrite);
 			return success;
 		}
 		private async Task<bool> HandleEvent(FileMetaInfo fileMetaInfo) {
@@ -548,27 +552,27 @@ namespace AVDump3CL {
 
 
 						if(settings.FileMove.Test) {
-							using var clLock = cl.LockConsole();
-							Console.WriteLine();
-							Console.WriteLine();
-							Console.WriteLine("FileMove.Test Enabled" + (settings.FileMove.DisableFileMove ? " (DisableFileMove Enabled!)" : "") + (settings.FileMove.DisableFileRename ? " (DisableFileRename Enabled!)" : ""));
-							Console.WriteLine("Directoryname: ");
-							Console.WriteLine("Old: " + fileMetaInfo.FileInfo.DirectoryName);
-							Console.WriteLine("New: " + Path.GetDirectoryName(destFilePath));
-							Console.WriteLine("Filename: ");
-							Console.WriteLine("Old: " + fileMetaInfo.FileInfo.Name);
-							Console.WriteLine("New: " + Path.GetFileName(destFilePath));
+							using var clLock = console.LockConsole();
+							System.Console.WriteLine();
+							System.Console.WriteLine();
+							System.Console.WriteLine("FileMove.Test Enabled" + (settings.FileMove.DisableFileMove ? " (DisableFileMove Enabled!)" : "") + (settings.FileMove.DisableFileRename ? " (DisableFileRename Enabled!)" : ""));
+							System.Console.WriteLine("Directoryname: ");
+							System.Console.WriteLine("Old: " + fileMetaInfo.FileInfo.DirectoryName);
+							System.Console.WriteLine("New: " + Path.GetDirectoryName(destFilePath));
+							System.Console.WriteLine("Filename: ");
+							System.Console.WriteLine("Old: " + fileMetaInfo.FileInfo.Name);
+							System.Console.WriteLine("New: " + Path.GetFileName(destFilePath));
 
 
 							if(actionKey == 'A') {
-								Console.WriteLine("Press any key to cancel automatic mode");
+								System.Console.WriteLine("Press any key to cancel automatic mode");
 
 
-								while(!Console.KeyAvailable && !fileMove.SourceChanged()) {
+								while(!System.Console.KeyAvailable && !fileMove.SourceChanged()) {
 									await Task.Delay(500);
 								}
 
-								if(Console.KeyAvailable) {
+								if(System.Console.KeyAvailable) {
 									actionKey = ' ';
 								} else {
 									continue;
@@ -576,17 +580,17 @@ namespace AVDump3CL {
 							}
 
 							do {
-								Console.WriteLine();
-								Console.WriteLine("How do you wish to continue?");
-								Console.WriteLine("(C) Continue without moving the file");
-								Console.WriteLine("(R) Repeat script execution");
-								Console.WriteLine("(A) Repeat script execution automatically on sourcefile change");
-								Console.WriteLine("(M) Moving the file and continue");
-								Console.Write("User Input: ");
-								actionKey = (char)Console.Read();
+								System.Console.WriteLine();
+								System.Console.WriteLine("How do you wish to continue?");
+								System.Console.WriteLine("(C) Continue without moving the file");
+								System.Console.WriteLine("(R) Repeat script execution");
+								System.Console.WriteLine("(A) Repeat script execution automatically on sourcefile change");
+								System.Console.WriteLine("(M) Moving the file and continue");
+								System.Console.Write("User Input: ");
+								actionKey = (char)System.Console.Read();
 								if(actionKey == -1) actionKey = 'C';
-								Console.WriteLine();
-								Console.WriteLine();
+								System.Console.WriteLine();
+								System.Console.WriteLine();
 
 							} while(actionKey != 'C' && actionKey != 'R' && actionKey != 'A' && actionKey != 'M');
 
@@ -618,7 +622,7 @@ namespace AVDump3CL {
 			return success;
 		}
 
-		public void WriteLine(params string[] values) => cl.Writeline(values);
+		public void WriteLine(string value) => console.WriteLine(value);
 
 
 		public void RegisterShutdownDelay(WaitHandle waitHandle) => shutdownDelayHandles.Add(waitHandle);

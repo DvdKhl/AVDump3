@@ -84,6 +84,7 @@ namespace AVDump3CL {
 
 				if(parseResult.PrintHelp) {
 					CLSettingsHandler.PrintHelp(settingsModule.SettingsGroups, parseResult.PrintHelpTopic, args.Length != 0);
+					return;
 				}
 
 

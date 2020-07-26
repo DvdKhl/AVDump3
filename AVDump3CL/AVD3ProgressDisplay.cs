@@ -144,7 +144,7 @@ namespace AVDump3CL {
 					bcProgress.BytesProcessed += bytesRead[i + 1];
 					bcProgress.BufferFill += (bytesRead[0] - bytesRead[i + 1]) / (double)bufferLength;
 				}
-				if(activeCount > 0) bytesProcessed += bytesProcessLocal / activeCount;
+				if(activeCount > 0) bytesProcessed += bytesProcessLocal / activeCount; //TODO: Somtimes the bytesProcessed decreases compared to the previous call
 
 
 				fileProgressCollection.Add(new FileProgress(
@@ -201,32 +201,18 @@ namespace AVDump3CL {
 
 	}
 
-	public sealed class AVD3CL : IDisposable {
+	public sealed class AVD3ProgressDisplay {
 		private Func<BytesReadProgress.Progress> getProgress; //TODO As Event
 		private readonly DisplaySettings settings;
-		private const int TickPeriod = 100;
 		private const int UpdatePeriodInTicks = 5;
-		private const int MeanAverageMinuteInterval = 60 * 1000 / TickPeriod;
-		private readonly StringBuilder sb = new StringBuilder();
-		private readonly List<string> toWrite = new List<string>();
-		private readonly Timer timer;
+		private const int MeanAverageMinuteInterval = 60 * 1000 / AVD3Console.TickPeriod;
 
 		public long TotalBytes { get; set; }
 		public int TotalFiles { get; set; }
-		public bool IsProcessing { get; set; }
 
-		public event EventHandler<StringBuilder> AdditionalLines;
-
-		private int displayUpdateCount;
-		private int displaySkipCount;
-
-		private string output;
 		private int maxBCCount;
 		private int maxFCount;
-		private int maxCursorPos;
 		private int state;
-		private int sbLineCount, sbLineCountPrev;
-		private bool hasLastDisplay;
 		private BytesReadProgress.Progress curP, prevP;
 		private readonly float[] totalSpeedAverages = new float[3];
 		private readonly int[] totalSpeedDisplayAverages = new int[3];
@@ -234,16 +220,14 @@ namespace AVDump3CL {
 		private int totalBytesShiftCount;
 		private string totalBytesDisplayUnit;
 
-		public AVD3CL(DisplaySettings settings) {
+		public AVD3ProgressDisplay(DisplaySettings settings) {
 			this.settings = settings;
 
-			output = "";
-			timer = new Timer(TimerCallback);
 			prevP = curP = new BytesReadProgress.Progress();
 		}
 
 
-		public void Display(Func<BytesReadProgress.Progress> getProgress) {
+		public void Initialize(Func<BytesReadProgress.Progress> getProgress) {
 			var totalBytes = TotalBytes;
 			while(totalBytes > 9999) {
 				totalBytes >>= 10;
@@ -252,163 +236,76 @@ namespace AVDump3CL {
 			totalBytesDisplayUnit = totalBytesShiftCount switch { 40 => "TiB", 30 => "GiB", 20 => "MiB", 10 => "KiB", _ => "Byt" };
 
 			curP = getProgress();
-			timer.Change(500, TickPeriod);
 			this.getProgress = getProgress;
 		}
 
-		public void Stop() {
-			Thread.Sleep(2 * UpdatePeriodInTicks * TickPeriod);
-			timer.Change(Timeout.Infinite, Timeout.Infinite);
-			lock(timer) {
-				if(!settings.ForwardConsoleCursorOnly) Console.SetCursorPosition(0, maxCursorPos);
-				Console.WriteLine();
+		public void WriteProgress(AVD3ConsoleProgressBuilder pb) {
+			if(state == 0) {
+				prevP = curP;
+				curP = getProgress();
+
+				//Windows makes the cursor visible again when the window is resized
+				if(Console.CursorVisible) Console.CursorVisible = false;
 			}
-		}
+			var interpolationFactor = (state + 1) / (double)UpdatePeriodInTicks;
+			state++;
+			state %= UpdatePeriodInTicks;
 
-		private readonly Stopwatch sw = new Stopwatch();
-		private void TimerCallback(object? _) {
-			if(!Monitor.TryEnter(timer)) {
-				displaySkipCount++;
-				return;
-			}
-			sw.Restart();
+			var processedMiBsInInterval = ((curP.BytesProcessed - prevP.BytesProcessed) >> 20) / UpdatePeriodInTicks;
 
-			Console.Write(output);
+			if((DateTimeOffset.UtcNow - curP.StartedOn).TotalMinutes < 1) {
+				var now = DateTimeOffset.UtcNow;
+				var prevSpeed = (prevP.BytesProcessed >> 20) / (now - prevP.StartedOn).TotalSeconds;
+				var curSpeed = (curP.BytesProcessed >> 20) / (now - curP.StartedOn).TotalSeconds;
+				totalSpeedAverages[0] = (float)(prevSpeed + interpolationFactor * (curSpeed - prevSpeed));
 
-			sb.Length = 0;
-
-			string[] toWrite;
-			lock(this.toWrite) {
-				toWrite = this.toWrite.ToArray();
-				this.toWrite.Clear();
-			}
-			var consoleWidth = Console.BufferWidth - 1;
-			for(var i = 0; i < toWrite.Length; i++) {
-				var line = toWrite[i];
-
-				var sbLength = sb.Length;
-				sb.Append(line);
-				if(i < sbLineCount) sb.Append(' ', Math.Max(0, consoleWidth - (sb.Length - sbLength)));
-				sb.AppendLine();
-			}
-
-			if(!settings.ForwardConsoleCursorOnly) {
-
-				if(state == 0) {
-					prevP = curP;
-					curP = getProgress();
-				}
-
-				var processedMiBsInInterval = ((curP.BytesProcessed - prevP.BytesProcessed) >> 20) / UpdatePeriodInTicks;
-				var interpolationFactor = (state + 1) / (double)UpdatePeriodInTicks;
-
-				if((DateTimeOffset.UtcNow - curP.StartedOn).TotalMinutes < 1) {
-					var now = DateTimeOffset.UtcNow;
-					var prevSpeed = (prevP.BytesProcessed >> 20) / (now - prevP.StartedOn).TotalSeconds;
-					var curSpeed = (curP.BytesProcessed >> 20) / (now - curP.StartedOn).TotalSeconds;
-					totalSpeedAverages[0] = (float)(prevSpeed + interpolationFactor * (curSpeed - prevSpeed));
-
-				} else {
-					var maInterval = MeanAverageMinuteInterval;
-					totalSpeedAverages[0] = totalSpeedAverages[0] * (maInterval - 1) / maInterval + (processedMiBsInInterval / (float)TickPeriod * 1000) / maInterval;
-				}
-				if((DateTimeOffset.UtcNow - curP.StartedOn).TotalMinutes < 5) {
-					totalSpeedAverages[1] = totalSpeedAverages[0];
-				} else {
-					var maInterval = MeanAverageMinuteInterval * 5;
-					totalSpeedAverages[1] = totalSpeedAverages[1] * (maInterval - 1) / maInterval + (processedMiBsInInterval / (float)TickPeriod * 1000) / maInterval;
-				}
-				if((DateTimeOffset.UtcNow - curP.StartedOn).TotalMinutes < 15) {
-					totalSpeedAverages[2] = totalSpeedAverages[1];
-				} else {
-					var maInterval = MeanAverageMinuteInterval * 15;
-					totalSpeedAverages[2] = totalSpeedAverages[2] * (maInterval - 1) / maInterval + (processedMiBsInInterval / (float)TickPeriod * 1000) / maInterval;
-				}
-				if(totalSpeedAverages[0] > 9999 || totalSpeedAverages[1] > 9999 || totalSpeedAverages[2] > 9999) {
-					totalSpeedDisplayAverages[0] = (int)totalSpeedAverages[0] >> 10;
-					totalSpeedDisplayAverages[1] = (int)totalSpeedAverages[1] >> 10;
-					totalSpeedDisplayAverages[2] = (int)totalSpeedAverages[2] >> 10;
-					totalSpeedDisplayUnit = "GiB/s";
-
-				} else {
-					totalSpeedDisplayAverages[0] = (int)totalSpeedAverages[0];
-					totalSpeedDisplayAverages[1] = (int)totalSpeedAverages[1];
-					totalSpeedDisplayAverages[2] = (int)totalSpeedAverages[2];
-					totalSpeedDisplayUnit = "MiB/s";
-				}
-
-				maxCursorPos = Math.Max(maxCursorPos, Console.CursorTop);
-				Console.SetCursorPosition(0, Math.Max(0, Console.CursorTop - sbLineCount));
-
-				sbLineCountPrev = sbLineCount;
-				sbLineCount = 0;
-				if(IsProcessing) {
-					Display(sb, interpolationFactor);
-				} else if(!hasLastDisplay) {
-					hasLastDisplay = true;
-					Display(sb, 1);
-					sbLineCount = 0;
-				}
-
-
-				AdditionalLines?.Invoke(this, sb);
-
-				sb.Append(' ', consoleWidth).AppendLine();
-				sb.Append(' ', consoleWidth).AppendLine();
-				sb.Append(' ', consoleWidth).AppendLine();
-				sbLineCount += 3;
-
-				if(settings.ShowDisplayJitter) {
-					sb.AppendLine();
-					sb.Append(
-						displayUpdateCount++.ToString("0000") + " " +
-						displaySkipCount.ToString("000") + " " +
-						sw.ElapsedMilliseconds.ToString("000000") + " " +
-						(state == 0 ? sw.ElapsedMilliseconds.ToString("000000") : "")
-					);
-					sbLineCount++;
-				}
-
-				state++;
-				state %= UpdatePeriodInTicks;
-			}
-
-			output = sb.ToString();
-
-			Monitor.Exit(timer);
-		}
-		public void WriteStatusLine(string statusLine) {
-			sb.AppendLine(statusLine);
-			sbLineCount++;
-		}
-
-		public void Writeline(params string[] lines) => Writeline((IReadOnlyList<string>)lines);
-		public void Writeline(IReadOnlyList<string> lines) {
-			if(sw.IsRunning) {
-				lines = lines.SelectMany(x => x.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)).ToArray();
-				lock(toWrite) toWrite.AddRange(lines);
 			} else {
-				Console.WriteLine(string.Join("\n", lines));
+				var maInterval = MeanAverageMinuteInterval;
+				totalSpeedAverages[0] = totalSpeedAverages[0] * (maInterval - 1) / maInterval + (processedMiBsInInterval / (float)AVD3Console.TickPeriod * 1000) / maInterval;
 			}
+			if((DateTimeOffset.UtcNow - curP.StartedOn).TotalMinutes < 5) {
+				totalSpeedAverages[1] = totalSpeedAverages[0];
+			} else {
+				var maInterval = MeanAverageMinuteInterval * 5;
+				totalSpeedAverages[1] = totalSpeedAverages[1] * (maInterval - 1) / maInterval + (processedMiBsInInterval / (float)AVD3Console.TickPeriod * 1000) / maInterval;
+			}
+			if((DateTimeOffset.UtcNow - curP.StartedOn).TotalMinutes < 15) {
+				totalSpeedAverages[2] = totalSpeedAverages[1];
+			} else {
+				var maInterval = MeanAverageMinuteInterval * 15;
+				totalSpeedAverages[2] = totalSpeedAverages[2] * (maInterval - 1) / maInterval + (processedMiBsInInterval / (float)AVD3Console.TickPeriod * 1000) / maInterval;
+			}
+			if(totalSpeedAverages[0] > 9999 || totalSpeedAverages[1] > 9999 || totalSpeedAverages[2] > 9999) {
+				totalSpeedDisplayAverages[0] = (int)totalSpeedAverages[0] >> 10;
+				totalSpeedDisplayAverages[1] = (int)totalSpeedAverages[1] >> 10;
+				totalSpeedDisplayAverages[2] = (int)totalSpeedAverages[2] >> 10;
+				totalSpeedDisplayUnit = "GiB/s";
+
+			} else {
+				totalSpeedDisplayAverages[0] = (int)totalSpeedAverages[0];
+				totalSpeedDisplayAverages[1] = (int)totalSpeedAverages[1];
+				totalSpeedDisplayAverages[2] = (int)totalSpeedAverages[2];
+				totalSpeedDisplayUnit = "MiB/s";
+			}
+
+			Display(pb, interpolationFactor);
+
+			pb.SpecialJitterEvent = state == 0;
 		}
 
-		private void Display(StringBuilder sb, double relPos) {
-			var sbLength = sb.Length;
-			var consoleWidth = Console.BufferWidth - 1;
-			consoleWidth = Math.Min(120, consoleWidth);
+		private void Display(AVD3ConsoleProgressBuilder sb, double relPos) {
+			var consoleWidth = sb.ConsoleWidth;
 			if(consoleWidth < 60) return;
 
 
-			var barWidth = consoleWidth - 8 - 1 - 2 - 2;
 			var now = DateTimeOffset.UtcNow;
 
-			sbLineCount++;
-			sb.Append('-', consoleWidth).AppendLine();
-
-			double prevBarPosition, curBarPosition;
-			int barPosition, curBCCount = 0;
+			sb.Append('-', consoleWidth - 1).AppendLine();
 
 			if(!settings.HideBuffers) {
+				var barWidth = consoleWidth - 8 - 1 - 2 - 2;
+
+				var curBCCount = 0;
 				for(var i = 0; i < curP.BlockConsumerProgressCollection.Count; i++) {
 					var cur = curP.BlockConsumerProgressCollection[i];
 					var prev = prevP.BlockConsumerProgressCollection[i];
@@ -416,33 +313,23 @@ namespace AVDump3CL {
 					if(cur.ActiveCount == 0 && prev.ActiveCount == 0) continue;
 					curBCCount++;
 
-					prevBarPosition = barWidth * prev.BufferFill;
-					curBarPosition = barWidth * cur.BufferFill;
-					barPosition = (int)(prevBarPosition + relPos * (curBarPosition - prevBarPosition));
+					sb.AppendFixedLength(cur.Name, 8).Append(' ');
 
-					sbLength = sb.Length;
-					sb.Append(cur.Name.Substring(0, Math.Min(cur.Name.Length, 8)));
-					sb.Append(' ', 8 - (sb.Length - sbLength));
-
-					sb.Append('[').Append('#', barPosition).Append(' ', barWidth - barPosition).Append("] ");
-					sb.Append(cur.ActiveCount);
-
-					sbLineCount++;
-					sb.Append(' ', consoleWidth - (sb.Length - sbLength)).AppendLine();
+					sb.AppendBar(barWidth, prev.BufferFill + relPos * (cur.BufferFill - prev.BufferFill)).Append(' ');
+					sb.Append(cur.ActiveCount).AppendLine();
 				}
 
 				if(maxBCCount < curBCCount) maxBCCount = curBCCount;
 				for(var i = curBCCount; i < maxBCCount + 1; i++) {
-					sbLineCount++;
-					sb.Append(' ', consoleWidth).AppendLine();
+					sb.AppendLine();
 				}
 			}
 
 
-			double prevSpeed, curSpeed;
-			int speed, curFCount = 0;
 			if(!settings.HideFileProgress) {
-				barWidth = consoleWidth - 23;
+				var barWidth = consoleWidth - 23;
+
+				int curFCount = 0;
 				foreach(var item in
 					from cur in curP.FileProgressCollection
 					join prev in prevP.FileProgressCollection on cur.Id equals prev.Id into PrevGJ
@@ -450,72 +337,51 @@ namespace AVDump3CL {
 					orderby cur.StartedOn
 					select new { cur, prev = prev ?? cur }
 				) {
-					var fileName = Path.GetFileName(item.cur.FilePath);
-					curFCount++;
-
-					if(item.prev.FileLength > 0) {
-						prevBarPosition = (int)(10 * item.prev.BytesProcessed / item.prev.FileLength);
-						curBarPosition = (int)(10 * item.cur.BytesProcessed / item.cur.FileLength);
-						barPosition = (int)(prevBarPosition + relPos * (curBarPosition - prevBarPosition));
-						//barPosition = (int)(10 * item.cur.BytesProcessed / item.cur.FileLength);
-					} else {
-						barPosition = 10;
-					}
-
-					prevSpeed = (int)((item.prev.BytesProcessed >> 20) / (now - item.prev.StartedOn).TotalSeconds);
-					curSpeed = (int)((item.cur.BytesProcessed >> 20) / (now - item.cur.StartedOn).TotalSeconds);
-					speed = (int)(prevSpeed + relPos * (curSpeed - prevSpeed));
+					sb.AppendFixedLength(Path.GetFileName(item.cur.FilePath), barWidth);
 
 					var writerLockCount = item.cur.WriterLockCount - item.prev.WriterLockCount;
 					var readerLockCount = (item.cur.ReaderLockCount - item.prev.ReaderLockCount) / Math.Max(1, curP.BlockConsumerProgressCollection.Count);
 					var lockSign = writerLockCount == 0 && readerLockCount == 0 ? ' ' : (writerLockCount < readerLockCount ? '-' : '+');
+					sb.Append(lockSign);
+
+					var fileProgressFactor = 0d;
+					if(item.prev.FileLength > 0) {
+						var fileProgressFactorPrev = item.prev.BytesProcessed / (double)item.prev.FileLength;
+						var fileProgressFactorCur = item.cur.BytesProcessed / (double)item.cur.FileLength;
+						fileProgressFactor = fileProgressFactorPrev + relPos * (fileProgressFactorCur - fileProgressFactorPrev);
+					} else {
+						fileProgressFactor = 1;
+					}
+					sb.AppendBar(10, fileProgressFactor);
 
 
+					var prevSpeed = (item.prev.BytesProcessed >> 20) / (now - item.prev.StartedOn).TotalSeconds;
+					var curSpeed = (item.cur.BytesProcessed >> 20) / (now - item.cur.StartedOn).TotalSeconds;
+					var speed = (int)(prevSpeed + relPos * (curSpeed - prevSpeed));
+					sb.Append(Math.Min(999, speed).ToString().PadLeft(3)).Append("MiB/s").AppendLine();
 
-					sbLength = sb.Length;
-					sb.Append(fileName, 0, Math.Min(barWidth, fileName.Length));
-					//sb.Append("RL=").Append(item.cur.ReaderLockCount).Append(" WL=").Append(item.cur.WriterLockCount);
-					sb.Append(' ', barWidth - (sb.Length - sbLength));
-
-					sb.Append(lockSign).Append('[').Append('#', barPosition).Append(' ', 10 - barPosition).Append("] ");
-
-					sb.Append(Math.Min(999, speed).ToString().PadLeft(3)).Append("MiB/s");
-
-					sbLineCount++;
-					sb.Append(' ', consoleWidth - (sb.Length - sbLength)).AppendLine();
-
-
+					curFCount++;
 				}
 
 				if(maxFCount < curFCount) maxFCount = curFCount;
-				for(var i = curFCount; i < maxFCount; i++) {
-					sbLineCount++;
-					sb.Append(' ', consoleWidth).AppendLine();
-				}
+				for(var i = curFCount; i < maxFCount; i++) sb.AppendLine();
 			}
 
 			if(!settings.HideTotalProgress && TotalBytes > 0) {
-				barWidth = consoleWidth - 30;
-				//prevSpeed = (prevP.BytesProcessed >> 20) / (now - prevP.StartedOn).TotalSeconds;
-				//curSpeed = (curP.BytesProcessed >> 20) / (now - curP.StartedOn).TotalSeconds;
-				//speed = (int)(prevSpeed + relPos * (curSpeed - prevSpeed));
+				var barWidth = consoleWidth - 30;
 
-				prevBarPosition = (int)(barWidth * prevP.BytesProcessed / TotalBytes);
-				curBarPosition = (int)(barWidth * curP.BytesProcessed / TotalBytes);
-				barPosition = (int)Math.Ceiling(prevBarPosition + relPos * (curBarPosition - prevBarPosition));
+				var bytesProcessedFactorPrev = (double)prevP.BytesProcessed / TotalBytes;
+				var bytesProcessedFactorCur = (double)curP.BytesProcessed / TotalBytes;
 
+				//Hack because there is a bug which causes prev to be higher than cur
+				if(bytesProcessedFactorPrev > bytesProcessedFactorCur) bytesProcessedFactorCur = bytesProcessedFactorPrev;
 
-				//9999 9999 9999MiB/s
-
-				sbLength = sb.Length;
-				sb.Append("Total [").Append('#', barPosition).Append(' ', consoleWidth - 30 - barPosition).Append("] ");
-				sb.Append(Math.Min(9999, totalSpeedDisplayAverages[0]).ToString().PadLeft(5));
-				sb.Append(Math.Min(9999, totalSpeedDisplayAverages[1]).ToString().PadLeft(5));
-				sb.Append(Math.Min(9999, totalSpeedDisplayAverages[2]).ToString().PadLeft(5));
-				sb.Append(totalSpeedDisplayUnit);
-
-				sbLineCount++;
-				sb.Append(' ', consoleWidth - (sb.Length - sbLength)).AppendLine();
+				var bytesProcessedFactor = bytesProcessedFactorPrev + relPos * (bytesProcessedFactorCur - bytesProcessedFactorPrev);
+				sb.Append("Total ").AppendBar(consoleWidth - 31, bytesProcessedFactor).Append(' ');
+				sb.AppendPadLeft(Math.Min(9999, totalSpeedDisplayAverages[0]), 5);
+				sb.AppendPadLeft(Math.Min(9999, totalSpeedDisplayAverages[1]), 5);
+				sb.AppendPadLeft(Math.Min(9999, totalSpeedDisplayAverages[2]), 5);
+				sb.Append(totalSpeedDisplayUnit).AppendLine();
 
 				var etaStr = "-.--:--:--";
 				if(totalSpeedAverages[2] != 0) {
@@ -526,38 +392,11 @@ namespace AVDump3CL {
 					}
 				}
 
-				sbLength = sb.Length;
 				sb.Append(curP.FilesProcessed).Append('/').Append(TotalFiles).Append(" Files | ");
 				sb.Append(curP.BytesProcessed >> totalBytesShiftCount).Append('/').Append(TotalBytes >> totalBytesShiftCount).Append(" ").Append(totalBytesDisplayUnit).Append(" | ");
 				sb.Append((now - curP.StartedOn).ToString(@"d\.hh\:mm\:ss")).Append(" Elapsed | ");
-				sb.Append(etaStr).Append(" Remaining");
-
-				sbLineCount++;
-				sb.Append(' ', consoleWidth - (sb.Length - sbLength)).AppendLine();
+				sb.Append(etaStr).Append(" Remaining").AppendLine();
 			}
-
-		}
-
-
-		public void Dispose() {
-			lock(timer) {
-				timer.Dispose();
-			}
-		}
-
-		public IDisposable LockConsole() {
-			Monitor.Enter(timer);
-
-			Console.SetCursorPosition(0, Math.Max(0, Console.CursorTop + sbLineCountPrev));
-			Console.WriteLine();
-
-			return new ProxyDisposable(() => Monitor.Exit(timer));
-		}
-
-		private class ProxyDisposable : IDisposable {
-			private readonly Action dispose;
-			public ProxyDisposable(Action dispose) => this.dispose = dispose;
-			public void Dispose() => dispose();
 		}
 	}
 }
