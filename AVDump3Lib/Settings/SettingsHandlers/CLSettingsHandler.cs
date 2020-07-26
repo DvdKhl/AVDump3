@@ -136,8 +136,8 @@ namespace AVDump3Lib.Settings.CLArguments {
 		}
 
 		public static void PrintHelp(IEnumerable<SettingsGroup> settingsGroups, string topic, bool detailed) {
-			var argGroup = settingsGroups.SingleOrDefault(ldArgGroup => string.IsNullOrEmpty(topic) || ldArgGroup.Name.InvEqualsOrdCI(topic));
-			if(argGroup == null) {
+			var argGroups = settingsGroups.Where(ldArgGroup => string.IsNullOrEmpty(topic) || ldArgGroup.Name.InvEqualsOrdCI(topic)).ToArray();
+			if(!argGroups.Any()) {
 				Console.WriteLine("There is no such topic");
 				Console.WriteLine();
 				return;
@@ -147,34 +147,35 @@ namespace AVDump3Lib.Settings.CLArguments {
 				var names = new[] { arg.Name }.Concat(arg.AlternativeNames).ToArray();
 				return string.Join(", ", names.Select(ldKey => ldKey.Length == 1 ? "-" + ldKey : "--" + ldKey));
 			}
+			foreach(var argGroup in argGroups) {
+				//Console.ForegroundColor = ConsoleColor.DarkGreen;
+				var descPad = Math.Max(("NameSpace: " + argGroup.Name).Length, argGroup.Properties.Select(prop => argToString(prop).Length).Max());
 
 
-			//Console.ForegroundColor = ConsoleColor.DarkGreen;
-			var descPad = Math.Max(("NameSpace: " + argGroup.Name).Length, argGroup.Properties.Select(prop => argToString(prop).Length).Max());
+				var resMan = argGroup.ResourceManager;
+				PrintLine(("▶2 NameSpace◀: " + argGroup.Name).PadRight(descPad, ' ') + resMan?.GetInvString($"{argGroup.Name}.Description").OnNotNullReturn(s => " | ▶8 " + s + "◀"));
+				Console.WriteLine();
+				foreach(var prop in argGroup.Properties) {
+					var example = resMan?.GetInvString($"{argGroup.Name}.{prop.Name}.Example");
+					var description = resMan?.GetInvString($"{argGroup.Name}.{prop.Name}.Description");
 
+					var defaultValue = prop.DefaultValue?.ToString() ?? (prop.ValueType == typeof(bool) ? "true" : "");
 
-			var resMan = argGroup.ResourceManager;
-			PrintLine(("▶2 NameSpace◀: " + argGroup.Name).PadRight(descPad, ' ') + resMan?.GetInvString($"{argGroup.Name}.Description").OnNotNullReturn(s => " | ▶8 " + s + "◀"));
-			Console.WriteLine();
-			foreach(var prop in argGroup.Properties) {
-				var example = resMan?.GetInvString($"{argGroup.Name}.{prop.Name}.Example");
-				var description = resMan?.GetInvString($"{argGroup.Name}.{prop.Name}.Description");
-
-				var defaultValue = prop.DefaultValue?.ToString() ?? (prop.ValueType == typeof(bool) ? "true" : "");
-
-				PrintLine(argToString(prop).PadRight(descPad, ' ') + " | " + example + " (" + ("".InvEquals(defaultValue) ? "▶8 <Empty>◀" : defaultValue ?? "▶8 <null>◀") + ")");
-				if(detailed && !string.IsNullOrEmpty(description)) {
-					if(!string.IsNullOrEmpty(description)) {
-						PrintLine(!Utils.UsingWindows ? description : "▶8 " + description + "◀");
+					PrintLine(argToString(prop).PadRight(descPad, ' ') + " | " + example + " (" + ("".InvEquals(defaultValue) ? "▶8 <Empty>◀" : defaultValue ?? "▶8 <null>◀") + ")");
+					if(detailed && !string.IsNullOrEmpty(description)) {
+						if(!string.IsNullOrEmpty(description)) {
+							PrintLine(!Utils.UsingWindows ? description : "▶8 " + description + "◀");
+						}
+						Console.WriteLine();
 					}
+				}
+				if(!detailed && string.IsNullOrEmpty(topic)) {
+					Console.WriteLine("Use --Help OR --Help=<NameSpace> for more detailed info");
 					Console.WriteLine();
 				}
-			}
-			if(!detailed && string.IsNullOrEmpty(topic)) {
-				Console.WriteLine("Use --Help OR --Help=<NameSpace> for more detailed info");
 				Console.WriteLine();
 			}
-			Console.WriteLine();
+
 		}
 
 
