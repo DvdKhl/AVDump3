@@ -1,6 +1,7 @@
 ﻿<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:AVDump3Gui.ViewModels;assembly=AVDump3Gui"
+        xmlns:sv="clr-namespace:AVDump3Gui.Controls.Settings;assembly=AVDump3Gui"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
@@ -26,6 +27,7 @@
       </DataGrid>
     </TabItem>
     <TabItem FontSize="64" FontFamily="Segoe UI Symbol" Header="⚙">
+      <sv:SettingsView SettingsGroups="{Binding SettingsGroups}" SettingsValues="{Binding SettingsValues, Mode=OneWayToSource}" />
     </TabItem>
   </TabControl>
 

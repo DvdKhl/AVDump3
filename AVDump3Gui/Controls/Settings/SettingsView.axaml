@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="AVDump3Gui.Controls.Settings.SettingsView"> 
-  <HeaderedItemsControl Items="{Binding SettingGroups}" Width="800" HorizontalAlignment="Left">
+  <HeaderedItemsControl Items="{Binding RelativeSource={RelativeSource Self}}, Path=SettingsGroups" Width="800" HorizontalAlignment="Left" x:Name="SettingsGroupsControl">
     <HeaderedItemsControl.Template>
       <ControlTemplate TargetType="{x:Type HeaderedItemsControl}">
         <Border>
@@ -34,8 +34,8 @@
             <ItemsControl.ItemTemplate>
               <DataTemplate>
                 <StackPanel Margin="0,4,0,16">
-                  <TextBlock Text="{Binding Name}" FontWeight="Bold" />
-                  <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+                  <TextBlock Text="{Binding Property.Name}" FontWeight="Bold" />
+                  <TextBlock Text="{Binding Property.Description}" TextWrapping="Wrap" />
 
                   <Grid>
                     <Grid.RowDefinitions>
@@ -48,9 +48,9 @@
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Text="Default: " Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" />
-                    <TextBlock Text="Current: " Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" />
-                    <TextBox Text="{Binding DefaultValue}" IsReadOnly="True" Background="LightGray" Grid.Column="1" Grid.Row="0" />
-                    <TextBox Text="{Binding Example}" TextWrapping="Wrap" Grid.Column="1" Grid.Row="1" />
+                    <TextBlock Text="Current: " Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" x:Name="CurrentValue"/>
+                    <TextBox Text="{Binding Property.DefaultValue}" IsReadOnly="True" Background="LightGray" Grid.Column="1" Grid.Row="0" />
+                    <TextBox Text="{Binding ValueAsString}" TextWrapping="Wrap" Grid.Column="1" Grid.Row="1" />
                   </Grid>
 
 

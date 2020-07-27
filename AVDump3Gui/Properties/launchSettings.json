@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AVDump3Gui": {
+      "commandName": "Project",
+      "commandLineArgs": "--Cons=MKV,OGG,MD4,MD5,CRC32,CRC32C,ED2K,Tiger,TTH,SHA3-256 \"Z:\\Media\\Renamed\\Gintama\""
+    }
+  }
+}
