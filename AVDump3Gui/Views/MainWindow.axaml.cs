@@ -11,6 +11,10 @@ namespace AVDump3Gui.Views {
 #endif
 		}
 
+
+
+
+
 		private void InitializeComponent() {
 			AvaloniaXamlLoader.Load(this);
 		}

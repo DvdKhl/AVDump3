@@ -245,7 +245,7 @@ namespace AVDump3CL {
 				curP = getProgress();
 
 				//Windows makes the cursor visible again when the window is resized
-				if(Console.CursorVisible) Console.CursorVisible = false;
+				if(Environment.OSVersion.Platform == PlatformID.Win32NT && Console.CursorVisible) Console.CursorVisible = false;
 			}
 			var interpolationFactor = (state + 1) / (double)UpdatePeriodInTicks;
 			state++;

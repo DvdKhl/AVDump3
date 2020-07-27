@@ -130,13 +130,12 @@ namespace AVDump3CL {
 
 		private int displaySkipCount;
 		private int maxTopCursorPos;
-		private bool progressWriteActive;
 		private int jitterDisplayUpdateCount;
 		private Stopwatch perfWatch = new Stopwatch();
 
 		public event WriteProgress WriteProgress = delegate { };
 		public bool ShowDisplayJitter { get; set; }
-		public bool ShowingProgress => progressWriteActive;
+		public bool ShowingProgress { get; private set; }
 
 		public AVD3Console() {
 			progressTimer = new Timer(OnWriteProgress);
@@ -145,7 +144,7 @@ namespace AVDump3CL {
 		public void StartProgressDisplay() {
 			lock(progressWriteLock) {
 				lock(progressWriteActiveChangeLock) {
-					progressWriteActive = true;
+					ShowingProgress = true;
 					progressTimer.Change(500, TickPeriod);
 				}
 			}
@@ -156,7 +155,7 @@ namespace AVDump3CL {
 			lock(progressWriteLock) {
 				lock(progressWriteActiveChangeLock) {
 					progressTimer.Change(Timeout.Infinite, Timeout.Infinite);
-					progressWriteActive = false;
+					ShowingProgress = false;
 
 					Console.SetCursorPosition(0, maxTopCursorPos);
 				}
@@ -230,7 +229,7 @@ namespace AVDump3CL {
 
 		public void WriteLine(string value) {
 			lock(progressWriteActiveChangeLock) {
-				if(progressWriteActive) {
+				if(ShowingProgress) {
 					lock(toWrite) toWrite.Add(value);
 				} else {
 					Console.WriteLine(value);
@@ -239,7 +238,7 @@ namespace AVDump3CL {
 		}
 		public void WriteLine(IEnumerable<string> values) {
 			lock(progressWriteActiveChangeLock) {
-				if(progressWriteActive) {
+				if(ShowingProgress) {
 					lock(toWrite) toWrite.AddRange(values);
 				} else {
 					Console.WriteLine(string.Join("\n", values));

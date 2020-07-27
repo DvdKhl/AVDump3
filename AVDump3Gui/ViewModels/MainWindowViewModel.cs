@@ -16,8 +16,7 @@ namespace AVDump3Gui.ViewModels {
 	}
 
 
-
-	public class SettingsPropertyViewModel {
+	public class SettingsPropertyViewModel : ISettingsPropertyItem {
 		private readonly SettingsGroup settingsGroup;
 		private readonly SettingsProperty settingProperty;
 
@@ -36,7 +35,8 @@ namespace AVDump3Gui.ViewModels {
 		public Type ValueType => ((ISettingsProperty)settingProperty).ValueType;
 	}
 
-	public class SettingsGroupViewModel {
+
+	public class SettingsGroupViewModel : ISettingsGroupItem {
 		private readonly SettingsGroup settingsGroup;
 
 		public string Description => settingsGroup.ResourceManager.GetInvString($"{Name}.Description");

@@ -129,7 +129,7 @@ namespace AVDump3CL {
 					var filePath = Path.Combine(settings.Diagnostics.ErrorDirectory, "AVD3Error" + ex.ThrownOn.ToString("yyyyMMdd HHmmssffff") + ".xml");
 
 					using var fileStream = File.OpenWrite(filePath);
-					using var xmlWriter = System.Xml.XmlWriter.Create(fileStream, new System.Xml.XmlWriterSettings { CheckCharacters = false, Encoding = Encoding.UTF8 });
+					using var xmlWriter = System.Xml.XmlWriter.Create(fileStream, new System.Xml.XmlWriterSettings { CheckCharacters = false, Encoding = Encoding.UTF8, Indent = true });
 					exElem.WriteTo(xmlWriter);
 				}
 			}
@@ -318,7 +318,7 @@ namespace AVDump3CL {
 				progressDisplay.Initialize(bytesReadProgress.GetProgress);
 
 
-				console.StartProgressDisplay();
+				if(!settings.Display.ForwardConsoleCursorOnly) console.StartProgressDisplay();
 
 				void cancelKeyHandler(object s, ConsoleCancelEventArgs e) {
 					System.Console.CancelKeyPress -= cancelKeyHandler;
@@ -329,7 +329,7 @@ namespace AVDump3CL {
 				System.Console.CursorVisible = false;
 				try {
 					streamConsumerCollection.ConsumeStreams(ConsumingStream, cts.Token, bytesReadProgress);
-					console.StopProgressDisplay();
+					if(console.ShowingProgress) console.StopProgressDisplay();
 
 					ProcessingFinished?.Invoke(this, EventArgs.Empty);
 

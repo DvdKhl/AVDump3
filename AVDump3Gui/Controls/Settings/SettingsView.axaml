@@ -3,6 +3,65 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="AVDump3Gui.Controls.Settings.SettingsView">
-    Welcome to Avalonia!
+             x:Class="AVDump3Gui.Controls.Settings.SettingsView"> 
+  <HeaderedItemsControl Items="{Binding SettingGroups}" Width="800" HorizontalAlignment="Left">
+    <HeaderedItemsControl.Template>
+      <ControlTemplate TargetType="{x:Type HeaderedItemsControl}">
+        <Border>
+          <Grid>
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <ContentPresenter  Grid.Row="0" Content="{TemplateBinding Header}" />
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Hidden" Grid.Row="1">
+              <ItemsPresenter Items="{TemplateBinding Items}" />
+            </ScrollViewer>
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </HeaderedItemsControl.Template>
+
+    <HeaderedItemsControl.Header>
+      <TextBlock TextAlignment="Center" FontSize="32" Text="Settings" />
+    </HeaderedItemsControl.Header>
+    <HeaderedItemsControl.ItemTemplate>
+      <DataTemplate>
+        <StackPanel Margin="0,0,8,0">
+          <TextBlock FontSize="24" Text="{Binding Name}" />
+          <TextBlock FontSize="10" Text="{Binding Description}" />
+          <ItemsControl Items="{Binding Properties}" Margin="16,0,0,0">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <StackPanel Margin="0,4,0,16">
+                  <TextBlock Text="{Binding Name}" FontWeight="Bold" />
+                  <TextBlock Text="{Binding Description}" TextWrapping="Wrap" />
+
+                  <Grid>
+                    <Grid.RowDefinitions>
+                      <RowDefinition />
+                      <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="Auto" />
+                      <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="Default: " Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" />
+                    <TextBlock Text="Current: " Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" />
+                    <TextBox Text="{Binding DefaultValue}" IsReadOnly="True" Background="LightGray" Grid.Column="1" Grid.Row="0" />
+                    <TextBox Text="{Binding Example}" TextWrapping="Wrap" Grid.Column="1" Grid.Row="1" />
+                  </Grid>
+
+
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </DataTemplate>
+    </HeaderedItemsControl.ItemTemplate>
+
+
+  </HeaderedItemsControl>
 </UserControl>

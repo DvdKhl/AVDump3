@@ -67,7 +67,7 @@ namespace AVDump3Lib.Settings.CLArguments {
 
 			var preprocessedArgs = new List<(string Raw, string? Namespace, string? Name, string? Param)>();
 
-			var argPattern = new Regex(@"^--?(?:(?<NameSpace>[a-zA-Z0-9]+)\.)?(?<Arg>[a-zA-Z0-9][a-zA-Z0-9\-]*)(?:=(?<Param>.*))?$");
+			var argPattern = new Regex(@"^--?(?:(?<NameSpace>[a-zA-Z0-9]+)\.)?(?<Arg>[a-zA-Z0-9_][a-zA-Z0-9\-]*)(?:=(?<Param>.*))?$");
 			void ParseSub(string[] args) {
 				foreach(var arg in args) {
 					var match = argPattern.Match(arg);
@@ -156,6 +156,8 @@ namespace AVDump3Lib.Settings.CLArguments {
 				PrintLine(("▶2 NameSpace◀: " + argGroup.Name).PadRight(descPad, ' ') + resMan?.GetInvString($"{argGroup.Name}.Description").OnNotNullReturn(s => " | ▶8 " + s + "◀"));
 				Console.WriteLine();
 				foreach(var prop in argGroup.Properties) {
+					if(prop.Name.InvStartsWith("_")) continue;
+
 					var example = resMan?.GetInvString($"{argGroup.Name}.{prop.Name}.Example");
 					var description = resMan?.GetInvString($"{argGroup.Name}.{prop.Name}.Description");
 

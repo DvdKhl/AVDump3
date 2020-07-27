@@ -16,7 +16,7 @@
     <NeutralLanguage>en</NeutralLanguage>
     <Copyright>Copyright © 2020 extknot</Copyright>
     <Platforms>AnyCPU;x64</Platforms>
-    <FileVersion>3.0.8092.0</FileVersion>
+    <FileVersion>3.0.8099.0</FileVersion>
     <Configurations>Debug;Release;GithubWorkflow</Configurations>
     <Nullable>enable</Nullable>
   </PropertyGroup>
