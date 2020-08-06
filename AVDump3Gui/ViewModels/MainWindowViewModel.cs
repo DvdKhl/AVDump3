@@ -92,7 +92,7 @@ namespace AVDump3Gui.ViewModels {
 			SettingGroups = props.GroupBy(x => x.Group).Select(x => new SettingsGroupViewModel(x.Select(y => new SettingsPropertyViewModel(y, userSettingStore, AVD3GUISettings.ResourceManager)), AVD3GUISettings.ResourceManager)).ToList();
 
 
-			AVD3Control = new AVD3UIControl(new AVD3ControlSettings(null, null, 64 << 20, 1 << 20, 8 << 20));
+			//AVD3Control = new AVD3UIControl(new AVD3ControlSettings(null, null, 64 << 20, 1 << 20, 8 << 20));
 
 
 			var parseResult = CLSettingsHandler.ParseArgs(props, Environment.GetCommandLineArgs());
