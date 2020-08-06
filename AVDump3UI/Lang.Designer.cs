@@ -61,7 +61,7 @@ namespace AVDump3UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to --ErrorDirectory=&lt;DirectoryPath&gt;.
+        ///   Looks up a localized string similar to If --SaveErrors is specified the error files will be placed in the specified path.
         /// </summary>
         internal static string Diagnostics_ErrorDirectory_Description {
             get {
@@ -70,7 +70,7 @@ namespace AVDump3UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to If --SaveErrors is specified the error files will be placed in the specified path.
+        ///   Looks up a localized string similar to --ErrorDirectory=&lt;DirectoryPath&gt;.
         /// </summary>
         internal static string Diagnostics_ErrorDirectory_Example {
             get {
@@ -169,78 +169,6 @@ namespace AVDump3UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Hides buffer bars.
-        /// </summary>
-        internal static string Display_HideBuffers_Description {
-            get {
-                return ResourceManager.GetString("Display.HideBuffers.Description", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to --HideBuffers.
-        /// </summary>
-        internal static string Display_HideBuffers_Example {
-            get {
-                return ResourceManager.GetString("Display.HideBuffers.Example", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Hides file progress.
-        /// </summary>
-        internal static string Display_HideFileProgress_Description {
-            get {
-                return ResourceManager.GetString("Display.HideFileProgress.Description", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to --HideFileProgress.
-        /// </summary>
-        internal static string Display_HideFileProgress_Example {
-            get {
-                return ResourceManager.GetString("Display.HideFileProgress.Example", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Hides total progress.
-        /// </summary>
-        internal static string Display_HideTotalProgress_Description {
-            get {
-                return ResourceManager.GetString("Display.HideTotalProgress.Description", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to --HideTotalProgress.
-        /// </summary>
-        internal static string Display_HideTotalProgress_Example {
-            get {
-                return ResourceManager.GetString("Display.HideTotalProgress.Example", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Displays the time taken to calculate progression stats and drawing to console.
-        /// </summary>
-        internal static string Display_ShowDisplayJitter_Description {
-            get {
-                return ResourceManager.GetString("Display.ShowDisplayJitter.Description", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to --ShowDisplayJitter.
-        /// </summary>
-        internal static string Display_ShowDisplayJitter_Example {
-            get {
-                return ResourceManager.GetString("Display.ShowDisplayJitter.Example", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Sets the maximal number of files which will be processed concurrently.
         ///First param (max) sets a global limit. (path,max) pairs sets limits per path..
         /// </summary>
@@ -251,7 +179,7 @@ namespace AVDump3UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to --Concurrent=&lt;max&gt;[:&lt;path1&gt;,&lt;max1&gt;;&lt;path2&gt;,&lt;max2&gt;;...].
+        ///   Looks up a localized string similar to --Concurrent=&lt;max&gt;[:&lt;path1&gt;,&lt;max1&gt;;&lt;path2&gt;,&lt;max2&gt;...].
         /// </summary>
         internal static string FileDiscovery_Concurrent_Example {
             get {
@@ -287,7 +215,7 @@ namespace AVDump3UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to --ProcessedLogPath=&lt;Filepath&gt;.
+        ///   Looks up a localized string similar to --ProcessedLogPath=&lt;FilePath1&gt;[:&lt;FilePath2&gt;...].
         /// </summary>
         internal static string FileDiscovery_ProcessedLogPath_Example {
             get {
@@ -323,7 +251,7 @@ namespace AVDump3UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to --SkipLogPath=&lt;FilePath&gt;.
+        ///   Looks up a localized string similar to --SkipLogPath=&lt;FilePath1&gt;[:&lt;FilePath2&gt;...].
         /// </summary>
         internal static string FileDiscovery_SkipLogPath_Example {
             get {
@@ -341,7 +269,7 @@ namespace AVDump3UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to --WithExtensions=[-]&lt;Extension1&gt;[,&lt;Extension2&gt;,...].
+        ///   Looks up a localized string similar to --WithExtensions=[-]&lt;Extension1&gt;[,&lt;Extension2&gt;...].
         /// </summary>
         internal static string FileDiscovery_WithExtensions_Example {
             get {
@@ -433,7 +361,7 @@ namespace AVDump3UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to --FileMove.Pattern=${DirectoryName}\${FileNameWithoutExtension}[${Hash-CRC32-16-UC}]${SuggestedExtension}.
+        ///   Looks up a localized string similar to --FileMove.Pattern=${DirectoryName}\${FileNameWithoutExtension}${SuggestedExtension}.
         /// </summary>
         internal static string FileMove_Pattern_Example {
             get {
@@ -451,7 +379,7 @@ namespace AVDump3UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to --FileMove.Replacements=&lt;Match&gt;,&lt;Replacement&gt;[;&lt;Match&gt;,&lt;Replacement&gt;...].
+        ///   Looks up a localized string similar to --FileMove.Replacements=&lt;Match1&gt;=&lt;Replacement1&gt;[;&lt;Match2&gt;=&lt;Replacement2&gt;...].
         /// </summary>
         internal static string FileMove_Replacements_Example {
             get {
@@ -487,7 +415,7 @@ namespace AVDump3UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to --Consumers=&lt;ConsumerName1&gt;[,&lt;ConsumerName2&gt;,...].
+        ///   Looks up a localized string similar to --Consumers=&lt;ConsumerName1&gt;[,&lt;ConsumerName2&gt;...].
         /// </summary>
         internal static string Processing_Consumers_Example {
             get {
@@ -530,15 +458,6 @@ namespace AVDump3UI {
         internal static string Reporting_CRC32Error_Example {
             get {
                 return ResourceManager.GetString("Reporting.CRC32Error.Example", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Test.
-        /// </summary>
-        internal static string Reporting_Description {
-            get {
-                return ResourceManager.GetString("Reporting.Description", resourceCulture);
             }
         }
         

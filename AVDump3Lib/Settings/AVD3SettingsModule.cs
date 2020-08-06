@@ -3,18 +3,19 @@ using AVDump3Lib.Settings.CLArguments;
 using AVDump3Lib.Settings.Core;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace AVDump3Lib.Settings {
 	public interface IAVD3SettingsModule : IAVD3Module {
-		void RegisterSettings(IEnumerable<SettingsGroup> settingsGroups);
+		void RegisterSettings(IEnumerable<ISettingProperty> settingProperties);
 		event EventHandler<SettingsModuleInitResult> ConfigurationFinished;
 	}
 
 	public class SettingsModuleInitResult : ModuleInitResult {
-		public SettingsStore Store { get;  }
+		public ISettingStore Store { get;  }
 
-		public SettingsModuleInitResult(SettingsStore store) : base(false) {
+		public SettingsModuleInitResult(ISettingStore store) : base(false) {
 			Store = store ?? throw new ArgumentNullException(nameof(store));
 		}
 	}
@@ -23,12 +24,14 @@ namespace AVDump3Lib.Settings {
 	public class AVD3SettingsModule : IAVD3SettingsModule {
 		public event EventHandler<SettingsModuleInitResult> ConfigurationFinished = delegate { };
 
-		private List<SettingsGroup> settingsGroups = new List<SettingsGroup>();
-		public IReadOnlyList<SettingsGroup> SettingsGroups { get; private set; }
-		public SettingsStore Store { get; private set; }
+		private List<ISettingProperty> settingsGroups = new List<ISettingProperty>();
+
+		public IReadOnlyList<ISettingProperty> SettingProperties { get; private set; }
+		
+		public ISettingStore Store { get; private set; }
 
 
-		public SettingsStore BuildStore() => Store = new SettingsStore(SettingsGroups);
+		public ISettingStore BuildStore() => Store = new SettingStore(settingsGroups.ToImmutableArray());
 
 		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) { }
 
@@ -39,9 +42,12 @@ namespace AVDump3Lib.Settings {
 		}
 
 		public AVD3SettingsModule() {
-			SettingsGroups = settingsGroups.AsReadOnly();
+			Store = new SettingStore(ImmutableArray<ISettingProperty>.Empty);
+
+			SettingProperties = settingsGroups.AsReadOnly();
+
 		}
 
-		public void RegisterSettings(IEnumerable<SettingsGroup> settingsGroups) => this.settingsGroups.AddRange(settingsGroups);
+		public void RegisterSettings(IEnumerable<ISettingProperty> settingsGroups) => this.settingsGroups.AddRange(settingsGroups);
 	}
 }

@@ -1,17 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Reflection;
 using System.Resources;
 using System.Text;
 using AVDump3Gui.Controls.Settings;
+using AVDump3Lib;
 using AVDump3Lib.Misc;
 using AVDump3Lib.Settings.CLArguments;
 using AVDump3Lib.Settings.Core;
 using AVDump3UI;
 using ExtKnot.StringInvariants;
+using ReactiveUI;
 
 namespace AVDump3Gui.ViewModels {
 
@@ -20,73 +24,81 @@ namespace AVDump3Gui.ViewModels {
 	}
 
 
-	public class SettingsPropertyViewModel : ISettingsPropertyItem {
-		private readonly SettingsGroup settingsGroup;
-		public SettingsProperty Base { get; }
+	public class SettingsPropertyViewModel : ISettingPropertyItem {
+		public ResourceManager ResourceManager { get; }
+		public ISettingStore SettingStore { get; }
+		public ISettingProperty Base { get; }
 
-		public SettingsPropertyViewModel(SettingsGroup settingsGroup, SettingsProperty settingProperty) {
-			this.settingsGroup = settingsGroup ?? throw new ArgumentNullException(nameof(settingsGroup));
-			this.Base = settingProperty ?? throw new ArgumentNullException(nameof(settingProperty));
+		public SettingsPropertyViewModel(ISettingProperty settingProperty, ISettingStore settingStore, ResourceManager resourceManager) {
+			Base = settingProperty ?? throw new ArgumentNullException(nameof(settingProperty));
+			SettingStore = settingStore ?? throw new ArgumentNullException(nameof(settingStore));
+
+			ResourceManager = resourceManager;
 		}
 
-		public string Description => settingsGroup.ResourceManager.GetInvString($"{settingsGroup.Name}.{Base.Name}.Description") ?? "";
-		public string Example => settingsGroup.ResourceManager.GetInvString($"{settingsGroup.Name}.{Base.Name}.Example") ?? "";
+		public string Description => ResourceManager.GetInvString($"{Base.Group.FullName}.{Base.Name}.Description") ?? "";
+		public string Example => ResourceManager.GetInvString($"{Base.Group.FullName}.{Base.Name}.Example") ?? "";
 
 
-		public ImmutableArray<string> AlternativeNames => ((ISettingsProperty)Base).AlternativeNames;
-		public object DefaultValue => settingsGroup.PropertyObjectToString(Base, ((ISettingsProperty)Base).DefaultValue);
-		public string Name => ((ISettingsProperty)Base).Name;
-		public Type ValueType => ((ISettingsProperty)Base).ValueType;
+		public ImmutableArray<string> AlternativeNames => Base.AlternativeNames;
+		public string Name => Base.Name;
+		public Type ValueType => Base.ValueType;
+		public string ValueTypeKey => Base.ValueType.Name;
+
+		public object DefaultValue => Base.DefaultValue;
+		public object ValueRaw { get => SettingStore.GetRawPropertyValue(Base); set => SettingStore.SetPropertyValue(Base, value); }
+		public object Value { get => SettingStore.GetPropertyValue(Base); set => SettingStore.SetPropertyValue(Base, value); }
+
+		public object ToObject(string stringValue) => Base.ToObject(stringValue);
+		public string ToString(object objectValue) => Base.ToString(objectValue);
 	}
 
 
-	public class SettingsGroupViewModel : ISettingsGroupItem {
-		private readonly SettingsGroup settingsGroup;
+	public class SettingsGroupViewModel : ISettingGroupItem {
+		public string Description => ResourceManager.GetInvString($"{Name}.Description");
 
-		public string Description => settingsGroup.ResourceManager.GetInvString($"{Name}.Description");
+		public ResourceManager ResourceManager { get; }
+		public ISettingGroup Base { get; }
 
+		public string Name => Base.Name;
+		public ImmutableArray<ISettingPropertyItem> Properties { get; set; }
 
-		public string Name => settingsGroup.Name;
-		public ImmutableArray<ISettingsPropertyItem> Properties { get; set; }
+		public SettingsGroupViewModel(IEnumerable<SettingsPropertyViewModel> settingPropertyItems, ResourceManager resourceManager) {
+			if(settingPropertyItems.Any(x => x.Base.Group != settingPropertyItems.First().Base.Group)) throw new Exception();
 
-		public SettingsGroupViewModel(SettingsGroup settingsGroup) {
-			this.settingsGroup = settingsGroup ?? throw new ArgumentNullException(nameof(settingsGroup));
-			Properties = settingsGroup.Properties.Select(x => (ISettingsPropertyItem)new SettingsPropertyViewModel(settingsGroup, x)).ToImmutableArray();
+			Base = settingPropertyItems.First().Base.Group;
+			Properties = settingPropertyItems.Cast<ISettingPropertyItem>().ToImmutableArray();
+			ResourceManager = resourceManager ?? throw new ArgumentNullException(nameof(resourceManager));
 		}
 
-		public string PropertyObjectToString(ISettingsPropertyItem prop, object objectValue) => settingsGroup.PropertyObjectToString(((SettingsPropertyViewModel)prop).Base, objectValue);
-		public object PropertyStringToObject(ISettingsPropertyItem prop, string stringValue) => settingsGroup.PropertyStringToObject(((SettingsPropertyViewModel)prop).Base, stringValue);
 	}
-
 
 
 	public class MainWindowViewModel : ViewModelBase {
-		private SettingsStore settingsStore = new SettingsStore(AVD3CLModuleSettings.GetGroups());
-		private IEnumerable<ISettingsValueItem> settingsValues;
+		private ISettingStore fileSettingStore;
+		private ISettingStore userSettingStore;
 
-		public List<SettingsGroupViewModel> SettingsGroups { get; }
-		public IEnumerable<ISettingsValueItem> SettingsValues {
-			get => settingsValues; 
-			set {
-				settingsValues = value;
 
-				foreach(var settingsValue in settingsValues) {
-					var prop = ((SettingsPropertyViewModel)settingsValue.Property).Base;
-					var propValue = settingsStore.GetPropertyValue(prop);
+		public List<SettingsGroupViewModel> SettingGroups { get; }
+		public AVD3UIControl AVD3Control { get; }
 
-					settingsValue.Value = propValue;
-				}
-			}
-		}
 
 		public MainWindowViewModel() {
-			settingsStore = new SettingsStore(AVD3CLModuleSettings.GetGroups());
-			SettingsGroups = settingsStore.Groups.Select(x => new SettingsGroupViewModel(x)).ToList();
+			var props = AVD3GUISettings.GetProperties().ToImmutableArray();
 
-			var parseResult = CLSettingsHandler.ParseArgs(settingsStore.Groups, Environment.GetCommandLineArgs());
+			userSettingStore = new SettingStore(props);
+
+
+			SettingGroups = props.GroupBy(x => x.Group).Select(x => new SettingsGroupViewModel(x.Select(y => new SettingsPropertyViewModel(y, userSettingStore, AVD3GUISettings.ResourceManager)), AVD3GUISettings.ResourceManager)).ToList();
+
+
+			AVD3Control = new AVD3UIControl(new AVD3ControlSettings(null, null, 64 << 20, 1 << 20, 8 << 20));
+
+
+			var parseResult = CLSettingsHandler.ParseArgs(props, Environment.GetCommandLineArgs());
 
 			foreach(var settingValue in parseResult.SettingValues) {
-				settingsStore.SetPropertyValue(settingValue.Key, settingValue.Value);
+				userSettingStore.SetPropertyValue(settingValue.Key, settingValue.Value);
 			}
 
 			Files = new List<AVDFile>();

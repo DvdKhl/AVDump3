@@ -106,7 +106,8 @@ namespace AVDump3Lib.Processing {
 
 			//var acceptedFileCountCursorTop = Console.CursorTop++;
 			var fileDiscoveryOn = DateTimeOffset.UtcNow;
-			var spp = new StreamFromPathsProvider(pathPartitions, paths, recursive,
+			var spp = new StreamFromPathsProvider(pathPartitions);
+			spp.AddFiles(paths, recursive,
 				path => {
 					filePathFilterEventArgs.Reset(path);
 					FilePathFilter(this, filePathFilterEventArgs);

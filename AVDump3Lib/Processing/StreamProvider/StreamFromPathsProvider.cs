@@ -35,22 +35,18 @@ namespace AVDump3Lib.Processing.StreamProvider {
 		public int TotalFileCount { get; private set; }
 		public long TotalBytes { get; private set; }
 
-		public StreamFromPathsProvider(PathPartitions pathPartitions,
-			IEnumerable<string> paths, bool includeSubFolders, Func<string, bool> accept, Action<Exception> onError
-		) {
+		public StreamFromPathsProvider(PathPartitions pathPartitions) {
 			if(pathPartitions is null) throw new ArgumentNullException(nameof(pathPartitions));
 
 			globalConcurrency = new SemaphoreSlim(pathPartitions.ConcurrentCount);
 
-			localConcurrencyPartitions = pathPartitions.Partitions.Select(pp =>
-				new LocalConcurrency {
-					Path = pp.Path,
-					Limit = new SemaphoreSlim(pp.ConcurrentCount)
-				}
-			).ToList();
-			localConcurrencyPartitions.Add(new LocalConcurrency { Path = "", Limit = new SemaphoreSlim(pathPartitions.ConcurrentCount) });
+			localConcurrencyPartitions = pathPartitions.Partitions.Select(pp => new LocalConcurrency(pp.Path, pp.ConcurrentCount)).ToList();
+			localConcurrencyPartitions.Add(new LocalConcurrency("", pathPartitions.ConcurrentCount));
 			//localConcurrencyPartitions.Sort((a, b) => b.Path.Length.CompareTo(a.Path.Length));
 
+		}
+
+		public void AddFiles(IEnumerable<string> paths, bool includeSubFolders, Func<string, bool> accept, Action<Exception> onError) {
 			FileTraversal.Traverse(paths, includeSubFolders, filePath => {
 				if(!accept(filePath)) return;
 				var fileInfo = new FileInfo(filePath);
@@ -67,10 +63,10 @@ namespace AVDump3Lib.Processing.StreamProvider {
 				globalConcurrency.Wait(ct);
 				var localLimits = localConcurrencyPartitions.Where(ll => ll.Files.Count != 0).ToArray();
 				var i = WaitHandle.WaitAny(localLimits.Select(ll => ll.Limit.AvailableWaitHandle).ToArray());
-				localLimits[i].Limit.Wait();
+				localLimits[i].Limit.Wait(ct);
 
 				var path = localLimits[i].Files.Dequeue();
-				ProvidedStreamFromPath providedStream = null;
+				ProvidedStreamFromPath? providedStream = null;
 				try {
 					providedStream = new ProvidedStreamFromPath(this, path); //TODO error handling (e.g. file not found)
 				} catch(FileNotFoundException) {
@@ -94,10 +90,17 @@ namespace AVDump3Lib.Processing.StreamProvider {
 
 		}
 
-		private class LocalConcurrency {
-			public string Path;
-			public SemaphoreSlim Limit;
-			public Queue<string> Files = new Queue<string>();
+		private class LocalConcurrency : IDisposable {
+			public string Path { get; }
+			public SemaphoreSlim Limit { get; }
+			public Queue<string> Files { get; } = new Queue<string>();
+
+			public LocalConcurrency(string path, int concurrentCount) {
+				Path = path ?? throw new ArgumentNullException(nameof(path));
+				Limit = new SemaphoreSlim(concurrentCount);
+			}
+
+			public void Dispose() => Limit.Dispose();
 		}
 
 		private class ProvidedStreamFromPath : ProvidedStream {

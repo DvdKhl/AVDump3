@@ -128,13 +128,13 @@
 First param (max) sets a global limit. (path,max) pairs sets limits per path.</value>
   </data>
   <data name="FileDiscovery.Concurrent.Example" xml:space="preserve">
-    <value>--Concurrent=&lt;max&gt;[:&lt;path1&gt;,&lt;max1&gt;;&lt;path2&gt;,&lt;max2&gt;;...]</value>
+    <value>--Concurrent=&lt;max&gt;[:&lt;path1&gt;,&lt;max1&gt;;&lt;path2&gt;,&lt;max2&gt;...]</value>
   </data>
   <data name="Processing.Consumers.Description" xml:space="preserve">
     <value>Select consumers to use. Use without arguments to list available consumers</value>
   </data>
   <data name="Processing.Consumers.Example" xml:space="preserve">
-    <value>--Consumers=&lt;ConsumerName1&gt;[,&lt;ConsumerName2&gt;,...]</value>
+    <value>--Consumers=&lt;ConsumerName1&gt;[,&lt;ConsumerName2&gt;...]</value>
   </data>
   <data name="Reporting.CRC32Error.Description" xml:space="preserve">
     <value>Searches the filename for the calculated CRC32 hash. If not present or different a line with the caluclated hash and the full path of the file is appended to the specified path
@@ -151,10 +151,10 @@ Consumer CRC32 will be force enabled!</value>
     <value>--DoneLogPath=&lt;Filepath&gt;</value>
   </data>
   <data name="Diagnostics.ErrorDirectory.Description" xml:space="preserve">
-    <value>--ErrorDirectory=&lt;DirectoryPath&gt;</value>
+    <value>If --SaveErrors is specified the error files will be placed in the specified path</value>
   </data>
   <data name="Diagnostics.ErrorDirectory.Example" xml:space="preserve">
-    <value>If --SaveErrors is specified the error files will be placed in the specified path</value>
+    <value>--ErrorDirectory=&lt;DirectoryPath&gt;</value>
   </data>
   <data name="Reporting.ExtensionDifferencePath.Description" xml:space="preserve">
     <value>Logs the filepath if the detected extension does not match the actual extension</value>
@@ -167,24 +167,6 @@ Consumer CRC32 will be force enabled!</value>
   </data>
   <data name="Display.ForwardConsoleCursorOnly.Example" xml:space="preserve">
     <value>--ForwardConsoleCursorOnly</value>
-  </data>
-  <data name="Display.HideBuffers.Description" xml:space="preserve">
-    <value>Hides buffer bars</value>
-  </data>
-  <data name="Display.HideBuffers.Example" xml:space="preserve">
-    <value>--HideBuffers</value>
-  </data>
-  <data name="Display.HideFileProgress.Description" xml:space="preserve">
-    <value>Hides file progress</value>
-  </data>
-  <data name="Display.HideFileProgress.Example" xml:space="preserve">
-    <value>--HideFileProgress</value>
-  </data>
-  <data name="Display.HideTotalProgress.Description" xml:space="preserve">
-    <value>Hides total progress</value>
-  </data>
-  <data name="Display.HideTotalProgress.Example" xml:space="preserve">
-    <value>--HideTotalProgress</value>
   </data>
   <data name="Diagnostics.IncludePersonalData.Description" xml:space="preserve">
     <value>Various places may include personal data. Currently this only affects error files, which will then include the full filepath</value>
@@ -220,7 +202,7 @@ Consumer CRC32 will be force enabled!</value>
     <value>Appends the full filepath to the specified path</value>
   </data>
   <data name="FileDiscovery.ProcessedLogPath.Example" xml:space="preserve">
-    <value>--ProcessedLogPath=&lt;Filepath&gt;</value>
+    <value>--ProcessedLogPath=&lt;FilePath1&gt;[:&lt;FilePath2&gt;...]</value>
   </data>
   <data name="FileDiscovery.Recursive.Description" xml:space="preserve">
     <value>Recursively descent into Subdirectories</value>
@@ -253,12 +235,6 @@ The following placeholders ${Name} can be used: FileName, FileNameWithoutExtensi
   <data name="Diagnostics.SaveErrors.Example" xml:space="preserve">
     <value>--SaveErrors</value>
   </data>
-  <data name="Display.ShowDisplayJitter.Description" xml:space="preserve">
-    <value>Displays the time taken to calculate progression stats and drawing to console</value>
-  </data>
-  <data name="Display.ShowDisplayJitter.Example" xml:space="preserve">
-    <value>--ShowDisplayJitter</value>
-  </data>
   <data name="Diagnostics.SkipEnvironmentElement.Description" xml:space="preserve">
     <value>Skip the environment element in error files</value>
   </data>
@@ -269,13 +245,13 @@ The following placeholders ${Name} can be used: FileName, FileNameWithoutExtensi
     <value>Filepaths contained in the specified file will not be processed</value>
   </data>
   <data name="FileDiscovery.SkipLogPath.Example" xml:space="preserve">
-    <value>--SkipLogPath=&lt;FilePath&gt;</value>
+    <value>--SkipLogPath=&lt;FilePath1&gt;[:&lt;FilePath2&gt;...]</value>
   </data>
   <data name="FileDiscovery.WithExtensions.Description" xml:space="preserve">
     <value>Only/Don't Process files with selected Extensions</value>
   </data>
   <data name="FileDiscovery.WithExtensions.Example" xml:space="preserve">
-    <value>--WithExtensions=[-]&lt;Extension1&gt;[,&lt;Extension2&gt;,...]</value>
+    <value>--WithExtensions=[-]&lt;Extension1&gt;[,&lt;Extension2&gt;...]</value>
   </data>
   <data name="FileMove.LogPath.Description" xml:space="preserve">
     <value />
@@ -307,15 +283,12 @@ FullName, FileName, FileExtension, FileNameWithoutExtension, DirectoryName, Sugg
 Hash-&lt;Name&gt;-&lt;2|4|8|10|16|32|32Hex|32Z|36|62|64&gt;-&lt;OC|UC|LC&gt;</value>
   </data>
   <data name="FileMove.Pattern.Example" xml:space="preserve">
-    <value>--FileMove.Pattern=${DirectoryName}\${FileNameWithoutExtension}[${Hash-CRC32-16-UC}]${SuggestedExtension}</value>
+    <value>--FileMove.Pattern=${DirectoryName}\${FileNameWithoutExtension}${SuggestedExtension}</value>
   </data>
   <data name="FileMove.Replacements.Description" xml:space="preserve">
     <value />
   </data>
   <data name="FileMove.Replacements.Example" xml:space="preserve">
-    <value>--FileMove.Replacements=&lt;Match&gt;,&lt;Replacement&gt;[;&lt;Match&gt;,&lt;Replacement&gt;...]</value>
-  </data>
-  <data name="Reporting.Description" xml:space="preserve">
-    <value>Test</value>
+    <value>--FileMove.Replacements=&lt;Match1&gt;=&lt;Replacement1&gt;[;&lt;Match2&gt;=&lt;Replacement2&gt;...]</value>
   </data>
 </root>

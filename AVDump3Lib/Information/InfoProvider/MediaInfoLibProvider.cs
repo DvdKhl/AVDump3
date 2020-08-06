@@ -235,9 +235,9 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 	public class MediaInfoLibProvider : MediaProvider {
 		private void Populate(MediaInfoLibNativeMethods mil) {
-			static string removeNonNumerics(string s) => Regex.Replace(s, "[^-,.0-9]", "");
-			static string splitTakeFirst(string s) => s.Split('\\', '/', '|')[0];
-			static string skipIntDefault(string s) => string.IsNullOrEmpty(s.Trim('0', '.', ',')) ? "" : s;
+			static string? removeNonNumerics(string? s) => Regex.Replace(s ?? "", "[^-,.0-9]", "");
+			static string? splitTakeFirst(string? s) => (s ?? "").Split('\\', '/', '|')[0];
+			static string? skipIntDefault(string? s) => string.IsNullOrEmpty((s ?? "").Trim('0', '.', ',')) ? null : s;
 
 			//string nonEmpty(string a, string b) => string.IsNullOrEmpty(a) ? b : a;
 
@@ -267,7 +267,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 					switch(streamType) {
 						case MediaInfoLibNativeMethods.StreamTypes.Video:
 							stream = new MetaInfoContainer(id ?? (ulong)Nodes.Count(x => x.Type == ChaptersType), VideoStreamType); hasVideo = true;
-							Add(stream, MediaStream.StatedSampleRateType, () => streamGet("FrameRate"), s => s.ToInvDouble(), skipIntDefault);
+							Add(stream, MediaStream.StatedSampleRateType, () => streamGet("FrameRate"), s => s?.ToInvDouble() ?? 0, skipIntDefault);
 							Add(stream, MediaStream.SampleCountType, () => streamGet("FrameCount").ToInvInt64());
 							Add(stream, VideoStream.PixelAspectRatioType, () => streamGet("PixelAspectRatio").ToInvDouble());
 							Add(stream, VideoStream.PixelDimensionsType, () => new Dimensions(streamGet("Width").ToInvInt32(), streamGet("Height").ToInvInt32()));
@@ -275,8 +275,8 @@ namespace AVDump3Lib.Information.InfoProvider {
 							Add(stream, VideoStream.ColorBitDepthType, () => streamGet("BitDepth").ToInvInt32());
 
 							Add(stream, MediaStream.AverageSampleRateType, () => streamGet("FrameRate_Mode").InvEqualsOrdCI("VFR") ? streamGet("FrameRate").ToInvDouble() : default);
-							Add(stream, MediaStream.MaxSampleRateType, () => streamGet("FrameRate_Maximum").ToInvDouble());
-							Add(stream, MediaStream.MinSampleRateType, () => streamGet("FrameRate_Minimum").ToInvDouble());
+							Add(stream, MediaStream.MaxSampleRateType, () => streamGet("FrameRate_Maximum"), s => s?.ToInvDouble() ?? 0, skipIntDefault);
+							Add(stream, MediaStream.MinSampleRateType, () => streamGet("FrameRate_Minimum"), s => s?.ToInvDouble() ?? 0, skipIntDefault);
 
 							Add(stream, VideoStream.IsInterlacedType, () => streamGet("ScanType").InvEqualsOrdCI("Interlaced"));
 							Add(stream, VideoStream.HasVariableFrameRateType, () => streamGet("FrameRate_Mode").InvEqualsOrdCI("VFR"));
@@ -287,7 +287,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 						case MediaInfoLibNativeMethods.StreamTypes.Audio:
 							stream = new MetaInfoContainer(id ?? (ulong)Nodes.Count(x => x.Type == AudioStreamType), AudioStreamType); hasAudio = true;
-							Add(stream, MediaStream.StatedSampleRateType, () => streamGet("SamplingRate"), s => s.ToInvDouble(), skipIntDefault);
+							Add(stream, MediaStream.StatedSampleRateType, () => streamGet("SamplingRate"), s => s?.ToInvDouble() ?? 0, skipIntDefault);
 							Add(stream, MediaStream.SampleCountType, () => streamGet("SamplingCount").ToInvInt32());
 							Add(stream, AudioStream.ChannelCountType, () => streamGet("Channel(s)").ToInvInt32());
 							AddNode(stream);
@@ -305,7 +305,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 					}
 
 					if(streamType == MediaInfoLibNativeMethods.StreamTypes.Video || streamType == MediaInfoLibNativeMethods.StreamTypes.Audio) {
-						Add(stream, MediaStream.BitrateType, () => streamGet("BitRate"), s => s.ToInvDouble(), skipIntDefault);
+						Add(stream, MediaStream.BitrateType, () => streamGet("BitRate"), s => s?.ToInvDouble() ?? 0, skipIntDefault);
 						Add(stream, MediaStream.StatedBitrateModeType, () => streamGet("BitRate_Mode"));
 					}
 
@@ -313,9 +313,9 @@ namespace AVDump3Lib.Information.InfoProvider {
 					Add(stream, MediaStream.TitleType, () => streamGet("Title"));
 					Add(stream, MediaStream.IsForcedType, () => streamGet("Forced").InvEqualsOrdCI("yes"));
 					Add(stream, MediaStream.IsDefaultType, () => streamGet("Default").InvEqualsOrdCI("yes"));
-					Add(stream, MediaStream.IdType, () => streamGet("UniqueID").ToInvUInt64());
+					Add(stream, MediaStream.IdType, () => streamGet("UniqueID"), s => s?.ToInvUInt64() ?? 0, skipIntDefault);
 					Add(stream, MediaStream.LanguageType, () => streamGet("Language"));
-					Add(stream, MediaStream.DurationType, () => streamGet("Duration"), s => TimeSpan.FromSeconds(s.ToInvDouble() / 1000), (Func<string, string>)splitTakeFirst);
+					Add(stream, MediaStream.DurationType, () => streamGet("Duration"), s => TimeSpan.FromSeconds(s.ToInvDouble() / 1000), (Func<string?, string?>)splitTakeFirst);
 					Add(stream, MediaStream.ContainerCodecIdWithCodecPrivateType, () => streamGet("CodecID"));
 					Add(stream, MediaStream.CodecIdType, () => streamGet("Format"));
 					Add(stream, MediaStream.CodecAdditionalFeaturesType, () => streamGet("Format_AdditionalFeatures"));
@@ -525,14 +525,16 @@ namespace AVDump3Lib.Information.InfoProvider {
 		}
 
 
-		private void Add<T>(MetaInfoItemType<T> type, Func<string> getValue, Func<string, T> transform, params Func<string, string>[] processingChain) {
+		private void Add<T>(MetaInfoItemType<T> type, Func<string> getValue, Func<string, T> transform, params Func<string?, string?>[] processingChain) {
 			Add(this, type, getValue, transform, processingChain);
 		}
 		private void Add<T>(MetaInfoItemType<T> type, Func<T> getValue) {
 			Add(this, type, getValue);
 		}
-		private void Add<T>(MetaInfoContainer container, MetaInfoItemType<T> type, Func<string> getValue, Func<string, T> transform, params Func<string, string>[] processingChain) {
-			Add(container, type, () => transform(processingChain.Aggregate(getValue(), (val, chain) => chain(val))));
+		private void Add<T>(MetaInfoContainer container, MetaInfoItemType<T> type, Func<string> getValue, Func<string, T> transform, params Func<string?, string?>[] processingChain) {
+			var valueStr = processingChain.Aggregate((string?)getValue(), (val, chain) => chain(val));
+			if(string.IsNullOrWhiteSpace(valueStr)) return;
+			Add(container, type, () => transform(valueStr));
 		}
 		private void Add<T>(MetaInfoContainer container, MetaInfoItemType<T> type, Func<T> getValue) {
 			T value;

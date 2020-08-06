@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Markup.Xaml;
 using ReactiveUI;
@@ -8,31 +9,36 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Resources;
 
 namespace AVDump3Gui.Controls.Settings {
 
-	public interface ISettingsPropertyItem {
+	public interface ISettingPropertyItem {
+		static object Unset { get; } = new object();
+
 		ImmutableArray<string> AlternativeNames { get; }
 		object DefaultValue { get; }
 		string Description { get; }
 		string Example { get; }
 		string Name { get; }
 		Type ValueType { get; }
-	}
-	public interface ISettingsGroupItem {
-		string Description { get; }
-		string Name { get; }
-		ImmutableArray<ISettingsPropertyItem> Properties { get; }
+		//ISettingGroupItem Parent { get; }
+		object? ToObject(string? stringValue);
+		string? ToString(object? objectValue);
 
-		string? PropertyObjectToString(ISettingsPropertyItem prop, object? objectValue);
-		object? PropertyStringToObject(ISettingsPropertyItem prop, string? stringValue);
-	}
+		object ValueRaw { get; set; }
 
-	public interface ISettingsValueItem {
-		ISettingsPropertyItem Property { get; }
+		bool IsUnset => ValueRaw == Unset;
+
+		string ValueTypeKey { get; }
 		object Value { get; set; }
 	}
-
+	public interface ISettingGroupItem {
+		string Description { get; }
+		string Name { get; }
+		ImmutableArray<ISettingPropertyItem> Properties { get; }
+		ResourceManager ResourceManager { get; }
+	}
 
 
 	public class SettingsView : UserControl {
@@ -49,56 +55,23 @@ namespace AVDump3Gui.Controls.Settings {
 			AvaloniaXamlLoader.Load(this);
 		}
 
+		public IDataTemplate SettingValueTemplate { get => GetValue(SettingValueTemplateProperty); set => SetValue(SettingValueTemplateProperty, value); }
+		public static readonly StyledProperty<IDataTemplate> SettingValueTemplateProperty = AvaloniaProperty.Register<SettingsView, IDataTemplate>(nameof(SettingValueTemplate));
 
-		public IEnumerable<ISettingsGroupItem> SettingsGroups { get => GetValue(SettingsGroupsProperty); set => SetValue(SettingsGroupsProperty, value); }
-		public static readonly StyledProperty<IEnumerable<ISettingsGroupItem>> SettingsGroupsProperty = AvaloniaProperty.Register<SettingsView, IEnumerable<ISettingsGroupItem>>(nameof(Settings), notifying: SettingsGroupChange);
+		public IEnumerable<ISettingGroupItem> SettingGroups { get => GetValue(SettingGroupsProperty); set => SetValue(SettingGroupsProperty, value); }
+		public static readonly StyledProperty<IEnumerable<ISettingGroupItem>> SettingGroupsProperty = AvaloniaProperty.Register<SettingsView, IEnumerable<ISettingGroupItem>>(nameof(SettingGroups), notifying: SettingsSourceChange);
 
-		private static void SettingsGroupChange(IAvaloniaObject avaloniaObject, bool isChanging) {
+		private static void SettingsSourceChange(IAvaloniaObject avaloniaObject, bool isChanging) {
 			var view = avaloniaObject as SettingsView;
+			if(!isChanging) view.SettingsGroupsControl.Items = view.SettingGroups;
 
-			if(!isChanging) {
-				var settingsGroupsInternal = view.SettingsGroups.Select(x => new SettingsGroupInternal(x)).ToArray();
-				view.SettingsGroupsControl.Items = settingsGroupsInternal;
-				view.SettingsValues = settingsGroupsInternal.SelectMany(x => x.Properties).ToArray();
-			}
-		}
-
-		private IEnumerable<ISettingsValueItem> settingsValues = Array.Empty<ISettingsValueItem>();
-		public IEnumerable<ISettingsValueItem> SettingsValues { get => settingsValues; private set => SetAndRaise(SettingsValuesProperty, ref settingsValues, value); }
-		public static readonly DirectProperty<SettingsView, IEnumerable<ISettingsValueItem>> SettingsValuesProperty = AvaloniaProperty.RegisterDirect<SettingsView, IEnumerable<ISettingsValueItem>>(nameof(SettingsValues), o => o.SettingsValues, unsetValue: Array.Empty<ISettingsValueItem>());
-
-
-
-		public class SettingsPropertyValueInternal : ReactiveObject, ISettingsValueItem {
-			private SettingsGroupInternal settingsGroup;
-			private object propValue;
-
-			public SettingsPropertyValueInternal(SettingsGroupInternal settingsGroup,  ISettingsPropertyItem settingsProperty) { this.settingsGroup = settingsGroup; Property = settingsProperty; }
-
-			public ISettingsPropertyItem Property { get; }
-			public object Value { get => propValue; set => this.RaiseAndSetIfChanged(ref propValue, value); }
-
-			public string ValueAsString { get => settingsGroup.PropertyObjectToString(Property, Value); set => Value = settingsGroup.PropertyStringToObject(Property, value); }
-			//public object DefaultValue => settingsGroup.PropertyObjectToString(Base, ((ISettingsProperty)Base).DefaultValue);
-		}
-
-
-		public class SettingsGroupInternal : ISettingsGroupItem {
-			private readonly ISettingsGroupItem settingsGroup;
-
-			public SettingsGroupInternal(ISettingsGroupItem settingsGroup) {
-				this.settingsGroup = settingsGroup;
-				Properties = settingsGroup.Properties.Select(x => new SettingsPropertyValueInternal(this, x)).ToImmutableArray();
-			}
-
-			public string Description => settingsGroup.Description;
-			public string Name => settingsGroup.Name;
-
-			public ImmutableArray<SettingsPropertyValueInternal> Properties { get; }
-			ImmutableArray<ISettingsPropertyItem> ISettingsGroupItem.Properties => settingsGroup.Properties;
-
-			public string PropertyObjectToString(ISettingsPropertyItem prop, object objectValue) => settingsGroup.PropertyObjectToString(prop, objectValue);
-			public object PropertyStringToObject(ISettingsPropertyItem prop, string stringValue) => settingsGroup.PropertyStringToObject(prop, stringValue);
+		//	if(!isChanging) {
+		//		foreach(var prop in view.SettingsSource.Groups.SelectMany(x => x.Properties)) {
+		//			if(!view.SettingsSource.Values.Any(x => x.Property == prop)) {
+		//				view.SettingsSource.Values.Add(view.SettingsSource.CreateValue(prop));
+		//			}
+		//		}
+		//	}
 		}
 
 	}

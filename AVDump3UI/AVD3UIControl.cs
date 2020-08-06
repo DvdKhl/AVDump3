@@ -8,10 +8,15 @@ using AVDump3Lib.Modules;
 using AVDump3Lib.Processing;
 using AVDump3Lib.Processing.BlockBuffers;
 using AVDump3Lib.Processing.BlockConsumers;
+using AVDump3Lib.Processing.BlockConsumers.Matroska;
+using AVDump3Lib.Processing.BlockConsumers.MP4;
+using AVDump3Lib.Processing.BlockConsumers.Ogg;
 using AVDump3Lib.Processing.FileMove;
+using AVDump3Lib.Processing.HashAlgorithms;
 using AVDump3Lib.Processing.StreamConsumer;
 using AVDump3Lib.Processing.StreamProvider;
 using AVDump3Lib.Reporting;
+using AVDump3Lib.Reporting.Core;
 using AVDump3Lib.Settings;
 using AVDump3Lib.Settings.CLArguments;
 using AVDump3Lib.Settings.Core;
@@ -29,22 +34,16 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace AVDump3CL {
-	public class AVD3CLModuleExceptionEventArgs : EventArgs {
-		public AVD3CLModuleExceptionEventArgs(XElement exception) {
-			Exception = exception;
-		}
+namespace AVDump3UI {
 
-		public XElement Exception { get; private set; }
-	}
-
-	public class AVD3CLFileProcessedEventArgs : EventArgs {
+	public class AVD3UIControlFileProcessedEventArgs : EventArgs {
 		public FileMetaInfo FileMetaInfo { get; }
 
 		private readonly List<Task<bool>> processingTasks = new List<Task<bool>>();
@@ -57,13 +56,13 @@ namespace AVDump3CL {
 
 		public void AddFileMoveToken(string key, string value) => fileMoveTokens.Add(key, value);
 
-		public AVD3CLFileProcessedEventArgs(FileMetaInfo fileMetaInfo) => FileMetaInfo = fileMetaInfo;
+		public AVD3UIControlFileProcessedEventArgs(FileMetaInfo fileMetaInfo) => FileMetaInfo = fileMetaInfo;
 	}
 
 
-	public interface IAVD3CLModule : IAVD3Module {
-		event EventHandler<AVD3CLModuleExceptionEventArgs> ExceptionThrown;
-		event EventHandler<AVD3CLFileProcessedEventArgs> FileProcessed;
+	public interface IAVD3UIControl: IAVD3Module {
+		event EventHandler<AVD3UIControlExceptionEventArgs> ExceptionThrown;
+		event EventHandler<AVD3UIControlFileProcessedEventArgs> FileProcessed;
 		event EventHandler ProcessingFinished;
 
 		IAVD3Console Console { get; }
@@ -73,49 +72,132 @@ namespace AVDump3CL {
 	}
 
 
+	public interface IAVD3Console {
+		void WriteLine(IEnumerable<string> values);
+		void WriteLine(string value);
+	}
+
+	public class AVD3UIControlExceptionEventArgs : EventArgs {
+		public AVD3UIControlExceptionEventArgs(XElement exception) {
+			Exception = exception;
+		}
+
+		public XElement Exception { get; private set; }
+	}
 
 
-
-	public class AVD3CLModule : IAVD3CLModule, IFileMoveConfigure {
-		public event EventHandler<AVD3CLModuleExceptionEventArgs>? ExceptionThrown = delegate { };
-		public event EventHandler<AVD3CLFileProcessedEventArgs>? FileProcessed = delegate { };
+	public class AVD3UIControl : IAVD3UIControl, IFileMoveConfigure {
+		public event EventHandler<AVD3UIControlExceptionEventArgs>? ExceptionThrown = delegate { };
+		public event EventHandler<AVD3UIControlFileProcessedEventArgs>? FileProcessed = delegate { };
 		public event EventHandler ProcessingFinished = delegate { };
+		public ImmutableArray<IBlockConsumerFactory> BlockConsumerFactories { get; private set; }
+		public IReadOnlyCollection<IReportFactory> ReportFactories { get; }
 
-		public IAVD3Console Console => console;
+		public event EventHandler<BlockConsumerFilterEventArgs> BlockConsumerFilter = delegate { };
+		public event EventHandler<FilePathFilterEventArgs> FilePathFilter = delegate { };
+
+		public IAVD3Console Console { get; }
 
 		private IFileMoveScript fileMove;
 		private HashSet<string> filePathsToSkip = new HashSet<string>();
 		//private IServiceProvider fileMoveServiceProvider;
 		//private ScriptRunner<string> fileMoveScriptRunner;
 
-		private AVD3CLSettings settings;
+		private AVD3UISettings settings;
 		private readonly object fileSystemLock = new object();
 		private readonly List<WaitHandle> shutdownDelayHandles = new List<WaitHandle>();
+		private readonly AVD3ModuleManagement moduleManagement = new AVD3ModuleManagement();
 
+		public AVD3UIControl(IAVD3Console console) {
+			//AppDomain.CurrentDomain.UnhandledException += UnhandleException;
+			Console = console ?? throw new ArgumentNullException(nameof(console));
 
-		private IReadOnlyCollection<IAVD3Module> modules;
-		private IAVD3ProcessingModule processingModule;
-		private IAVD3InformationModule informationModule;
-		private IAVD3ReportingModule reportingModule;
-		private AVD3Console console = new AVD3Console();
+			moduleManagement.LoadModules(AppDomain.CurrentDomain.BaseDirectory ?? throw new Exception("AppDomain.CurrentDomain.BaseDirectory is null"));
+			moduleManagement.AddModule(this);
 
-		private AVD3ProgressDisplay? progressDisplay;
+			moduleManagement.RaiseIntialize();
 
+		}
 
-		public AVD3CLModule() {
-			AppDomain.CurrentDomain.UnhandledException += UnhandleException;
+		private static class NativeMethods {
+			[DllImport("AVDump3NativeLib")]
+			internal static extern CPUInstructions RetrieveCPUInstructions();
 		}
 
 
+		public IReadOnlyList<ISettingProperty> SettingProperties => settingProperties;
+		private readonly List<ISettingProperty> settingProperties = new List<ISettingProperty>();
+		public IReadOnlyCollection<IInfoProviderFactory> InfoProviderFactories { get; }
 
-		private void UnhandleException(object sender, UnhandledExceptionEventArgs e) {
-			var wrapEx = new AVD3CLException(
-				"Unhandled AppDomain wide Exception",
-				e.ExceptionObject as Exception ?? new Exception("Non Exception Type: " + e.ExceptionObject.ToString())
-			);
 
-			OnException(wrapEx);
+		public CPUInstructions AvailableSIMD { get; } = NativeMethods.RetrieveCPUInstructions();
+
+		public void RegisterDefaultBlockConsumers(IDictionary<string, ImmutableArray<string>> arguments) {
+			var factories = new Dictionary<string, IBlockConsumerFactory>();
+			void addOrReplace(IBlockConsumerFactory factory) => factories[factory.Name] = factory;
+			string? getArgumentAt(BlockConsumerSetup s, int index, string? defVal) => (arguments?.TryGetValue(s.Name, out var args) ?? false) && index < args.Length ? args[index] ?? defVal : defVal;
+
+
+			addOrReplace(new BlockConsumerFactory("NULL", s => new HashCalculator(s.Name, s.Reader, new NullHashAlgorithm(getArgumentAt(s, 0, "4").ToInvInt32() << 20))));
+			addOrReplace(new BlockConsumerFactory("CPY", s => new CopyToFileBlockConsumer(s.Name, s.Reader, Path.Combine(getArgumentAt(s, 0, null) ?? throw new Exception(), Path.GetFileName((string)s.Tag)))));
+			addOrReplace(new BlockConsumerFactory("MD5", s => new HashCalculator(s.Name, s.Reader, new AVDHashAlgorithmIncrmentalHashAdapter(HashAlgorithmName.MD5, 1024))));
+			addOrReplace(new BlockConsumerFactory("SHA1", s => new HashCalculator(s.Name, s.Reader, new AVDHashAlgorithmIncrmentalHashAdapter(HashAlgorithmName.SHA1, 1024))));
+			addOrReplace(new BlockConsumerFactory("SHA2-256", s => new HashCalculator(s.Name, s.Reader, new AVDHashAlgorithmIncrmentalHashAdapter(HashAlgorithmName.SHA256, 1024))));
+			addOrReplace(new BlockConsumerFactory("SHA2-384", s => new HashCalculator(s.Name, s.Reader, new AVDHashAlgorithmIncrmentalHashAdapter(HashAlgorithmName.SHA384, 1024))));
+			addOrReplace(new BlockConsumerFactory("SHA2-512", s => new HashCalculator(s.Name, s.Reader, new AVDHashAlgorithmIncrmentalHashAdapter(HashAlgorithmName.SHA512, 1024))));
+			addOrReplace(new BlockConsumerFactory("MD4", s => new HashCalculator(s.Name, s.Reader, new Md4HashAlgorithm())));
+			addOrReplace(new BlockConsumerFactory("ED2K", s => new HashCalculator(s.Name, s.Reader, new Ed2kHashAlgorithm())));
+			addOrReplace(new BlockConsumerFactory("CRC32", s => new HashCalculator(s.Name, s.Reader, new Crc32HashAlgorithm())));
+			addOrReplace(new BlockConsumerFactory("MKV", s => new MatroskaParser(s.Name, s.Reader)));
+			addOrReplace(new BlockConsumerFactory("OGG", s => new OggParser(s.Name, s.Reader)));
+			addOrReplace(new BlockConsumerFactory("MP4", s => new MP4Parser(s.Name, s.Reader)));
+
+
+			try {
+				addOrReplace(new BlockConsumerFactory("ED2K", s => new HashCalculator(s.Name, s.Reader, new Ed2kNativeHashAlgorithm())));
+				addOrReplace(new BlockConsumerFactory("MD4", s => new HashCalculator(s.Name, s.Reader, new Md4NativeHashAlgorithm())));
+				addOrReplace(new BlockConsumerFactory("CRC32", s => new HashCalculator(s.Name, s.Reader, new Crc32NativeHashAlgorithm())));
+				addOrReplace(new BlockConsumerFactory("SHA3-224", s => new HashCalculator(s.Name, s.Reader, new SHA3NativeHashAlgorithm(224))));
+				addOrReplace(new BlockConsumerFactory("SHA3-256", s => new HashCalculator(s.Name, s.Reader, new SHA3NativeHashAlgorithm(256))));
+				addOrReplace(new BlockConsumerFactory("SHA3-384", s => new HashCalculator(s.Name, s.Reader, new SHA3NativeHashAlgorithm(384))));
+				addOrReplace(new BlockConsumerFactory("SHA3-512", s => new HashCalculator(s.Name, s.Reader, new SHA3NativeHashAlgorithm(512))));
+				addOrReplace(new BlockConsumerFactory("KECCAK-224", s => new HashCalculator(s.Name, s.Reader, new KeccakNativeHashAlgorithm(224))));
+				addOrReplace(new BlockConsumerFactory("KECCAK-256", s => new HashCalculator(s.Name, s.Reader, new KeccakNativeHashAlgorithm(256))));
+				addOrReplace(new BlockConsumerFactory("KECCAK-384", s => new HashCalculator(s.Name, s.Reader, new KeccakNativeHashAlgorithm(384))));
+				addOrReplace(new BlockConsumerFactory("KECCAK-512", s => new HashCalculator(s.Name, s.Reader, new KeccakNativeHashAlgorithm(512))));
+
+				if(AvailableSIMD.HasFlag(CPUInstructions.SSE2)) {
+					addOrReplace(new BlockConsumerFactory("TIGER", s => new HashCalculator(s.Name, s.Reader, new TigerNativeHashAlgorithm())));
+					addOrReplace(new BlockConsumerFactory("TTH", s => new HashCalculator(s.Name, s.Reader, new TigerTreeHashAlgorithm(getArgumentAt(s, 0, Math.Min(4, Environment.ProcessorCount).ToInvString()).ToInvInt32()))));
+					addOrReplace(new BlockConsumerFactory("CRC32", s => new HashCalculator(s.Name, s.Reader, new Crc32NativeHashAlgorithm())));
+				}
+				if(AvailableSIMD.HasFlag(CPUInstructions.SSE42)) {
+					addOrReplace(new BlockConsumerFactory("CRC32C", s => new HashCalculator(s.Name, s.Reader, new Crc32CIntelHashAlgorithm())));
+				}
+				if(AvailableSIMD.HasFlag(CPUInstructions.SHA) && false) { //Broken (Produces wrong hashes)
+					addOrReplace(new BlockConsumerFactory("SHA1", s => new HashCalculator(s.Name, s.Reader, new SHA1NativeHashAlgorithm())));
+					addOrReplace(new BlockConsumerFactory("SHA2-256", s => new HashCalculator(s.Name, s.Reader, new SHA256NativeHashAlgorithm())));
+				}
+
+
+			} catch(Exception) {
+				//TODO Log
+			}
+
+			var blockConsumerFactories = factories.Values.ToList();
+			blockConsumerFactories.Sort((a, b) => string.CompareOrdinal(a.Name, b.Name));
+			BlockConsumerFactories = ImmutableArray.CreateRange(blockConsumerFactories);
 		}
+		public void RegisterSettings(IEnumerable<ISettingProperty> settingsGroups) => settingProperties.AddRange(settingsGroups);
+
+		//private void UnhandleException(object sender, UnhandledExceptionEventArgs e) {
+		//	var wrapEx = new AVD3CLException(
+		//		"Unhandled AppDomain wide Exception",
+		//		e.ExceptionObject as Exception ?? new Exception("Non Exception Type: " + e.ExceptionObject.ToString())
+		//	);
+
+		//	OnException(wrapEx);
+		//}
 
 		private void OnException(AVD3CLException ex) {
 			var exElem = ex.ToXElement(
@@ -136,23 +218,20 @@ namespace AVDump3CL {
 
 			var exception = ex.GetBaseException() ?? ex;
 
-			console.WriteLine("Error " + exception.GetType() + ": " + exception.Message);
+			Console.WriteLine("Error " + exception.GetType() + ": " + exception.Message);
 
-			ExceptionThrown?.Invoke(this, new AVD3CLModuleExceptionEventArgs(exElem));
+			ExceptionThrown?.Invoke(this, new AVD3UIControlExceptionEventArgs(exElem));
 			//TODO Raise Event for modules to listen to
 		}
 
-		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) {
-			this.modules = modules;
-
-			processingModule = modules.OfType<IAVD3ProcessingModule>().Single();
-			processingModule.BlockConsumerFilter += (s, e) => {
+		public void Initialize() {
+			BlockConsumerFilter += (s, e) => {
 				if(settings?.Processing.Consumers.Value.Any(x => e.BlockConsumerName.InvEqualsOrdCI(x.Name)) ?? false) {
 					e.Accept();
 				}
 			};
 
-			processingModule.FilePathFilter += (s, e) => {
+			FilePathFilter += (s, e) => {
 				if(settings == null) throw new InvalidOperationException("Called FilePathFilter when settings is null");
 
 				var accept = settings.FileDiscovery.WithExtensions.Allow == (
@@ -164,32 +243,29 @@ namespace AVDump3CL {
 				if(!accept) e.Decline();
 			};
 
-			informationModule = modules.OfType<IAVD3InformationModule>().Single();
-			reportingModule = modules.OfType<IAVD3ReportingModule>().Single();
-
-			var settingsgModule = modules.OfType<IAVD3SettingsModule>().Single();
-			settingsgModule.RegisterSettings(AVD3CLSettings.GetProperties());
-			settingsgModule.ConfigurationFinished += ConfigurationFinished;
+			RegisterSettings(AVD3UISettings.GetProperties());
 		}
+		void IAVD3Module.Initialize(IReadOnlyCollection<IAVD3Module> modules) => Initialize();
+
 		public ModuleInitResult Initialized() => new ModuleInitResult(false);
 
 		public void ConfigurationFinished(object? sender, SettingsModuleInitResult args) {
-			settings = new AVD3CLSettings(args.Store);
+			settings = new AVD3UISettings(args.Store);
 
-			progressDisplay = new AVD3ProgressDisplay(settings.Display);
-			console.WriteProgress += progressDisplay.WriteProgress;
+			//progressDisplay = new AVD3ProgressDisplay(settings.Display);
+			//console.WriteProgress += progressDisplay.WriteProgress;
 
-			processingModule.RegisterDefaultBlockConsumers((settings.Processing.Consumers ?? ImmutableArray<ConsumerSettings>.Empty).ToDictionary(x => x.Name, x => x.Arguments));
+			RegisterDefaultBlockConsumers((settings.Processing.Consumers ?? ImmutableArray<ConsumerSettings>.Empty).ToDictionary(x => x.Name, x => x.Arguments));
 
 			if(settings.Processing.Consumers == null) {
 				System.Console.WriteLine("Available Consumers: ");
-				foreach(var blockConsumerFactory in processingModule.BlockConsumerFactories) {
+				foreach(var blockConsumerFactory in BlockConsumerFactories) {
 					System.Console.WriteLine(blockConsumerFactory.Name.PadRight(14) + " - " + blockConsumerFactory.Description);
 				}
 				args.Cancel();
 
 			} else if(settings.Processing.Consumers.Value.Any()) {
-				var invalidBlockConsumerNames = settings.Processing.Consumers.Value.Where(x => processingModule.BlockConsumerFactories.All(y => !y.Name.InvEqualsOrdCI(x.Name))).ToArray();
+				var invalidBlockConsumerNames = settings.Processing.Consumers.Value.Where(x => BlockConsumerFactories.All(y => !y.Name.InvEqualsOrdCI(x.Name))).ToArray();
 				if(invalidBlockConsumerNames.Any()) {
 					System.Console.WriteLine("Invalid BlockConsumer(s): " + string.Join(", ", invalidBlockConsumerNames.Select(x => x.Name)));
 					args.Cancel();
@@ -199,13 +275,13 @@ namespace AVDump3CL {
 
 			if(settings.Reporting.Reports == null) {
 				System.Console.WriteLine("Available Reports: ");
-				foreach(var reportFactory in reportingModule.ReportFactories) {
+				foreach(var reportFactory in ReportFactories) {
 					System.Console.WriteLine(reportFactory.Name.PadRight(14) + " - " + reportFactory.Description);
 				}
 				args.Cancel();
 
 			} else if(settings.Reporting.Reports.Any()) {
-				var invalidReportNames = settings.Reporting.Reports.Where(x => reportingModule.ReportFactories.All(y => !y.Name.InvEqualsOrdCI(x))).ToArray();
+				var invalidReportNames = settings.Reporting.Reports.Where(x => ReportFactories.All(y => !y.Name.InvEqualsOrdCI(x))).ToArray();
 				if(invalidReportNames.Any()) {
 					System.Console.WriteLine("Invalid Report: " + string.Join(", ", invalidReportNames));
 					args.Cancel();
@@ -213,14 +289,14 @@ namespace AVDump3CL {
 			}
 
 			if(!string.IsNullOrEmpty(settings.Reporting.CRC32Error?.Path)) {
-				processingModule.BlockConsumerFilter += (s, e) => {
+				BlockConsumerFilter += (s, e) => {
 					if(e.BlockConsumerName.InvEqualsOrd("CRC32")) e.Accept();
 				};
 			}
 
 			if(settings.Processing.PrintAvailableSIMDs) {
 				System.Console.WriteLine("Available SIMD Instructions: ");
-				foreach(var flagValue in Enum.GetValues(typeof(CPUInstructions)).OfType<CPUInstructions>().Where(x => (x & processingModule.AvailableSIMD) != 0)) {
+				foreach(var flagValue in Enum.GetValues(typeof(CPUInstructions)).OfType<CPUInstructions>().Where(x => (x & AvailableSIMD) != 0)) {
 					System.Console.WriteLine(flagValue);
 				}
 				args.Cancel();
@@ -240,13 +316,13 @@ namespace AVDump3CL {
 				if(!string.IsNullOrEmpty(path)) Directory.CreateDirectory(path);
 			}
 
-			if(settings.Diagnostics.NullStreamTest.StreamCount > 0 && settings.Reporting.Reports.Length > 0) {
+			if(settings.Diagnostics.NullStreamTest != null && settings.Reporting.Reports.Length > 0) {
 				System.Console.WriteLine("NullStreamTest cannot be used with reports");
 				args.Cancel();
 			}
 
 			if(settings.FileMove.Mode != FileMoveMode.None) {
-				var fileMoveExtensions = modules.OfType<IFileMoveConfigure>().ToArray();
+				var fileMoveExtensions = moduleManagement.OfType<IFileMoveConfigure>().ToArray();
 
 				static string PlaceholderConvert(string pattern) => "return \"" + Regex.Replace(pattern.Replace("\\", "\\\\").Replace("\"", "\\\""), @"\$\{([A-Za-z0-9\-\.]+)\}", @""" + Get(""$1"") + """) + "\";";
 
@@ -290,88 +366,90 @@ namespace AVDump3CL {
 				settings.Diagnostics.NullStreamTest.ParallelStreamCount
 			);
 
-			progressDisplay.TotalFiles = nsp.StreamCount;
-			progressDisplay.TotalBytes = nsp.StreamCount * nsp.StreamLength;
+			//progressDisplay.TotalFiles = nsp.StreamCount;
+			//progressDisplay.TotalBytes = nsp.StreamCount * nsp.StreamLength;
 
 			return nsp;
 		}
 
 		public void Process(string[] paths) {
-			var bytesReadProgress = new BytesReadProgress(processingModule.BlockConsumerFactories.Select(x => x.Name));
+			throw new NotImplementedException();
+			//var bytesReadProgress = new BytesReadProgress(processingModule.BlockConsumerFactories.Select(x => x.Name));
 
-			var sp = settings.Diagnostics.NullStreamTest.StreamCount > 0 ? CreateNullStreamProvider() : CreateFileStreamProvider(paths);
-			var streamConsumerCollection = processingModule.CreateStreamConsumerCollection(sp,
-				settings.Processing.BufferLength,
-				settings.Processing.ProducerMinReadLength,
-				settings.Processing.ProducerMaxReadLength
-			);
-			streamConsumerCollection.ConsumingStream += ConsumingStream;
+			//var sp = settings.Diagnostics.NullStreamTest != null ? CreateNullStreamProvider() : CreateFileStreamProvider(paths);
+			//var streamConsumerCollection = CreateStreamConsumerCollection(sp,
+			//	settings.Processing.BufferLength,
+			//	settings.Processing.ProducerMinReadLength,
+			//	settings.Processing.ProducerMaxReadLength
+			//);
+			//streamConsumerCollection.ConsumingStream += ConsumingStream;
 
-			using(console)
-			using(sp as IDisposable)
-			using(var cts = new CancellationTokenSource()) {
-				progressDisplay.Initialize(bytesReadProgress.GetProgress);
+			//using(console)
+			//using(sp as IDisposable)
+			//using(var cts = new CancellationTokenSource()) {
+			//	//progressDisplay.Initialize(bytesReadProgress.GetProgress);
 
 
-				if(!settings.Display.ForwardConsoleCursorOnly) console.StartProgressDisplay();
+			//	if(!settings.Display.ForwardConsoleCursorOnly) console.StartProgressDisplay();
 
-				void cancelKeyHandler(object s, ConsoleCancelEventArgs e) {
-					System.Console.CancelKeyPress -= cancelKeyHandler;
-					e.Cancel = true;
-					cts.Cancel();
-				}
-				System.Console.CancelKeyPress += cancelKeyHandler;
-				System.Console.CursorVisible = false;
-				try {
-					streamConsumerCollection.ConsumeStreams(bytesReadProgress, cts.Token);
-					if(console.ShowingProgress) console.StopProgressDisplay();
+			//	void cancelKeyHandler(object s, ConsoleCancelEventArgs e) {
+			//		System.Console.CancelKeyPress -= cancelKeyHandler;
+			//		e.Cancel = true;
+			//		cts.Cancel();
+			//	}
+			//	System.Console.CancelKeyPress += cancelKeyHandler;
+			//	System.Console.CursorVisible = false;
+			//	try {
+			//		streamConsumerCollection.ConsumeStreams(bytesReadProgress, cts.Token);
+			//		if(console.ShowingProgress) console.StopProgressDisplay();
 
-					ProcessingFinished?.Invoke(this, EventArgs.Empty);
+			//		ProcessingFinished?.Invoke(this, EventArgs.Empty);
 
-					var shutdownDelayHandles = this.shutdownDelayHandles.ToArray();
-					if(shutdownDelayHandles.Length > 0) WaitHandle.WaitAll(shutdownDelayHandles);
+			//		var shutdownDelayHandles = this.shutdownDelayHandles.ToArray();
+			//		if(shutdownDelayHandles.Length > 0) WaitHandle.WaitAll(shutdownDelayHandles);
 
-				} catch(OperationCanceledException) {
+			//	} catch(OperationCanceledException) {
 
-				} finally {
-					if(console.ShowingProgress) console.StopProgressDisplay();
-					System.Console.CursorVisible = true;
-				}
-			}
+			//	} finally {
+			//		if(console.ShowingProgress) console.StopProgressDisplay();
+			//		System.Console.CursorVisible = true;
+			//	}
+			//}
 
-			if(settings.Processing.PauseBeforeExit) {
-				System.Console.WriteLine("Program execution has finished. Press any key to exit.");
-				System.Console.Read();
-			}
+			//if(settings.Processing.PauseBeforeExit) {
+			//	System.Console.WriteLine("Program execution has finished. Press any key to exit.");
+			//	System.Console.Read();
+			//}
 		}
 
 		private IStreamProvider CreateFileStreamProvider(string[] paths) {
-			var acceptedFiles = 0;
-			var fileDiscoveryOn = DateTimeOffset.UtcNow;
-			var sp = (StreamFromPathsProvider)processingModule.CreateFileStreamProvider(
-				paths, settings.FileDiscovery.Recursive, settings.FileDiscovery.Concurrent,
-				path => {
-					if(fileDiscoveryOn.AddSeconds(1) < DateTimeOffset.UtcNow) {
-						System.Console.WriteLine("Accepted files: " + acceptedFiles);
-						fileDiscoveryOn = DateTimeOffset.UtcNow;
-					}
-					acceptedFiles++;
-				},
-				ex => {
-					if(!(ex is UnauthorizedAccessException) || !RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-						System.Console.WriteLine("Filediscovery: " + ex.Message);
-					}
-				}
-			);
-			System.Console.WriteLine("Accepted files: " + acceptedFiles);
-			System.Console.WriteLine();
+			throw new NotImplementedException();
 
-			if(progressDisplay != null) {
-				progressDisplay.TotalFiles = sp.TotalFileCount;
-				progressDisplay.TotalBytes = sp.TotalBytes;
-			}
+			//var acceptedFiles = 0;
+			//var fileDiscoveryOn = DateTimeOffset.UtcNow;
+			//var sp = (StreamFromPathsProvider)processingModule.CreateFileStreamProvider(
+			//	paths, settings.FileDiscovery.Recursive, settings.FileDiscovery.Concurrent,
+			//	path => {
+			//		if(fileDiscoveryOn.AddSeconds(1) < DateTimeOffset.UtcNow) {
+			//			System.Console.WriteLine("Accepted files: " + acceptedFiles);
+			//			fileDiscoveryOn = DateTimeOffset.UtcNow;
+			//		}
+			//		acceptedFiles++;
+			//	},
+			//	ex => {
+			//		if(!(ex is UnauthorizedAccessException) || !RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+			//			System.Console.WriteLine("Filediscovery: " + ex.Message);
+			//		}
+			//	}
+			//);
+			//System.Console.WriteLine("Accepted files: " + acceptedFiles);
+			//System.Console.WriteLine();
 
-			return sp;
+			////progressDisplay.TotalFiles = sp.TotalFileCount;
+			////progressDisplay.TotalBytes = sp.TotalBytes;
+
+			//return sp;
+
 		}
 
 		private async void ConsumingStream(object? sender, ConsumingStreamEventArgs e) {
@@ -419,7 +497,7 @@ namespace AVDump3CL {
 
 			try {
 				var infoSetup = new InfoProviderSetup(filePath, blockConsumers);
-				var infoProviders = informationModule.InfoProviderFactories.Select(x => x.Create(infoSetup)).ToArray();
+				var infoProviders = InfoProviderFactories.Select(x => x.Create(infoSetup)).ToArray();
 				return new FileMetaInfo(new FileInfo(filePath), infoProviders);
 
 			} catch(Exception ex) {
@@ -480,7 +558,7 @@ namespace AVDump3CL {
 			}
 
 			var success = true;
-			var reportsFactories = reportingModule.ReportFactories.Where(x => settings.Reporting.Reports.Any(y => x.Name.Equals(y, StringComparison.OrdinalIgnoreCase))).ToArray();
+			var reportsFactories = ReportFactories.Where(x => settings.Reporting.Reports.Any(y => x.Name.Equals(y, StringComparison.OrdinalIgnoreCase))).ToArray();
 			if(reportsFactories.Length != 0) {
 
 				try {
@@ -509,13 +587,13 @@ namespace AVDump3CL {
 					success = false;
 				}
 			}
-			console.WriteLine(linesToWrite);
+			Console.WriteLine(linesToWrite);
 			return success;
 		}
 		private async Task<bool> HandleEvent(FileMetaInfo fileMetaInfo) {
 			var success = true;
 
-			var fileProcessedEventArgs = new AVD3CLFileProcessedEventArgs(fileMetaInfo);
+			var fileProcessedEventArgs = new AVD3UIControlFileProcessedEventArgs(fileMetaInfo);
 			try {
 				FileProcessed?.Invoke(this, fileProcessedEventArgs);
 			} catch(Exception ex) {
@@ -529,7 +607,7 @@ namespace AVDump3CL {
 		private async Task<bool> HandleFileMove(FileMetaInfo fileMetaInfo) {
 			var success = true;
 			if(fileMove != null) {
-				using var clLock = settings.FileMove.Test ? console.LockConsole() : null;
+				//using var clLock = settings.FileMove.Test ? Console.LockConsole() : null;
 
 				try {
 					var moveFile = true;
@@ -628,7 +706,7 @@ namespace AVDump3CL {
 			return success;
 		}
 
-		public void WriteLine(string value) => console.WriteLine(value);
+		public void WriteLine(string value) => Console.WriteLine(value);
 
 
 		public void RegisterShutdownDelay(WaitHandle waitHandle) => shutdownDelayHandles.Add(waitHandle);
@@ -667,6 +745,7 @@ namespace AVDump3CL {
 			}
 			return value;
 		}
+
 	}
 
 	public class AVD3CLException : AVD3LibException {

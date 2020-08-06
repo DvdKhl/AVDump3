@@ -6,6 +6,7 @@ using AVDump3Lib.Reporting;
 using AVDump3Lib.Settings;
 using AVDump3Lib.Settings.CLArguments;
 using AVDump3Lib.Settings.Core;
+using AVDump3UI;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -30,6 +31,7 @@ namespace AVDump3CL {
 
 			var serviceProvider = serviceCollection.BuildServiceProvider();
 
+
 			var scopeFactory = serviceProvider.GetRequiredService<IServiceScopeFactory>();
 
 			using var scope = scopeFactory.CreateScope();
@@ -51,30 +53,20 @@ namespace AVDump3CL {
 
 	class Program {
 		static void Main(string[] args) {
-			if(args.Length > 0 && args[0].Equals("FROMFILE")) {
-				if(args.Length < 2 || !File.Exists(args[1])) {
-					Console.WriteLine("FROMFILE: File not found");
-					return;
-				}
-				args = File.ReadLines(args[1]).Where(x => !x.StartsWith("//") && !string.IsNullOrWhiteSpace(x)).Select(x => x.Replace("\r", "")).Concat(args.Skip(2)).ToArray();
-			}
-
-			if(args.Length > 0 && args[0].Equals("PRINTARGS")) {
-				foreach(var arg in args) Console.WriteLine(arg);
-				Console.WriteLine();
-
-				args = args.Skip(1).ToArray();
-			}
-
 			var moduleManagement = CreateModules();
 			moduleManagement.RaiseIntialize();
 
 			var settingsModule = moduleManagement.GetModule<AVD3SettingsModule>();
-			
+
 
 			string[] pathsToProcess;
 			try {
-				var parseResult = CLSettingsHandler.ParseArgs(settingsModule.SettingsGroups, args);
+				var parseResult = CLSettingsHandler.ParseArgs(settingsModule.SettingProperties, args);
+				if(args.Contains("PRINTARGS")) {
+					foreach(var arg in parseResult.RawArgs) Console.WriteLine(arg);
+					Console.WriteLine();
+
+				}
 
 				if(!parseResult.Success) {
 					Console.WriteLine(parseResult.Message);
@@ -83,7 +75,7 @@ namespace AVDump3CL {
 				}
 
 				if(parseResult.PrintHelp) {
-					CLSettingsHandler.PrintHelp(settingsModule.SettingsGroups, parseResult.PrintHelpTopic, args.Length != 0);
+					CLSettingsHandler.PrintHelp(settingsModule.SettingProperties, parseResult.PrintHelpTopic, args.Length != 0);
 					return;
 				}
 
@@ -117,12 +109,12 @@ namespace AVDump3CL {
 
 		private static AVD3ModuleManagement CreateModules() {
 			var moduleManagement = new AVD3ModuleManagement();
+			moduleManagement.LoadModuleFromType(typeof(AVD3CLModule));
 			moduleManagement.LoadModules(AppDomain.CurrentDomain.BaseDirectory ?? throw new Exception("AppDomain.CurrentDomain.BaseDirectory is null"));
 			moduleManagement.LoadModuleFromType(typeof(AVD3InformationModule));
 			moduleManagement.LoadModuleFromType(typeof(AVD3ProcessingModule));
 			moduleManagement.LoadModuleFromType(typeof(AVD3ReportingModule));
 			moduleManagement.LoadModuleFromType(typeof(AVD3SettingsModule));
-			moduleManagement.LoadModuleFromType(typeof(AVD3CLModule));
 			return moduleManagement;
 		}
 	}

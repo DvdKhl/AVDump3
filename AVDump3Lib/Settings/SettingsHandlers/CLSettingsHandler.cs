@@ -6,28 +6,31 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Resources;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace AVDump3Lib.Settings.CLArguments {
 	public class CLParseArgsResult {
-		public CLParseArgsResult(bool success, string message, bool printHelp, string printHelpTopic, ImmutableDictionary<SettingsProperty, object?> settingValues, ImmutableArray<string> unnamedArgs) {
+		public CLParseArgsResult(bool success, string message, bool printHelp, string printHelpTopic, ImmutableArray<string> rawArgs, ImmutableDictionary<ISettingProperty, object?> settingValues, ImmutableArray<string> unnamedArgs) {
 			Success = success;
 			Message = message;
 			PrintHelp = printHelp;
 			PrintHelpTopic = printHelpTopic;
+			RawArgs = rawArgs;
 			UnnamedArgs = unnamedArgs;
 			SettingValues = settingValues ?? throw new ArgumentNullException(nameof(settingValues));
 		}
 
 		public bool Success { get; }
-		public string Message { get;  }
+		public string Message { get; }
 		public bool PrintHelp { get; }
-		public string PrintHelpTopic { get;}
-
+		public string PrintHelpTopic { get; }
+		public ImmutableArray<string> RawArgs { get; }
 		public ImmutableArray<string> UnnamedArgs { get; }
-		public ImmutableDictionary<SettingsProperty, object?> SettingValues { get; }
+		public ImmutableDictionary<ISettingProperty, object?> SettingValues { get; }
 	}
 
 	public class CLSettingsHandler {
@@ -51,16 +54,34 @@ namespace AVDump3Lib.Settings.CLArguments {
 		//	}
 		//}
 
-		public static CLParseArgsResult ParseArgs(IEnumerable<SettingsGroup> settingsGroups, string[] args) {
-			args = args.Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
+		public static CLParseArgsResult ParseArgs(IEnumerable<ISettingProperty> settingProperties, string[] args) {
+			if(args[0].InvEquals("FROMFILE")) {
+				if(args.Length < 2 || !File.Exists(args[1])) {
+					return new CLParseArgsResult(
+						false, "FROMFILE: File not found", true, "",
+						args.ToImmutableArray(),
+						ImmutableDictionary<ISettingProperty, object?>.Empty,
+						ImmutableArray<string>.Empty
+					);
+				}
+				args = File.ReadLines(args[1])
+					.Where(x => !x.InvStartsWith("//") && !string.IsNullOrWhiteSpace(x))
+					.Select(x => x.InvReplace("\r", ""))
+					.Concat(args.Skip(2))
+					.ToArray();
+			}
+
+			args = args.Where(x => !string.IsNullOrWhiteSpace(x) && !x.All(c => char.IsUpper(c))).ToArray();
 
 			if(args.Length == 0) {
 				return new CLParseArgsResult(
-					true, "Empty Args, printing help.", true, "", 
-					ImmutableDictionary<SettingsProperty, object?>.Empty, 
+					true, "Empty Args, printing help.", true, "",
+					args.ToImmutableArray(),
+					ImmutableDictionary<ISettingProperty, object?>.Empty,
 					ImmutableArray<string>.Empty
 				);
 			}
+
 
 			var printHelp = false;
 			var printHelpTopic = "";
@@ -91,7 +112,7 @@ namespace AVDump3Lib.Settings.CLArguments {
 			ParseSub(args);
 
 			var unnamedArgs = new List<string>();
-			var settingValues = new Dictionary<SettingsProperty, object?>();
+			var settingValues = new Dictionary<ISettingProperty, object?>();
 
 			foreach(var arg in preprocessedArgs) {
 				if(arg.Name.InvStartsWithOrdCI("Help")) {
@@ -107,63 +128,68 @@ namespace AVDump3Lib.Settings.CLArguments {
 
 
 					var argCandidates =
-						from g in settingsGroups
-						where arg.Namespace == null || arg.Namespace.InvEqualsOrdCI(g.Name)
-						from a in g.Properties
-						where a.Name.Equals(arg.Name, comparsionType) || a.AlternativeNames.Any(ldKey => ldKey.Equals(arg.Name, comparsionType))
-						select new { Group = g, Property = a };
+						from p in settingProperties
+						where arg.Namespace == null || arg.Namespace.InvEqualsOrdCI(p.Group.FullName)
+						where p.Name.Equals(arg.Name, comparsionType) || p.AlternativeNames.Any(ldKey => ldKey.Equals(arg.Name, comparsionType))
+						select p;
 
 					switch(argCandidates.Count()) {
 						case 0: throw new InvalidOperationException("Argument (" + (!string.IsNullOrEmpty(arg.Namespace) ? arg.Namespace + "." : "") + arg.Name + ") is not registered");
 						case 1: break;
-						default: throw new InvalidOperationException("Argument reference is ambiguous: " + string.Join(", ", argCandidates.Select(ldQuery => ldQuery.Group.Name + "." + ldQuery.Property.Name).ToArray()));
+						default: throw new InvalidOperationException("Argument reference is ambiguous: " + string.Join(", ", argCandidates.Select(ldQuery => ldQuery.Group.Name + "." + ldQuery.Name).ToArray()));
 					}
 					var entry = argCandidates.First();
 
 					try {
-						var valueStr = arg.Param ?? (entry.Property.ValueType == typeof(bool) ? "true" : "");
-						var value = entry.Group.PropertyStringToObject(entry.Property, valueStr);
+						var valueStr = arg.Param ?? (entry.ValueType == typeof(bool) ? "true" : "");
+						var value = entry.ToObject(valueStr);
 
-						settingValues[entry.Property] = value;
+						settingValues[entry] = value;
 
 					} catch(Exception ex) {
-						throw new InvalidOperationException("Property (" + entry.Group.Name + "." + entry.Property.Name + ") could not be set", ex);
+						throw new InvalidOperationException("Property (" + entry.Group.Name + "." + entry.Name + ") could not be set", ex);
 					}
 				} else unnamedArgs?.Add(arg.Raw);
 			}
 
-			return new CLParseArgsResult(true, "OK", printHelp, printHelpTopic, settingValues.ToImmutableDictionary(), unnamedArgs.ToImmutableArray());
+			return new CLParseArgsResult(true, "OK", printHelp, printHelpTopic, args.ToImmutableArray(), settingValues.ToImmutableDictionary(), unnamedArgs.ToImmutableArray());
 		}
 
-		public static void PrintHelp(IEnumerable<SettingsGroup> settingsGroups, string topic, bool detailed) {
-			var argGroups = settingsGroups.Where(ldArgGroup => string.IsNullOrEmpty(topic) || ldArgGroup.Name.InvEqualsOrdCI(topic)).ToArray();
+		public static void PrintHelp(IEnumerable<ISettingProperty> settingProperties, string topic, bool detailed) {
+			var argGroups =
+				from p in settingProperties
+				group p by p.Group into g
+				where string.IsNullOrEmpty(topic) || g.Key.FullName.InvEqualsOrdCI(topic)
+				select (Group: g.Key, Properties: g.ToArray());
+
+
 			if(!argGroups.Any()) {
 				Console.WriteLine("There is no such topic");
 				Console.WriteLine();
 				return;
 			}
 
-			string argToString(SettingsProperty arg) {
+			static string ArgToString(ISettingProperty arg) {
 				var names = new[] { arg.Name }.Concat(arg.AlternativeNames).ToArray();
 				return string.Join(", ", names.Select(ldKey => ldKey.Length == 1 ? "-" + ldKey : "--" + ldKey));
 			}
 			foreach(var argGroup in argGroups) {
 				//Console.ForegroundColor = ConsoleColor.DarkGreen;
-				var descPad = Math.Max(("NameSpace: " + argGroup.Name).Length, argGroup.Properties.Select(prop => argToString(prop).Length).Max());
+				var descPad = Math.Max(("NameSpace: " + argGroup.Group.FullName).Length, argGroup.Properties.Select(prop => ArgToString(prop).Length).Max());
 
 
-				var resMan = argGroup.ResourceManager;
-				PrintLine(("▶2 NameSpace◀: " + argGroup.Name).PadRight(descPad, ' ') + resMan?.GetInvString($"{argGroup.Name}.Description").OnNotNullReturn(s => " | ▶8 " + s + "◀"));
+				PrintLine(("▶2 NameSpace◀: " + argGroup.Group.FullName).PadRight(descPad, ' ') + argGroup.Group.ResourceManager?.GetInvString($"{argGroup.Group.FullName}.Description").OnNotNullReturn(s => " | ▶8 " + s + "◀"));
 				Console.WriteLine();
 				foreach(var prop in argGroup.Properties) {
 					if(prop.Name.InvStartsWith("_")) continue;
 
-					var example = resMan?.GetInvString($"{argGroup.Name}.{prop.Name}.Example");
-					var description = resMan?.GetInvString($"{argGroup.Name}.{prop.Name}.Description");
+					var example = argGroup.Group.ResourceManager?.GetInvString($"{argGroup.Group.FullName}.{prop.Name}.Example");
+					var description = argGroup.Group.ResourceManager?.GetInvString($"{argGroup.Group.FullName}.{prop.Name}.Description");
 
-					var defaultValue = prop.DefaultValue?.ToString() ?? (prop.ValueType == typeof(bool) ? "true" : "");
+					//var defaultValue = prop.DefaultValue?.ToString() ?? (prop.ValueType == typeof(bool) ? "true" : "");
+					var defaultValue = prop.ToString(prop.DefaultValue);
 
-					PrintLine(argToString(prop).PadRight(descPad, ' ') + " | " + example + " (" + ("".InvEquals(defaultValue) ? "▶8 <Empty>◀" : defaultValue ?? "▶8 <null>◀") + ")");
+					PrintLine(ArgToString(prop).PadRight(descPad, ' ') + " | " + example + " (" + ("".InvEquals(defaultValue) ? "▶8 <Empty>◀" : defaultValue ?? "▶8 <null>◀") + ")");
 					if(detailed && !string.IsNullOrEmpty(description)) {
 						if(!string.IsNullOrEmpty(description)) {
 							PrintLine(!Utils.UsingWindows ? description : "▶8 " + description + "◀");

@@ -48,5 +48,8 @@ namespace AVDump3Lib.Modules {
 		}
 
 		public T GetModule<T>() where T : IAVD3Module { return modules.OfType<T>().SingleOrDefault(); }
+		public IEnumerable<T> OfType<T>() { return modules.OfType<T>(); }
+
+		public void AddModule(IAVD3Module instance) => modules.Add(instance);
 	}
 }

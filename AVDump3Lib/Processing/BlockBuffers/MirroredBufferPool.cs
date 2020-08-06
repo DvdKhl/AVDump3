@@ -11,7 +11,6 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 
 	public class MirroredBufferPool : IMirroredBufferPool {
 		public int BufferSize { get; }
-		public int BlockSize { get; }
 
 		private Stack<IMirroredBuffer> slots = new Stack<IMirroredBuffer>();
 

@@ -11,7 +11,12 @@ using System.Threading.Tasks;
 
 namespace AVDump3Lib.Processing.StreamConsumer {
 	public interface IStreamConsumerCollection {
-		void ConsumeStreams(EventHandler<ConsumingStreamEventArgs> consumingStream, CancellationToken ct, IBytesReadProgress progress);
+		IStreamConsumerFactory StreamConsumerFactory { get; }
+		IStreamProvider StreamProvider { get; }
+
+		event EventHandler<ConsumingStreamEventArgs> ConsumingStream;
+
+		void ConsumeStreams(IBytesReadProgress progress, CancellationToken ct);
 	}
 
 	public interface IBytesReadProgress : IProgress<BlockStreamProgress> {
@@ -21,19 +26,22 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 
 
 	public class StreamConsumerCollection : IStreamConsumerCollection {
-		private readonly IStreamConsumerFactory streamConsumerFactory;
-		private readonly IStreamProvider streamProvider;
+		public IStreamConsumerFactory StreamConsumerFactory { get; }
+		public IStreamProvider StreamProvider { get; }
+		public event EventHandler<ConsumingStreamEventArgs> ConsumingStream;
+
 		private readonly object isRunningSyncRoot = new object();
 
 
 		public StreamConsumerCollection(IStreamConsumerFactory streamConsumerFactory, IStreamProvider streamProvider) {
-			this.streamConsumerFactory = streamConsumerFactory;
-			this.streamProvider = streamProvider;
+			this.StreamConsumerFactory = streamConsumerFactory;
+			this.StreamProvider = streamProvider;
 		}
 
 		public bool IsRunning { get; private set; }
 
-		public void ConsumeStreams(EventHandler<ConsumingStreamEventArgs> consumingStream, CancellationToken ct, IBytesReadProgress progress) {
+
+		public void ConsumeStreams(IBytesReadProgress progress, CancellationToken ct) {
 			lock(isRunningSyncRoot) {
 				if(IsRunning) throw new InvalidOperationException();
 				IsRunning = true;
@@ -45,12 +53,12 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 				AggregateException? firstChanceException = null;
 
 				try {
-					foreach(var providedStream in streamProvider.GetConsumingEnumerable(ct)) {
+					foreach(var providedStream in StreamProvider.GetConsumingEnumerable(ct)) {
 						ct.ThrowIfCancellationRequested();
 
 						counter.AddCount();
 						Task.Factory.StartNew(() => {
-							ConsumeStream(providedStream, consumingStream, progress, cts.Token);
+							ConsumeStream(providedStream, progress, cts.Token);
 						}, cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Current).ContinueWith(t => {
 							if(t.IsFaulted || t.IsCanceled) {
 								if(firstChanceException == null) firstChanceException = t.Exception?.Flatten();
@@ -64,7 +72,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 
 
 				counter.Signal();
-				counter.Wait();
+				counter.Wait(CancellationToken.None);
 
 				if(firstChanceException != null) {
 					firstChanceException.Handle(ex => ex is OperationCanceledException);
@@ -73,10 +81,10 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 
 			lock(isRunningSyncRoot) IsRunning = false;
 		}
-		private void ConsumeStream(ProvidedStream providedStream, EventHandler<ConsumingStreamEventArgs> consumingStream, IBytesReadProgress progress, CancellationToken ct) {
+		private void ConsumeStream(ProvidedStream providedStream, IBytesReadProgress? progress, CancellationToken ct) {
 			var tcs = new TaskCompletionSource<ImmutableArray<IBlockConsumer>>();
 			var eventArgs = new ConsumingStreamEventArgs(providedStream.Tag, tcs.Task, ct);
-			consumingStream?.Invoke(this, eventArgs);
+			ConsumingStream?.Invoke(this, eventArgs);
 
 			//Thread.CurrentThread.Priority = ThreadPriority.Highest;
 
@@ -87,7 +95,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 				do {
 					retry = false;
 					providedStream.Stream.Position = 0;
-					streamConsumer = streamConsumerFactory.Create(providedStream);
+					streamConsumer = StreamConsumerFactory.Create(providedStream);
 					try {
 
 						if(streamConsumer != null) {

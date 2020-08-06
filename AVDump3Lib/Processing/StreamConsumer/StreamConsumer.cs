@@ -17,15 +17,15 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 		Guid Id { get; }
 		ImmutableArray<IBlockConsumer> BlockConsumers { get; }
 		IBlockStream BlockStream { get; }
-		void ConsumeStream(IProgress<BlockStreamProgress> progress, CancellationToken ct);
+		void ConsumeStream(IProgress<BlockStreamProgress>? progress, CancellationToken ct);
 	}
 
 
 
 	public class StreamConsumer : IStreamConsumer {
-		private IBlockConsumer[] blockConsumers;
+		private readonly IBlockConsumer[] blockConsumers;
 
-		public event StreamConsumerEventHandler Finished;
+		public event StreamConsumerEventHandler? Finished;
 
 		public Guid Id { get; } = Guid.NewGuid();
 
@@ -41,7 +41,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 			BlockStream = blockStream;
 		}
 
-		public void ConsumeStream(IProgress<BlockStreamProgress> progress, CancellationToken ct) {
+		public void ConsumeStream(IProgress<BlockStreamProgress>? progress, CancellationToken ct) {
 			if(blockConsumers.Any()) {
 				var tasks = new Task[blockConsumers.Length + 1];
 				tasks[^1] = BlockStream.Produce(progress, ct);
@@ -56,7 +56,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 				}
 
 				try {
-					Task.WaitAll(tasks);
+					Task.WaitAll(tasks, CancellationToken.None);
 				} catch(AggregateException ex) {
 					var wasCancelled = false;
 					ex.Flatten().Handle(ex => {
@@ -67,7 +67,6 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 						throw new OperationCanceledException("ConsumeStream operation was cancelled", ex, ct);
 					}
 				}
-
 			}
 
 			//foreach(var blockConsumer in blockConsumers) blockConsumer.Dispose();

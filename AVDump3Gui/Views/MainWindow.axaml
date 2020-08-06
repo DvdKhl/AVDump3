@@ -9,6 +9,10 @@
         Icon="/Assets/AVD3Icon.ico"
         Title="AVDump3">
 
+  <Window.Resources>
+    <sv:EnumToStringsValueConverter x:Key="enumToStringsValueConverter" />
+  </Window.Resources>
+
 
   <Window.Background>
     <LinearGradientBrush>
@@ -18,7 +22,7 @@
   </Window.Background>
 
   <TabControl TabStripPlacement="Left">
-    <TabItem FontSize="64" FontFamily="Segoe UI Symbol" Header="▶">
+    <TabItem FontSize="64" FontFamily="Segoe UI Emoji" Header="▶">
       <DataGrid Items="{Binding Files}" >
         <DataGrid.Columns>
           <DataGridTextColumn Header="DirectoryName" Binding="{Binding Info.DirectoryName}" />
@@ -26,8 +30,74 @@
         </DataGrid.Columns>
       </DataGrid>
     </TabItem>
-    <TabItem FontSize="64" FontFamily="Segoe UI Symbol" Header="⚙">
-      <sv:SettingsView SettingsGroups="{Binding SettingsGroups}" SettingsValues="{Binding SettingsValues, Mode=OneWayToSource}" />
+    <TabItem FontSize="64" FontFamily="Segoe UI Emoji" Header="⚙">
+      <sv:SettingsView SettingGroups="{Binding SettingGroups}" >
+
+        <sv:SettingsView.SettingValueTemplate>
+          <sv:SettingValueTemplateSelector>
+            <DataTemplate x:Key="default">
+              <TextBox Text="{Binding ValueAsString}" IsReadOnly="{Binding IsReadOnly}" TextWrapping="Wrap" />
+            </DataTemplate>
+            <DataTemplate x:Key="enum">
+              <ComboBox Items="{Binding Property.DefaultValue, Converter={StaticResource enumToStringsValueConverter}}" SelectedItem="{Binding Value, Mode=TwoWay}" IsEnabled="{Binding !IsReadOnly}" />
+            </DataTemplate>
+            <DataTemplate x:Key="Boolean">
+              <CheckBox IsThreeState="True" IsChecked="{Binding Value}" IsEnabled="{Binding !IsReadOnly}" />
+            </DataTemplate>
+          </sv:SettingValueTemplateSelector>
+        </sv:SettingsView.SettingValueTemplate>
+        <!--
+        <sv:SettingsView.DataTemplates>
+
+          <DataTemplate DataType="{x:Type vm:SettingsPropertyViewModel}" >
+            <Grid>
+              <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+              </Grid.RowDefinitions>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition />
+              </Grid.ColumnDefinitions>
+              <TextBlock Text="Default: " Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" />
+              <TextBlock Text="Current: " Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" x:Name="CurrentValue"/>
+              <TextBox Text="{Binding DefaultValue}" IsReadOnly="True" Background="LightGray" Grid.Column="1" Grid.Row="0" />
+              <TextBox Text="{Binding ValueAsString}" TextWrapping="Wrap" Grid.Column="1" Grid.Row="1" />
+            </Grid>
+          </DataTemplate>
+
+          <DataTemplate DataType="{x:Type vm:SettingsPropertyViewModel}">
+            <UserControl>
+              <UserControl.Styles>
+                <Style Selector="ContentControl">
+                  
+                  <Setter Property="ContentTemplate">
+                    <Setter.Value>
+                      <DataTemplate>
+                        <Grid>
+                          <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                          </Grid.RowDefinitions>
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition />
+                          </Grid.ColumnDefinitions>
+                          <TextBlock Text="Default: " Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" />
+                          <TextBlock Text="Current: " Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" x:Name="CurrentValue"/>
+                          <TextBox Text="{Binding DefaultValue}" IsReadOnly="True" Background="LightGray" Grid.Column="1" Grid.Row="0" />
+                          <TextBox Text="{Binding ValueAsString}" TextWrapping="Wrap" Grid.Column="1" Grid.Row="1" />
+                        </Grid>
+                      </DataTemplate>
+                    </Setter.Value>
+                  </Setter>
+                </Style>
+              </UserControl.Styles>
+            </UserControl>
+          </DataTemplate>
+          </sv:SettingsView.DataTemplates>
+          -->
+      </sv:SettingsView>
     </TabItem>
   </TabControl>
 

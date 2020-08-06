@@ -9,7 +9,7 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 		bool Advance(int consumerIndex, int length);
 		ReadOnlySpan<byte> GetBlock(int consumerIndex, int minBlockLength);
 
-		Task Produce(IProgress<BlockStreamProgress> progress, CancellationToken ct);
+		Task Produce(IProgress<BlockStreamProgress>? progress, CancellationToken ct);
 		long Length { get; }
 		int BufferLength { get; }
 		int BufferUnderrunCount { get; }
@@ -34,7 +34,7 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 		public ICircularBuffer Buffer { get; }
 
 		private CancellationToken ct;
-		private IProgress<BlockStreamProgress> progress;
+		private IProgress<BlockStreamProgress>? progress;
 
 		public int MinProducerReadLength { get; }
 		public int MaxProducerReadLength { get; }
@@ -50,7 +50,7 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 			MaxProducerReadLength = maxProducerReadLength;
 		}
 
-		public Task Produce(IProgress<BlockStreamProgress> progress, CancellationToken ct) {
+		public Task Produce(IProgress<BlockStreamProgress>? progress, CancellationToken ct) {
 			if(hasStarted) throw new InvalidOperationException("Has already started once");
 			hasStarted = true;
 
@@ -96,7 +96,7 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 			ReadOnlySpan<byte> readerSpan;
 
 			if((readerSpan = Buffer.ConsumerBlock(consumerIndex)).Length < minBlockLength) {
-				if(readerSpan.Length == 0 && Buffer.ConsumerCompleted(consumerIndex) && blockSource.Length != 0) {
+				if(readerSpan.IsEmpty && Buffer.ConsumerCompleted(consumerIndex) && blockSource.Length != 0) {
 					throw new InvalidOperationException("Cannot read block when EOS is reached");
 				}
 				lock(consumerLock) {
