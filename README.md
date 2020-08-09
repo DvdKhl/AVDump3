@@ -17,6 +17,47 @@ So imaginable other uses would be to copy a file from once source to multiple de
 ## Module System
 
 ## Commandline Arguments
+For more detailed information please run AVD3 with `--Help`!
+
+|Argument|Namespace|Description|Default|Example
+|--|--|--|--|--
+|--Recursive, -R|FileDiscovery|Recursively descent into Subdirectories|False|--Recursive
+|--ProcessedLogPath, --PLPath|FileDiscovery|Appends the full filepath to the specified path|{}|--ProcessedLogPath=\<FilePath1>[:\<FilePath2>...]
+|--SkipLogPath, --SLPath|FileDiscovery|Filepaths contained in the specified file will not be processed|{}|--SkipLogPath=\<FilePath1>[:\<FilePath2>...]
+|--DoneLogPath, --DLPath|FileDiscovery|Will set --SkipLogPath and --ProcessedLogPath to the specified filepath||--DoneLogPath=\<Filepath>
+|--WithExtensions, --WExts|FileDiscovery|Only/Don't Process files with selected Extensions||--WithExtensions=[-]\<Extension1>[,\<Extension2>...]
+|--Concurrent, --Conc|FileDiscovery|Sets the maximal number of files which will be processed concurrently.<br>First param (max) sets a global limit. (path,max) pairs sets limits per path.|1|--Concurrent=\<max>[:\<path1>,\<max1>;\<path2>,\<max2>...]
+|--ProducerMinReadLength|Processing||1|
+|--ProducerMaxReadLength|Processing||8|
+|--PrintAvailableSIMDs|Processing||False|
+|--PauseBeforeExit, --PBExit|Processing|Pause console before exiting|False|--PauseBeforeExit
+|--BufferLength, --BLength|Processing|Circular buffer size for hashing|64|--BufferLength=\<Size in MiB>
+|--Consumers, --Cons|Processing|Select consumers to use. Use without arguments to list available consumers||--Consumers=\<ConsumerName1>[,\<ConsumerName2>...]
+|--Test|FileMove||False|
+|--LogPath|FileMove|||--FileMove.LogPath=\<FilePath>
+|--Mode|FileMove||None|--FileMove.Mode=\<None\|PlaceholderInline\|PlaceholderFile\|CSharpScriptInline\|CSharpScriptFile\|DotNetAssembly>
+|--Pattern|FileMove|Available Placeholders ${Name}:<br>FullName, FileName, FileExtension, FileNameWithoutExtension, DirectoryName, SuggestedExtension,<br>Hash-\<Name>-\<2\|4\|8\|10\|16\|32\|32Hex\|32Z\|36\|62\|64>-\<OC\|UC\|LC>|${DirectoryName}\${FileNameWithoutExtension}${FileExtension}|--FileMove.Pattern=${DirectoryName}\${FileNameWithoutExtension}${SuggestedExtension}
+|--DisableFileMove|FileMove||False|--FileMove.DisableFileMove
+|--DisableFileRename|FileMove||False|--FileMove.DisableFileRename
+|--Replacements|FileMove|||--FileMove.Replacements=\<Match1>=\<Replacement1>[;\<Match2>=\<Replacement2>...]
+|--PrintHashes|Reporting|Print calculated hashes in hexadecimal format to console|False|--PrintHashes
+|--PrintReports|Reporting|Print generated reports to console|False|--PrintReports
+|--Reports|Reporting|Select reports to use. Use without arguments to list available reports||--Reports
+|--ReportDirectory, --RDir|Reporting|Reports will be saved to the specified directory|Current working directory|--ReportDirectory=\<Directory>
+|--ReportFileName|Reporting|Reports will be saved/appended to the specified filename<br>The following placeholders ${Name} can be used: FileName, FileNameWithoutExtension, FileExtension, ReportName, ReportFileExtension|${FileName}.${ReportName}.${ReportFileExtension}|--ReportFileName=\<FileName>
+|--ExtensionDifferencePath, --EDPath|Reporting|Logs the filepath if the detected extension does not match the actual extension||--EDPath=extdiff.txt
+|--CRC32Error|Reporting|Searches the filename for the calculated CRC32 hash. If not present or different a line with the caluclated hash and the full path of the file is appended to the specified path<br>The regex pattern should contain the placeholder ${CRC32} which is replaced by the calculated hash prior matching.<br>Consumer CRC32 will be force enabled!|(, (?i)${CRC32})|--CRC32Error=\<Filepath>:\<RegexPattern>
+|--SaveErrors|Diagnostics|Errors occuring during program execution will be saved to disk|False|--SaveErrors
+|--SkipEnvironmentElement|Diagnostics|Skip the environment element in error files|False|--SkipEnvironmentElement
+|--IncludePersonalData|Diagnostics|Various places may include personal data. Currently this only affects error files, which will then include the full filepath|False|--IncludePersonalData
+|--PrintDiscoveredFiles|Diagnostics||False|
+|--ErrorDirectory|Diagnostics|If --SaveErrors is specified the error files will be placed in the specified path|Current working directory|--ErrorDirectory=\<DirectoryPath>
+|--NullStreamTest|Diagnostics|Use Memory as the DataSource for HashSpeed testing. Overrides any FileDiscovery Settings!|0:0:0|--NullStreamTest=\<StreamCount>:\<StreamLength in MiB>:\<ParallelStreamCount>
+|--HideBuffers|Display|Hides buffer bars|False|--HideBuffers
+|--HideFileProgress|Display|Hides file progress|False|--HideFileProgress
+|--HideTotalProgress|Display|Hides total progress|False|--HideTotalProgress
+|--ShowDisplayJitter|Display|Displays the time taken to calculate progression stats and drawing to console|False|--ShowDisplayJitter
+|--ForwardConsoleCursorOnly|Display|The cursor position of the console will not be explicitly set. This option will disable most progress output|False|--ForwardConsoleCursorOnly
 
 ## Structure
 
