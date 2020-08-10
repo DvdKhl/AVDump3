@@ -150,7 +150,7 @@ namespace AVDump3UI {
 		public int ProducerMinReadLength => (int)GetRequiredValue();
 		public int ProducerMaxReadLength => (int)GetRequiredValue();
 		public bool PauseBeforeExit => (bool)GetRequiredValue();
-		public ImmutableArray<ConsumerSettings>? Consumers => (ImmutableArray<ConsumerSettings>?)GetRequiredValue();
+		public ImmutableArray<ConsumerSettings>? Consumers => (ImmutableArray<ConsumerSettings>?)GetValue();
 		public bool PrintAvailableSIMDs => (bool)GetRequiredValue();
 
 
@@ -223,7 +223,7 @@ namespace AVDump3UI {
 
 		public bool PrintHashes => (bool)GetRequiredValue();
 		public bool PrintReports => (bool)GetRequiredValue();
-		public ImmutableArray<string> Reports => (ImmutableArray<string>)GetRequiredValue();
+		public ImmutableArray<string>? Reports => (ImmutableArray<string>?)GetValue();
 		public string ReportDirectory => (string)GetRequiredValue();
 		public string ReportFileName => (string)GetRequiredValue();
 		public string ExtensionDifferencePath => (string)GetRequiredValue();
@@ -249,30 +249,34 @@ namespace AVDump3UI {
 			yield return From(SettingGroup, nameof(ExtensionDifferencePath), Names("EDPath"), "");
 			yield return From(SettingGroup, nameof(CRC32Error), None, ("", "(?i)${CRC32}"),
 				(p, s) => {
-					var parts = s?.Split(':') ?? Array.Empty<string>();
+					var parts = s?.Split(new[] { ',' }, 2) ?? Array.Empty<string>();
 					var retVal = parts.Length == 1 ? (parts[0], "(?i)${CRC32}") : (parts[0], parts[1]);
 					Regex.IsMatch("12345678", retVal.Item2.Replace("${CRC32}", "12345678")); //Throw Early on invalid Regex
 					return retVal;
 				},
-				(p, o) => o.ToString()
+				(p, o) => $"{o.Item1},{o.Item2}"
 			);
 		}
 	}
 	public class DiagnosticsSettings : SettingFacade {
 		public DiagnosticsSettings(ISettingStore store) : base(SettingGroup, store) { }
 
+		public bool Version => (bool)GetRequiredValue();
 		public bool SaveErrors => (bool)GetRequiredValue();
 		public bool SkipEnvironmentElement => (bool)GetRequiredValue();
 		public bool IncludePersonalData => (bool)GetRequiredValue();
 		public string ErrorDirectory => (string)GetRequiredValue();
+		public bool PrintDiscoveredFiles => (bool)GetRequiredValue();
 		public NullStreamTestSettings NullStreamTest => (NullStreamTestSettings)GetRequiredValue();
 
 		public static ISettingGroup SettingGroup { get; } = new SettingGroup(nameof(DiagnosticsSettings)[0..^8], Lang.ResourceManager);
 		public static ImmutableArray<ISettingProperty> SettingProperties { get; private set; } = CreateProperties().ToImmutableArray();
 		public static IEnumerable<ISettingProperty> CreateProperties() {
+			yield return From(SettingGroup, nameof(Version), None, false);
 			yield return From(SettingGroup, nameof(SaveErrors), None, false);
 			yield return From(SettingGroup, nameof(SkipEnvironmentElement), None, false);
 			yield return From(SettingGroup, nameof(IncludePersonalData), None, false);
+			yield return From(SettingGroup, nameof(PrintDiscoveredFiles), None, false);
 			yield return From(SettingGroup, nameof(ErrorDirectory), None, Environment.CurrentDirectory);
 			yield return From(SettingGroup, nameof(NullStreamTest), None, new NullStreamTestSettings(0, 0, 0),
 				(p, s) => {

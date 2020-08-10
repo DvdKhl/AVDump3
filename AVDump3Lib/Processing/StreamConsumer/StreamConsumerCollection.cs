@@ -138,7 +138,6 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 				throw;
 
 			} catch(Exception ex) {
-				Console.WriteLine(ex.Message);
 				throw;
 				//TODO
 			} finally {
@@ -180,7 +179,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 	public class StreamConsumerCollectionException : AVD3LibException {
 		public StreamConsumerCollectionException(string message) : base("FileConsumerCollection threw an Exception: " + message) { }
 		public StreamConsumerCollectionException(string message, Exception innerException) : base("FileConsumerCollection threw an Exception: " + message, innerException) { }
-		protected StreamConsumerCollectionException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+
 		public override void GetObjectData(SerializationInfo info, StreamingContext context) { base.GetObjectData(info, context); }
 		//public override System.Xml.Linq.XElement ToXElement() { var exRoot = base.ToXElement(); return exRoot; }
 	}

@@ -36,7 +36,7 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 
 		public virtual string Description {
 			get {
-				var description = Lang.ResourceManager.GetInvString(Name.InvReplace("-", "") + "ConsumerDescription");
+				var description = Lang.ResourceManager.GetInvString("Consumer." + Name + ".Description");
 				return !string.IsNullOrEmpty(description) ? description : "<NoDescriptionGiven>";
 			}
 		}

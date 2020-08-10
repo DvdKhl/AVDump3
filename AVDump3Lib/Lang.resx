@@ -117,49 +117,85 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="CRC32CConsumerDescription" xml:space="preserve">
-    <value>Castagnoli Variant (0x1EDC6F41 Polynomial)</value>
+  <data name="Consumer.CPY.Description" xml:space="preserve">
+    <value>Unused</value>
   </data>
-  <data name="CRC32ConsumerDescription" xml:space="preserve">
-    <value />
+  <data name="Consumer.CRC32.Description" xml:space="preserve">
+    <value>https://en.wikipedia.org/wiki/Cyclic_redundancy_check</value>
   </data>
-  <data name="ED2KConsumerDescription" xml:space="preserve">
-    <value />
+  <data name="Consumer.CRC32C.Description" xml:space="preserve">
+    <value>Castagnoli CRC32 Variant (0x1EDC6F41 Polynomial)</value>
   </data>
-  <data name="MD4ConsumerDescription" xml:space="preserve">
-    <value />
+  <data name="Consumer.ED2K.Description" xml:space="preserve">
+    <value>https://en.wikipedia.org/wiki/Ed2k_URI_scheme#eD2k_hash_algorithm</value>
   </data>
-  <data name="MD5ConsumerDescription" xml:space="preserve">
-    <value />
+  <data name="Consumer.KECCAK-224.Description" xml:space="preserve">
+    <value>https://en.wikipedia.org/wiki/SHA-3</value>
   </data>
-  <data name="MKVConsumerDescription" xml:space="preserve">
+  <data name="Consumer.KECCAK-256.Description" xml:space="preserve">
+    <value>https://en.wikipedia.org/wiki/SHA-3</value>
+  </data>
+  <data name="Consumer.KECCAK-384.Description" xml:space="preserve">
+    <value>https://en.wikipedia.org/wiki/SHA-3</value>
+  </data>
+  <data name="Consumer.KECCAK-512.Description" xml:space="preserve">
+    <value>https://en.wikipedia.org/wiki/SHA-3</value>
+  </data>
+  <data name="Consumer.MD4.Description" xml:space="preserve">
+    <value>https://en.wikipedia.org/wiki/MD4</value>
+  </data>
+  <data name="Consumer.MD5.Description" xml:space="preserve">
+    <value>https://en.wikipedia.org/wiki/MD5</value>
+  </data>
+  <data name="Consumer.MKV.Description" xml:space="preserve">
     <value>Consumes Matroska files to provide info for Reports</value>
   </data>
-  <data name="NULLConsumerDescription" xml:space="preserve">
+  <data name="Consumer.MP4.Description" xml:space="preserve">
+    <value>Unused</value>
+  </data>
+  <data name="Consumer.NULL.Description" xml:space="preserve">
     <value>Consumes data without processing it</value>
   </data>
-  <data name="OGGConsumerDescription" xml:space="preserve">
+  <data name="Consumer.OGG.Description" xml:space="preserve">
     <value>Consumes OGG files to provide info for Reports</value>
   </data>
-  <data name="SHA1ConsumerDescription" xml:space="preserve">
-    <value />
+  <data name="Consumer.SHA1.Description" xml:space="preserve">
+    <value>https://en.wikipedia.org/wiki/SHA-1</value>
   </data>
-  <data name="SHA256ConsumerDescription" xml:space="preserve">
-    <value />
+  <data name="Consumer.SHA2-256.Description" xml:space="preserve">
+    <value>https://en.wikipedia.org/wiki/SHA-2</value>
   </data>
-  <data name="SHA384ConsumerDescription" xml:space="preserve">
-    <value />
+  <data name="Consumer.SHA2-384.Description" xml:space="preserve">
+    <value>https://en.wikipedia.org/wiki/SHA-2</value>
   </data>
-  <data name="SHA3ConsumerDescription" xml:space="preserve">
-    <value />
+  <data name="Consumer.SHA2-512.Description" xml:space="preserve">
+    <value>https://en.wikipedia.org/wiki/SHA-2</value>
   </data>
-  <data name="SHA512ConsumerDescription" xml:space="preserve">
-    <value />
+  <data name="Consumer.SHA3-224.Description" xml:space="preserve">
+    <value>https://en.wikipedia.org/wiki/SHA-3</value>
   </data>
-  <data name="TIGERConsumerDescription" xml:space="preserve">
-    <value />
+  <data name="Consumer.SHA3-256.Description" xml:space="preserve">
+    <value>https://en.wikipedia.org/wiki/SHA-3</value>
   </data>
-  <data name="TTHConsumerDescription" xml:space="preserve">
-    <value>Tree Tiger Hash</value>
+  <data name="Consumer.SHA3-384.Description" xml:space="preserve">
+    <value>https://en.wikipedia.org/wiki/SHA-3</value>
+  </data>
+  <data name="Consumer.SHA3-512.Description" xml:space="preserve">
+    <value>https://en.wikipedia.org/wiki/SHA-3</value>
+  </data>
+  <data name="Consumer.TIGER.Description" xml:space="preserve">
+    <value>https://en.wikipedia.org/wiki/Tiger_(hash_function)</value>
+  </data>
+  <data name="Consumer.TTH.Description" xml:space="preserve">
+    <value>https://en.wikipedia.org/wiki/Merkle_tree#Tiger_tree_hash</value>
+  </data>
+  <data name="Report.AVD3.Description" xml:space="preserve">
+    <value>Complete xml report with every available information node</value>
+  </data>
+  <data name="Report.Matroska.Description" xml:space="preserve">
+    <value>Matroska Structure Report</value>
+  </data>
+  <data name="Report.MediaInfoXml.Description" xml:space="preserve">
+    <value>Raw MediaInfoLibrary Output</value>
   </data>
 </root>

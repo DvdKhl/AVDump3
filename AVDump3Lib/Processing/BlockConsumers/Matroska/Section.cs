@@ -74,7 +74,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 		IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 		public abstract IEnumerator<KeyValuePair<string, object>> GetEnumerator();
 
-		protected KeyValuePair<string, object> CreatePair(string key, object value) => new KeyValuePair<string, object>(key, value);
+		protected KeyValuePair<string, object> CreatePair(string key, object? value) => new KeyValuePair<string, object?>(key, value);
 
 	}
 }

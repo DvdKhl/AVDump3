@@ -100,13 +100,13 @@ namespace AVDump3CL {
 		}
 
 		private void Display(AVD3ConsoleProgressBuilder sb, double relPos) {
-			var consoleWidth = sb.ConsoleWidth;
-			if(consoleWidth < 60) return;
+			var consoleWidth = sb.DisplayWidth;
+			if(consoleWidth < 72) return;
 
 
 			var now = DateTimeOffset.UtcNow;
 
-			sb.Append('-', consoleWidth - 1).AppendLine();
+			sb.Append('-', consoleWidth - 2).AppendLine();
 
 			if(!settings.HideBuffers) {
 				var barWidth = consoleWidth - 8 - 1 - 2 - 2;

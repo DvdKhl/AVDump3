@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
@@ -10,12 +11,12 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 
 
 		public bool BlueIsRed { get; private set; }
-		public ReadOnlyMemory<byte> RedHash { get; private set; }
-		public ReadOnlyMemory<byte> BlueHash { get; private set; }
+		public ImmutableArray<byte> RedHash { get; private set; }
+		public ImmutableArray<byte> BlueHash { get; private set; }
 
 		public override int BlockSize => 9728000;
 
-		private int blockHashOffset = 0;
+		private int blockHashOffset;
 		private readonly byte[] nullMd4Hash = new byte[16];
 		private byte[] blockHashes = new byte[16 * 512]; //Good for ~4GB, increased if needed
 
@@ -54,8 +55,6 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		/// <returns>Always returns the red hash</returns>
 		public override ReadOnlySpan<byte> TransformFinalBlock(in ReadOnlySpan<byte> data) {
 			BlueIsRed = false;
-			RedHash = null;
-			BlueHash = null;
 
 			AddBlockHash(data);
 
@@ -71,11 +70,11 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			//https://wiki.anidb.info/w/Ed2k-hash
 			BlueIsRed = false;
 			ReadOnlySpan<byte> hash;
-			if(data.Length != 0) {
+			if(!data.IsEmpty) {
 				//Data is not multiple of BlockLength (Common case)
 				BlueIsRed = true;
 				hash = hashNoNull;
-				BlueHash = hash.ToArray();
+				BlueHash = hash.ToArray().ToImmutableArray();
 				RedHash = BlueHash;
 
 			} else {
@@ -85,8 +84,8 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 				Span<byte> hashWithNull = new byte[16];
 				Md4Hash(hashes.Slice(0, blockHashOffset), hashWithNull);
 
-				BlueHash = hashNoNull.ToArray();
-				RedHash = hashWithNull.ToArray();
+				BlueHash = hashNoNull.ToArray().ToImmutableArray();
+				RedHash = hashWithNull.ToArray().ToImmutableArray();
 				hash = hashWithNull;
 			}
 

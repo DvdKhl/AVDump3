@@ -55,7 +55,7 @@ namespace AVDump3Lib.Settings.CLArguments {
 		//}
 
 		public static CLParseArgsResult ParseArgs(IEnumerable<ISettingProperty> settingProperties, string[] args) {
-			if(args[0].InvEquals("FROMFILE")) {
+			if(args.Length > 0 && args[0].InvEquals("FROMFILE")) {
 				if(args.Length < 2 || !File.Exists(args[1])) {
 					return new CLParseArgsResult(
 						false, "FROMFILE: File not found", true, "",
@@ -155,6 +155,55 @@ namespace AVDump3Lib.Settings.CLArguments {
 			return new CLParseArgsResult(true, "OK", printHelp, printHelpTopic, args.ToImmutableArray(), settingValues.ToImmutableDictionary(), unnamedArgs.ToImmutableArray());
 		}
 
+
+		public static string PrintHelpMarkdown(IEnumerable<ISettingProperty> settingProperties) {
+			var argGroups =
+			from p in settingProperties
+			group p by p.Group into g
+			select (Group: g.Key, Properties: g.ToArray());
+
+
+			static string ArgToString(ISettingProperty arg) {
+				var names = new[] { arg.Name }.Concat(arg.AlternativeNames).ToArray();
+				return string.Join(", ", names.Select(ldKey => ldKey.Length == 1 ? "-" + ldKey : "--" + ldKey));
+			}
+
+			var sb = new StringBuilder();
+			sb.AppendLine("|Argument|Namespace|Description|Default|Example");
+			sb.AppendLine("|--|--|--|--|--");
+
+
+			void Append(string line) => sb.Append((line ?? "").InvReplace("<", "\\<").InvReplace("|", "\\|").InvReplace("\r", "").InvReplace("\n", "<br>"));
+
+			foreach(var argGroup in argGroups) {
+				if(argGroup.Group.FullName.InvStartsWith("_")) continue;
+
+				foreach(var prop in argGroup.Properties) {
+					if(prop.Name.InvStartsWith("_")) continue;
+
+					var nsDescription = argGroup.Group.ResourceManager?.GetInvString($"{argGroup.Group.FullName}.Description");
+					var example = argGroup.Group.ResourceManager?.GetInvString($"{argGroup.Group.FullName}.{prop.Name}.Example");
+					var description = argGroup.Group.ResourceManager?.GetInvString($"{argGroup.Group.FullName}.{prop.Name}.Description");
+					var defaultValue = prop.ToString(prop.DefaultValue);
+
+
+					sb.Append('|');
+					Append(ArgToString(prop));
+					sb.Append('|');
+					Append(argGroup.Group.FullName);
+					sb.Append('|'); 
+					Append(description);
+					sb.Append('|'); 
+					Append(defaultValue);
+					sb.Append('|');
+					Append(example);
+					sb.AppendLine();
+				}
+			}
+
+			return sb.ToString();
+		}
+
 		public static void PrintHelp(IEnumerable<ISettingProperty> settingProperties, string topic, bool detailed) {
 			var argGroups =
 				from p in settingProperties
@@ -173,7 +222,11 @@ namespace AVDump3Lib.Settings.CLArguments {
 				var names = new[] { arg.Name }.Concat(arg.AlternativeNames).ToArray();
 				return string.Join(", ", names.Select(ldKey => ldKey.Length == 1 ? "-" + ldKey : "--" + ldKey));
 			}
+
+
 			foreach(var argGroup in argGroups) {
+				if(argGroup.Group.FullName.InvStartsWith("_")) continue;
+
 				//Console.ForegroundColor = ConsoleColor.DarkGreen;
 				var descPad = Math.Max(("NameSpace: " + argGroup.Group.FullName).Length, argGroup.Properties.Select(prop => ArgToString(prop).Length).Max());
 

@@ -29,7 +29,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 		public MatroskaProvider(MatroskaFile? mfi) : base("MatroskaProvider") { Populate(mfi); }
 
 		private void Populate(MatroskaFile? mfi) {
-			if(!(mfi?.HasMetaData() ?? false)) return;
+			if(!(mfi?.HasMetaData() ?? false) || mfi.Segment is null) return;
 			MFI = mfi;
 
 			Add(FileSizeType, MFI.SectionSize);
@@ -38,9 +38,9 @@ namespace AVDump3Lib.Information.InfoProvider {
 			Add(DurationType, MFI.Segment.SegmentInfo.Duration.OnNotNullReturn(x => x * MFI.Segment.SegmentInfo.TimecodeScale / 1000000000d));
 
 
-			Add(IdType, MFI.Segment.SegmentInfo.SegmentUId);
-			Add(PreviousIdType, MFI.Segment.SegmentInfo.PreviousUId);
-			Add(NextIdType, MFI.Segment.SegmentInfo.NextUId);
+			Add(IdType, MFI.Segment.SegmentInfo.SegmentUId?.ToImmutableArray());
+			Add(PreviousIdType, MFI.Segment.SegmentInfo.PreviousUId?.ToImmutableArray());
+			Add(NextIdType, MFI.Segment.SegmentInfo.NextUId?.ToImmutableArray());
 			Add(PreviousFileNameType, MFI.Segment.SegmentInfo.PreviousFilename);
 			Add(NextFileNameType, MFI.Segment.SegmentInfo.NextFilename);
 

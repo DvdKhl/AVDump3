@@ -142,7 +142,7 @@ The regex pattern should contain the placeholder ${CRC32} which is replaced by t
 Consumer CRC32 will be force enabled!</value>
   </data>
   <data name="Reporting.CRC32Error.Example" xml:space="preserve">
-    <value>--CRC32Error=&lt;Filepath&gt;:&lt;RegexPattern&gt;</value>
+    <value>--CRC32Error=&lt;Filepath&gt;,&lt;RegexPattern&gt;</value>
   </data>
   <data name="FileDiscovery.DoneLogPath.Description" xml:space="preserve">
     <value>Will set --SkipLogPath and --ProcessedLogPath to the specified filepath</value>
@@ -161,12 +161,6 @@ Consumer CRC32 will be force enabled!</value>
   </data>
   <data name="Reporting.ExtensionDifferencePath.Example" xml:space="preserve">
     <value>--EDPath=extdiff.txt</value>
-  </data>
-  <data name="Display.ForwardConsoleCursorOnly.Description" xml:space="preserve">
-    <value>The cursor position of the console will not be explicitly set. This option will disable most progress output</value>
-  </data>
-  <data name="Display.ForwardConsoleCursorOnly.Example" xml:space="preserve">
-    <value>--ForwardConsoleCursorOnly</value>
   </data>
   <data name="Diagnostics.IncludePersonalData.Description" xml:space="preserve">
     <value>Various places may include personal data. Currently this only affects error files, which will then include the full filepath</value>
@@ -218,7 +212,9 @@ Consumer CRC32 will be force enabled!</value>
   </data>
   <data name="Reporting.ReportFileName.Description" xml:space="preserve">
     <value>Reports will be saved/appended to the specified filename
-The following placeholders ${Name} can be used: FileName, FileNameWithoutExtension, FileExtension, ReportName, ReportFileExtension</value>
+Placeholders mentioned in --FileMove.Pattern can be used as well.
+Additional placeholders: ReportName, ReportFileExtension
+</value>
   </data>
   <data name="Reporting.ReportFileName.Example" xml:space="preserve">
     <value>--ReportFileName=&lt;FileName&gt;</value>
@@ -254,41 +250,82 @@ The following placeholders ${Name} can be used: FileName, FileNameWithoutExtensi
     <value>--WithExtensions=[-]&lt;Extension1&gt;[,&lt;Extension2&gt;...]</value>
   </data>
   <data name="FileMove.LogPath.Description" xml:space="preserve">
-    <value />
+    <value>A line is written for each file that has been moved/renamed. (OldPath =&gt; NewPath)</value>
   </data>
   <data name="FileMove.LogPath.Example" xml:space="preserve">
     <value>--FileMove.LogPath=&lt;FilePath&gt;</value>
   </data>
   <data name="FileMove.Mode.Description" xml:space="preserve">
-    <value />
+    <value>Determines how the Pattern Argument is going to be interpreted:
+Inline: Script is directly entered as the argument
+File: A path pointing to the script file
+Placeholder: See example for --Pattern
+CSharpScript: Script in C#
+DotNetAssembly: Net Core assembly to be loaded</value>
   </data>
   <data name="FileMove.Mode.Example" xml:space="preserve">
     <value>--FileMove.Mode=&lt;None|PlaceholderInline|PlaceholderFile|CSharpScriptInline|CSharpScriptFile|DotNetAssembly&gt;</value>
   </data>
   <data name="FileMove.DisableFileMove.Description" xml:space="preserve">
-    <value />
+    <value>Don't move the file even if the Pattern says so</value>
   </data>
   <data name="FileMove.DisableFileMove.Example" xml:space="preserve">
     <value>--FileMove.DisableFileMove</value>
   </data>
   <data name="FileMove.DisableFileRename.Description" xml:space="preserve">
-    <value />
+    <value>Don't rename the file even if the Pattern says so</value>
   </data>
   <data name="FileMove.DisableFileRename.Example" xml:space="preserve">
     <value>--FileMove.DisableFileRename</value>
   </data>
   <data name="FileMove.Pattern.Description" xml:space="preserve">
-    <value>Available Placeholders ${Name}:
-FullName, FileName, FileExtension, FileNameWithoutExtension, DirectoryName, SuggestedExtension,
+    <value>Available Placeholders in the form of ${Name}:
+FileSize, FullName, FileName, FileExtension, FileNameWithoutExtension, DirectoryName, SuggestedExtension,
 Hash-&lt;Name&gt;-&lt;2|4|8|10|16|32|32Hex|32Z|36|62|64&gt;-&lt;OC|UC|LC&gt;</value>
   </data>
   <data name="FileMove.Pattern.Example" xml:space="preserve">
     <value>--FileMove.Pattern=${DirectoryName}\${FileNameWithoutExtension}${SuggestedExtension}</value>
   </data>
   <data name="FileMove.Replacements.Description" xml:space="preserve">
-    <value />
+    <value>Replace substrings in the returned filepath</value>
   </data>
   <data name="FileMove.Replacements.Example" xml:space="preserve">
     <value>--FileMove.Replacements=&lt;Match1&gt;=&lt;Replacement1&gt;[;&lt;Match2&gt;=&lt;Replacement2&gt;...]</value>
+  </data>
+  <data name="FileMove.Test.Description" xml:space="preserve">
+    <value>Test FileMove Settings</value>
+  </data>
+  <data name="FileMove.Test.Example" xml:space="preserve">
+    <value>--FileMove.Test</value>
+  </data>
+  <data name="Processing.ProducerMaxReadLength.Description" xml:space="preserve">
+    <value>How much data in MiB the reader is allowed to read each time at most</value>
+  </data>
+  <data name="Processing.ProducerMaxReadLength.Example" xml:space="preserve">
+    <value>--ProducerMaxReadLength</value>
+  </data>
+  <data name="Processing.ProducerMinReadLength.Description" xml:space="preserve">
+    <value>How much data in MiB the reader has to read each time at minimum</value>
+  </data>
+  <data name="Processing.ProducerMinReadLength.Example" xml:space="preserve">
+    <value>--ProducerMinReadLength</value>
+  </data>
+  <data name="Processing.PrintAvailableSIMDs.Description" xml:space="preserve">
+    <value>Print available CPU SIMDs</value>
+  </data>
+  <data name="Processing.PrintAvailableSIMDs.Example" xml:space="preserve">
+    <value>--PrintAvailableSIMDs</value>
+  </data>
+  <data name="Diagnostics.PrintDiscoveredFiles.Description" xml:space="preserve">
+    <value>Print each discovered file path instead of printing the count</value>
+  </data>
+  <data name="Diagnostics.PrintDiscoveredFiles.Example" xml:space="preserve">
+    <value>--PrintDiscoveredFiles</value>
+  </data>
+  <data name="Diagnostics.Version.Description" xml:space="preserve">
+    <value>Print the program version to console</value>
+  </data>
+  <data name="Diagnostics.Version.Example" xml:space="preserve">
+    <value>--Version</value>
   </data>
 </root>

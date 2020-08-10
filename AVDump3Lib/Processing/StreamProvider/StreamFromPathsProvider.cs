@@ -46,15 +46,24 @@ namespace AVDump3Lib.Processing.StreamProvider {
 
 		}
 
-		public void AddFiles(IEnumerable<string> paths, bool includeSubFolders, Func<string, bool> accept, Action<Exception> onError) {
+		public void AddFiles(IEnumerable<string> paths, bool includeSubFolders, Func<FileInfo, bool> accept, Action<Exception> onError) {
 			FileTraversal.Traverse(paths, includeSubFolders, filePath => {
-				if(!accept(filePath)) return;
 				var fileInfo = new FileInfo(filePath);
+
+				if(!accept(fileInfo)) return;
 				//if(fileInfo.Length < 1 << 30) return;
 
-				TotalBytes += fileInfo.Length;
+				if(fileInfo.Attributes.HasFlag(FileAttributes.ReparsePoint)) {
+					using var stream = fileInfo.OpenRead();
+					TotalBytes += stream.Length;
+
+				} else {
+					TotalBytes += fileInfo.Length;
+				}
+
 				localConcurrencyPartitions.First(ldKey => filePath.InvStartsWith(ldKey.Path)).Files.Enqueue(filePath);
 				TotalFileCount++;
+
 			}, onError);
 		}
 

@@ -10,14 +10,12 @@ using System.Text;
 using System.Xml.Linq;
 
 namespace AVDump3Lib {
-	[Serializable]
 	public abstract class AVD3LibException : Exception {
 		public DateTimeOffset ThrownOn { get; } = DateTimeOffset.Now;
 
 		public AVD3LibException() { }
 		public AVD3LibException(string message) : base(message) { }
 		public AVD3LibException(string message, Exception inner) : base(message, inner) { }
-		protected AVD3LibException(SerializationInfo info, StreamingContext context) : base(info, context) { }
 
 		public XElement ToXElement(bool skipInformationElement, bool includePersonalData) {
 			return new XElement(GetType().Name,
@@ -63,7 +61,7 @@ namespace AVDump3Lib {
 
 
 		protected static XElement ToXElement(Exception ex, bool includePersonalData) {
-			if(ex is null) throw new ArgumentNullException(nameof(ex));
+			if(ex is null) return null;
 
 			XElement exElem;
 			if(ex is AVD3LibException avd3LibEx) {
@@ -90,17 +88,34 @@ namespace AVDump3Lib {
 		}
 	}
 
+
+	public class AVD3ForceMajeureException : AVD3LibException {
+		public string RemedyActionMessage { get; set; } = "";
+
+		public AVD3ForceMajeureException() { }
+
+		public AVD3ForceMajeureException(string message) : base(message) { }
+		public AVD3ForceMajeureException(string message, Exception innerException) : base(message, innerException) { }
+
+		public AVD3ForceMajeureException(string remedyActionMessage, string message) : base(message) {
+			RemedyActionMessage = remedyActionMessage;
+		}
+		public AVD3ForceMajeureException(string remedyActionMessage, string message, Exception innerException) : base(message, innerException) {
+			RemedyActionMessage = remedyActionMessage;
+		}
+	}
+
 	[Serializable]
 	public class SensitiveData {
 		private static readonly Guid session = Guid.NewGuid();
-		private static readonly SHA512 sha1 = SHA512.Create();
+		private static readonly SHA512 hashObj = SHA512.Create();
 
 		public static XElement GetSessionElement => new XElement("Session", session);
 
 		private static string ComputeHash(string value) {
-			lock(sha1) { //TODO: Good Enough? We're not protecting banks here.
+			lock(hashObj) { //TODO: Good Enough? We're not protecting banks here.
 				return BitConverter.ToString(
-					sha1.ComputeHash(Encoding.UTF8.GetBytes(session.ToString() + value))
+					hashObj.ComputeHash(Encoding.UTF8.GetBytes(session.ToString() + value))
 				).Replace("-", "", StringComparison.InvariantCultureIgnoreCase);
 			}
 		}

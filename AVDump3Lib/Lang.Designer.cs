@@ -61,137 +61,245 @@ namespace AVDump3Lib {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Castagnoli Variant (0x1EDC6F41 Polynomial).
+        ///   Looks up a localized string similar to Unused.
         /// </summary>
-        internal static string CRC32CConsumerDescription {
+        internal static string Consumer_CPY_Description {
             get {
-                return ResourceManager.GetString("CRC32CConsumerDescription", resourceCulture);
+                return ResourceManager.GetString("Consumer.CPY.Description", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to https://en.wikipedia.org/wiki/Cyclic_redundancy_check.
         /// </summary>
-        internal static string CRC32ConsumerDescription {
+        internal static string Consumer_CRC32_Description {
             get {
-                return ResourceManager.GetString("CRC32ConsumerDescription", resourceCulture);
+                return ResourceManager.GetString("Consumer.CRC32.Description", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Castagnoli CRC32 Variant (0x1EDC6F41 Polynomial).
         /// </summary>
-        internal static string ED2KConsumerDescription {
+        internal static string Consumer_CRC32C_Description {
             get {
-                return ResourceManager.GetString("ED2KConsumerDescription", resourceCulture);
+                return ResourceManager.GetString("Consumer.CRC32C.Description", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to https://en.wikipedia.org/wiki/Ed2k_URI_scheme#eD2k_hash_algorithm.
         /// </summary>
-        internal static string MD4ConsumerDescription {
+        internal static string Consumer_ED2K_Description {
             get {
-                return ResourceManager.GetString("MD4ConsumerDescription", resourceCulture);
+                return ResourceManager.GetString("Consumer.ED2K.Description", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to https://en.wikipedia.org/wiki/SHA-3.
         /// </summary>
-        internal static string MD5ConsumerDescription {
+        internal static string Consumer_KECCAK_224_Description {
             get {
-                return ResourceManager.GetString("MD5ConsumerDescription", resourceCulture);
+                return ResourceManager.GetString("Consumer.KECCAK-224.Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://en.wikipedia.org/wiki/SHA-3.
+        /// </summary>
+        internal static string Consumer_KECCAK_256_Description {
+            get {
+                return ResourceManager.GetString("Consumer.KECCAK-256.Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://en.wikipedia.org/wiki/SHA-3.
+        /// </summary>
+        internal static string Consumer_KECCAK_384_Description {
+            get {
+                return ResourceManager.GetString("Consumer.KECCAK-384.Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://en.wikipedia.org/wiki/SHA-3.
+        /// </summary>
+        internal static string Consumer_KECCAK_512_Description {
+            get {
+                return ResourceManager.GetString("Consumer.KECCAK-512.Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://en.wikipedia.org/wiki/MD4.
+        /// </summary>
+        internal static string Consumer_MD4_Description {
+            get {
+                return ResourceManager.GetString("Consumer.MD4.Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://en.wikipedia.org/wiki/MD5.
+        /// </summary>
+        internal static string Consumer_MD5_Description {
+            get {
+                return ResourceManager.GetString("Consumer.MD5.Description", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Consumes Matroska files to provide info for Reports.
         /// </summary>
-        internal static string MKVConsumerDescription {
+        internal static string Consumer_MKV_Description {
             get {
-                return ResourceManager.GetString("MKVConsumerDescription", resourceCulture);
+                return ResourceManager.GetString("Consumer.MKV.Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unused.
+        /// </summary>
+        internal static string Consumer_MP4_Description {
+            get {
+                return ResourceManager.GetString("Consumer.MP4.Description", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Consumes data without processing it.
         /// </summary>
-        internal static string NULLConsumerDescription {
+        internal static string Consumer_NULL_Description {
             get {
-                return ResourceManager.GetString("NULLConsumerDescription", resourceCulture);
+                return ResourceManager.GetString("Consumer.NULL.Description", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Consumes OGG files to provide info for Reports.
         /// </summary>
-        internal static string OGGConsumerDescription {
+        internal static string Consumer_OGG_Description {
             get {
-                return ResourceManager.GetString("OGGConsumerDescription", resourceCulture);
+                return ResourceManager.GetString("Consumer.OGG.Description", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to https://en.wikipedia.org/wiki/SHA-1.
         /// </summary>
-        internal static string SHA1ConsumerDescription {
+        internal static string Consumer_SHA1_Description {
             get {
-                return ResourceManager.GetString("SHA1ConsumerDescription", resourceCulture);
+                return ResourceManager.GetString("Consumer.SHA1.Description", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to https://en.wikipedia.org/wiki/SHA-2.
         /// </summary>
-        internal static string SHA256ConsumerDescription {
+        internal static string Consumer_SHA2_256_Description {
             get {
-                return ResourceManager.GetString("SHA256ConsumerDescription", resourceCulture);
+                return ResourceManager.GetString("Consumer.SHA2-256.Description", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to https://en.wikipedia.org/wiki/SHA-2.
         /// </summary>
-        internal static string SHA384ConsumerDescription {
+        internal static string Consumer_SHA2_384_Description {
             get {
-                return ResourceManager.GetString("SHA384ConsumerDescription", resourceCulture);
+                return ResourceManager.GetString("Consumer.SHA2-384.Description", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to https://en.wikipedia.org/wiki/SHA-2.
         /// </summary>
-        internal static string SHA3ConsumerDescription {
+        internal static string Consumer_SHA2_512_Description {
             get {
-                return ResourceManager.GetString("SHA3ConsumerDescription", resourceCulture);
+                return ResourceManager.GetString("Consumer.SHA2-512.Description", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to https://en.wikipedia.org/wiki/SHA-3.
         /// </summary>
-        internal static string SHA512ConsumerDescription {
+        internal static string Consumer_SHA3_224_Description {
             get {
-                return ResourceManager.GetString("SHA512ConsumerDescription", resourceCulture);
+                return ResourceManager.GetString("Consumer.SHA3-224.Description", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to https://en.wikipedia.org/wiki/SHA-3.
         /// </summary>
-        internal static string TIGERConsumerDescription {
+        internal static string Consumer_SHA3_256_Description {
             get {
-                return ResourceManager.GetString("TIGERConsumerDescription", resourceCulture);
+                return ResourceManager.GetString("Consumer.SHA3-256.Description", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Tree Tiger Hash.
+        ///   Looks up a localized string similar to https://en.wikipedia.org/wiki/SHA-3.
         /// </summary>
-        internal static string TTHConsumerDescription {
+        internal static string Consumer_SHA3_384_Description {
             get {
-                return ResourceManager.GetString("TTHConsumerDescription", resourceCulture);
+                return ResourceManager.GetString("Consumer.SHA3-384.Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://en.wikipedia.org/wiki/SHA-3.
+        /// </summary>
+        internal static string Consumer_SHA3_512_Description {
+            get {
+                return ResourceManager.GetString("Consumer.SHA3-512.Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://en.wikipedia.org/wiki/Tiger_(hash_function).
+        /// </summary>
+        internal static string Consumer_TIGER_Description {
+            get {
+                return ResourceManager.GetString("Consumer.TIGER.Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://en.wikipedia.org/wiki/Merkle_tree#Tiger_tree_hash.
+        /// </summary>
+        internal static string Consumer_TTH_Description {
+            get {
+                return ResourceManager.GetString("Consumer.TTH.Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Complete xml report with every available information node.
+        /// </summary>
+        internal static string Report_AVD3_Description {
+            get {
+                return ResourceManager.GetString("Report.AVD3.Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matroska Structure Report.
+        /// </summary>
+        internal static string Report_Matroska_Description {
+            get {
+                return ResourceManager.GetString("Report.Matroska.Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Raw MediaInfoLibrary Output.
+        /// </summary>
+        internal static string Report_MediaInfoXml_Description {
+            get {
+                return ResourceManager.GetString("Report.MediaInfoXml.Description", resourceCulture);
             }
         }
     }

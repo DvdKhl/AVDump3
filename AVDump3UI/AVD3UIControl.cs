@@ -279,9 +279,10 @@ namespace AVDump3UI {
 					System.Console.WriteLine(reportFactory.Name.PadRight(14) + " - " + reportFactory.Description);
 				}
 				args.Cancel();
+				return;
 
-			} else if(settings.Reporting.Reports.Any()) {
-				var invalidReportNames = settings.Reporting.Reports.Where(x => ReportFactories.All(y => !y.Name.InvEqualsOrdCI(x))).ToArray();
+			} else if(settings.Reporting.Reports?.Any() ?? false) {
+				var invalidReportNames = settings.Reporting.Reports.Value.Where(x => ReportFactories.All(y => !y.Name.InvEqualsOrdCI(x))).ToArray();
 				if(invalidReportNames.Any()) {
 					System.Console.WriteLine("Invalid Report: " + string.Join(", ", invalidReportNames));
 					args.Cancel();
@@ -316,7 +317,7 @@ namespace AVDump3UI {
 				if(!string.IsNullOrEmpty(path)) Directory.CreateDirectory(path);
 			}
 
-			if(settings.Diagnostics.NullStreamTest != null && settings.Reporting.Reports.Length > 0) {
+			if(settings.Diagnostics.NullStreamTest != null && settings.Reporting.Reports.Value.Length > 0) {
 				System.Console.WriteLine("NullStreamTest cannot be used with reports");
 				args.Cancel();
 			}
@@ -507,6 +508,8 @@ namespace AVDump3UI {
 		}
 
 		private async Task<bool> HandleReporting(FileMetaInfo fileMetaInfo) {
+			await Task.Yield();
+
 			var fileName = Path.GetFileName(fileMetaInfo.FileInfo.FullName);
 
 
@@ -526,7 +529,7 @@ namespace AVDump3UI {
 				var metaInfoItem = hashProvider.Items.FirstOrDefault(x => x.Type.Key.Equals("CRC32"));
 
 				if(metaInfoItem != null) {
-					var crc32Hash = (ReadOnlyMemory<byte>)metaInfoItem.Value;
+					var crc32Hash = (ImmutableArray<byte>)metaInfoItem.Value;
 					var crc32HashStr = BitConverter.ToString(crc32Hash.ToArray(), 0).Replace("-", "");
 
 					if(!Regex.IsMatch(fileMetaInfo.FileInfo.FullName, settings.Reporting.CRC32Error?.Pattern.Replace("${CRC32}", crc32HashStr))) {
@@ -558,7 +561,7 @@ namespace AVDump3UI {
 			}
 
 			var success = true;
-			var reportsFactories = ReportFactories.Where(x => settings.Reporting.Reports.Any(y => x.Name.Equals(y, StringComparison.OrdinalIgnoreCase))).ToArray();
+			var reportsFactories = ReportFactories.Where(x => settings.Reporting.Reports?.Any(y => x.Name.Equals(y, StringComparison.OrdinalIgnoreCase)) ?? false).ToArray();
 			if(reportsFactories.Length != 0) {
 
 				try {
@@ -739,7 +742,7 @@ namespace AVDump3UI {
 					var withBase = m.Groups["Base"].Value;
 					var letterCase = m.Groups["Case"].Value;
 
-					var hashData = fileMetaInfo.CondensedProviders.FirstOrDefault(x => x.Type == HashProvider.HashProviderType)?.Select<HashInfoItemType, ReadOnlyMemory<byte>>(hashName)?.Value.ToArray();
+					var hashData = fileMetaInfo.CondensedProviders.FirstOrDefault(x => x.Type == HashProvider.HashProviderType)?.Select<HashInfoItemType, ImmutableArray<byte>>(hashName)?.Value.ToArray();
 					if(hashData != null) value = BitConverterEx.ToBase(hashData, BitConverterEx.Bases[withBase]).Transform(x => letterCase switch { "UC" => x.ToInvUpper(), "LC" => x.ToInvLower(), "OC" => x, _ => x });
 				}
 			}

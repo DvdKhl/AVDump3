@@ -108,10 +108,10 @@ namespace AVDump3Lib.Processing {
 			var fileDiscoveryOn = DateTimeOffset.UtcNow;
 			var spp = new StreamFromPathsProvider(pathPartitions);
 			spp.AddFiles(paths, recursive,
-				path => {
-					filePathFilterEventArgs.Reset(path);
+				fileInfo => {
+					filePathFilterEventArgs.Reset(fileInfo.FullName);
 					FilePathFilter(this, filePathFilterEventArgs);
-					if(filePathFilterEventArgs.Accepted) onPathAccepted?.Invoke(path);
+					if(filePathFilterEventArgs.Accepted) onPathAccepted?.Invoke(fileInfo.FullName);
 					return filePathFilterEventArgs.Accepted;
 				},
 				onError

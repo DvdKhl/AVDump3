@@ -26,7 +26,7 @@ namespace AVDump3Lib.Reporting.Core {
 
 
 		private static string GetDescription(string name) {
-			var description = Lang.ResourceManager.GetInvString(name.InvReplace("-", "") + "Description");
+			var description = Lang.ResourceManager.GetInvString("Report." + name + ".Description");
 			return !string.IsNullOrEmpty(description) ? description : "<NoDescriptionGiven>";
 		}
 

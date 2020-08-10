@@ -92,7 +92,7 @@ namespace AVDump3CL {
 		private readonly object fileSystemLock = new object();
 		private readonly List<WaitHandle> shutdownDelayHandles = new List<WaitHandle>();
 
-
+		private static readonly Regex placeholderPattern = new Regex(@"\$\{(?<Key>[A-Za-z0-9\-\.]+)\}");
 		private IReadOnlyCollection<IAVD3Module> modules;
 		private IAVD3ProcessingModule processingModule;
 		private IAVD3InformationModule informationModule;
@@ -109,15 +109,21 @@ namespace AVDump3CL {
 
 
 		private void UnhandleException(object sender, UnhandledExceptionEventArgs e) {
-			var wrapEx = new AVD3CLException(
-				"Unhandled AppDomain wide Exception",
-				e.ExceptionObject as Exception ?? new Exception("Non Exception Type: " + e.ExceptionObject.ToString())
-			);
+			var ex = e.ExceptionObject as Exception ?? new Exception("Non Exception Type: " + e.ExceptionObject.ToString());
+			AVD3LibException libException;
 
-			OnException(wrapEx);
+			if(e.ExceptionObject is AggregateException aggEx && aggEx.InnerExceptions.Count == 1 && aggEx.InnerExceptions[0] is AVD3ForceMajeureException forceMajeureException) {
+				libException = forceMajeureException;
+
+			} else {
+				libException = new AVD3CLException("Unhandled AppDomain wide Exception", ex);
+			}
+
+			OnException(libException);
+
 		}
 
-		private void OnException(AVD3CLException ex) {
+		private void OnException(AVD3LibException ex) {
 			var exElem = ex.ToXElement(
 				settings?.Diagnostics.SkipEnvironmentElement ?? false,
 				settings?.Diagnostics.IncludePersonalData ?? false
@@ -138,8 +144,11 @@ namespace AVDump3CL {
 
 			console.WriteLine("Error " + exception.GetType() + ": " + exception.Message);
 
+			if(ex is AVD3ForceMajeureException forceMajeureException) {
+				console.WriteLine(forceMajeureException.RemedyActionMessage);
+			}
+
 			ExceptionThrown?.Invoke(this, new AVD3CLModuleExceptionEventArgs(exElem));
-			//TODO Raise Event for modules to listen to
 		}
 
 		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) {
@@ -196,6 +205,14 @@ namespace AVDump3CL {
 				}
 			}
 
+			if(settings.Diagnostics.Version) {
+				using var mi = new MediaInfoLibNativeMethods();
+				var version = mi.Option("Info_Version");
+
+				System.Console.WriteLine($"Program Version: {Assembly.GetEntryAssembly()?.GetName().Version?.Build.ToString() ?? "Unknown"}");
+				System.Console.WriteLine(version);
+				args.Cancel();
+			}
 
 			if(settings.Reporting.Reports == null) {
 				System.Console.WriteLine("Available Reports: ");
@@ -204,8 +221,8 @@ namespace AVDump3CL {
 				}
 				args.Cancel();
 
-			} else if(settings.Reporting.Reports.Any()) {
-				var invalidReportNames = settings.Reporting.Reports.Where(x => reportingModule.ReportFactories.All(y => !y.Name.InvEqualsOrdCI(x))).ToArray();
+			} else if(settings.Reporting.Reports?.Any() ?? false) {
+				var invalidReportNames = settings.Reporting.Reports.Value.Where(x => reportingModule.ReportFactories.All(y => !y.Name.InvEqualsOrdCI(x))).ToArray();
 				if(invalidReportNames.Any()) {
 					System.Console.WriteLine("Invalid Report: " + string.Join(", ", invalidReportNames));
 					args.Cancel();
@@ -226,6 +243,11 @@ namespace AVDump3CL {
 				args.Cancel();
 			}
 
+			//Don't cancel startup when DoneLogPath doesn't exist yet
+			if(!string.IsNullOrEmpty(settings.FileDiscovery.DoneLogPath) && !File.Exists(settings.FileDiscovery.DoneLogPath)) {
+				File.AppendAllText(settings.FileDiscovery.DoneLogPath, "");
+			}
+
 			var invalidFilePaths = settings.FileDiscovery.SkipLogPath.Where(p => !File.Exists(p));
 			if(!invalidFilePaths.Any()) {
 				filePathsToSkip = new HashSet<string>(settings.FileDiscovery.SkipLogPath.SelectMany(p => File.ReadLines(p)));
@@ -240,7 +262,7 @@ namespace AVDump3CL {
 				if(!string.IsNullOrEmpty(path)) Directory.CreateDirectory(path);
 			}
 
-			if(settings.Diagnostics.NullStreamTest.StreamCount > 0 && settings.Reporting.Reports.Length > 0) {
+			if(settings.Diagnostics.NullStreamTest.StreamCount > 0 && settings.Reporting.Reports?.Length > 0) {
 				System.Console.WriteLine("NullStreamTest cannot be used with reports");
 				args.Cancel();
 			}
@@ -248,7 +270,7 @@ namespace AVDump3CL {
 			if(settings.FileMove.Mode != FileMoveMode.None) {
 				var fileMoveExtensions = modules.OfType<IFileMoveConfigure>().ToArray();
 
-				static string PlaceholderConvert(string pattern) => "return \"" + Regex.Replace(pattern.Replace("\\", "\\\\").Replace("\"", "\\\""), @"\$\{([A-Za-z0-9\-\.]+)\}", @""" + Get(""$1"") + """) + "\";";
+				static string PlaceholderConvert(string pattern) => "return \"" + placeholderPattern.Replace(pattern.Replace("\\", "\\\\").Replace("\"", "\\\""), @""" + Get(""$1"") + """) + "\";";
 
 				fileMove = settings.FileMove.Mode switch
 				{
@@ -351,9 +373,13 @@ namespace AVDump3CL {
 			var sp = (StreamFromPathsProvider)processingModule.CreateFileStreamProvider(
 				paths, settings.FileDiscovery.Recursive, settings.FileDiscovery.Concurrent,
 				path => {
-					if(fileDiscoveryOn.AddSeconds(1) < DateTimeOffset.UtcNow) {
-						System.Console.WriteLine("Accepted files: " + acceptedFiles);
-						fileDiscoveryOn = DateTimeOffset.UtcNow;
+					if(settings.Diagnostics.PrintDiscoveredFiles) {
+						System.Console.WriteLine("Accepted file: " + path);
+					} else {
+						if(fileDiscoveryOn.AddSeconds(1) < DateTimeOffset.UtcNow) {
+							System.Console.WriteLine("Accepted files: " + acceptedFiles);
+							fileDiscoveryOn = DateTimeOffset.UtcNow;
+						}
 					}
 					acceptedFiles++;
 				},
@@ -448,7 +474,7 @@ namespace AVDump3CL {
 				var metaInfoItem = hashProvider.Items.FirstOrDefault(x => x.Type.Key.Equals("CRC32"));
 
 				if(metaInfoItem != null) {
-					var crc32Hash = (ReadOnlyMemory<byte>)metaInfoItem.Value;
+					var crc32Hash = (ImmutableArray<byte>)metaInfoItem.Value;
 					var crc32HashStr = BitConverter.ToString(crc32Hash.ToArray(), 0).Replace("-", "");
 
 					if(!Regex.IsMatch(fileMetaInfo.FileInfo.FullName, settings.Reporting.CRC32Error?.Pattern.Replace("${CRC32}", crc32HashStr))) {
@@ -480,24 +506,22 @@ namespace AVDump3CL {
 			}
 
 			var success = true;
-			var reportsFactories = reportingModule.ReportFactories.Where(x => settings.Reporting.Reports.Any(y => x.Name.Equals(y, StringComparison.OrdinalIgnoreCase))).ToArray();
+			var reportsFactories = reportingModule.ReportFactories.Where(x => settings.Reporting.Reports?.Any(y => x.Name.Equals(y, StringComparison.OrdinalIgnoreCase)) ?? false).ToArray();
 			if(reportsFactories.Length != 0) {
 
 				try {
-
 					var reportItems = reportsFactories.Select(x => new { x.Name, Report = x.Create(fileMetaInfo) });
-
+					var tokenValues = new Dictionary<string, string?>();
 					foreach(var reportItem in reportItems) {
 						if(settings.Reporting.PrintReports) {
 							linesToWrite.Add(reportItem.Report.ReportToString(Utils.UTF8EncodingNoBOM) + "\n");
 						}
 
+						tokenValues["ReportName"] = reportItem.Name;
+						tokenValues["ReportFileExtension"] = reportItem.Report.FileExtension;
+
 						var reportFileName = settings.Reporting.ReportFileName;
-						reportFileName = reportFileName.Replace("${FileName}", fileName);
-						reportFileName = reportFileName.Replace("${FileNameWithoutExtension}", Path.GetFileNameWithoutExtension(fileName));
-						reportFileName = reportFileName.Replace("${FileExtension}", Path.GetExtension(fileName).Replace(".", ""));
-						reportFileName = reportFileName.Replace("${ReportName}", reportItem.Name);
-						reportFileName = reportFileName.Replace("${ReportFileExtension}", reportItem.Report.FileExtension);
+						reportFileName = placeholderPattern.Replace(reportFileName, m => ReplaceToken(m.Groups["Key"].Value, fileMetaInfo, tokenValues));
 
 						lock(fileSystemLock) {
 							reportItem.Report.SaveToFile(Path.Combine(settings.Reporting.ReportDirectory, reportFileName), Utils.UTF8EncodingNoBOM);
@@ -543,12 +567,19 @@ namespace AVDump3CL {
 
 							destFilePath = await fileMove.GetFilePathAsync(fileMetaInfo);
 
+
+							foreach(var replacement in settings.FileMove.Replacements) {
+								destFilePath = destFilePath.InvReplace(replacement.Value, replacement.Replacement);
+							}
+
 							if(settings.FileMove.DisableFileMove) {
 								destFilePath = Path.Combine(Path.GetDirectoryName(fileMetaInfo.FileInfo.FullName) ?? "", Path.GetFileName(destFilePath));
 							}
 							if(settings.FileMove.DisableFileRename) {
 								destFilePath = Path.Combine(Path.GetDirectoryName(destFilePath) ?? "", Path.GetFileName(fileMetaInfo.FileInfo.FullName));
 							}
+
+
 
 						} catch(Exception) {
 							destFilePath = null;
@@ -635,11 +666,15 @@ namespace AVDump3CL {
 
 
 		void IFileMoveConfigure.ConfigureServiceCollection(IServiceCollection services) { }
-		string IFileMoveConfigure.ReplaceToken(string key, FileMoveContext ctx) {
+		string? IFileMoveConfigure.ReplaceToken(string key, FileMoveContext ctx) {
 			var fileMetaInfo = ctx.FileMetaInfo;
+			return ReplaceToken(key, fileMetaInfo);
+		}
 
+		private static string? ReplaceToken(string key, FileMetaInfo fileMetaInfo, IDictionary<string, string?>? additionalTokenValues = null) {
 			var value = key switch
 			{
+				"FileSize" => fileMetaInfo.FileInfo.Length.ToString(),
 				"FullName" => fileMetaInfo.FileInfo.FullName,
 				"FileName" => fileMetaInfo.FileInfo.Name,
 				"FileExtension" => fileMetaInfo.FileInfo.Extension,
@@ -661,10 +696,17 @@ namespace AVDump3CL {
 					var withBase = m.Groups["Base"].Value;
 					var letterCase = m.Groups["Case"].Value;
 
-					var hashData = fileMetaInfo.CondensedProviders.FirstOrDefault(x => x.Type == HashProvider.HashProviderType)?.Select<HashInfoItemType, ReadOnlyMemory<byte>>(hashName)?.Value.ToArray();
+					var hashData = fileMetaInfo.CondensedProviders.FirstOrDefault(x => x.Type == HashProvider.HashProviderType)?.Select<HashInfoItemType, ImmutableArray<byte>>(hashName)?.Value.ToArray();
 					if(hashData != null) value = BitConverterEx.ToBase(hashData, BitConverterEx.Bases[withBase]).Transform(x => letterCase switch { "UC" => x.ToInvUpper(), "LC" => x.ToInvLower(), "OC" => x, _ => x });
 				}
 			}
+
+			if(additionalTokenValues != null) {
+				if(additionalTokenValues.TryGetValue(key, out var additionalTokenValue)) {
+					value = additionalTokenValue;
+				}
+			}
+
 			return value;
 		}
 	}

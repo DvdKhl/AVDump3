@@ -2,10 +2,11 @@ using BXmlLib;
 using BXmlLib.DocTypes.Matroska;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
 	public class ChapterAtomSection : Section {
-		private byte[] chapterSegmentUId;
+		private ImmutableArray<byte> chapterSegmentUId;
 		private bool? enabled, hidden;
 
 		public ulong? ChapterUId { get; private set; }
@@ -13,7 +14,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
 		public ulong? ChapterTimeStart { get; private set; } //Def: 0?
 		public ulong? ChapterTimeEnd { get; private set; }
 		public Options ChapterFlags { get { return (hidden.HasValue && hidden.Value ? Options.Hidden : Options.None) | (!enabled.HasValue || enabled.Value ? Options.Enabled : Options.None); } }
-		public byte[] ChapterSegmentUId { get { return chapterSegmentUId == null ? null : (byte[])chapterSegmentUId.Clone(); } }
+		public ImmutableArray<byte> ChapterSegmentUId { get; private set; }
 		public ulong? ChapterSegmentEditionUId { get; private set; }
 		public ulong? ChapterPhysicalEquiv { get; private set; }
 		public ChapterTrackSection ChapterTrack { get; private set; }
@@ -49,7 +50,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
 			} else if(reader.DocElement == MatroskaDocType.ChapterFlagHidden) {
 				hidden = (ulong)reader.RetrieveValue() == 1;
 			} else if(reader.DocElement == MatroskaDocType.ChapterSegmentUID) {
-				chapterSegmentUId = (byte[])reader.RetrieveValue();
+				chapterSegmentUId = ((byte[])reader.RetrieveValue()).ToImmutableArray();
 			} else if(reader.DocElement == MatroskaDocType.ChapterSegmentEditionUID) {
 				ChapterSegmentEditionUId = (ulong)reader.RetrieveValue();
 			} else if(reader.DocElement == MatroskaDocType.ChapterPhysicalEquiv) {

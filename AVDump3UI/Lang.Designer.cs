@@ -115,6 +115,24 @@ namespace AVDump3UI {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Print each discovered file path instead of printing the count.
+        /// </summary>
+        internal static string Diagnostics_PrintDiscoveredFiles_Description {
+            get {
+                return ResourceManager.GetString("Diagnostics.PrintDiscoveredFiles.Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to --PrintDiscoveredFiles.
+        /// </summary>
+        internal static string Diagnostics_PrintDiscoveredFiles_Example {
+            get {
+                return ResourceManager.GetString("Diagnostics.PrintDiscoveredFiles.Example", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Errors occuring during program execution will be saved to disk.
         /// </summary>
         internal static string Diagnostics_SaveErrors_Description {
@@ -151,20 +169,20 @@ namespace AVDump3UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The cursor position of the console will not be explicitly set. This option will disable most progress output.
+        ///   Looks up a localized string similar to Print the program version to console.
         /// </summary>
-        internal static string Display_ForwardConsoleCursorOnly_Description {
+        internal static string Diagnostics_Version_Description {
             get {
-                return ResourceManager.GetString("Display.ForwardConsoleCursorOnly.Description", resourceCulture);
+                return ResourceManager.GetString("Diagnostics.Version.Description", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to --ForwardConsoleCursorOnly.
+        ///   Looks up a localized string similar to --Version.
         /// </summary>
-        internal static string Display_ForwardConsoleCursorOnly_Example {
+        internal static string Diagnostics_Version_Example {
             get {
-                return ResourceManager.GetString("Display.ForwardConsoleCursorOnly.Example", resourceCulture);
+                return ResourceManager.GetString("Diagnostics.Version.Example", resourceCulture);
             }
         }
         
@@ -278,7 +296,7 @@ namespace AVDump3UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Don&apos;t move the file even if the Pattern says so.
         /// </summary>
         internal static string FileMove_DisableFileMove_Description {
             get {
@@ -296,7 +314,7 @@ namespace AVDump3UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Don&apos;t rename the file even if the Pattern says so.
         /// </summary>
         internal static string FileMove_DisableFileRename_Description {
             get {
@@ -314,7 +332,7 @@ namespace AVDump3UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to A line is written for each file that has been moved/renamed. (OldPath =&gt; NewPath).
         /// </summary>
         internal static string FileMove_LogPath_Description {
             get {
@@ -332,7 +350,12 @@ namespace AVDump3UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Determines how the Pattern Argument is going to be interpreted:
+        ///Inline: Script is directly entered as the argument
+        ///File: A path pointing to the script file
+        ///Placeholder: See example for --Pattern
+        ///CSharpScript: Script in C#
+        ///DotNetAssembly: Net Core assembly to be loaded.
         /// </summary>
         internal static string FileMove_Mode_Description {
             get {
@@ -350,8 +373,8 @@ namespace AVDump3UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Available Placeholders ${Name}:
-        ///FullName, FileName, FileExtension, FileNameWithoutExtension, DirectoryName, SuggestedExtension,
+        ///   Looks up a localized string similar to Available Placeholders in the form of ${Name}:
+        ///FileSize, FullName, FileName, FileExtension, FileNameWithoutExtension, DirectoryName, SuggestedExtension,
         ///Hash-&lt;Name&gt;-&lt;2|4|8|10|16|32|32Hex|32Z|36|62|64&gt;-&lt;OC|UC|LC&gt;.
         /// </summary>
         internal static string FileMove_Pattern_Description {
@@ -370,7 +393,7 @@ namespace AVDump3UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to Replace substrings in the returned filepath.
         /// </summary>
         internal static string FileMove_Replacements_Description {
             get {
@@ -384,6 +407,24 @@ namespace AVDump3UI {
         internal static string FileMove_Replacements_Example {
             get {
                 return ResourceManager.GetString("FileMove.Replacements.Example", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test FileMove Settings.
+        /// </summary>
+        internal static string FileMove_Test_Description {
+            get {
+                return ResourceManager.GetString("FileMove.Test.Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to --FileMove.Test.
+        /// </summary>
+        internal static string FileMove_Test_Example {
+            get {
+                return ResourceManager.GetString("FileMove.Test.Example", resourceCulture);
             }
         }
         
@@ -442,6 +483,60 @@ namespace AVDump3UI {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Print available CPU SIMDs.
+        /// </summary>
+        internal static string Processing_PrintAvailableSIMDs_Description {
+            get {
+                return ResourceManager.GetString("Processing.PrintAvailableSIMDs.Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to --PrintAvailableSIMDs.
+        /// </summary>
+        internal static string Processing_PrintAvailableSIMDs_Example {
+            get {
+                return ResourceManager.GetString("Processing.PrintAvailableSIMDs.Example", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to How much data in MiB the reader is allowed to read each time at most.
+        /// </summary>
+        internal static string Processing_ProducerMaxReadLength_Description {
+            get {
+                return ResourceManager.GetString("Processing.ProducerMaxReadLength.Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to --ProducerMaxReadLength.
+        /// </summary>
+        internal static string Processing_ProducerMaxReadLength_Example {
+            get {
+                return ResourceManager.GetString("Processing.ProducerMaxReadLength.Example", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to How much data in MiB the reader has to read each time at minimum.
+        /// </summary>
+        internal static string Processing_ProducerMinReadLength_Description {
+            get {
+                return ResourceManager.GetString("Processing.ProducerMinReadLength.Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to --ProducerMinReadLength.
+        /// </summary>
+        internal static string Processing_ProducerMinReadLength_Example {
+            get {
+                return ResourceManager.GetString("Processing.ProducerMinReadLength.Example", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Searches the filename for the calculated CRC32 hash. If not present or different a line with the caluclated hash and the full path of the file is appended to the specified path
         ///The regex pattern should contain the placeholder ${CRC32} which is replaced by the calculated hash prior matching.
         ///Consumer CRC32 will be force enabled!.
@@ -453,7 +548,7 @@ namespace AVDump3UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to --CRC32Error=&lt;Filepath&gt;:&lt;RegexPattern&gt;.
+        ///   Looks up a localized string similar to --CRC32Error=&lt;Filepath&gt;,&lt;RegexPattern&gt;.
         /// </summary>
         internal static string Reporting_CRC32Error_Example {
             get {
@@ -535,7 +630,9 @@ namespace AVDump3UI {
         
         /// <summary>
         ///   Looks up a localized string similar to Reports will be saved/appended to the specified filename
-        ///The following placeholders ${Name} can be used: FileName, FileNameWithoutExtension, FileExtension, ReportName, ReportFileExtension.
+        ///Placeholders mentioned in --FileMove.Pattern can be used as well.
+        ///Additional placeholders: ReportName, ReportFileExtension
+        ///.
         /// </summary>
         internal static string Reporting_ReportFileName_Description {
             get {

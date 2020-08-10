@@ -23,10 +23,10 @@ namespace AVDump3Lib.Information.MetaInfo {
 		public static readonly MetaInfoItemType<long> OverheadType = new MetaInfoItemType<long>("Overhead", "bytes");
 		public static readonly MetaInfoItemType<string> ContainerVersionType = new MetaInfoItemType<string>("ContainerVersion");
 
-		public static readonly MetaInfoItemType<ReadOnlyMemory<byte>> IdType = new MetaInfoItemType<ReadOnlyMemory<byte>>("Id");
-		public static readonly MetaInfoItemType<ReadOnlyMemory<byte>> RelationIdType = new MetaInfoItemType<ReadOnlyMemory<byte>>("RelationId");
-		public static readonly MetaInfoItemType<ReadOnlyMemory<byte>> NextIdType = new MetaInfoItemType<ReadOnlyMemory<byte>>("NextId");
-		public static readonly MetaInfoItemType<ReadOnlyMemory<byte>> PreviousIdType = new MetaInfoItemType<ReadOnlyMemory<byte>>("PreviousId");
+		public static readonly MetaInfoItemType<ImmutableArray<byte>> IdType = new MetaInfoItemType<ImmutableArray<byte>>("Id");
+		public static readonly MetaInfoItemType<ImmutableArray<byte>> RelationIdType = new MetaInfoItemType<ImmutableArray<byte>>("RelationId");
+		public static readonly MetaInfoItemType<ImmutableArray<byte>> NextIdType = new MetaInfoItemType<ImmutableArray<byte>>("NextId");
+		public static readonly MetaInfoItemType<ImmutableArray<byte>> PreviousIdType = new MetaInfoItemType<ImmutableArray<byte>>("PreviousId");
 		public static readonly MetaInfoItemType<string> NextFileNameType = new MetaInfoItemType<string>("NextFileName");
 		public static readonly MetaInfoItemType<string> PreviousFileNameType = new MetaInfoItemType<string>("PreviousName");
 
@@ -244,7 +244,7 @@ namespace AVDump3Lib.Information.MetaInfo {
 		public static readonly MetaInfoItemType<double> TimeStartType = new MetaInfoItemType<double>("TimeStart", "byte");
 		public static readonly MetaInfoItemType<double> TimeEndType = new MetaInfoItemType<double>("TimeStart", "byte");
 
-		public static readonly MetaInfoItemType<ReadOnlyMemory<byte>> SegmentIdType = new MetaInfoItemType<ReadOnlyMemory<byte>>("SegmentId");
+		public static readonly MetaInfoItemType<ImmutableArray<byte>> SegmentIdType = new MetaInfoItemType<ImmutableArray<byte>>("SegmentId");
 		public static readonly MetaInfoItemType<int> SegmentChaptersIdType = new MetaInfoItemType<int>("SegmentChaptersId");
 
 		public static readonly MetaInfoItemType<int> PhysicalEquivalentType = new MetaInfoItemType<int>("PhysicalEquivalent");

@@ -268,7 +268,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 						case MediaInfoLibNativeMethods.StreamTypes.Video:
 							stream = new MetaInfoContainer(id ?? (ulong)Nodes.Count(x => x.Type == ChaptersType), VideoStreamType); hasVideo = true;
 							Add(stream, MediaStream.StatedSampleRateType, () => streamGet("FrameRate"), s => s?.ToInvDouble() ?? 0, skipIntDefault);
-							Add(stream, MediaStream.SampleCountType, () => streamGet("FrameCount").ToInvInt64());
+							Add(stream, MediaStream.SampleCountType, () => streamGet("FrameCount"), s => s?.ToInvInt64() ?? 0, skipIntDefault);
 							Add(stream, VideoStream.PixelAspectRatioType, () => streamGet("PixelAspectRatio").ToInvDouble());
 							Add(stream, VideoStream.PixelDimensionsType, () => new Dimensions(streamGet("Width").ToInvInt32(), streamGet("Height").ToInvInt32()));
 							Add(stream, VideoStream.DisplayAspectRatioType, () => streamGet("DisplayAspectRatio").ToInvDouble());

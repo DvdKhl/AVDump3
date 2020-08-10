@@ -2,13 +2,16 @@ using AVDump3Lib.Information.MetaInfo.Core;
 using AVDump3Lib.Processing.BlockConsumers;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace AVDump3Lib.Information.MetaInfo {
 
-	public class HashInfoItemType : MetaInfoItemType<ReadOnlyMemory<byte>> { public HashInfoItemType(string key) : base(key) { } }
+	public class HashInfoItemType : MetaInfoItemType<ImmutableArray<byte>> { public HashInfoItemType(string key) : base(key) { } }
 
 	public class HashProvider : MetaDataProvider {
 		public HashProvider(IEnumerable<HashCalculator> hashCalculators) : base("HashProvider", HashProviderType) {
+			if(hashCalculators is null) throw new ArgumentNullException(nameof(hashCalculators));
+
 			foreach(var hashCalculator in hashCalculators) {
 				Add(new HashInfoItemType(hashCalculator.Name), hashCalculator.HashValue);
 			}

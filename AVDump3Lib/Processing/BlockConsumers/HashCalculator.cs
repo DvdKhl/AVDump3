@@ -1,6 +1,7 @@
 using AVDump3Lib.Processing.BlockBuffers;
 using AVDump3Lib.Processing.HashAlgorithms;
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Security.Cryptography;
 using System.Threading;
@@ -8,7 +9,7 @@ using System.Threading;
 namespace AVDump3Lib.Processing.BlockConsumers {
 	public class HashCalculator : BlockConsumer {
 		public int ReadLength { get; }
-		public ReadOnlyMemory<byte> HashValue { get; private set; }
+		public ImmutableArray<byte> HashValue { get; private set; }
 
 		public IAVDHashAlgorithm HashAlgorithm { get; }
 		public HashCalculator(string name, IBlockStreamReader reader, IAVDHashAlgorithm transform) : base(name, reader) {
@@ -44,7 +45,7 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 
 			var lastBytes = block.Length - bytesProcessed;
 
-			HashValue = HashAlgorithm.TransformFinalBlock(block.Slice(bytesProcessed, lastBytes)).ToArray();
+			HashValue = HashAlgorithm.TransformFinalBlock(block.Slice(bytesProcessed, lastBytes)).ToArray().ToImmutableArray();
 
 			Reader.Advance(lastBytes);
 		}

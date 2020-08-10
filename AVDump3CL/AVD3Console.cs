@@ -8,8 +8,8 @@ using System.Threading;
 namespace AVDump3CL {
 
 	public class AVD3ConsoleProgressBuilder {
+		public int DisplayWidth { get; private set; }
 		public int ConsoleWidth { get; private set; }
-
 		public StringBuilder Buffer { get; } = new StringBuilder();
 		public int ProgressLineCount { get; private set; }
 
@@ -19,7 +19,7 @@ namespace AVDump3CL {
 
 
 		public AVD3ConsoleProgressBuilder AppendLine() {
-			var repeatCount = ConsoleWidth - (Buffer.Length - lastLinePosition);
+			var repeatCount = DisplayWidth - (Buffer.Length - lastLinePosition);
 			if(repeatCount > 0) Buffer.Append(' ', repeatCount);
 			Buffer.AppendLine();
 
@@ -104,7 +104,8 @@ namespace AVDump3CL {
 			lastLinePosition = 0;
 			ProgressLineCount = 0;
 			SpecialJitterEvent = false;
-			ConsoleWidth = Math.Min(120, Console.BufferWidth);
+			DisplayWidth = Math.Min(120, Console.BufferWidth);
+			ConsoleWidth = Console.BufferWidth;
 		}
 	}
 
@@ -195,8 +196,13 @@ namespace AVDump3CL {
 						var lines = line.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
 						for(int j = 0; j < lines.Length; j++) {
 							progressBuilder.Buffer.Append(lines[j]);
-							if(lines[j].Length < progressBuilder.ConsoleWidth) {
-								progressBuilder.Buffer.Append(' ', progressBuilder.ConsoleWidth - lines[j].Length);
+							//if(lines[j].Length < progressBuilder.DisplayWidth || lines[j].Length > progressBuilder.ConsoleWidth) {
+							//	progressBuilder.Buffer.Append(' ', progressBuilder.DisplayWidth - 1 - lines[j].Length % progressBuilder.DisplayWidth);
+							//}
+							if(lines[j].Length < progressBuilder.DisplayWidth) {
+								progressBuilder.Buffer.Append(' ', progressBuilder.DisplayWidth - lines[j].Length);
+							} else if(lines[j].Length >= progressBuilder.ConsoleWidth) {
+								progressBuilder.Buffer.Append(' ', Math.Max(0, progressBuilder.DisplayWidth - 2 - lines[j].Length % progressBuilder.DisplayWidth));
 							}
 
 							progressBuilder.Buffer.AppendLine();
