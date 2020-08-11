@@ -34,8 +34,8 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 
 		public MirroredBuffer(int length) {
 			var result = Marshal.PtrToStringAnsi(CreateMirrorBuffer(length, out handle));
-			if(true || !string.IsNullOrEmpty(result)) {
-				throw new AVD3ForceMajeureException("Consider processing less files in parallel or reduce the buffer per file.", result);
+			if(!string.IsNullOrEmpty(result)) {
+				throw new AVD3ForceMajeureException("Consider processing fewer files in parallel or reduce the buffer per file.", result);
 			}
 
 			Data = (byte*)handle.baseAddress;

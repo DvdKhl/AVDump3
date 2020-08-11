@@ -31,7 +31,7 @@ namespace AVDump3CL {
 		public AVD3ConsoleProgressBuilder AppendBar(int barSize, double fillFactor) {
 			barSize -= 2;
 
-			var barFillCharCount = (int)Math.Ceiling(barSize * fillFactor);
+			var barFillCharCount = (int)Math.Ceiling(barSize * Math.Clamp(fillFactor, 0, 1));
 
 			Buffer.Append('[').Append('#', barFillCharCount).Append(' ', barSize - barFillCharCount).Append(']');
 			return this;
