@@ -525,6 +525,10 @@ namespace AVDump3CL {
 						}
 					}
 
+				} catch(PathTooLongException ex) {
+					console.WriteLine("Error " + ex.GetType() + ": " + ex.Message);
+					success = false;
+
 				} catch(Exception ex) {
 					OnException(new AVD3CLException("GeneratingReports", ex) { Data = { { "FileName", new SensitiveData(fileName) } } });
 					success = false;
