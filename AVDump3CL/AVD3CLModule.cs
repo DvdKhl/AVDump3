@@ -495,12 +495,10 @@ namespace AVDump3CL {
 				if(!detExts.Contains(ext, StringComparer.OrdinalIgnoreCase)) {
 					if(detExts.Length == 0) detExts = ImmutableArray.Create("unknown");
 
-					lock(settings.Reporting) {
-						lineWriter.AppendLine(
-							settings.Reporting.ExtensionDifferencePath,
-							ext + " => " + string.Join(" ", detExts) + "\t" + fileMetaInfo.FileInfo.FullName + Environment.NewLine
-						);
-					}
+					lineWriter.AppendLine(
+						settings.Reporting.ExtensionDifferencePath,
+						ext + " => " + string.Join(" ", detExts) + "\t" + fileMetaInfo.FileInfo.FullName + Environment.NewLine
+					);
 				}
 			}
 

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -39,7 +40,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 
 		public virtual void ProcessPage(ref OggPage page) {
 			var granulePosition = MemoryMarshal.Read<long>(page.GranulePosition);
-			LastGranulePosition = granulePosition > LastGranulePosition ? granulePosition : LastGranulePosition;
+			LastGranulePosition = granulePosition > LastGranulePosition && granulePosition < LastGranulePosition + 10000000 ? granulePosition : LastGranulePosition;
 
 			Size += page.Data.Length;
 		}
