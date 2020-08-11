@@ -47,6 +47,7 @@ namespace AVDump3Lib.Settings {
 			SettingProperties = settingsGroups.AsReadOnly();
 
 		}
+		public void Shutdown() { }
 
 		public void RegisterSettings(IEnumerable<ISettingProperty> settingsGroups) => this.settingsGroups.AddRange(settingsGroups);
 	}

@@ -91,6 +91,7 @@ namespace AVDump3CL {
 		private AVD3CLSettings settings;
 		private readonly object fileSystemLock = new object();
 		private readonly List<WaitHandle> shutdownDelayHandles = new List<WaitHandle>();
+		private readonly AppendLineManager lineWriter = new AppendLineManager();
 
 		private static readonly Regex placeholderPattern = new Regex(@"\$\{(?<Key>[A-Za-z0-9\-\.]+)\}");
 		private IReadOnlyCollection<IAVD3Module> modules;
@@ -245,7 +246,7 @@ namespace AVDump3CL {
 
 			//Don't cancel startup when DoneLogPath doesn't exist yet
 			if(!string.IsNullOrEmpty(settings.FileDiscovery.DoneLogPath) && !File.Exists(settings.FileDiscovery.DoneLogPath)) {
-				File.AppendAllText(settings.FileDiscovery.DoneLogPath, "");
+				lineWriter.AppendLine(settings.FileDiscovery.DoneLogPath, "");
 			}
 
 			var invalidFilePaths = settings.FileDiscovery.SkipLogPath.Where(p => !File.Exists(p));
@@ -365,6 +366,8 @@ namespace AVDump3CL {
 				System.Console.WriteLine("Program execution has finished. Press any key to exit.");
 				System.Console.Read();
 			}
+
+			lineWriter.Clear();
 		}
 
 		private IStreamProvider CreateFileStreamProvider(string[] paths) {
@@ -427,10 +430,8 @@ namespace AVDump3CL {
 					success = success && await HandleFileMove(fileMetaInfo);
 
 					if(settings.FileDiscovery.ProcessedLogPath.Any() && success) {
-						lock(settings.FileDiscovery) {
-							foreach(var processedLogPath in settings.FileDiscovery.ProcessedLogPath) {
-								File.AppendAllText(processedLogPath, fileMetaInfo.FileInfo.FullName + "\n");
-							}
+						foreach(var processedLogPath in settings.FileDiscovery.ProcessedLogPath) {
+							lineWriter.AppendLine(processedLogPath, fileMetaInfo.FileInfo.FullName + "\n");
 						}
 					}
 				}
@@ -478,12 +479,10 @@ namespace AVDump3CL {
 					var crc32HashStr = BitConverter.ToString(crc32Hash.ToArray(), 0).Replace("-", "");
 
 					if(!Regex.IsMatch(fileMetaInfo.FileInfo.FullName, settings.Reporting.CRC32Error?.Pattern.Replace("${CRC32}", crc32HashStr))) {
-						lock(settings.Reporting) {
-							File.AppendAllText(
-								settings.Reporting.CRC32Error?.Path,
-								crc32HashStr + " " + fileMetaInfo.FileInfo.FullName + Environment.NewLine
-							);
-						}
+						lineWriter.AppendLine(
+							settings.Reporting.CRC32Error.Value.Path,
+							crc32HashStr + " " + fileMetaInfo.FileInfo.FullName + Environment.NewLine
+						);
 					}
 				}
 			}
@@ -497,7 +496,7 @@ namespace AVDump3CL {
 					if(detExts.Length == 0) detExts = ImmutableArray.Create("unknown");
 
 					lock(settings.Reporting) {
-						File.AppendAllText(
+						lineWriter.AppendLine(
 							settings.Reporting.ExtensionDifferencePath,
 							ext + " => " + string.Join(" ", detExts) + "\t" + fileMetaInfo.FileInfo.FullName + Environment.NewLine
 						);
@@ -641,9 +640,7 @@ namespace AVDump3CL {
 								fileMetaInfo.FileInfo.MoveTo(destFilePath);
 
 								if(!string.IsNullOrEmpty(settings.FileMove.LogPath)) {
-									lock(fileSystemLock) {
-										File.AppendAllText(settings.FileMove.LogPath, originalPath + " => " + destFilePath + Environment.NewLine);
-									}
+									lineWriter.AppendLine(settings.FileMove.LogPath, originalPath + " => " + destFilePath + Environment.NewLine);
 								}
 							}).ConfigureAwait(false);
 						}
@@ -709,6 +706,8 @@ namespace AVDump3CL {
 
 			return value;
 		}
+
+		public void Shutdown() { }
 	}
 
 	public class AVD3CLException : AVD3LibException {

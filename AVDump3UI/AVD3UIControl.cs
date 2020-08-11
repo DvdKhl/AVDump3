@@ -248,6 +248,7 @@ namespace AVDump3UI {
 		void IAVD3Module.Initialize(IReadOnlyCollection<IAVD3Module> modules) => Initialize();
 
 		public ModuleInitResult Initialized() => new ModuleInitResult(false);
+		public void Shutdown() { }
 
 		public void ConfigurationFinished(object? sender, SettingsModuleInitResult args) {
 			settings = new AVD3UISettings(args.Store);

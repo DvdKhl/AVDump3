@@ -22,5 +22,7 @@ namespace AVDump3Lib.Modules {
 	public interface IAVD3Module {
 		void Initialize(IReadOnlyCollection<IAVD3Module> modules);
 		ModuleInitResult Initialized();
+
+		void Shutdown();
 	}
 }

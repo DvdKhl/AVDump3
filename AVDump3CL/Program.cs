@@ -58,7 +58,6 @@ namespace AVDump3CL {
 
 			var settingsModule = moduleManagement.GetModule<AVD3SettingsModule>();
 
-
 			string[] pathsToProcess;
 			try {
 				var parseResult = CLSettingsHandler.ParseArgs(settingsModule.SettingProperties, args);
@@ -105,6 +104,9 @@ namespace AVDump3CL {
 
 			var clModule = moduleManagement.GetModule<AVD3CLModule>();
 			clModule.Process(pathsToProcess.ToArray());
+
+
+			moduleManagement.Shutdown();
 		}
 
 		private static AVD3ModuleManagement CreateModules() {

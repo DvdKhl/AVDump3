@@ -28,5 +28,6 @@ namespace AVDump3Lib.Reporting {
 
 		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) { }
 		public ModuleInitResult Initialized() => new ModuleInitResult(false);
+		public void Shutdown() { }
 	}
 }

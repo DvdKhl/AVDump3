@@ -141,5 +141,6 @@ namespace AVDump3Lib.Processing {
 
 		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) { }
 		public ModuleInitResult Initialized() => new ModuleInitResult(false);
+		public void Shutdown() { }
 	}
 }

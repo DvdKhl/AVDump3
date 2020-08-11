@@ -51,5 +51,10 @@ namespace AVDump3Lib.Modules {
 		public IEnumerable<T> OfType<T>() { return modules.OfType<T>(); }
 
 		public void AddModule(IAVD3Module instance) => modules.Add(instance);
+		public void Shutdown() {
+			foreach(var module in modules) {
+				module.Shutdown();
+			}
+		}
 	}
 }
