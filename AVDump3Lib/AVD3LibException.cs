@@ -19,28 +19,27 @@ namespace AVDump3Lib {
 
 		public XElement ToXElement(bool skipInformationElement, bool includePersonalData) {
 			return new XElement(GetType().Name,
-				!skipInformationElement ? AddEnvironmentInfo(includePersonalData) : null,
+				!skipInformationElement ? AddEnvironmentInfo() : null,
 				new XElement("Message", Message),
 				ToXElementAdditional(includePersonalData),
-				new XElement("Data", Data?.Cast<DictionaryEntry>().Select(
-					x => new XElement(x.Key.ToString(), HandleSensitiveData(x.Value, includePersonalData)))),
+				new XElement("Data", Data?.Cast<DictionaryEntry>().Select(x => new XElement(x.Key.ToString(), HandleSensitiveData(x.Value, includePersonalData)))),
 				new XElement("Cause", ToXElement(InnerException, includePersonalData)),
 				new XElement("Stacktrace", StackTrace?.Split('\n').Select(x => new XElement("Frame", x.Trim()))),
 				new XAttribute("thrownOn", ThrownOn.ToString("yyyy-MM-dd HH:mm:ss.ffff", CultureInfo.InvariantCulture))
 			);
 		}
 
-		protected static string HandleSensitiveData(object value, bool includePersonalData) {
+		protected static string HandleSensitiveData(object? value, bool includePersonalData) {
 			if(includePersonalData && value is SensitiveData) {
-				return ((SensitiveData)value).Data.ToString();
+				return ((SensitiveData)value).Data.ToString() ?? "";
 			} else {
-				return value.ToString();
+				return value?.ToString() ?? "";
 			}
 		}
 
-		private static XElement AddEnvironmentInfo(bool includePersonalData) {
+		private static XElement AddEnvironmentInfo() {
 			var infoElem = new XElement("Information");
-			infoElem.Add(new XElement("EntryAssemblyVersion", Assembly.GetEntryAssembly().GetName().Version));
+			infoElem.Add(new XElement("EntryAssemblyVersion", Assembly.GetEntryAssembly()?.GetName().Version));
 			infoElem.Add(new XElement("LibVersion", Assembly.GetExecutingAssembly().GetName().Version));
 			infoElem.Add(SensitiveData.GetSessionElement);
 			infoElem.Add(new XElement("Framework", Environment.Version));
@@ -52,7 +51,6 @@ namespace AVDump3Lib {
 			infoElem.Add(new XElement("UserInteractive", Environment.UserInteractive));
 			infoElem.Add(new XElement("SystemPageSize", Environment.SystemPageSize));
 			infoElem.Add(new XElement("WorkingSet", Environment.WorkingSet));
-			if(includePersonalData) infoElem.Add(new XElement("Commandline", Environment.CommandLine));
 
 			return infoElem;
 		}
@@ -60,7 +58,7 @@ namespace AVDump3Lib {
 		protected virtual IEnumerable<XElement> ToXElementAdditional(bool includePersonalData) { yield break; }
 
 
-		protected static XElement ToXElement(Exception ex, bool includePersonalData) {
+		protected static XElement? ToXElement(Exception? ex, bool includePersonalData) {
 			if(ex is null) return null;
 
 			XElement exElem;

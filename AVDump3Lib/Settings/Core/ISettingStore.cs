@@ -6,7 +6,7 @@ namespace AVDump3Lib.Settings.Core {
 
 		ImmutableArray<ISettingProperty> SettingProperties { get; }
 
-		object? ContainsProperty(ISettingProperty settingProperty);
+		bool ContainsProperty(ISettingProperty settingProperty);
 		object? GetPropertyValue(ISettingProperty settingProperty);
 		object? GetRawPropertyValue(ISettingProperty settingProperty);
 		void SetPropertyValue(ISettingProperty settingProperty, object? value);

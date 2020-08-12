@@ -15,6 +15,7 @@ namespace AVDump3CL {
 		public DisplaySettings Display { get; }
 
 		public AVD3CLSettings(ISettingStore store) : base(store) {
+
 			Display = new DisplaySettings(store);
 		}
 
@@ -36,11 +37,11 @@ namespace AVDump3CL {
 		public static ISettingGroup SettingGroup { get; } = new SettingGroup(nameof(DisplaySettings)[0..^8], Lang.ResourceManager);
 		public static ImmutableArray<ISettingProperty> SettingProperties { get; private set; } = CreateProperties().ToImmutableArray();
 		public static IEnumerable<ISettingProperty> CreateProperties() {
-			yield return From(SettingGroup, nameof(HideBuffers), None, false);
-			yield return From(SettingGroup, nameof(HideFileProgress), None, false);
-			yield return From(SettingGroup, nameof(HideTotalProgress), None, false);
-			yield return From(SettingGroup, nameof(ShowDisplayJitter), None, false);
-			yield return From(SettingGroup, nameof(ForwardConsoleCursorOnly), None, false);
+			yield return From(SettingGroup, nameof(HideBuffers), None, AVD3UISettings.UnspecifiedType, false);
+			yield return From(SettingGroup, nameof(HideFileProgress), None, AVD3UISettings.UnspecifiedType, false);
+			yield return From(SettingGroup, nameof(HideTotalProgress), None, AVD3UISettings.UnspecifiedType, false);
+			yield return From(SettingGroup, nameof(ShowDisplayJitter), None, AVD3UISettings.UnspecifiedType, false);
+			yield return From(SettingGroup, nameof(ForwardConsoleCursorOnly), None, AVD3UISettings.UnspecifiedType, false);
 		}
 	}
 

@@ -39,20 +39,20 @@ namespace AVDump3Lib.Settings.Core {
 
 		protected static ImmutableArray<string> Names(params string[] altNames) => altNames.ToImmutableArray();
 
-		protected static ISettingProperty FromWithNullToNull<T>(ISettingGroup group, string name, ImmutableArray<string> alternativeNames, T defaultValue, SettingFacadeToObjectNonNull<T> toObject, SettingFacadeToStringNonNull<T> toString) where T : class {
-			return new SettingProperty(name, alternativeNames, group, typeof(T), defaultValue, (p, s) => s == null ? null : toObject(p, s), (p, o) => o == null ? null : toString(p, (T)o));
+		protected static ISettingProperty FromWithNullToNull<T>(ISettingGroup group, string name, ImmutableArray<string> alternativeNames, object userValueTyp, T defaultValue, SettingFacadeToObjectNonNull<T> toObject, SettingFacadeToStringNonNull<T> toString) where T : class {
+			return new SettingProperty(name, alternativeNames, group, typeof(T), userValueTyp, defaultValue, (p, s) => s == null ? null : toObject(p, s), (p, o) => o == null ? null : toString(p, (T)o));
 		}
-		protected static ISettingProperty From<T>(ISettingGroup group, string name, ImmutableArray<string> alternativeNames, T? defaultValue, SettingFacadeToObject<T> toObject, SettingFacadeToString<T> toString) where T : class {
-			return new SettingProperty(name, alternativeNames, group, typeof(T), defaultValue, (p, s) => toObject(p, s), (p, o) => toString(p, (T?)o));
+		protected static ISettingProperty From<T>(ISettingGroup group, string name, ImmutableArray<string> alternativeNames, object? userValueTyp, T? defaultValue, SettingFacadeToObject<T> toObject, SettingFacadeToString<T> toString) where T : class {
+			return new SettingProperty(name, alternativeNames, group, typeof(T), userValueTyp, defaultValue, (p, s) => toObject(p, s), (p, o) => toString(p, (T?)o));
 		}
-		protected static ISettingProperty From<T>(ISettingGroup group, string name, ImmutableArray<string> alternativeNames, T defaultValue, SettingFacadeToObjectNonNull<T> toObject, SettingFacadeToStringNonNull<T> toString) where T : struct {
-			return new SettingProperty(name, alternativeNames, group, typeof(T), defaultValue, (p, s) => toObject(p, s ?? ""), (p, o) => o == null ? "" : toString(p, (T)o));
+		protected static ISettingProperty From<T>(ISettingGroup group, string name, ImmutableArray<string> alternativeNames, object? userValueTyp, T defaultValue, SettingFacadeToObjectNonNull<T> toObject, SettingFacadeToStringNonNull<T> toString) where T : struct {
+			return new SettingProperty(name, alternativeNames, group, typeof(T), userValueTyp, defaultValue, (p, s) => toObject(p, s ?? ""), (p, o) => o == null ? "" : toString(p, (T)o));
 		}
-		protected static ISettingProperty From<T>(ISettingGroup group, string name, ImmutableArray<string> alternativeNames, T defaultValue, SettingPropertyValueToObject toObject, SettingPropertyValueToString toString) {
-			return new SettingProperty(name, alternativeNames, group, typeof(T), defaultValue, toObject, toString);
+		protected static ISettingProperty From<T>(ISettingGroup group, string name, ImmutableArray<string> alternativeNames, object? userValueTyp, T defaultValue, SettingPropertyValueToObject toObject, SettingPropertyValueToString toString) {
+			return new SettingProperty(name, alternativeNames, group, typeof(T), userValueTyp, defaultValue, toObject, toString);
 		}
-		protected static ISettingProperty From<T>(ISettingGroup group, string name, ImmutableArray<string> alternativeNames, T defaultValue) {
-			return new SettingProperty(name, alternativeNames, group, typeof(T), defaultValue, DefaultToObject, DefaultToString);
+		protected static ISettingProperty From<T>(ISettingGroup group, string name, ImmutableArray<string> alternativeNames, object? userValueTyp, T defaultValue) {
+			return new SettingProperty(name, alternativeNames, group, typeof(T), userValueTyp, defaultValue, DefaultToObject, DefaultToString);
 		}
 
 		private readonly ISettingGroup settingGroup;

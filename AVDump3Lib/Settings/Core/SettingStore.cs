@@ -12,7 +12,7 @@ namespace AVDump3Lib.Settings.Core {
 
 		public object? GetRawPropertyValue(ISettingProperty settingProperty) => values.TryGetValue(settingProperty, out var value) ? value : ISettingStore.Unset;
 		public object? GetPropertyValue(ISettingProperty settingProperty) => values.TryGetValue(settingProperty, out var value) ? value : (settingProperty ?? throw new ArgumentNullException(nameof(settingProperty))).DefaultValue;
-		public object? ContainsProperty(ISettingProperty settingProperty) => values.ContainsKey(settingProperty);
+		public bool ContainsProperty(ISettingProperty settingProperty) => values.ContainsKey(settingProperty);
 		public void SetPropertyValue(ISettingProperty settingProperty, object? value) {
 			if(value == ISettingStore.Unset) {
 				values.Remove(settingProperty);

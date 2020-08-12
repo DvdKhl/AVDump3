@@ -125,6 +125,21 @@ namespace AVDump3CL {
 		}
 
 		private void OnException(AVD3LibException ex) {
+			if(settings?.Diagnostics.IncludePersonalData ?? false) {
+				string? GetPropertyValue(ISettingProperty x) {
+					if(x.UserValueType == AVD3UISettings.PasswordType) {
+						return "Hidden";
+					} else {
+						return x.ToString(settings.Store.GetPropertyValue(x));
+					}
+				}
+
+				var effectiveArgs = string.Join(" ", settings.Store.SettingProperties.Where(x => settings.Store.ContainsProperty(x)).Select(x => $"{x.Group.FullName}.{x.Name}={GetPropertyValue(x)}"));
+
+				ex.Data.Add("EffectiveCommandLineArguments", effectiveArgs);
+			}
+
+
 			var exElem = ex.ToXElement(
 				settings?.Diagnostics.SkipEnvironmentElement ?? false,
 				settings?.Diagnostics.IncludePersonalData ?? false
@@ -150,6 +165,7 @@ namespace AVDump3CL {
 			}
 
 			ExceptionThrown?.Invoke(this, new AVD3CLModuleExceptionEventArgs(exElem));
+
 		}
 
 		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) {
@@ -710,10 +726,5 @@ namespace AVDump3CL {
 		}
 
 		public void Shutdown() { }
-	}
-
-	public class AVD3CLException : AVD3LibException {
-		public AVD3CLException(string message, Exception innerException) : base(message, innerException) { }
-		public AVD3CLException(string message) : base(message) { }
 	}
 }

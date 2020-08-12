@@ -18,6 +18,9 @@ using System.Threading.Tasks;
 
 namespace AVDump3UI {
 	public class AVD3UISettings {
+		public static readonly object UnspecifiedType = new object();
+		public static readonly object PasswordType = new object();
+
 		protected class ResourceManagerMerged : ResourceManager {
 			private readonly ResourceManager main;
 			private readonly ResourceManager fallback;
@@ -42,9 +45,12 @@ namespace AVDump3UI {
 		public ReportingSettings Reporting { get; }
 		public DiagnosticsSettings Diagnostics { get; }
 		public FileMoveSettings FileMove { get; }
+		public ISettingStore Store { get; }
 
 
 		public AVD3UISettings(ISettingStore store) {
+			Store = store;
+
 			FileDiscovery = new FileDiscoverySettings(store);
 			Processing = new ProcessingSettings(store);
 			Reporting = new ReportingSettings(store);
@@ -114,12 +120,12 @@ namespace AVDump3UI {
 		public static ISettingGroup SettingGroup { get; } = new SettingGroup(nameof(FileDiscoverySettings)[0..^8], Lang.ResourceManager);
 		public static ImmutableArray<ISettingProperty> SettingProperties { get; private set; } = CreateProperties().ToImmutableArray();
 		public static IEnumerable<ISettingProperty> CreateProperties() {
-			yield return From(SettingGroup, nameof(Recursive), Names("R"), false);
-			yield return From(SettingGroup, nameof(ProcessedLogPath), Names("PLPath"),  ImmutableArray<string>.Empty);
-			yield return From(SettingGroup, nameof(SkipLogPath), Names("SLPath"), ImmutableArray<string>.Empty);
-			yield return From(SettingGroup, nameof(DoneLogPath), Names("DLPath"), "");
+			yield return From(SettingGroup, nameof(Recursive), Names("R"), AVD3UISettings.UnspecifiedType, false);
+			yield return From(SettingGroup, nameof(ProcessedLogPath), Names("PLPath"), AVD3UISettings.UnspecifiedType, ImmutableArray<string>.Empty);
+			yield return From(SettingGroup, nameof(SkipLogPath), Names("SLPath"), AVD3UISettings.UnspecifiedType, ImmutableArray<string>.Empty);
+			yield return From(SettingGroup, nameof(DoneLogPath), Names("DLPath"), AVD3UISettings.UnspecifiedType, "");
 
-			yield return FromWithNullToNull(SettingGroup, nameof(WithExtensions), Names("WExts"), new FileExtensionsSetting() { Allow = true },
+			yield return FromWithNullToNull(SettingGroup, nameof(WithExtensions), Names("WExts"), AVD3UISettings.UnspecifiedType, new FileExtensionsSetting() { Allow = true },
 				(p, s) => {
 					var value = new FileExtensionsSetting { Allow = s == null || s.Length != 0 && s[0] != '-' };
 					if(!value.Allow) s = s?.Substring(1) ?? "";
@@ -129,7 +135,7 @@ namespace AVDump3UI {
 				(p, o) => (o.Allow ? "" : "-") + string.Join(",", o.Items)
 			);
 
-			yield return FromWithNullToNull(SettingGroup, nameof(Concurrent), Names("Conc"), new PathPartitions(1, Array.Empty<PathPartition>()),
+			yield return FromWithNullToNull(SettingGroup, nameof(Concurrent), Names("Conc"), AVD3UISettings.UnspecifiedType, new PathPartitions(1, Array.Empty<PathPartition>()),
 				(p, s) => {
 					var raw = (s ?? "").Split(new char[] { ':' }, 2);
 					return new PathPartitions(
@@ -157,21 +163,21 @@ namespace AVDump3UI {
 		public static ISettingGroup SettingGroup { get; } = new SettingGroup(nameof(ProcessingSettings)[0..^8], Lang.ResourceManager);
 		public static ImmutableArray<ISettingProperty> SettingProperties { get; private set; } = CreateProperties().ToImmutableArray();
 		public static IEnumerable<ISettingProperty> CreateProperties() {
-			yield return From(SettingGroup, nameof(ProducerMinReadLength), None, 1 << 20,
+			yield return From(SettingGroup, nameof(ProducerMinReadLength), None, AVD3UISettings.UnspecifiedType, 1 << 20,
 				(p, s) => s.ToInvInt32() << 20,
 				(p, o) => (o >> 20).ToString()
 			);
-			yield return From(SettingGroup, nameof(ProducerMaxReadLength), None, 8 << 20,
+			yield return From(SettingGroup, nameof(ProducerMaxReadLength), None, AVD3UISettings.UnspecifiedType, 8 << 20,
 				(p, s) => s.ToInvInt32() << 20,
 				(p, o) => (o >> 20).ToString()
 			);
-			yield return From(SettingGroup, nameof(PrintAvailableSIMDs), None, false);
-			yield return From(SettingGroup, nameof(PauseBeforeExit), Names("PBExit"), false);
-			yield return From(SettingGroup, nameof(BufferLength), Names("BLength"), 64 << 20,
+			yield return From(SettingGroup, nameof(PrintAvailableSIMDs), None, AVD3UISettings.UnspecifiedType, false);
+			yield return From(SettingGroup, nameof(PauseBeforeExit), Names("PBExit"), AVD3UISettings.UnspecifiedType, false);
+			yield return From(SettingGroup, nameof(BufferLength), Names("BLength"), AVD3UISettings.UnspecifiedType, 64 << 20,
 				(p, s) => s.ToInvInt32() << 20,
 				(p, o) => (o >> 20).ToString()
 			);
-			yield return From(SettingGroup, nameof(Consumers), Names("Cons"), ImmutableArray<ConsumerSettings>.Empty,
+			yield return From(SettingGroup, nameof(Consumers), Names("Cons"), AVD3UISettings.UnspecifiedType, ImmutableArray<ConsumerSettings>.Empty,
 				(p, s) => {
 					if(s != null && s.Length == 0) return null;
 					//See ToCLString
@@ -202,16 +208,16 @@ namespace AVDump3UI {
 		public static ISettingGroup SettingGroup { get; } = new SettingGroup(nameof(FileMoveSettings)[0..^8], Lang.ResourceManager);
 		public static ImmutableArray<ISettingProperty> SettingProperties { get; private set; } = CreateProperties().ToImmutableArray();
 		public static IEnumerable<ISettingProperty> CreateProperties() {
-			yield return From(SettingGroup, nameof(Test), None, false);
-			yield return From(SettingGroup, nameof(LogPath), None, "");
-			yield return From(SettingGroup, nameof(Mode), None, FileMoveMode.None,
+			yield return From(SettingGroup, nameof(Test), None, AVD3UISettings.UnspecifiedType, false);
+			yield return From(SettingGroup, nameof(LogPath), None, AVD3UISettings.UnspecifiedType, "");
+			yield return From(SettingGroup, nameof(Mode), None, AVD3UISettings.UnspecifiedType, FileMoveMode.None,
 				(p, s) => Enum.Parse<FileMoveMode>(s),
 				(p, o) => o.ToString()
 			);
-			yield return From(SettingGroup, nameof(Pattern), None, "${DirectoryName}" + Path.DirectorySeparatorChar + "${FileNameWithoutExtension}${FileExtension}");
-			yield return From(SettingGroup, nameof(DisableFileMove), None, false);
-			yield return From(SettingGroup, nameof(DisableFileRename), None, false);
-			yield return From(SettingGroup, nameof(Replacements), None, ImmutableArray<(string Value, string Replacement)>.Empty,
+			yield return From(SettingGroup, nameof(Pattern), None, AVD3UISettings.UnspecifiedType, "${DirectoryName}" + Path.DirectorySeparatorChar + "${FileNameWithoutExtension}${FileExtension}");
+			yield return From(SettingGroup, nameof(DisableFileMove), None, AVD3UISettings.UnspecifiedType, false);
+			yield return From(SettingGroup, nameof(DisableFileRename), None, AVD3UISettings.UnspecifiedType, false);
+			yield return From(SettingGroup, nameof(Replacements), None, AVD3UISettings.UnspecifiedType, ImmutableArray<(string Value, string Replacement)>.Empty,
 				(p, s) => (s ?? "").Split(';').Select(x => x.Split('=')).Select(x => (x[0], x[1])).ToImmutableArray(),
 				(p, o) => string.Join(", ", ((IEnumerable<(string Value, string Replacement)>)o).Select(x => $"({x.Value}, {x.Replacement})"))
 			);
@@ -232,9 +238,9 @@ namespace AVDump3UI {
 		public static ISettingGroup SettingGroup { get; } = new SettingGroup(nameof(ReportingSettings)[0..^8], Lang.ResourceManager);
 		public static ImmutableArray<ISettingProperty> SettingProperties { get; private set; } = CreateProperties().ToImmutableArray();
 		public static IEnumerable<ISettingProperty> CreateProperties() {
-			yield return From(SettingGroup, nameof(PrintHashes), None, false);
-			yield return From(SettingGroup, nameof(PrintReports), None, false);
-			yield return From(SettingGroup, nameof(Reports), None, ImmutableArray<string>.Empty,
+			yield return From(SettingGroup, nameof(PrintHashes), None, AVD3UISettings.UnspecifiedType, false);
+			yield return From(SettingGroup, nameof(PrintReports), None, AVD3UISettings.UnspecifiedType, false);
+			yield return From(SettingGroup, nameof(Reports), None, AVD3UISettings.UnspecifiedType, ImmutableArray<string>.Empty,
 				(p, s) => {
 					if(s != null && s.Length == 0) return null;
 					return (s ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToImmutableArray();
@@ -244,10 +250,10 @@ namespace AVDump3UI {
 					return lst != null ? (lst.Value.Length == 0 ? null : string.Join(",", lst)) : "";
 				}
 			);
-			yield return From(SettingGroup, nameof(ReportDirectory), Names("RDir"), Environment.CurrentDirectory);
-			yield return From(SettingGroup, nameof(ReportFileName), None, "${FileName}.${ReportName}.${ReportFileExtension}");
-			yield return From(SettingGroup, nameof(ExtensionDifferencePath), Names("EDPath"), "");
-			yield return From(SettingGroup, nameof(CRC32Error), None, ("", "(?i)${CRC32}"),
+			yield return From(SettingGroup, nameof(ReportDirectory), Names("RDir"), AVD3UISettings.UnspecifiedType, Environment.CurrentDirectory);
+			yield return From(SettingGroup, nameof(ReportFileName), None, "${FileName}.${ReportName}.${ReportFileExtension}", AVD3UISettings.UnspecifiedType);
+			yield return From(SettingGroup, nameof(ExtensionDifferencePath), Names("EDPath"), AVD3UISettings.UnspecifiedType, "");
+			yield return From(SettingGroup, nameof(CRC32Error), None, AVD3UISettings.UnspecifiedType, ("", "(?i)${CRC32}"),
 				(p, s) => {
 					var parts = s?.Split(new[] { ',' }, 2) ?? Array.Empty<string>();
 					var retVal = parts.Length == 1 ? (parts[0], "(?i)${CRC32}") : (parts[0], parts[1]);
@@ -272,13 +278,13 @@ namespace AVDump3UI {
 		public static ISettingGroup SettingGroup { get; } = new SettingGroup(nameof(DiagnosticsSettings)[0..^8], Lang.ResourceManager);
 		public static ImmutableArray<ISettingProperty> SettingProperties { get; private set; } = CreateProperties().ToImmutableArray();
 		public static IEnumerable<ISettingProperty> CreateProperties() {
-			yield return From(SettingGroup, nameof(Version), None, false);
-			yield return From(SettingGroup, nameof(SaveErrors), None, false);
-			yield return From(SettingGroup, nameof(SkipEnvironmentElement), None, false);
-			yield return From(SettingGroup, nameof(IncludePersonalData), None, false);
-			yield return From(SettingGroup, nameof(PrintDiscoveredFiles), None, false);
-			yield return From(SettingGroup, nameof(ErrorDirectory), None, Environment.CurrentDirectory);
-			yield return From(SettingGroup, nameof(NullStreamTest), None, new NullStreamTestSettings(0, 0, 0),
+			yield return From(SettingGroup, nameof(Version), None, AVD3UISettings.UnspecifiedType, false);
+			yield return From(SettingGroup, nameof(SaveErrors), None, AVD3UISettings.UnspecifiedType, false);
+			yield return From(SettingGroup, nameof(SkipEnvironmentElement), None, AVD3UISettings.UnspecifiedType, false);
+			yield return From(SettingGroup, nameof(IncludePersonalData), None, AVD3UISettings.UnspecifiedType, false);
+			yield return From(SettingGroup, nameof(PrintDiscoveredFiles), None, AVD3UISettings.UnspecifiedType, false);
+			yield return From(SettingGroup, nameof(ErrorDirectory), None, AVD3UISettings.UnspecifiedType, Environment.CurrentDirectory);
+			yield return From(SettingGroup, nameof(NullStreamTest), None, AVD3UISettings.UnspecifiedType, new NullStreamTestSettings(0, 0, 0),
 				(p, s) => {
 					var args = s?.Split(':') ?? Array.Empty<string>();
 					return args.Length == 0 ? null :

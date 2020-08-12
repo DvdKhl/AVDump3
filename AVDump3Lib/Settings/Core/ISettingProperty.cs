@@ -8,6 +8,7 @@ namespace AVDump3Lib.Settings.Core {
 		ISettingGroup Group { get; }
 		string Name { get; }
 		Type ValueType { get; }
+		object? UserValueType { get; }
 
 		object? ToObject(string? stringValue);
 		string? ToString(object? objectValue);
