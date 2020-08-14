@@ -176,11 +176,12 @@ namespace AVDump3CL {
 			if(!settings.HideTotalProgress && TotalBytes > 0) {
 				var barWidth = consoleWidth - 30;
 
-				var bytesProcessedFactorPrev = (double)prevP.BytesProcessed / TotalBytes;
-				var bytesProcessedFactorCur = (double)curP.BytesProcessed / TotalBytes;
+				var bytesProcessedFactorPrev = Math.Clamp((double)prevP.BytesProcessed / TotalBytes, 0, 1);
+				var bytesProcessedFactorCur = Math.Clamp((double)curP.BytesProcessed / TotalBytes, 0, 1);
 
 				//Hack because there is a bug which causes prev to be higher than cur
 				if(bytesProcessedFactorPrev > bytesProcessedFactorCur) bytesProcessedFactorCur = bytesProcessedFactorPrev;
+
 
 				var bytesProcessedFactor = bytesProcessedFactorPrev + relPos * (bytesProcessedFactorCur - bytesProcessedFactorPrev);
 				sb.Append("Total ").AppendBar(consoleWidth - 31, bytesProcessedFactor).Append(' ');
