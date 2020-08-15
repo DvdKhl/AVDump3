@@ -134,7 +134,7 @@ namespace AVDump3CL {
 					}
 				}
 
-				var effectiveArgs = string.Join(" ", settings.Store.SettingProperties.Where(x => settings.Store.ContainsProperty(x)).Select(x => $"{x.Group.FullName}.{x.Name}={GetPropertyValue(x)}"));
+				var effectiveArgs = settings.Store.SettingProperties.Where(x => settings.Store.ContainsProperty(x)).Select(x => new XElement("Argument", $"{x.Group.FullName}.{x.Name}={GetPropertyValue(x)}"));
 
 				ex.Data.Add("EffectiveCommandLineArguments", effectiveArgs);
 			}

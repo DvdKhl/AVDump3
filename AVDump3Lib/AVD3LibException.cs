@@ -29,11 +29,11 @@ namespace AVDump3Lib {
 			);
 		}
 
-		protected static string HandleSensitiveData(object? value, bool includePersonalData) {
-			if(includePersonalData && value is SensitiveData) {
-				return ((SensitiveData)value).Data.ToString() ?? "";
+		protected static object HandleSensitiveData(object? value, bool includePersonalData) {
+			if(includePersonalData && value is SensitiveData data) {
+				return data.GetRawValue() ?? "";
 			} else {
-				return value?.ToString() ?? "";
+				return value ?? "";
 			}
 		}
 
@@ -107,6 +107,7 @@ namespace AVDump3Lib {
 	public class SensitiveData {
 		private static readonly Guid session = Guid.NewGuid();
 		private static readonly SHA512 hashObj = SHA512.Create();
+		private object data;
 
 		public static XElement GetSessionElement => new XElement("Session", session);
 
@@ -118,8 +119,8 @@ namespace AVDump3Lib {
 			}
 		}
 
-		public object Data { get; private set; }
-		public SensitiveData(object data) { Data = data; }
-		public override string ToString() { return "Hidden(" + ComputeHash(Data?.ToString() ?? "") + ")"; }
+		public SensitiveData(object data) { this.data = data; }
+		public override string ToString() { return "Hidden(" + ComputeHash(data?.ToString() ?? "") + ")"; }
+		public object GetRawValue() => data;
 	}
 }

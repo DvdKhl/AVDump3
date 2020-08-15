@@ -251,7 +251,7 @@ namespace AVDump3UI {
 				}
 			);
 			yield return From(SettingGroup, nameof(ReportDirectory), Names("RDir"), AVD3UISettings.UnspecifiedType, Environment.CurrentDirectory);
-			yield return From(SettingGroup, nameof(ReportFileName), None, "${FileName}.${ReportName}.${ReportFileExtension}", AVD3UISettings.UnspecifiedType);
+			yield return From(SettingGroup, nameof(ReportFileName), None, AVD3UISettings.UnspecifiedType, "${FileName}.${ReportName}.${ReportFileExtension}");
 			yield return From(SettingGroup, nameof(ExtensionDifferencePath), Names("EDPath"), AVD3UISettings.UnspecifiedType, "");
 			yield return From(SettingGroup, nameof(CRC32Error), None, AVD3UISettings.UnspecifiedType, ("", "(?i)${CRC32}"),
 				(p, s) => {
