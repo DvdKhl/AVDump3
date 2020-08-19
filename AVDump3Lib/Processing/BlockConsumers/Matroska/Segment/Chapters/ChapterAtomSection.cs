@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
 	public class ChapterAtomSection : Section {
-		private ImmutableArray<byte> chapterSegmentUId;
 		private bool? enabled, hidden;
 
 		public ulong? ChapterUId { get; private set; }
@@ -50,7 +49,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
 			} else if(reader.DocElement == MatroskaDocType.ChapterFlagHidden) {
 				hidden = (ulong)reader.RetrieveValue() == 1;
 			} else if(reader.DocElement == MatroskaDocType.ChapterSegmentUID) {
-				chapterSegmentUId = ((byte[])reader.RetrieveValue()).ToImmutableArray();
+				ChapterSegmentUId = ((byte[])reader.RetrieveValue()).ToImmutableArray();
 			} else if(reader.DocElement == MatroskaDocType.ChapterSegmentEditionUID) {
 				ChapterSegmentEditionUId = (ulong)reader.RetrieveValue();
 			} else if(reader.DocElement == MatroskaDocType.ChapterPhysicalEquiv) {

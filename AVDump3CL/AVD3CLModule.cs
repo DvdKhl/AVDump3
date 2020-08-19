@@ -262,7 +262,7 @@ namespace AVDump3CL {
 
 			//Don't cancel startup when DoneLogPath doesn't exist yet
 			if(!string.IsNullOrEmpty(settings.FileDiscovery.DoneLogPath) && !File.Exists(settings.FileDiscovery.DoneLogPath)) {
-				lineWriter.AppendLine(settings.FileDiscovery.DoneLogPath, "");
+				File.Open(settings.FileDiscovery.DoneLogPath, FileMode.OpenOrCreate).Dispose();
 			}
 
 			var invalidFilePaths = settings.FileDiscovery.SkipLogPath.Where(p => !File.Exists(p));
@@ -447,7 +447,7 @@ namespace AVDump3CL {
 
 					if(settings.FileDiscovery.ProcessedLogPath.Any() && success) {
 						foreach(var processedLogPath in settings.FileDiscovery.ProcessedLogPath) {
-							lineWriter.AppendLine(processedLogPath, fileMetaInfo.FileInfo.FullName + "\n");
+							lineWriter.AppendLine(processedLogPath, fileMetaInfo.FileInfo.FullName);
 						}
 					}
 				}
@@ -497,7 +497,7 @@ namespace AVDump3CL {
 					if(!Regex.IsMatch(fileMetaInfo.FileInfo.FullName, settings.Reporting.CRC32Error?.Pattern.Replace("${CRC32}", crc32HashStr))) {
 						lineWriter.AppendLine(
 							settings.Reporting.CRC32Error.Value.Path,
-							crc32HashStr + " " + fileMetaInfo.FileInfo.FullName + Environment.NewLine
+							crc32HashStr + " " + fileMetaInfo.FileInfo.FullName
 						);
 					}
 				}
@@ -513,7 +513,7 @@ namespace AVDump3CL {
 
 					lineWriter.AppendLine(
 						settings.Reporting.ExtensionDifferencePath,
-						ext + " => " + string.Join(" ", detExts) + "\t" + fileMetaInfo.FileInfo.FullName + Environment.NewLine
+						ext + " => " + string.Join(" ", detExts) + "\t" + fileMetaInfo.FileInfo.FullName
 					);
 				}
 			}
@@ -658,7 +658,7 @@ namespace AVDump3CL {
 								fileMetaInfo.FileInfo.MoveTo(destFilePath);
 
 								if(!string.IsNullOrEmpty(settings.FileMove.LogPath)) {
-									lineWriter.AppendLine(settings.FileMove.LogPath, originalPath + " => " + destFilePath + Environment.NewLine);
+									lineWriter.AppendLine(settings.FileMove.LogPath, originalPath + " => " + destFilePath);
 								}
 							}).ConfigureAwait(false);
 						}
@@ -726,5 +726,73 @@ namespace AVDump3CL {
 		}
 
 		public void Shutdown() { }
+
+
+		public static AVD3ModuleManagement Create(string moduleDirectory) {
+			var moduleManagement = CreateModules(moduleDirectory);
+			moduleManagement.RaiseIntialize();
+			return moduleManagement;
+		}
+		public string[]? HandleArgs(string[] args) {
+			string[] pathsToProcess;
+			var settingsModule = modules.OfType<AVD3SettingsModule>().Single();
+			try {
+				var parseResult = CLSettingsHandler.ParseArgs(settingsModule.SettingProperties, args);
+				if(args.Contains("PRINTARGS")) {
+					foreach(var arg in parseResult.RawArgs) System.Console.WriteLine(arg);
+					System.Console.WriteLine();
+
+				}
+
+				if(!parseResult.Success) {
+					System.Console.WriteLine(parseResult.Message);
+					if(Utils.UsingWindows) System.Console.Read();
+					return null;
+				}
+
+				if(parseResult.PrintHelp) {
+					CLSettingsHandler.PrintHelp(settingsModule.SettingProperties, parseResult.PrintHelpTopic, args.Length != 0);
+					return null;
+				}
+
+
+				var settingsStore = settingsModule.BuildStore();
+				foreach(var settingValue in parseResult.SettingValues) {
+					settingsStore.SetPropertyValue(settingValue.Key, settingValue.Value);
+				}
+
+				pathsToProcess = parseResult.UnnamedArgs.ToArray();
+
+			} catch(Exception ex) {
+				System.Console.WriteLine("Error while parsing commandline arguments:");
+				System.Console.WriteLine(ex.Message);
+				return null;
+			}
+
+			return pathsToProcess;
+		}
+
+		public bool Run(AVD3ModuleManagement moduleManagement) {
+			var moduleInitResult = moduleManagement.RaiseInitialized();
+			if(moduleInitResult.CancelStartup) {
+				if(!string.IsNullOrEmpty(moduleInitResult.Reason)) {
+					System.Console.WriteLine("Startup Cancel: " + moduleInitResult.Reason);
+				}
+				return false;
+			}
+			return true;
+		}
+
+		private static AVD3ModuleManagement CreateModules(string moduleDirectory) {
+			var moduleManagement = new AVD3ModuleManagement();
+			moduleManagement.LoadModuleFromType(typeof(AVD3CLModule));
+			if(!string.IsNullOrEmpty(moduleDirectory)) moduleManagement.LoadModules(moduleDirectory);
+			moduleManagement.LoadModuleFromType(typeof(AVD3InformationModule));
+			moduleManagement.LoadModuleFromType(typeof(AVD3ProcessingModule));
+			moduleManagement.LoadModuleFromType(typeof(AVD3ReportingModule));
+			moduleManagement.LoadModuleFromType(typeof(AVD3SettingsModule));
+			return moduleManagement;
+		}
+
 	}
 }

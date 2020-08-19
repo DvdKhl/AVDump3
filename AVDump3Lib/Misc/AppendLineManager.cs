@@ -11,7 +11,7 @@ namespace AVDump3Lib.Misc {
 		public void AppendLine(string filePath, string line) {
 			lock(streamWriters) {
 				if(!streamWriters.TryGetValue(filePath, out var streamWriter)) {
-					streamWriter = streamWriters[filePath] = new StreamWriter(filePath, true);
+					streamWriter = streamWriters[filePath] = new StreamWriter(File.Open(filePath, FileMode.Append, FileAccess.Write, FileShare.Read));
 				}
 
 				if(!string.IsNullOrEmpty(line)) {

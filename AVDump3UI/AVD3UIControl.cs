@@ -537,7 +537,7 @@ namespace AVDump3UI {
 						lock(settings.Reporting) {
 							File.AppendAllText(
 								settings.Reporting.CRC32Error?.Path,
-								crc32HashStr + " " + fileMetaInfo.FileInfo.FullName + Environment.NewLine
+								crc32HashStr + " " + fileMetaInfo.FileInfo.FullName
 							);
 						}
 					}
@@ -555,7 +555,7 @@ namespace AVDump3UI {
 					lock(settings.Reporting) {
 						File.AppendAllText(
 							settings.Reporting.ExtensionDifferencePath,
-							ext + " => " + string.Join(" ", detExts) + "\t" + fileMetaInfo.FileInfo.FullName + Environment.NewLine
+							ext + " => " + string.Join(" ", detExts) + "\t" + fileMetaInfo.FileInfo.FullName
 						);
 					}
 				}
@@ -693,7 +693,7 @@ namespace AVDump3UI {
 
 								if(!string.IsNullOrEmpty(settings.FileMove.LogPath)) {
 									lock(fileSystemLock) {
-										File.AppendAllText(settings.FileMove.LogPath, originalPath + " => " + destFilePath + Environment.NewLine);
+										File.AppendAllText(settings.FileMove.LogPath, originalPath + " => " + destFilePath);
 									}
 								}
 							}).ConfigureAwait(false);

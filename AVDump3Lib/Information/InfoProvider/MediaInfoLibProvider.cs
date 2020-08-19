@@ -256,12 +256,14 @@ namespace AVDump3Lib.Information.InfoProvider {
 					string streamGet(string key) => new string(mil.Get(key, streamType, streamIndex)?.Trim().Where(c => XmlConvert.IsXmlChar(c)).ToArray() ?? Array.Empty<char>()); //TODO
 
 					ulong? id = null;
-					if(!string.IsNullOrEmpty(streamGet("UniqueID"))) {
-						id = streamGet("UniqueID").ToInvUInt64();
-					}
-					if(!id.HasValue && !string.IsNullOrEmpty(streamGet("ID"))) {
-						id = streamGet("ID").InvReplace("-", "000").ToInvUInt64();
-					}
+					try {
+						if(!string.IsNullOrEmpty(streamGet("UniqueID"))) {
+							id = streamGet("UniqueID").ToInvUInt64();
+						}
+						if(!id.HasValue && !string.IsNullOrEmpty(streamGet("ID"))) {
+							id = streamGet("ID").InvReplace("-", "000").ToInvUInt64();
+						}
+					} catch(Exception) { }
 
 					MetaInfoContainer stream;
 					switch(streamType) {
