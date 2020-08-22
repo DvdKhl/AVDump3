@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -12,6 +13,7 @@ namespace AVDump3CL {
 		public int ConsoleWidth { get; private set; }
 		public StringBuilder Buffer { get; } = new StringBuilder();
 		public int ProgressLineCount { get; private set; }
+		public bool Finished { get; private set; }
 
 		public bool SpecialJitterEvent { get; set; }
 
@@ -107,6 +109,7 @@ namespace AVDump3CL {
 			DisplayWidth = Math.Min(120, Console.BufferWidth);
 			ConsoleWidth = Console.BufferWidth;
 		}
+		public void MarkFinished() => Finished = true;
 	}
 
 	public delegate void WriteProgress(AVD3ConsoleProgressBuilder builder);
@@ -129,6 +132,7 @@ namespace AVDump3CL {
 		private readonly AVD3ConsoleProgressBuilder progressBuilder = new AVD3ConsoleProgressBuilder();
 		private readonly List<string> toWrite = new List<string>();
 
+		private readonly bool canManipulateCursor;
 		private int displaySkipCount;
 		private int maxTopCursorPos;
 		private int jitterDisplayUpdateCount;
@@ -140,6 +144,18 @@ namespace AVDump3CL {
 
 		public AVD3Console() {
 			progressTimer = new Timer(OnWriteProgress);
+
+			try {
+				canManipulateCursor = true;
+				CursorVisible = false;
+			} catch(IOException) {
+				canManipulateCursor = false;
+			}
+		}
+
+		public bool CursorVisible {
+			get => canManipulateCursor && Console.CursorVisible;
+			set { if(canManipulateCursor) Console.CursorVisible = value; }
 		}
 
 		public void StartProgressDisplay() {
@@ -157,10 +173,23 @@ namespace AVDump3CL {
 				lock(progressWriteActiveChangeLock) {
 					progressTimer.Change(Timeout.Infinite, Timeout.Infinite);
 					ShowingProgress = false;
+					progressBuilder.MarkFinished();
 
-					Console.SetCursorPosition(0, maxTopCursorPos);
+					progressBuilder.Reset();
+					var cursorTop = Console.CursorTop;
+					for(int i = cursorTop; i < maxTopCursorPos; i++) {
+						progressBuilder.AppendLine();
+					}
+					Console.Write(progressBuilder.Buffer);
+					Console.SetCursorPosition(0, cursorTop);
 				}
 			}
+		}
+
+		public void WriteDisplayProgress() {
+			progressBuilder.Reset();
+			WriteProgress(progressBuilder);
+			Console.Write(progressBuilder.Buffer);
 		}
 
 		private void OnWriteProgress(object? _) {
@@ -227,6 +256,11 @@ namespace AVDump3CL {
 					);
 				}
 
+				if(progressBuilder.SpecialJitterEvent) {
+					//Hack: Windows makes the cursor visible again when the window is resized
+					if(Environment.OSVersion.Platform == PlatformID.Win32NT && CursorVisible) CursorVisible = false;
+				}
+
 
 			} finally {
 				Monitor.Exit(progressWriteLock);
@@ -264,7 +298,10 @@ namespace AVDump3CL {
 			});
 		}
 
-		public void Dispose() => ((IDisposable)progressTimer).Dispose();
+		public void Dispose() {
+			((IDisposable)progressTimer).Dispose();
+			CursorVisible = true;
+		}
 
 		private class ProxyDisposable : IDisposable {
 			private readonly Action dispose;

@@ -15,6 +15,7 @@ namespace AVDump3CL {
 
 		public long TotalBytes { get; set; }
 		public int TotalFiles { get; set; }
+		public bool Finished { get; set; }
 
 		private int maxBCCount;
 		private int maxFCount;
@@ -49,9 +50,6 @@ namespace AVDump3CL {
 			if(state == 0) {
 				prevP = curP;
 				curP = getProgress();
-
-				//Windows makes the cursor visible again when the window is resized
-				if(Environment.OSVersion.Platform == PlatformID.Win32NT && Console.CursorVisible) Console.CursorVisible = false;
 			}
 			var interpolationFactor = (state + 1) / (double)UpdatePeriodInTicks;
 			state++;
@@ -108,7 +106,7 @@ namespace AVDump3CL {
 
 			sb.Append('-', consoleWidth - 2).AppendLine();
 
-			if(!settings.HideBuffers) {
+			if(!settings.HideBuffers && !sb.Finished) {
 				var barWidth = consoleWidth - 8 - 1 - 2 - 2;
 
 				var curBCCount = 0;
@@ -132,7 +130,7 @@ namespace AVDump3CL {
 			}
 
 
-			if(!settings.HideFileProgress) {
+			if(!settings.HideFileProgress && !sb.Finished) {
 				var barWidth = consoleWidth - 23;
 
 				int curFCount = 0;

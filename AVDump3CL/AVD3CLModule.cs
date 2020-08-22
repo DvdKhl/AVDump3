@@ -203,7 +203,7 @@ namespace AVDump3CL {
 			settings = new AVD3CLSettings(args.Store);
 
 			progressDisplay = new AVD3ProgressDisplay(settings.Display);
-			console.WriteProgress += progressDisplay.WriteProgress;
+			console.WriteProgress += progressDisplay.WriteProgress; //TODO Don't use event (Call Order)
 
 			processingModule.RegisterDefaultBlockConsumers((settings.Processing.Consumers ?? ImmutableArray<ConsumerSettings>.Empty).ToDictionary(x => x.Name, x => x.Arguments));
 
@@ -351,7 +351,6 @@ namespace AVDump3CL {
 			using(var cts = new CancellationTokenSource()) {
 				progressDisplay.Initialize(bytesReadProgress.GetProgress);
 
-
 				if(!settings.Display.ForwardConsoleCursorOnly) console.StartProgressDisplay();
 
 				void cancelKeyHandler(object s, ConsoleCancelEventArgs e) {
@@ -360,7 +359,6 @@ namespace AVDump3CL {
 					cts.Cancel();
 				}
 				System.Console.CancelKeyPress += cancelKeyHandler;
-				System.Console.CursorVisible = false;
 				try {
 					streamConsumerCollection.ConsumeStreams(bytesReadProgress, cts.Token);
 					if(console.ShowingProgress) console.StopProgressDisplay();
@@ -374,8 +372,9 @@ namespace AVDump3CL {
 
 				} finally {
 					if(console.ShowingProgress) console.StopProgressDisplay();
-					System.Console.CursorVisible = true;
 				}
+
+				console.WriteDisplayProgress();
 			}
 
 			if(settings.Processing.PauseBeforeExit) {
