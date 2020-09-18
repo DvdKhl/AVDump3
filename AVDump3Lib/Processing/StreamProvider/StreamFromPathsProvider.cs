@@ -77,8 +77,10 @@ namespace AVDump3Lib.Processing.StreamProvider {
 				var path = localLimits[i].Files.Dequeue();
 				ProvidedStreamFromPath? providedStream = null;
 				try {
-					providedStream = new ProvidedStreamFromPath(this, path); //TODO error handling (e.g. file not found)
-				} catch(FileNotFoundException) {
+					providedStream = new ProvidedStreamFromPath(this, path);
+				} catch(FileNotFoundException) { //TODO error handling
+					Release(path);
+				} catch(IOException) { //TODO error handling
 					Release(path);
 				}
 

@@ -2,6 +2,7 @@
 using AVDump3Lib.Misc;
 using AVDump3Lib.Modules;
 using AVDump3Lib.Processing;
+using AVDump3Lib.Processing.HashAlgorithms;
 using AVDump3Lib.Reporting;
 using AVDump3Lib.Settings;
 using AVDump3Lib.Settings.CLArguments;
@@ -13,7 +14,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace AVDump3CL {
 	public class AVD3CLInstance {
@@ -64,7 +67,9 @@ namespace AVDump3CL {
 				if(args.Contains("PRINTARGS")) {
 					foreach(var arg in parseResult.RawArgs) Console.WriteLine(arg);
 					Console.WriteLine();
-
+				}
+				if(args.Contains("UTF8OUT")) {
+					Console.OutputEncoding = Encoding.UTF8;
 				}
 
 				if(!parseResult.Success) {

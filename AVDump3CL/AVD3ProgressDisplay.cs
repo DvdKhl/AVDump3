@@ -79,7 +79,14 @@ namespace AVDump3CL {
 				var maInterval = MeanAverageMinuteInterval * 15;
 				totalSpeedAverages[2] = totalSpeedAverages[2] * (maInterval - 1) / maInterval + (processedMiBsInInterval / (float)AVD3Console.TickPeriod * 1000) / maInterval;
 			}
-			if(totalSpeedAverages[0] > 9999 || totalSpeedAverages[1] > 9999 || totalSpeedAverages[2] > 9999) {
+			if(totalSpeedAverages[0] > 9999999 || totalSpeedAverages[1] > 9999999 || totalSpeedAverages[2] > 9999999) {
+				totalSpeedDisplayAverages[0] = (int)totalSpeedAverages[0] >> 20;
+				totalSpeedDisplayAverages[1] = (int)totalSpeedAverages[1] >> 20;
+				totalSpeedDisplayAverages[2] = (int)totalSpeedAverages[2] >> 20;
+				totalSpeedDisplayUnit = "TiB/s";
+
+			}
+			else if(totalSpeedAverages[0] > 9999 || totalSpeedAverages[1] > 9999 || totalSpeedAverages[2] > 9999) {
 				totalSpeedDisplayAverages[0] = (int)totalSpeedAverages[0] >> 10;
 				totalSpeedDisplayAverages[1] = (int)totalSpeedAverages[1] >> 10;
 				totalSpeedDisplayAverages[2] = (int)totalSpeedAverages[2] >> 10;

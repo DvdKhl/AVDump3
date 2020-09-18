@@ -101,15 +101,15 @@ namespace AVDump3CL {
 			lastLinePosition = Buffer.Length;
 		}
 
-		public void Reset() {
+		internal void Reset(AVD3Console console) {
 			Buffer.Length = 0;
 			lastLinePosition = 0;
 			ProgressLineCount = 0;
 			SpecialJitterEvent = false;
-			DisplayWidth = Math.Min(120, Console.BufferWidth);
-			ConsoleWidth = Console.BufferWidth;
+			DisplayWidth = Math.Min(120, console.BufferWidth);
+			ConsoleWidth = console.BufferWidth;
 		}
-		public void MarkFinished() => Finished = true;
+		internal void MarkFinished() => Finished = true;
 	}
 
 	public delegate void WriteProgress(AVD3ConsoleProgressBuilder builder);
@@ -158,6 +158,11 @@ namespace AVDump3CL {
 			set { if(canManipulateCursor) Console.CursorVisible = value; }
 		}
 
+		public int BufferWidth {
+			get => canManipulateCursor ? Console.BufferWidth : 80;
+			set { if(canManipulateCursor) Console.BufferWidth = value; }
+		}
+
 		public void StartProgressDisplay() {
 			lock(progressWriteLock) {
 				lock(progressWriteActiveChangeLock) {
@@ -175,7 +180,7 @@ namespace AVDump3CL {
 					ShowingProgress = false;
 					progressBuilder.MarkFinished();
 
-					progressBuilder.Reset();
+					progressBuilder.Reset(this);
 					var cursorTop = Console.CursorTop;
 					for(int i = cursorTop; i < maxTopCursorPos; i++) {
 						progressBuilder.AppendLine();
@@ -187,7 +192,7 @@ namespace AVDump3CL {
 		}
 
 		public void WriteDisplayProgress() {
-			progressBuilder.Reset();
+			progressBuilder.Reset(this);
 			WriteProgress(progressBuilder);
 			Console.Write(progressBuilder.Buffer);
 		}
@@ -205,7 +210,7 @@ namespace AVDump3CL {
 
 
 				var progressLineCountPrev = progressBuilder.ProgressLineCount;
-				progressBuilder.Reset();
+				progressBuilder.Reset(this);
 
 				maxTopCursorPos = Math.Max(maxTopCursorPos, Console.CursorTop);
 				Console.SetCursorPosition(0, Math.Max(0, Console.CursorTop - progressLineCountPrev));
@@ -217,7 +222,7 @@ namespace AVDump3CL {
 				}
 
 				var linesCleared = 0;
-				var consoleWidth = Console.BufferWidth - 1;
+				var consoleWidth = BufferWidth - 1;
 				for(var i = 0; i < toWrite.Length; i++) {
 					var line = toWrite[i];
 
