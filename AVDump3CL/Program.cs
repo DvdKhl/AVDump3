@@ -17,6 +17,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace AVDump3CL {
 	public class AVD3CLInstance {
@@ -55,7 +56,20 @@ namespace AVDump3CL {
 	}
 
 	class Program {
+		[DllImport("kernel32.dll", CharSet = CharSet.Auto)]
+		private static extern IntPtr GetCommandLine();
+
 		static void Main(string[] args) {
+			if(args.Contains("PARSEARGS") && Utils.UsingWindows) {
+				var ptr = GetCommandLine();
+				var commandLine = Marshal.PtrToStringAuto(ptr);
+				args = Regex.Matches(commandLine, @"(?<= ""|^"")(?:""""|[^""])*(?="" |""$)|(?<= '|^')(?:''|[^'])*(?=' |'$)|(?<= |^)[^"" ][^ ]*(?= |$)").OfType<Match>().Select(x => x.Value).Skip(1).ToArray();
+			}
+
+			if(args.Contains("UTF8OUT")) {
+				Console.OutputEncoding = Encoding.UTF8;
+			}
+
 			var moduleManagement = CreateModules();
 			moduleManagement.RaiseIntialize();
 
@@ -67,9 +81,6 @@ namespace AVDump3CL {
 				if(args.Contains("PRINTARGS")) {
 					foreach(var arg in parseResult.RawArgs) Console.WriteLine(arg);
 					Console.WriteLine();
-				}
-				if(args.Contains("UTF8OUT")) {
-					Console.OutputEncoding = Encoding.UTF8;
 				}
 
 				if(!parseResult.Success) {
