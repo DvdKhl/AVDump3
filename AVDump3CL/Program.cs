@@ -62,8 +62,18 @@ namespace AVDump3CL {
 		static void Main(string[] args) {
 			if(args.Contains("PARSEARGS") && Utils.UsingWindows) {
 				var ptr = GetCommandLine();
-				var commandLine = Marshal.PtrToStringAuto(ptr);
-				args = Regex.Matches(commandLine, @"(?<= ""|^"")(?:""""|[^""])*(?="" |""$)|(?<= '|^')(?:''|[^'])*(?=' |'$)|(?<= |^)[^"" ][^ ]*(?= |$)").OfType<Match>().Select(x => x.Value).Skip(1).ToArray();
+				var commandLine = " " + (Marshal.PtrToStringAuto(ptr) ?? "");
+
+				if((commandLine.Count(x => x == '"') % 2) != 0) {
+					Console.WriteLine("When PARSEARGS is enabled, double quote count needs to be even!");
+					if(Utils.UsingWindows) Console.Read();
+					return;
+				}
+
+				args = Regex.Matches(commandLine, @"""(?:""""|[^""])*(?:"" |""$)|'(?:''|[^'])*(?:' |'$)|[^"" ]+(?: |$)")
+					.OfType<Match>()
+					.Select(x => (commandLine[x.Index - 1] switch { '\'' => x.Value.Replace("''", "'").Trim(), '"' => x.Value.Replace("\"\"", "\""), _ => x.Value }).Trim())
+					.Skip(1).ToArray();
 			}
 
 			if(args.Contains("UTF8OUT")) {

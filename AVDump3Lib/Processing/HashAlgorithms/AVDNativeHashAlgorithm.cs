@@ -38,6 +38,16 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			HashLengthInBits = hashBitCount;
 		}
 
+		protected AVDNativeHashAlgorithm(IntPtr handle, InitHandler init, TransformHandler transform, FinalHandler final, int blockSize, int hashBitCount) {
+			this.init = init ?? throw new ArgumentNullException(nameof(init));
+			this.transform = transform ?? throw new ArgumentNullException(nameof(transform));
+			this.final = final ?? throw new ArgumentNullException(nameof(final));
+
+			this.handle = handle;
+			BlockSize = blockSize;
+			HashLengthInBits = hashBitCount;
+		}
+
 		public override int BlockSize { get; }
 		public int HashLengthInBits { get; }
 

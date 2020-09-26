@@ -1,12 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <AssemblyVersion>3.1.8213.0</AssemblyVersion>
+    <FileVersion>3.1.8213.0</FileVersion>
+    <Version>3.1.8213</Version>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <ApplicationIcon>AVD3Icon.ico</ApplicationIcon>
     <StartupObject>AVDump3CL.Program</StartupObject>
-    <AssemblyVersion>3.0.8188.0</AssemblyVersion>
-    <Version>3.0.0</Version>
     <Company>extknot</Company>
     <Authors>DvdKhl</Authors>
     <Product>AVDump3</Product>
@@ -16,7 +17,6 @@
     <NeutralLanguage>en</NeutralLanguage>
     <Copyright>Copyright © 2020 extknot</Copyright>
     <Platforms>AnyCPU;x64</Platforms>
-    <FileVersion>3.0.8188.0</FileVersion>
     <Configurations>Debug;Release;GithubWorkflow</Configurations>
     <Nullable>enable</Nullable>
   </PropertyGroup>

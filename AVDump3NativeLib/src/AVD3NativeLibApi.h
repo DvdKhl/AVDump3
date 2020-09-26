@@ -51,6 +51,11 @@ DLL_PUBLIC void KeccakInit(void* handle);
 DLL_PUBLIC void KeccakTransform(void* handle, uint8_t* b, int32_t length);
 DLL_PUBLIC void KeccakFinal(void* handle, uint8_t* b, int32_t length, uint8_t* hash);
 
+DLL_PUBLIC void* XXHashCreate(uint32_t* hashLength, uint32_t* blockLength);
+DLL_PUBLIC void XXHashInit(void* handle);
+DLL_PUBLIC void XXHashTransform(void* handle, uint8_t* b, int32_t length);
+DLL_PUBLIC void XXHashFinal(void* handle, uint8_t* b, int32_t length, uint8_t* hash);
+
 DLL_PUBLIC void* MD4Create(uint32_t* hashLength, uint32_t* blockLength);
 DLL_PUBLIC void MD4Init(void* handle);
 DLL_PUBLIC void MD4Transform(void* handle, uint8_t* b, int32_t length);

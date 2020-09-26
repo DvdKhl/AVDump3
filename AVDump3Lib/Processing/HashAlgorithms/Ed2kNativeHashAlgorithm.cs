@@ -17,15 +17,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		public override int BlockSize => 9728000;
 
 		private int blockHashOffset;
-		private readonly byte[] nullMd4Hash = new byte[16];
 		private byte[] blockHashes = new byte[16 * 512]; //Good for ~4GB, increased if needed
-
-		public Ed2kNativeHashAlgorithm() {
-			fixed (byte* emptyPtr = Span<byte>.Empty)
-			fixed (byte* emptyHashPtr = nullMd4Hash) {
-				NativeMethods.MD4ComputeHash(emptyPtr, 0, emptyHashPtr);
-			}
-		}
 
 		protected override void HashCore(in ReadOnlySpan<byte> data) {
 			if(blockHashes.Length < blockHashOffset + (data.Length / BlockSize + 2) * 16) {
@@ -44,8 +36,8 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			blockHashOffset += 16;
 		}
 		public static void Md4Hash(ReadOnlySpan<byte> data, Span<byte> hash) {
-			fixed (byte* dataPtr = data)
-			fixed (byte* hashPtr = hash) {
+			fixed(byte* dataPtr = data)
+			fixed(byte* hashPtr = hash) {
 				NativeMethods.MD4ComputeHash(dataPtr, data.Length, hashPtr);
 			}
 		}
@@ -59,30 +51,24 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			AddBlockHash(data);
 
 			Span<byte> hashes = blockHashes;
-			Span<byte> hashNoNull = new byte[16];
+			Span<byte> hashWithNull = new byte[16];
 
-			if(blockHashOffset > 16) {
-				Md4Hash(hashes.Slice(0, blockHashOffset), hashNoNull);
-			} else {
-				hashNoNull = hashes.Slice(0, 16);
-			}
+			Md4Hash(hashes.Slice(0, blockHashOffset), hashWithNull);
 
 			//https://wiki.anidb.info/w/Ed2k-hash
 			BlueIsRed = false;
 			ReadOnlySpan<byte> hash;
-			if(!data.IsEmpty) {
+			if(!data.IsEmpty || data.IsEmpty && blockHashOffset == 0) {
 				//Data is not multiple of BlockLength (Common case)
 				BlueIsRed = true;
-				hash = hashNoNull;
+				hash = hashWithNull;
 				BlueHash = hash.ToArray().ToImmutableArray();
 				RedHash = BlueHash;
 
 			} else {
-				nullMd4Hash.CopyTo(hashes.Slice(blockHashOffset, 16));
-				blockHashOffset += 16;
 
-				Span<byte> hashWithNull = new byte[16];
-				Md4Hash(hashes.Slice(0, blockHashOffset), hashWithNull);
+				Span<byte> hashNoNull = new byte[16];
+				Md4Hash(hashes.Slice(0, blockHashOffset - 16), hashNoNull);
 
 				BlueHash = hashNoNull.ToArray().ToImmutableArray();
 				RedHash = hashWithNull.ToArray().ToImmutableArray();
@@ -93,6 +79,11 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		}
 
 		public override void Initialize() {
+			BlueIsRed = false;
+			RedHash = ImmutableArray<byte>.Empty;
+			BlueHash = ImmutableArray<byte>.Empty;
+			Array.Clear(blockHashes, 0, blockHashes.Length);
+			blockHashOffset = 0;
 		}
 	}
 }

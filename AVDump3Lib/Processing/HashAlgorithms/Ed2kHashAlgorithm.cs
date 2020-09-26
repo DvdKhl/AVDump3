@@ -10,19 +10,17 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 
 		public override int BlockSize => 9728000;
 
-		private int blockHashOffset = 0;
-		private readonly byte[] nullMd4Hash = new byte[64];
+		private int blockHashOffset;
 		private byte[] blockHashes = new byte[16 * 512]; //Good for ~4GB, increased if needed
 
 		private readonly Md4HashAlgorithm md4;
 
 		public Ed2kHashAlgorithm() {
 			md4 = new Md4HashAlgorithm();
-			md4.ComputeHash(Span<byte>.Empty, nullMd4Hash);
 		}
 
 		protected override unsafe void HashCore(in ReadOnlySpan<byte> data) {
-			if(blockHashes.Length < blockHashOffset + ((data.Length / BlockSize) + 2) * 16) {
+			while(blockHashes.Length < blockHashOffset + (data.Length / BlockSize + 2) * 16) {
 				Array.Resize(ref blockHashes, blockHashes.Length * 2);
 			}
 
@@ -47,25 +45,22 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			md4.ComputeHash(data, hashes.Slice(blockHashOffset, 16));
 			blockHashOffset += 16;
 
-			Span<byte> hashNoNull = new byte[16];
-			md4.ComputeHash(hashes.Slice(0, blockHashOffset), hashNoNull);
+			Span<byte> hashWithNull = new byte[16];
+			md4.ComputeHash(hashes.Slice(0, blockHashOffset), hashWithNull);
 
 			//https://wiki.anidb.info/w/Ed2k-hash
 			ReadOnlySpan<byte> hash;
 			BlueIsRed = false;
-			if(data.Length != 0) {
+			if(!data.IsEmpty || data.IsEmpty && blockHashOffset == 0) {
 				//Data is not multiple of BlockLength (Common case)
 				BlueIsRed = true;
-				hash = hashNoNull;
+				hash = hashWithNull;
 				BlueHash = hash.ToArray();
 				RedHash = BlueHash;
 
 			} else {
-				Span<byte> hashWithNull = new byte[16];
-				nullMd4Hash.CopyTo(hashes.Slice(blockHashOffset, 16));
-				blockHashOffset += 16;
-				md4.ComputeHash(hashes.Slice(0, blockHashOffset), hashWithNull);
-
+				Span<byte> hashNoNull = new byte[16];
+				md4.ComputeHash(hashes.Slice(0, blockHashOffset - 16), hashNoNull);
 
 				BlueHash = hashNoNull.ToArray();
 				RedHash = hashWithNull.ToArray();
@@ -78,6 +73,12 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		public override void Initialize() {
 			//Called when TransformFinalBlock is called in Mono (not in NET) !
 			md4.Initialize();
+
+			BlueIsRed = false;
+			RedHash = ReadOnlyMemory<byte>.Empty;
+			BlueHash = ReadOnlyMemory<byte>.Empty;
+			Array.Clear(blockHashes, 0, blockHashes.Length);
+			blockHashOffset = 0;
 		}
 	}
 }

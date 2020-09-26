@@ -48,6 +48,9 @@
     <ClCompile Include="Src\CRC32.c">
       <Filter>Source Files\Hashes</Filter>
     </ClCompile>
+    <ClCompile Include="src\XXHash.c">
+      <Filter>Source Files\Hashes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\AVD3NativeLibApi.h">
@@ -56,6 +59,5 @@
     <ClInclude Include="src\DLLDefines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Makefile" />
   </ItemGroup>
 </Project>

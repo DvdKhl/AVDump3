@@ -71,7 +71,7 @@ namespace AVDump3Lib.Settings.CLArguments {
 					.ToArray();
 			}
 
-			args = args.Where(x => !string.IsNullOrWhiteSpace(x) && !x.All(c => char.IsUpper(c))).ToArray();
+			args = args.Where(x => !string.IsNullOrWhiteSpace(x) && !x.All(c => char.IsDigit(c) || char.IsUpper(c))).ToArray();
 
 			if(args.Length == 0) {
 				return new CLParseArgsResult(

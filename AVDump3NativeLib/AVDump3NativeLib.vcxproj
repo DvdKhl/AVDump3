@@ -138,6 +138,7 @@ copy /Y "$(OutDir)*.pdb" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(Configur
     <ClCompile Include="src\SHA256.c" />
     <ClCompile Include="src\SHA3.c" />
     <ClCompile Include="src\Tiger.c" />
+    <ClCompile Include="src\XXHash.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\AVD3NativeLibApi.h" />
