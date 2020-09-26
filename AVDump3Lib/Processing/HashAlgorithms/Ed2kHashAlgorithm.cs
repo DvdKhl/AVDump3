@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Immutable;
 using System.Security.Cryptography;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
@@ -7,6 +8,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		public bool BlueIsRed { get; private set; }
 		public ReadOnlyMemory<byte> RedHash { get; private set; }
 		public ReadOnlyMemory<byte> BlueHash { get; private set; }
+
 
 		public override int BlockSize => 9728000;
 
@@ -60,12 +62,18 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 
 			} else {
 				Span<byte> hashNoNull = new byte[16];
-				md4.ComputeHash(hashes.Slice(0, blockHashOffset - 16), hashNoNull);
+				if(blockHashOffset == 32) {
+					hashNoNull = hashes.Slice(0, 16);
+				} else {
+					md4.ComputeHash(hashes.Slice(0, blockHashOffset - 16), hashNoNull);
+				}
 
 				BlueHash = hashNoNull.ToArray();
 				RedHash = hashWithNull.ToArray();
 				hash = hashWithNull;
 			}
+
+			AdditionalHashes = ImmutableArray.Create(BlueHash.ToArray().ToImmutableArray());
 
 			return hash;
 		}

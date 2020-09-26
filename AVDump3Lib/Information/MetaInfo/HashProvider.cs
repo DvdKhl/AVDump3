@@ -14,6 +14,10 @@ namespace AVDump3Lib.Information.MetaInfo {
 
 			foreach(var hashCalculator in hashCalculators) {
 				Add(new HashInfoItemType(hashCalculator.Name), hashCalculator.HashValue);
+				for(var i = 0; i < hashCalculator.AdditionalHashValues.Length; i++) {
+					var additionalHashValue = hashCalculator.AdditionalHashValues[i];
+					Add(new HashInfoItemType(hashCalculator.Name + (i + 2)), additionalHashValue);
+				}
 			}
 		}
 		public static readonly MetaInfoContainerType HashProviderType = new MetaInfoContainerType("HashProvider");

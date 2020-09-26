@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Immutable;
 using System.Security.Cryptography;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
@@ -8,17 +9,20 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		void Initialize();
 		int TransformFullBlocks(in ReadOnlySpan<byte> data);
 		ReadOnlySpan<byte> TransformFinalBlock(in ReadOnlySpan<byte> data);
+		ImmutableArray<ImmutableArray<byte>> AdditionalHashes => ImmutableArray<ImmutableArray<byte>>.Empty;
 	}
-
 
 	public abstract class AVDHashAlgorithm : IAVDHashAlgorithm {
 		public abstract int BlockSize { get; }
 
 		public abstract void Initialize();
 		public abstract ReadOnlySpan<byte> TransformFinalBlock(in ReadOnlySpan<byte> data);
+
+		public ImmutableArray<ImmutableArray<byte>> AdditionalHashes { get; protected set; } = ImmutableArray<ImmutableArray<byte>>.Empty;
+
 		public int TransformFullBlocks(in ReadOnlySpan<byte> data) {
 			var toProcess = data.Slice(0, (data.Length / BlockSize) * BlockSize);
-			if(toProcess.Length > 0) HashCore(toProcess);
+			if(!toProcess.IsEmpty) HashCore(toProcess);
 			return toProcess.Length;
 		}
 
@@ -26,7 +30,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 
 
 		#region IDisposable Support
-		protected bool DisposedValue { get; private set; } = false; // To detect redundant calls
+		protected bool DisposedValue { get; private set; } // To detect redundant calls
 
 		protected virtual void Dispose(bool disposing) {
 			if(!DisposedValue) DisposedValue = true;

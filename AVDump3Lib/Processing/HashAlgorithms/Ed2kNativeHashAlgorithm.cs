@@ -68,13 +68,18 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			} else {
 
 				Span<byte> hashNoNull = new byte[16];
-				Md4Hash(hashes.Slice(0, blockHashOffset - 16), hashNoNull);
+				if(blockHashOffset == 32) {
+					hashNoNull = hashes.Slice(0, 16);
+				} else {
+					Md4Hash(hashes.Slice(0, blockHashOffset - 16), hashNoNull);
+				}
 
 				BlueHash = hashNoNull.ToArray().ToImmutableArray();
 				RedHash = hashWithNull.ToArray().ToImmutableArray();
 				hash = hashWithNull;
 			}
 
+			AdditionalHashes = ImmutableArray.Create(BlueHash);
 			return hash;
 		}
 
