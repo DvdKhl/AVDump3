@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<TestVectors>
+  <Hash name="ED2K">
+    <TestVector pattern="BinaryZeros" length="0" hash="31d6cfe0d16ae931b73c59d7e0c089c0" source="rhash 1.3.9 / HashCalc 2.0.2" />
+    <TestVector pattern="BinaryZeros" length="1" hash="47c61a0fa8738ba77308a8a600f88e4b" source="rhash 1.3.9 / HashCalc 2.0.2" />
+    <TestVector pattern="BinaryZeros" length="9727999" hash="ac44b93fc9aff773ab0005c911f8396f" source="rhash 1.3.9 / HashCalc 2.0.2" />
+    <TestVector pattern="BinaryZeros" length="9728000" hash="FC21D9AF828F92A8DF64BEAC3357425D" hash2="D7DEF262A127CD79096A108E7A9FC138" source="rhash 1.3.9 / HashCalc 2.0.2" />
+    <TestVector pattern="BinaryZeros" length="9728001" hash="06329e9dba1373512c06386fe29e3c65" source="rhash 1.3.9 / HashCalc 2.0.2"/>
+    <TestVector pattern="BinaryZeros" length="19455999" hash="a4aed104a077de7e4210e7f5b131fe25" source="rhash 1.3.9 / HashCalc 2.0.2" />
+    <TestVector pattern="BinaryZeros" length="19456000" hash="114b21c63a74b6ca922291a11177dd5c" hash2="194ee9e4fa79b2ee9f8829284c466051" source="rhash 1.3.9 / HashCalc 2.0.2" />
+    <TestVector pattern="BinaryZeros" length="19456001" hash="e57f824d28f69fe90864e17673668457" source="rhash 1.3.9 / HashCalc 2.0.2" />
+  </Hash>
+</TestVectors>

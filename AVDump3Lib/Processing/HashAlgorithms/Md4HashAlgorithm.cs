@@ -218,7 +218,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 
 
 
-		public override void Initialize() {
+		protected override void InitializeInternal() {
 			A = A0;
 			B = B0;
 			C = C0;

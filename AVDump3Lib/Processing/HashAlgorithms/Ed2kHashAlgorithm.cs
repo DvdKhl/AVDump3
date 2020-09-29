@@ -39,28 +39,29 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		/// <summary>Calculates both ed2k hashes</summary>
 		/// <returns>Always returns the red hash</returns>
 		public override ReadOnlySpan<byte> TransformFinalBlock(in ReadOnlySpan<byte> data) {
-			BlueIsRed = false;
-			RedHash = null;
-			BlueHash = null;
-
 			Span<byte> hashes = blockHashes;
-			md4.ComputeHash(data, hashes.Slice(blockHashOffset, 16));
-			blockHashOffset += 16;
+			Span<byte> hash = new byte[16];
 
-			Span<byte> hashWithNull = new byte[16];
-			md4.ComputeHash(hashes.Slice(0, blockHashOffset), hashWithNull);
+			if(blockHashOffset == 0) {
+				md4.ComputeHash(data, hash);
 
-			//https://wiki.anidb.info/w/Ed2k-hash
-			ReadOnlySpan<byte> hash;
-			BlueIsRed = false;
-			if(!data.IsEmpty || data.IsEmpty && blockHashOffset == 0) {
-				//Data is not multiple of BlockLength (Common case)
+				RedHash = BlueHash = hash.ToArray() ;
 				BlueIsRed = true;
-				hash = hashWithNull;
-				BlueHash = hash.ToArray();
-				RedHash = BlueHash;
+
+			} else if(!data.IsEmpty) {
+				//Data is not multiple of BlockLength (Common case)
+				md4.ComputeHash(data, hashes.Slice(blockHashOffset, 16));
+				blockHashOffset += 16;
+
+				md4.ComputeHash(hashes.Slice(0, blockHashOffset), hash);
+
+				RedHash = BlueHash = hash.ToArray();
+				BlueIsRed = true;
 
 			} else {
+				md4.ComputeHash(Span<byte>.Empty, hashes.Slice(blockHashOffset, 16));
+				blockHashOffset += 16;
+
 				Span<byte> hashNoNull = new byte[16];
 				if(blockHashOffset == 32) {
 					hashNoNull = hashes.Slice(0, 16);
@@ -68,17 +69,20 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 					md4.ComputeHash(hashes.Slice(0, blockHashOffset - 16), hashNoNull);
 				}
 
+				Span<byte> hashWithNull = new byte[16];
+				md4.ComputeHash(hashes.Slice(0, blockHashOffset), hashWithNull);
+				System.IO.File.WriteAllBytes("ed2k.bin", hashes.Slice(0, blockHashOffset).ToArray());
 				BlueHash = hashNoNull.ToArray();
 				RedHash = hashWithNull.ToArray();
 				hash = hashWithNull;
-			}
 
-			AdditionalHashes = ImmutableArray.Create(BlueHash.ToArray().ToImmutableArray());
+				AdditionalHashes = AdditionalHashes.Add(BlueHash.ToArray().ToImmutableArray());
+			}
 
 			return hash;
 		}
 
-		public override void Initialize() {
+		protected override void InitializeInternal() {
 			//Called when TransformFinalBlock is called in Mono (not in NET) !
 			md4.Initialize();
 

@@ -25,7 +25,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			Initialize();
 		}
 
-		public override void Initialize() => hash = seed;
+		protected override void InitializeInternal() => hash = seed;
 
 		protected override void HashCore(in ReadOnlySpan<byte> data) {
 			hash = CalculateHash(table, hash, data);

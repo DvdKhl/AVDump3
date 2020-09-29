@@ -46,26 +46,25 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		/// <summary>Calculates both ed2k hashes</summary>
 		/// <returns>Always returns the red hash</returns>
 		public override ReadOnlySpan<byte> TransformFinalBlock(in ReadOnlySpan<byte> data) {
-			BlueIsRed = false;
-
-			AddBlockHash(data);
-
 			Span<byte> hashes = blockHashes;
-			Span<byte> hashWithNull = new byte[16];
+			Span<byte> hash = new byte[16];
 
-			Md4Hash(hashes.Slice(0, blockHashOffset), hashWithNull);
-
-			//https://wiki.anidb.info/w/Ed2k-hash
-			BlueIsRed = false;
-			ReadOnlySpan<byte> hash;
-			if(!data.IsEmpty || data.IsEmpty && blockHashOffset == 0) {
-				//Data is not multiple of BlockLength (Common case)
+			if(blockHashOffset == 0) {
+				Md4Hash(data, hash);
+				RedHash = BlueHash = hash.ToArray().ToImmutableArray();
 				BlueIsRed = true;
-				hash = hashWithNull;
-				BlueHash = hash.ToArray().ToImmutableArray();
-				RedHash = BlueHash;
+
+			} else if(!data.IsEmpty) {
+				//Data is not multiple of BlockLength (Common case)
+				AddBlockHash(data);
+
+				Md4Hash(hashes.Slice(0, blockHashOffset), hash);
+
+				RedHash = BlueHash = hash.ToArray().ToImmutableArray();
+				BlueIsRed = true;
 
 			} else {
+				AddBlockHash(Span<byte>.Empty);
 
 				Span<byte> hashNoNull = new byte[16];
 				if(blockHashOffset == 32) {
@@ -74,16 +73,21 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 					Md4Hash(hashes.Slice(0, blockHashOffset - 16), hashNoNull);
 				}
 
+				Span<byte> hashWithNull = new byte[16];
+				Md4Hash(hashes.Slice(0, blockHashOffset), hashWithNull);
+
 				BlueHash = hashNoNull.ToArray().ToImmutableArray();
 				RedHash = hashWithNull.ToArray().ToImmutableArray();
 				hash = hashWithNull;
+
+				AdditionalHashes = AdditionalHashes.Add(BlueHash);
 			}
 
-			AdditionalHashes = ImmutableArray.Create(BlueHash);
 			return hash;
 		}
 
-		public override void Initialize() {
+		protected override void InitializeInternal() {
+
 			BlueIsRed = false;
 			RedHash = ImmutableArray<byte>.Empty;
 			BlueHash = ImmutableArray<byte>.Empty;

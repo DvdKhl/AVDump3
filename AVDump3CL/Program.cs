@@ -80,8 +80,6 @@ namespace AVDump3CL {
 				Console.OutputEncoding = Encoding.UTF8;
 			}
 
-			File.WriteAllBytes("Test.bin", new byte[9728000 * 2]);
-
 			var moduleManagement = CreateModules();
 			moduleManagement.RaiseIntialize();
 

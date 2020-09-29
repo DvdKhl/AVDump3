@@ -51,7 +51,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		public override int BlockSize { get; }
 		public int HashLengthInBits { get; }
 
-		public override void Initialize() => init(handle);
+		protected override void InitializeInternal() => init(handle);
 
 		protected override unsafe void HashCore(in ReadOnlySpan<byte> data) {
 			fixed(byte* bPtr = &data[0]) {

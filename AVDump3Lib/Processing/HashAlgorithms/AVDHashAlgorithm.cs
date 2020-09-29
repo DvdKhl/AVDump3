@@ -15,7 +15,12 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 	public abstract class AVDHashAlgorithm : IAVDHashAlgorithm {
 		public abstract int BlockSize { get; }
 
-		public abstract void Initialize();
+		public void Initialize() {
+			AdditionalHashes = ImmutableArray<ImmutableArray<byte>>.Empty;
+			InitializeInternal();
+		}
+		protected abstract void InitializeInternal();
+
 		public abstract ReadOnlySpan<byte> TransformFinalBlock(in ReadOnlySpan<byte> data);
 
 		public ImmutableArray<ImmutableArray<byte>> AdditionalHashes { get; protected set; } = ImmutableArray<ImmutableArray<byte>>.Empty;
@@ -53,7 +58,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			BlockSize = blockSize;
 		}
 
-		public override void Initialize() => Hash.GetHashAndReset();
+		protected override void InitializeInternal() => Hash.GetHashAndReset();
 		public override ReadOnlySpan<byte> TransformFinalBlock(in ReadOnlySpan<byte> data) {
 			Hash.AppendData(data);
 			return Hash.GetHashAndReset();

@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyVersion>3.1.8213.0</AssemblyVersion>
-    <FileVersion>3.1.8213.0</FileVersion>
-    <Version>3.1.8213</Version>
+    <AssemblyVersion>3.1.8236.0</AssemblyVersion>
+    <FileVersion>3.1.8236.0</FileVersion>
+    <Version>3.1.8236</Version>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Authors>DvdKhl</Authors>
     <Company>extknot</Company>
