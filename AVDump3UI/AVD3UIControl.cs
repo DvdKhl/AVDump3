@@ -582,7 +582,7 @@ namespace AVDump3UI {
 						reportFileName = reportFileName.Replace("${ReportFileExtension}", reportItem.Report.FileExtension);
 
 						lock(fileSystemLock) {
-							reportItem.Report.SaveToFile(Path.Combine(settings.Reporting.ReportDirectory, reportFileName), Utils.UTF8EncodingNoBOM);
+							reportItem.Report.SaveToFile(Path.Combine(settings.Reporting.ReportDirectory, reportFileName), "", Utils.UTF8EncodingNoBOM);
 						}
 					}
 

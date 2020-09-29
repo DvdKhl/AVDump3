@@ -212,7 +212,7 @@ Consumer CRC32 will be force enabled!</value>
   </data>
   <data name="Reporting.ReportFileName.Description" xml:space="preserve">
     <value>Reports will be saved/appended to the specified filename
-Placeholders mentioned in --FileMove.Pattern can be used as well.
+Placeholders mentioned in --FileMove.Pattern can be used as well
 Additional placeholders: ReportName, ReportFileExtension
 </value>
   </data>
@@ -327,5 +327,12 @@ Hash-&lt;Name&gt;-&lt;2|4|8|10|16|32|32Hex|32Z|36|62|64&gt;-&lt;OC|UC|LC&gt;</va
   </data>
   <data name="Diagnostics.Version.Example" xml:space="preserve">
     <value>--Version</value>
+  </data>
+  <data name="Reporting.ReportContentPrefix.Description" xml:space="preserve">
+    <value>Each report will be prefixed with the arguments content
+See ReportFileName for Placeholders</value>
+  </data>
+  <data name="Reporting.ReportContentPrefix.Example" xml:space="preserve">
+    <value>--ReportContentPrefix=${FullName}</value>
   </data>
 </root>

@@ -62,8 +62,6 @@ namespace AVDump3Tests {
 						default: break;
 					}
 
-					File.WriteAllBytes("D:\\Out.bin", b.ToArray());
-
 					var bHash = sourceDataCheckAlg.ComputeHash(b.ToArray());
 					foreach(var hashAlg in hashAlgs) {
 						Debug.Print($"{hashName} - {hashAlg.GetType().Name} - {patternName} - {b.Length}");

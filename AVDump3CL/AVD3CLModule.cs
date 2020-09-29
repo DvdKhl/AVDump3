@@ -535,8 +535,10 @@ namespace AVDump3CL {
 						var reportFileName = settings.Reporting.ReportFileName;
 						reportFileName = placeholderPattern.Replace(reportFileName, m => ReplaceToken(m.Groups["Key"].Value, fileMetaInfo, tokenValues));
 
+						var reportContentPrefix = placeholderPattern.Replace(settings.Reporting.ReportContentPrefix, m => ReplaceToken(m.Groups["Key"].Value, fileMetaInfo, tokenValues));
+
 						lock(fileSystemLock) {
-							reportItem.Report.SaveToFile(Path.Combine(settings.Reporting.ReportDirectory, reportFileName), Utils.UTF8EncodingNoBOM);
+							reportItem.Report.SaveToFile(Path.Combine(settings.Reporting.ReportDirectory, reportFileName), reportContentPrefix, Utils.UTF8EncodingNoBOM);
 						}
 					}
 

@@ -611,6 +611,25 @@ namespace AVDump3UI {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Each report will be prefixed with the arguments content
+        ///See ReportFileName for Placeholders.
+        /// </summary>
+        internal static string Reporting_ReportContentPrefix_Description {
+            get {
+                return ResourceManager.GetString("Reporting.ReportContentPrefix.Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to --ReportContentPrefix=${FullName}.
+        /// </summary>
+        internal static string Reporting_ReportContentPrefix_Example {
+            get {
+                return ResourceManager.GetString("Reporting.ReportContentPrefix.Example", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Reports will be saved to the specified directory.
         /// </summary>
         internal static string Reporting_ReportDirectory_Description {
@@ -630,7 +649,7 @@ namespace AVDump3UI {
         
         /// <summary>
         ///   Looks up a localized string similar to Reports will be saved/appended to the specified filename
-        ///Placeholders mentioned in --FileMove.Pattern can be used as well.
+        ///Placeholders mentioned in --FileMove.Pattern can be used as well
         ///Additional placeholders: ReportName, ReportFileExtension
         ///.
         /// </summary>

@@ -40,9 +40,9 @@ namespace AVDump3Lib.Reporting.Core {
 
 		public XDocument ReportToXml() { return new XDocument(Report); }
 
-		public void SaveToFile(string filePath, Encoding encoding) {
+		public void SaveToFile(string filePath, string reportContentPrefix, Encoding encoding) {
 			Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-			File.AppendAllText(filePath, ReportToString(encoding) + "\n\n", encoding);
+			File.AppendAllText(filePath, (!string.IsNullOrEmpty(reportContentPrefix) ? reportContentPrefix + "\n" : "") + ReportToString(encoding) + "\n\n", encoding);
 		}
 	}
 }
