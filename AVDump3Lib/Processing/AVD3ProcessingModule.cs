@@ -46,8 +46,10 @@ namespace AVDump3Lib.Processing {
 		public void RegisterDefaultBlockConsumers(IDictionary<string, ImmutableArray<string>> arguments) {
 			var factories = new Dictionary<string, IBlockConsumerFactory>();
 			void addOrReplace(IBlockConsumerFactory factory) => factories[factory.Name] = factory;
-			string? getArgumentAt(BlockConsumerSetup s, int index, string? defVal) => (arguments?.TryGetValue(s.Name, out var args) ?? false) && index < args.Length ? args[index] ?? defVal : defVal;
-
+			string? getArgumentAt(BlockConsumerSetup s, int index, string? defVal) {
+				if(arguments == null) return defVal;
+				return arguments.TryGetValue(s.Name, out var args) && index < args.Length ? args[index] ?? defVal : defVal;
+			}
 
 			addOrReplace(new BlockConsumerFactory("NULL", s => new HashCalculator(s.Name, s.Reader, new NullHashAlgorithm(getArgumentAt(s, 0, "4").ToInvInt32() << 20))));
 			addOrReplace(new BlockConsumerFactory("CPY", s => new CopyToFileBlockConsumer(s.Name, s.Reader, Path.Combine(getArgumentAt(s, 0, null) ?? throw new Exception(), Path.GetFileName((string)s.Tag)))));
