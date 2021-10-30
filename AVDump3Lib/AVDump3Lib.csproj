@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyVersion>3.1.8237.0</AssemblyVersion>
-    <FileVersion>3.1.8237.0</FileVersion>
-    <Version>3.1.8237</Version>
+    <AssemblyVersion>3.1.8238.0</AssemblyVersion>
+    <FileVersion>3.1.8238.0</FileVersion>
+    <Version>3.1.8238</Version>
     <TargetFramework>net5.0</TargetFramework>
     <Authors>DvdKhl</Authors>
     <Company>extknot</Company>
