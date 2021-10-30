@@ -5,7 +5,7 @@
     <FileVersion>3.1.8236.0</FileVersion>
     <Version>3.1.8236</Version>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <ApplicationIcon>AVD3Icon.ico</ApplicationIcon>
     <StartupObject>AVDump3CL.Program</StartupObject>
     <Company>extknot</Company>
@@ -57,8 +57,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.0-preview.6.20305.6" />
-    <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.2-dev-10280" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0-rc.2.21480.5" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.2-dev-10289" />
   </ItemGroup>
 
   <ItemGroup>
