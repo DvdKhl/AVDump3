@@ -73,7 +73,7 @@ jobs:
     
     - name: AVDMain-MoveArtifacts
       run: |
-        find $GITHUB_WORKSPACE/AVDump3CL/bin/GithubWorkflow/netcoreapp3.1/ -type f -print -exec mv {} $GITHUB_WORKSPACE/AVDump3CL/bin/GithubWorkflow/net5.0/ \;
+        find $GITHUB_WORKSPACE/AVDump3CL/bin/GithubWorkflow/net5.0/ -type f -print -exec mv {} $GITHUB_WORKSPACE/AVDump3CL/bin/GithubWorkflow/net5.0/ \;
         rm -R -- $GITHUB_WORKSPACE/AVDump3CL/bin/GithubWorkflow/net5.0/*/
     
     - name: AVD3Main-Compile
