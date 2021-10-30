@@ -40,7 +40,7 @@ jobs:
 
     - name: AVD3Native-MSBuildSetup-Windows
       if: matrix.platform == 'windows'
-      uses: microsoft/setup-msbuild@v1.0.0
+      uses: microsoft/setup-msbuild@v1.0.3
 
     - name: AVD3Native-Compile-Windows
       if: matrix.platform == 'windows'
