@@ -7,15 +7,13 @@
 #define cpuid(info, x)    __cpuidex(info, x, 0)
 
 #else
-
+#ifdef __x86_64__
 //  GCC Intrinsics
 #include <cpuid.h>
+
 void cpuid(int info[4], int InfoType) {
 	__cpuid_count(InfoType, 0, info[0], info[1], info[2], info[3]);
 }
-
-#endif
-
 
 uint64_t RetrieveCPUInstructions() {
 	//  Misc.
@@ -144,3 +142,9 @@ uint64_t RetrieveCPUInstructions() {
 		(HW_AVX512IFMA ? 1 << 29 : 0) |
 		(HW_AVX512VBMI ? 1 << 30 : 0);
 }
+#else
+uint64_t RetrieveCPUInstructions() {
+	return 0;
+}
+#endif
+#endif
