@@ -6,10 +6,12 @@
 #include "AVD3NativeLibApi.h"
 #include <assert.h>
 
+#ifdef __x86_64__
 #define CRYPTOPP_GENERATE_X64_MASM
 #define CRYPTOPP_X86_ASM_AVAILABLE
 #define CRYPTOPP_BOOL_X64 1
 #define CRYPTOPP_BOOL_SSE2_ASM_AVAILABLE 1
+#endif
 
 #ifdef CRYPTOPP_GENERATE_X64_MASM
 #define AS1(x) x*newline*
@@ -90,7 +92,7 @@
 #define AS_JCXZ jrcxz
 
 
-#ifdef CRYPTOPP_DISABLE_X86ASM		// for backwards compatibility: this macro had both meanings
+#if  defined(CRYPTOPP_DISABLE_X86ASM) || defined(__aarch64__) 		// for backwards compatibility: this macro had both meanings
 #define CRYPTOPP_DISABLE_ASM
 #define CRYPTOPP_DISABLE_SSE2
 #endif
