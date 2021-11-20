@@ -1,11 +1,6 @@
 using AVDump3Lib.Misc;
 using ExtKnot.StringInvariants;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
-using System.Linq;
-using System.Threading;
 
 namespace AVDump3Lib.Processing.StreamProvider;
 

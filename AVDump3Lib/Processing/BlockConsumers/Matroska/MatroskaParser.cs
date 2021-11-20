@@ -2,9 +2,7 @@ using AVDump3Lib.Processing.BlockBuffers;
 using BXmlLib;
 using BXmlLib.DataSource;
 using BXmlLib.DocTypes.Matroska;
-using System;
 using System.Buffers.Binary;
-using System.Threading;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska;
 

@@ -3,9 +3,6 @@ using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment;
 using BXmlLib;
 using BXmlLib.DocTypes.Ebml;
 using BXmlLib.DocTypes.Matroska;
-using System;
-using System.Collections.Generic;
-using System.Threading;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska;
 

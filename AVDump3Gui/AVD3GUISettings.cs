@@ -1,6 +1,5 @@
 ﻿using AVDump3Lib.Settings.Core;
 using AVDump3UI;
-using System.Collections.Generic;
 using System.Resources;
 
 namespace AVDump3Gui;

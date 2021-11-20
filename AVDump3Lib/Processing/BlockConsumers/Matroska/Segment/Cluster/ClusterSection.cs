@@ -2,11 +2,8 @@ using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks;
 using BXmlLib;
 using BXmlLib.DocTypes.Matroska;
 using ExtKnot.StringInvariants;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
-using System.Linq;
 using System.Text;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster;

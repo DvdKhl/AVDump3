@@ -1,8 +1,6 @@
 //using AVDump3Lib.FormatHeaders;
 using BXmlLib;
 using BXmlLib.DocTypes.Matroska;
-using System;
-using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks;
 

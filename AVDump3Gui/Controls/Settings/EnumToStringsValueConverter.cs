@@ -1,8 +1,6 @@
 ﻿using Avalonia.Data;
 using Avalonia.Data.Converters;
-using System;
 using System.Globalization;
-using System.Linq;
 
 namespace AVDump3Gui.Controls.Settings;
 

@@ -1,8 +1,6 @@
 ﻿using AVDump3Lib.Settings.Core;
 using AVDump3UI;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Resources;
 
 namespace AVDump3CL;

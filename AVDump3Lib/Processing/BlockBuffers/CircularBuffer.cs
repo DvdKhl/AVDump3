@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-
 namespace AVDump3Lib.Processing.BlockBuffers;
 
 public interface ICircularBuffer {

@@ -1,8 +1,5 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 namespace AVDump3Lib.Processing.HashAlgorithms;
 

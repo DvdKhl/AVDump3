@@ -1,5 +1,3 @@
-using System;
-
 namespace AVDump3Lib.Processing.BlockBuffers.Sources;
 
 public interface IBlockSource {

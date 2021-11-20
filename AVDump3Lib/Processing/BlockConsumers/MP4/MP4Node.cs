@@ -1,7 +1,5 @@
 ﻿using BXmlLib;
 using BXmlLib.DocTypes.MP4;
-using System;
-using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.MP4;
 

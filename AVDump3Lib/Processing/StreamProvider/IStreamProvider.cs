@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
-
 namespace AVDump3Lib.Processing.StreamProvider;
 
 public abstract class ProvidedStream : IDisposable {

@@ -1,7 +1,5 @@
 using AVDump3Lib.Modules;
 using AVDump3Lib.Settings.Core;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace AVDump3Lib.Settings;

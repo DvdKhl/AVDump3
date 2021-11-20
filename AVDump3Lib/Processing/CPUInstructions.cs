@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace AVDump3Lib.Processing;
+﻿namespace AVDump3Lib.Processing;
 
 [Flags]
 public enum CPUInstructions : long {

@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-
 namespace AVDump3Lib.Misc;
 
 public static class FileTraversal {

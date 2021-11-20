@@ -3,9 +3,7 @@ using AVDump3Lib.Information.MetaInfo.Core;
 using AVDump3Lib.Processing.BlockConsumers.MP4;
 using BXmlLib.DocTypes.MP4;
 using BXmlLib.DocTypes.MP4.Boxes;
-using System;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace AVDump3Lib.Information.InfoProvider;
 

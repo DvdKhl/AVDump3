@@ -19,6 +19,7 @@
     <Platforms>AnyCPU;x64</Platforms>
     <Configurations>Debug;Release;GithubWorkflow</Configurations>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

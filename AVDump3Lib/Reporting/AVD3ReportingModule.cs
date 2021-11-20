@@ -1,7 +1,6 @@
 using AVDump3Lib.Modules;
 using AVDump3Lib.Reporting.Core;
 using AVDump3Lib.Reporting.Reports;
-using System.Collections.Generic;
 
 namespace AVDump3Lib.Reporting;
 

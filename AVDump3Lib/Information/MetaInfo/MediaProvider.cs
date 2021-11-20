@@ -1,10 +1,7 @@
 using AVDump3Lib.Information.MetaInfo.Core;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Globalization;
-using System.Linq;
 
 namespace AVDump3Lib.Information.MetaInfo;
 

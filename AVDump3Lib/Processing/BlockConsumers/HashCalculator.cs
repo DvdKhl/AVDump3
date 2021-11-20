@@ -1,8 +1,6 @@
 using AVDump3Lib.Processing.BlockBuffers;
 using AVDump3Lib.Processing.HashAlgorithms;
-using System;
 using System.Collections.Immutable;
-using System.Threading;
 
 namespace AVDump3Lib.Processing.BlockConsumers;
 

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace AVDump3Lib.Information.MetaInfo.Core;
 
 public class MetaInfoItem<T> : MetaInfoItem {

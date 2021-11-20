@@ -1,11 +1,7 @@
 ﻿using AVDump3Lib.Processing.BlockBuffers;
 using AVDump3Lib.Processing.StreamConsumer;
 using AVDump3Lib.Processing.StreamProvider;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 
 namespace AVDump3CL;
 

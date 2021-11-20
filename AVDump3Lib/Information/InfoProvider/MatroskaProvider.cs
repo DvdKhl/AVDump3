@@ -8,11 +8,8 @@ using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster;
 using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tags;
 using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks;
 using ExtKnot.StringInvariants;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace AVDump3Lib.Information.InfoProvider;
 

@@ -1,5 +1,3 @@
-using System;
-
 namespace AVDump3Lib.Information.FormatHeaders;
 
 

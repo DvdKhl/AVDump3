@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace AVDump3Lib.Settings.Core;
+﻿namespace AVDump3Lib.Settings.Core;
 
 public interface ISettingsHandler {
 	void Register(IEnumerable<ISettingProperty> settingProperties);

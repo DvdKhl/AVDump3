@@ -1,8 +1,6 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Metadata;
-using System;
-using System.Collections.Generic;
 
 namespace AVDump3Gui.Controls.Settings;
 

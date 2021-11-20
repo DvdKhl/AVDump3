@@ -1,6 +1,5 @@
 ﻿using AVDump3Lib.Processing.BlockBuffers;
 using BXmlLib.DocTypes.Ebml;
-using System;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska;
 

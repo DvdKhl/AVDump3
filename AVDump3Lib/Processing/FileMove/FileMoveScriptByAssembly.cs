@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-
-namespace AVDump3Lib.Processing.FileMove;
+﻿namespace AVDump3Lib.Processing.FileMove;
 
 public interface IMoveScript {
 	string GetFilePath(FileMoveContext ctx);

@@ -1,5 +1,3 @@
-using System;
-
 namespace AVDump3Lib.Processing.HashAlgorithms;
 
 public sealed class NullHashAlgorithm : AVDHashAlgorithm {

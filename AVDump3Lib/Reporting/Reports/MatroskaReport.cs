@@ -2,8 +2,6 @@
 using AVDump3Lib.Information.MetaInfo.Core;
 using AVDump3Lib.Processing.BlockConsumers.Matroska;
 using AVDump3Lib.Reporting.Core;
-using System;
-using System.Linq;
 using System.Xml.Linq;
 
 namespace AVDump3Lib.Reporting.Reports;

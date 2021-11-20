@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace AVDump3Lib.Information.FormatHeaders;
 
 public class VMpeg4IsoAvcHeader {

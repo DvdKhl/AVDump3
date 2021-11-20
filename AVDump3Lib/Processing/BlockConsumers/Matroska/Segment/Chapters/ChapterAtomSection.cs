@@ -1,7 +1,5 @@
 using BXmlLib;
 using BXmlLib.DocTypes.Matroska;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters;

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace AVDump3Lib.Modules;
 
 public class ModuleInitResult {

@@ -1,12 +1,8 @@
 ﻿using AVDump3Lib.Processing.StreamProvider;
 using AVDump3Lib.Settings.Core;
 using ExtKnot.StringInvariants;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Resources;
 using System.Text.RegularExpressions;
 
@@ -175,16 +171,16 @@ public class ProcessingSettings : SettingFacade {
 		yield return From(SettingGroup, nameof(Consumers), Names("Cons"), AVD3UISettings.UnspecifiedType, ImmutableArray<ConsumerSettings>.Empty,
 			(p, s) => {
 				if(s != null && s.Length == 0) return null;
-					//See ToCLString
-					return ImmutableArray.CreateRange((s ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x => {
+				//See ToCLString
+				return ImmutableArray.CreateRange((s ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x => {
 					var args = x.Split(':', 2);
 					return new ConsumerSettings(args[0].Trim(), args.Skip(1).FirstOrDefault()?.Split('|') ?? Array.Empty<string>());
 				}).ToArray());
 			},
 			(p, o) => {
 				if(o is not ImmutableArray<ConsumerSettings> lst || lst.Length == 0) return null;
-					//A bit odd at first, but with this we make Consumers==null the special case (i.e. list the consumers)
-					return lst.Length == 0 ? "" : string.Join(",", lst.Select(x => x.Name + string.Concat(x.Arguments.Select(y => ":" + y))));
+				//A bit odd at first, but with this we make Consumers==null the special case (i.e. list the consumers)
+				return lst.Length == 0 ? "" : string.Join(",", lst.Select(x => x.Name + string.Concat(x.Arguments.Select(y => ":" + y))));
 			}
 		);
 	}
@@ -255,7 +251,7 @@ public class ReportingSettings : SettingFacade {
 				var parts = s?.Split(new[] { ',' }, 2) ?? Array.Empty<string>();
 				var retVal = parts.Length == 1 ? (parts[0], "(?i)${CRC32}") : (parts[0], parts[1]);
 				Regex.IsMatch("12345678", retVal.Item2.Replace("${CRC32}", "12345678")); //Throw Early on invalid Regex
-					return retVal;
+				return retVal;
 			},
 			(p, o) => $"{o.Item1},{o.Item2}"
 		);

@@ -8,11 +8,7 @@ using AVDump3Lib.Processing.HashAlgorithms;
 using AVDump3Lib.Processing.StreamConsumer;
 using AVDump3Lib.Processing.StreamProvider;
 using ExtKnot.StringInvariants;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 

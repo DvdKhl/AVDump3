@@ -1,10 +1,5 @@
 ﻿using AVDump3Lib.Information.MetaInfo.Core;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace AVDump3Lib.Processing.FileMove;
 

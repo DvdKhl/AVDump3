@@ -5,8 +5,6 @@ using AVDump3Lib.Processing.BlockConsumers;
 using AVDump3Lib.Processing.BlockConsumers.Matroska;
 using AVDump3Lib.Processing.BlockConsumers.MP4;
 using AVDump3Lib.Processing.BlockConsumers.Ogg;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace AVDump3Lib.Information;
 

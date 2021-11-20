@@ -2,8 +2,6 @@
 using BXmlLib;
 using BXmlLib.DataSource;
 using BXmlLib.DocTypes.MP4;
-using System;
-using System.Threading;
 
 namespace AVDump3Lib.Processing.BlockConsumers.MP4;
 

@@ -1,6 +1,5 @@
 using BXmlLib;
 using BXmlLib.DocTypes.Ebml;
-using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.EbmlHeader;
 

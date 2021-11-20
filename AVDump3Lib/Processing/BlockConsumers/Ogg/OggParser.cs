@@ -1,5 +1,4 @@
 using AVDump3Lib.Processing.BlockBuffers;
-using System.Threading;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Ogg;
 

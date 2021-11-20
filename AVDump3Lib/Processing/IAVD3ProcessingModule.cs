@@ -3,8 +3,6 @@ using AVDump3Lib.Processing.BlockConsumers;
 using AVDump3Lib.Processing.StreamConsumer;
 using AVDump3Lib.Processing.StreamProvider;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace AVDump3Lib.Processing;

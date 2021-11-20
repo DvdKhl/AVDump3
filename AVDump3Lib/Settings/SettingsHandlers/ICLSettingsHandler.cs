@@ -1,5 +1,4 @@
 ﻿using AVDump3Lib.Settings.Core;
-using System.Collections.Generic;
 
 namespace AVDump3Lib.Settings.CLArguments;
 

@@ -1,5 +1,4 @@
 ﻿using AVDump3Lib.Information.MetaInfo.Core;
-using System;
 
 namespace AVDump3Lib.Processing.FileMove;
 

@@ -5,8 +5,6 @@ using AVDump3Lib.Processing;
 using AVDump3Lib.Reporting;
 using AVDump3Lib.Settings;
 using AVDump3Lib.Settings.CLArguments;
-using System;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;

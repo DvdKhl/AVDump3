@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace AVDump3Lib.Misc;
+﻿namespace AVDump3Lib.Misc;
 
 public static class Clustering {
 	public static double[][] KMeans<T>(int k, T[] data, Func<T, double> getKey, Func<T, int> getValue) { // TODO: Rewrite

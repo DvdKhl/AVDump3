@@ -1,5 +1,4 @@
 ﻿using AVDump3Lib;
-using System;
 
 namespace AVDump3CL;
 

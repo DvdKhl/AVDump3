@@ -1,8 +1,5 @@
 using BXmlLib;
 using BXmlLib.DocTypes.Matroska;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks;
 

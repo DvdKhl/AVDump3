@@ -1,11 +1,8 @@
 using AVDump3Lib.Information.MetaInfo.Core;
 using AVDump3Lib.Reporting.Core;
 using ExtKnot.StringInvariants;
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Xml.Linq;
 
 namespace AVDump3Lib.Reporting.Reports;

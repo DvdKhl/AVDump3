@@ -1,7 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using AVDump3Gui.ViewModels;
-using System;
 
 namespace AVDump3Gui;
 

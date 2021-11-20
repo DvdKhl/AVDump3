@@ -2,9 +2,7 @@ using BXmlLib;
 using BXmlLib.DataSource;
 using BXmlLib.DocType;
 using BXmlLib.DocTypes.Ebml;
-using System;
 using System.Collections;
-using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska;
 

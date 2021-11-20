@@ -1,4 +1,3 @@
-using System;
 using System.Runtime.InteropServices;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams;

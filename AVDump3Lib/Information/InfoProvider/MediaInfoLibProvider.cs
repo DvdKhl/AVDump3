@@ -1,11 +1,7 @@
 using AVDump3Lib.Information.MetaInfo;
 using AVDump3Lib.Information.MetaInfo.Core;
 using ExtKnot.StringInvariants;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;

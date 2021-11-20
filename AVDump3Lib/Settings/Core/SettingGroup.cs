@@ -1,5 +1,4 @@
-﻿using System;
-using System.Resources;
+﻿using System.Resources;
 
 namespace AVDump3Lib.Settings.Core;
 

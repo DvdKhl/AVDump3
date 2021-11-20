@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace AVDump3Lib.Processing.BlockBuffers;
+﻿namespace AVDump3Lib.Processing.BlockBuffers;
 
 public interface IMirroredBufferPool {
 	int BufferSize { get; }

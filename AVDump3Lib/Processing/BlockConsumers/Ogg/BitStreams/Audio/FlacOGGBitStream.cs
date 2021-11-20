@@ -1,5 +1,3 @@
-using System;
-
 namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams;
 
 public class FlacOGGBitStream : AudioOGGBitStream {

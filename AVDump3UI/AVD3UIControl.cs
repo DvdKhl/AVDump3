@@ -18,17 +18,11 @@ using AVDump3Lib.Settings;
 using AVDump3Lib.Settings.Core;
 using ExtKnot.StringInvariants;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace AVDump3UI;

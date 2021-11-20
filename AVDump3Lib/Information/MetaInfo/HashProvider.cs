@@ -1,7 +1,5 @@
 using AVDump3Lib.Information.MetaInfo.Core;
 using AVDump3Lib.Processing.BlockConsumers;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace AVDump3Lib.Information.MetaInfo;

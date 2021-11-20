@@ -3,8 +3,6 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Markup.Xaml;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Resources;
 

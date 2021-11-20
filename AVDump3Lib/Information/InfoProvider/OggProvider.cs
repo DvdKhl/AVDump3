@@ -2,9 +2,7 @@ using AVDump3Lib.Information.MetaInfo;
 using AVDump3Lib.Information.MetaInfo.Core;
 using AVDump3Lib.Processing.BlockConsumers.Ogg;
 using AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams;
-using System;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace AVDump3Lib.Information.InfoProvider;
 

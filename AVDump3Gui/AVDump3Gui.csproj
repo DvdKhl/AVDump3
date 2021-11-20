@@ -5,6 +5,7 @@
     <ApplicationIcon>AVD3Icon.ico</ApplicationIcon>
     <Platforms>AnyCPU;x64</Platforms>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="Models\" />

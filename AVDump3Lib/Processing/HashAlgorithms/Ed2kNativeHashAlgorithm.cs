@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Runtime.InteropServices;
 
 namespace AVDump3Lib.Processing.HashAlgorithms;

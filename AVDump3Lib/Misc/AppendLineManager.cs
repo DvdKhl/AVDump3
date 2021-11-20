@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-
-namespace AVDump3Lib.Misc;
+﻿namespace AVDump3Lib.Misc;
 
 public class AppendLineManager {
 	private readonly Dictionary<string, StreamWriter> streamWriters = new();

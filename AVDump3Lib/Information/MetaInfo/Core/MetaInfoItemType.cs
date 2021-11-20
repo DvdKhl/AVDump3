@@ -1,5 +1,3 @@
-using System;
-
 namespace AVDump3Lib.Information.MetaInfo.Core;
 
 public class MetaInfoItemType<T> : MetaInfoItemType {

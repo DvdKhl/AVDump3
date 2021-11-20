@@ -1,8 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-
-namespace AVDump3CL;
+﻿namespace AVDump3CL;
 
 public sealed class AVD3ProgressDisplay {
 	private Func<BytesReadProgress.Progress> getProgress; //TODO As Event
