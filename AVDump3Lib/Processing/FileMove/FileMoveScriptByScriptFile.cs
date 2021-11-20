@@ -5,42 +5,42 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace AVDump3Lib.Processing.FileMove {
-	public class FileMoveScriptByScriptFile : FileMoveScript {
-		private readonly ScriptOptions scriptOptions;
-		private readonly FileInfo scriptFileInfo;
-		private readonly Converter<string, string>? preprocessing;
-		private ScriptRunner<string>? scriptRunner;
+namespace AVDump3Lib.Processing.FileMove;
 
-		public FileMoveScriptByScriptFile(IEnumerable<IFileMoveConfigure> extensions, string filePath, Converter<string, string>? preprocessing = null) : base(extensions) {
-			if(string.IsNullOrEmpty(filePath)) throw new ArgumentException("Parameter may not be null or empty", nameof(filePath));
-			scriptFileInfo = new FileInfo(filePath);
-			this.preprocessing = preprocessing;
+public class FileMoveScriptByScriptFile : FileMoveScript {
+	private readonly ScriptOptions scriptOptions;
+	private readonly FileInfo scriptFileInfo;
+	private readonly Converter<string, string>? preprocessing;
+	private ScriptRunner<string>? scriptRunner;
 
-			scriptOptions = ScriptOptions.Default.WithReferences(AppDomain.CurrentDomain.GetAssemblies());
-		}
+	public FileMoveScriptByScriptFile(IEnumerable<IFileMoveConfigure> extensions, string filePath, Converter<string, string>? preprocessing = null) : base(extensions) {
+		if(string.IsNullOrEmpty(filePath)) throw new ArgumentException("Parameter may not be null or empty", nameof(filePath));
+		scriptFileInfo = new FileInfo(filePath);
+		this.preprocessing = preprocessing;
 
-		public override bool CanReload { get; } = true;
+		scriptOptions = ScriptOptions.Default.WithReferences(AppDomain.CurrentDomain.GetAssemblies());
+	}
 
-		public override async Task<string?> ExecuteInternalAsync(FileMoveContext ctx) {
-			if(scriptRunner == null) return null;
+	public override bool CanReload { get; } = true;
 
-			var dstFilePath = await scriptRunner(ctx);
-			return dstFilePath;
-		}
+	public override async Task<string?> ExecuteInternalAsync(FileMoveContext ctx) {
+		if(scriptRunner == null) return null;
 
-		public override void Load() {
-			var code = File.ReadAllText(scriptFileInfo.FullName);
-			if(preprocessing != null) code = preprocessing(code);
+		var dstFilePath = await scriptRunner(ctx);
+		return dstFilePath;
+	}
 
-			var fileMoveScript = CSharpScript.Create<string>(code, scriptOptions, typeof(FileMoveContext));
-			scriptRunner = fileMoveScript.CreateDelegate();
-		}
+	public override void Load() {
+		var code = File.ReadAllText(scriptFileInfo.FullName);
+		if(preprocessing != null) code = preprocessing(code);
 
-		public override bool SourceChanged() {
-			var lastWriteTime = scriptFileInfo.LastWriteTime;
-			scriptFileInfo.Refresh();
-			return lastWriteTime != scriptFileInfo.LastWriteTime;
-		}
+		var fileMoveScript = CSharpScript.Create<string>(code, scriptOptions, typeof(FileMoveContext));
+		scriptRunner = fileMoveScript.CreateDelegate();
+	}
+
+	public override bool SourceChanged() {
+		var lastWriteTime = scriptFileInfo.LastWriteTime;
+		scriptFileInfo.Refresh();
+		return lastWriteTime != scriptFileInfo.LastWriteTime;
 	}
 }

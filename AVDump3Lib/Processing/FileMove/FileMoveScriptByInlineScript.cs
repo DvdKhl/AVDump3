@@ -4,28 +4,28 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace AVDump3Lib.Processing.FileMove {
-	public class FileMoveScriptByInlineScript : FileMoveScript {
-		private readonly string script;
-		private ScriptRunner<string>? scriptRunner;
+namespace AVDump3Lib.Processing.FileMove;
 
-		public FileMoveScriptByInlineScript(IEnumerable<IFileMoveConfigure> extensions, string script) : base(extensions) {
-			if(string.IsNullOrEmpty(script)) throw new ArgumentException("Parameter may not be null or empty", nameof(script));
-			this.script = script;
-		}
+public class FileMoveScriptByInlineScript : FileMoveScript {
+	private readonly string script;
+	private ScriptRunner<string>? scriptRunner;
 
-		public override bool CanReload { get; } = false;
+	public FileMoveScriptByInlineScript(IEnumerable<IFileMoveConfigure> extensions, string script) : base(extensions) {
+		if(string.IsNullOrEmpty(script)) throw new ArgumentException("Parameter may not be null or empty", nameof(script));
+		this.script = script;
+	}
 
-		public override async Task<string?> ExecuteInternalAsync(FileMoveContext ctx) {
-			if(scriptRunner == null) return null;
+	public override bool CanReload { get; } = false;
 
-			var dstFilePath = await scriptRunner(ctx);
-			return dstFilePath;
-		}
+	public override async Task<string?> ExecuteInternalAsync(FileMoveContext ctx) {
+		if(scriptRunner == null) return null;
 
-		public override void Load() {
-			var fileMoveScript = CSharpScript.Create<string>(script, ScriptOptions.Default.WithReferences(AppDomain.CurrentDomain.GetAssemblies()), typeof(FileMoveContext));
-			scriptRunner = fileMoveScript.CreateDelegate();
-		}
+		var dstFilePath = await scriptRunner(ctx);
+		return dstFilePath;
+	}
+
+	public override void Load() {
+		var fileMoveScript = CSharpScript.Create<string>(script, ScriptOptions.Default.WithReferences(AppDomain.CurrentDomain.GetAssemblies()), typeof(FileMoveContext));
+		scriptRunner = fileMoveScript.CreateDelegate();
 	}
 }

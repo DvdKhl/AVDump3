@@ -4,6 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <ApplicationIcon>AVD3Icon.ico</ApplicationIcon>
     <Platforms>AnyCPU;x64</Platforms>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="Models\" />

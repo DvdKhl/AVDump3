@@ -3,18 +3,18 @@ using Avalonia.Data.Converters;
 using System;
 using System.Globalization;
 
-namespace AVDump3Gui.Controls.Settings {
-	public class SettingValueConverter : IValueConverter {
-		public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
+namespace AVDump3Gui.Controls.Settings;
 
-			if(value is ISettingPropertyItem settingProperty) {
-				return new SettingValueDisplay(settingProperty, (SettingValueDisplayType)parameter);
+public class SettingValueConverter : IValueConverter {
+	public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
 
-			} else {
-				return BindingOperations.DoNothing;
-			}
+		if(value is ISettingPropertyItem settingProperty) {
+			return new SettingValueDisplay(settingProperty, (SettingValueDisplayType)parameter);
+
+		} else {
+			return BindingOperations.DoNothing;
 		}
-
-		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 	}
+
+	public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => throw new NotSupportedException();
 }

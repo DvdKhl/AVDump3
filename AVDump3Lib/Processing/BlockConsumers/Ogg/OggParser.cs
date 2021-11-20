@@ -1,30 +1,30 @@
 using AVDump3Lib.Processing.BlockBuffers;
 using System.Threading;
 
-namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
-	public class OggParser : BlockConsumer {
+namespace AVDump3Lib.Processing.BlockConsumers.Ogg;
 
-		public OggFile Info { get; private set; }
+public class OggParser : BlockConsumer {
 
-		public OggParser(string name, IBlockStreamReader reader) : base(name, reader) { }
+	public OggFile Info { get; private set; }
 
-		private bool isValidFile;
-		public override bool IsConsuming => base.IsConsuming && isValidFile;
+	public OggParser(string name, IBlockStreamReader reader) : base(name, reader) { }
 
-		protected override void DoWork(CancellationToken ct) {
-			var info = new OggFile();
+	private bool isValidFile;
+	public override bool IsConsuming => base.IsConsuming && isValidFile;
 
-			var page = new OggPage();
-			var stream = new OggBlockDataSource(Reader);
+	protected override void DoWork(CancellationToken ct) {
+		var info = new OggFile();
 
-			if(!stream.SeekPastSyncBytes(false, 0)) return;
-			isValidFile = true;
+		var page = new OggPage();
+		var stream = new OggBlockDataSource(Reader);
 
-			while(stream.ReadOggPage(ref page)) {
-				info.ProcessOggPage(ref page);
-			}
+		if(!stream.SeekPastSyncBytes(false, 0)) return;
+		isValidFile = true;
 
-			Info = info;
+		while(stream.ReadOggPage(ref page)) {
+			info.ProcessOggPage(ref page);
 		}
+
+		Info = info;
 	}
 }

@@ -9,212 +9,212 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
-namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster {
-	public class ClusterSection : Section {
-		public Dictionary<int, Track> Tracks { get; private set; }
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster;
 
-		public ClusterSection() { Tracks = new Dictionary<int, Track>(); }
-		public ulong TimeCodeScale { get; set; }
-		private long timecode;
+public class ClusterSection : Section {
+	public Dictionary<int, Track> Tracks { get; private set; }
 
-		public void AddTracks(IEnumerable<TrackEntrySection> tracks) {
-			foreach(var track in tracks) {
-				var trackNumber = (int)track.TrackNumber.Value;
-				if(Tracks.TryGetValue(~trackNumber, out var clusterTrack)) {
-					var replaceTrack = new Track(trackNumber, track.TrackTimecodeScale ?? 1d, track);
-					replaceTrack.Timecodes.AddRange(clusterTrack.Timecodes);
+	public ClusterSection() { Tracks = new Dictionary<int, Track>(); }
+	public ulong TimeCodeScale { get; set; }
+	private long timecode;
 
-					Tracks.Add(trackNumber, replaceTrack);
-					Tracks.Remove(~trackNumber);
-				} else {
-					Tracks.Add(trackNumber, new Track(trackNumber, track.TrackTimecodeScale ?? 1d, track));
-				}
+	public void AddTracks(IEnumerable<TrackEntrySection> tracks) {
+		foreach(var track in tracks) {
+			var trackNumber = (int)track.TrackNumber.Value;
+			if(Tracks.TryGetValue(~trackNumber, out var clusterTrack)) {
+				var replaceTrack = new Track(trackNumber, track.TrackTimecodeScale ?? 1d, track);
+				replaceTrack.Timecodes.AddRange(clusterTrack.Timecodes);
+
+				Tracks.Add(trackNumber, replaceTrack);
+				Tracks.Remove(~trackNumber);
+			} else {
+				Tracks.Add(trackNumber, new Track(trackNumber, track.TrackTimecodeScale ?? 1d, track));
 			}
 		}
+	}
 
-		protected override bool ProcessElement(IBXmlReader reader) {
-			if(reader.DocElement == MatroskaDocType.SimpleBlock || reader.DocElement == MatroskaDocType.Block) {
-				MatroskaDocType.RetrieveMatroskaBlock(reader, out var matroskaBlock);
+	protected override bool ProcessElement(IBXmlReader reader) {
+		if(reader.DocElement == MatroskaDocType.SimpleBlock || reader.DocElement == MatroskaDocType.Block) {
+			MatroskaDocType.RetrieveMatroskaBlock(reader, out var matroskaBlock);
+			if(
+				!Tracks.TryGetValue(matroskaBlock.TrackNumber, out var track) &&
+				!Tracks.TryGetValue(~matroskaBlock.TrackNumber, out track)
+			) {
+				Tracks.Add(~matroskaBlock.TrackNumber, track = new Track(~matroskaBlock.TrackNumber, 1, null));
+			}
+			track.Timecodes.Add(new TrackTimecode((ulong)((matroskaBlock.TimeCode + timecode) * track.TimecodeScale * TimeCodeScale), matroskaBlock.FrameCount, matroskaBlock.Data.Length));
+
+		} else if(reader.DocElement == MatroskaDocType.BlockGroup) {
+			Read(reader);
+		} else if(reader.DocElement == MatroskaDocType.Timecode) {
+			timecode = (long)(ulong)reader.RetrieveValue();
+		} else return false;
+
+		return true;
+	}
+	protected override void Validate() { }
+
+	public override IEnumerator<KeyValuePair<string, object>> GetEnumerator() { yield break; }
+
+
+	public class Track {
+		private readonly TrackEntrySection? mkvTrack;
+
+		public int TrackNumber { get; private set; }
+		public double TimecodeScale { get; private set; }
+
+		public List<TrackTimecode> Timecodes { get; private set; }
+
+		public Track(int trackNumber, double timecodeScale, TrackEntrySection? mkvTrack) {
+			TrackNumber = trackNumber;
+			TimecodeScale = mkvTrack?.TrackTimecodeScale ?? 1d;
+			this.mkvTrack = mkvTrack;
+
+			Timecodes = new List<TrackTimecode>();
+		}
+
+
+		public TrackInfo TrackInfo => trackInfo ??= CalcTrackInfo();
+		private TrackInfo trackInfo;
+
+		private TrackInfo? CalcTrackInfo() {
+			try {
+				//Hack to get info from subtitles stored CodecPrivate
 				if(
-					!Tracks.TryGetValue(matroskaBlock.TrackNumber, out var track) &&
-					!Tracks.TryGetValue(~matroskaBlock.TrackNumber, out track)
+					Timecodes.Count == 0 && mkvTrack?.CodecPrivate != null &&
+					("S_TEXT/ASS".Equals(mkvTrack.CodecId) || "S_TEXT/SSA".Equals(mkvTrack.CodecId))
 				) {
-					Tracks.Add(~matroskaBlock.TrackNumber, track = new Track(~matroskaBlock.TrackNumber, 1, null));
+					ExtractSubtitleInfo();
 				}
-				track.Timecodes.Add(new TrackTimecode((ulong)((matroskaBlock.TimeCode + timecode) * track.TimecodeScale * TimeCodeScale), matroskaBlock.FrameCount, matroskaBlock.Data.Length));
 
-			} else if(reader.DocElement == MatroskaDocType.BlockGroup) {
-				Read(reader);
-			} else if(reader.DocElement == MatroskaDocType.Timecode) {
-				timecode = (long)(ulong)reader.RetrieveValue();
-			} else return false;
-
-			return true;
-		}
-		protected override void Validate() { }
-
-		public override IEnumerator<KeyValuePair<string, object>> GetEnumerator() { yield break; }
+				Timecodes.Sort();
 
 
-		public class Track {
-			private readonly TrackEntrySection? mkvTrack;
+				var rate = new double[3];
+				double? minSampleRate = null, maxSampleRate = null;
 
-			public int TrackNumber { get; private set; }
-			public double TimecodeScale { get; private set; }
+				var oldTC = Timecodes.FirstOrDefault();
 
-			public List<TrackTimecode> Timecodes { get; private set; }
+				int pos = 0, prevPos = 0, prevprevPos;
+				double maxDiff;
 
-			public Track(int trackNumber, double timecodeScale, TrackEntrySection? mkvTrack) {
-				TrackNumber = trackNumber;
-				TimecodeScale = mkvTrack?.TrackTimecodeScale ?? 1d;
-				this.mkvTrack = mkvTrack;
+				int frames = oldTC.frames;
+				long trackSize = (mkvTrack?.CodecPrivate?.Length ?? 0) + oldTC.size;
 
-				Timecodes = new List<TrackTimecode>();
-			}
+				var sampleRateHistogram = new Dictionary<double, int>();
+				var bitRateHistogram = new Dictionary<double, int>();
 
+				foreach(var timecode in Timecodes.Skip(1)) {
+					//fps[pos] = 1d / ((timecode.timeCode - oldTC.timeCode) / (double)oldTC.frames / 1000000000d);
+					rate[pos] = (1000000000d * oldTC.frames) / (timecode.timeCode - oldTC.timeCode);
 
-			public TrackInfo TrackInfo => trackInfo ??= CalcTrackInfo();
-			private TrackInfo trackInfo;
-
-			private TrackInfo? CalcTrackInfo() {
-				try {
-					//Hack to get info from subtitles stored CodecPrivate
-					if(
-						Timecodes.Count == 0 && mkvTrack?.CodecPrivate != null &&
-						("S_TEXT/ASS".Equals(mkvTrack.CodecId) || "S_TEXT/SSA".Equals(mkvTrack.CodecId))
-					) {
-						ExtractSubtitleInfo();
+					if(!double.IsInfinity(rate[pos]) && !double.IsNaN(rate[pos])) {
+						if(!sampleRateHistogram.ContainsKey(rate[pos])) sampleRateHistogram[rate[pos]] = 0;
+						sampleRateHistogram[rate[pos]]++;
 					}
 
-					Timecodes.Sort();
 
-
-					var rate = new double[3];
-					double? minSampleRate = null, maxSampleRate = null;
-
-					var oldTC = Timecodes.FirstOrDefault();
-
-					int pos = 0, prevPos = 0, prevprevPos;
-					double maxDiff;
-
-					int frames = oldTC.frames;
-					long trackSize = (mkvTrack?.CodecPrivate?.Length ?? 0) + oldTC.size;
-
-					var sampleRateHistogram = new Dictionary<double, int>();
-					var bitRateHistogram = new Dictionary<double, int>();
-
-					foreach(var timecode in Timecodes.Skip(1)) {
-						//fps[pos] = 1d / ((timecode.timeCode - oldTC.timeCode) / (double)oldTC.frames / 1000000000d);
-						rate[pos] = (1000000000d * oldTC.frames) / (timecode.timeCode - oldTC.timeCode);
-
-						if(!double.IsInfinity(rate[pos]) && !double.IsNaN(rate[pos])) {
-							if(!sampleRateHistogram.ContainsKey(rate[pos])) sampleRateHistogram[rate[pos]] = 0;
-							sampleRateHistogram[rate[pos]]++;
-						}
-
-
-						var bitRate = timecode.size * 8000000000d / (timecode.frames * (timecode.timeCode - oldTC.timeCode));
-						if(!double.IsInfinity(bitRate) && !double.IsNaN(bitRate)) {
-							if(!bitRateHistogram.ContainsKey(bitRate)) bitRateHistogram[bitRate] = 0;
-							bitRateHistogram[bitRate] += timecode.frames;
-						}
-
-						oldTC = timecode;
-						prevprevPos = prevPos;
-						prevPos = pos;
-						pos = (pos + 1) % 3;
-
-						trackSize += timecode.size;
-						frames += timecode.frames;
-
-						maxDiff = (rate[prevprevPos] + rate[pos] / 2) * 0.1;
-						if(Math.Abs(rate[prevPos] - rate[prevprevPos]) < maxDiff && Math.Abs(rate[prevPos] - rate[pos]) < maxDiff) {
-							if(!minSampleRate.HasValue || minSampleRate.Value > rate[prevPos]) minSampleRate = rate[prevPos];
-							if(!maxSampleRate.HasValue || maxSampleRate.Value < rate[prevPos]) maxSampleRate = rate[prevPos];
-						}
+					var bitRate = timecode.size * 8000000000d / (timecode.frames * (timecode.timeCode - oldTC.timeCode));
+					if(!double.IsInfinity(bitRate) && !double.IsNaN(bitRate)) {
+						if(!bitRateHistogram.ContainsKey(bitRate)) bitRateHistogram[bitRate] = 0;
+						bitRateHistogram[bitRate] += timecode.frames;
 					}
 
-					var trackLength = TimeSpan.FromMilliseconds((Timecodes.LastOrDefault().timeCode - Timecodes.FirstOrDefault().timeCode) / 1000000);
+					oldTC = timecode;
+					prevprevPos = prevPos;
+					prevPos = pos;
+					pos = (pos + 1) % 3;
 
-					return new TrackInfo {
-						SampleRateHistogram = sampleRateHistogram.Select(kvp => new SampleRateCountPair(kvp.Key, kvp.Value)).ToList().AsReadOnly(),
-						AverageBitrate = (trackSize != 0 && trackLength.Ticks != 0) ? trackSize * 8 / trackLength.TotalSeconds : (double?)null,
-						AverageSampleRate = (frames != 0 && trackLength.Ticks != 0) ? frames / trackLength.TotalSeconds : (double?)null,
-						MinSampleRate = minSampleRate,
-						MaxSampleRate = maxSampleRate,
-						TrackLength = trackLength,
-						TrackSize = trackSize,
-						SampleCount = frames
-					};
+					trackSize += timecode.size;
+					frames += timecode.frames;
 
-				} catch(Exception) { }
-
-				return null;
-			}
-
-			private void ExtractSubtitleInfo() {
-				var assOrSsaContent = Encoding.UTF8.GetString(mkvTrack?.CodecPrivate ?? Array.Empty<byte>());
-
-				var eventSectionStart = assOrSsaContent.InvIndexOf("[Events]");
-				if(eventSectionStart < 0) return;
-
-				var formatStart = assOrSsaContent.InvIndexOf("Format:", eventSectionStart);
-				if(formatStart < 0) return;
-				formatStart += 7;
-
-				var formatEnd = assOrSsaContent.InvIndexOf("\n", formatStart) - 1;
-				if(formatEnd < 0) return;
-
-				var columns = assOrSsaContent[formatStart..formatEnd].InvReplace(" ", "").Split(',');
-				var startIndex = Array.IndexOf(columns, "Start");
-				var endIndex = Array.IndexOf(columns, "End");
-
-				var lines = assOrSsaContent[(formatEnd + 1)..].Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Split(new[] { ',' }, columns.Length)).ToArray();
-
-				foreach(var line in lines) {
-					Timecodes.Add(new TrackTimecode((ulong)TimeSpan.ParseExact(line[startIndex], @"h\:mm\:ss\.ff", CultureInfo.InvariantCulture).TotalMilliseconds * 1000000, 1, 0));
+					maxDiff = (rate[prevprevPos] + rate[pos] / 2) * 0.1;
+					if(Math.Abs(rate[prevPos] - rate[prevprevPos]) < maxDiff && Math.Abs(rate[prevPos] - rate[pos]) < maxDiff) {
+						if(!minSampleRate.HasValue || minSampleRate.Value > rate[prevPos]) minSampleRate = rate[prevPos];
+						if(!maxSampleRate.HasValue || maxSampleRate.Value < rate[prevPos]) maxSampleRate = rate[prevPos];
+					}
 				}
-			}
+
+				var trackLength = TimeSpan.FromMilliseconds((Timecodes.LastOrDefault().timeCode - Timecodes.FirstOrDefault().timeCode) / 1000000);
+
+				return new TrackInfo {
+					SampleRateHistogram = sampleRateHistogram.Select(kvp => new SampleRateCountPair(kvp.Key, kvp.Value)).ToList().AsReadOnly(),
+					AverageBitrate = (trackSize != 0 && trackLength.Ticks != 0) ? trackSize * 8 / trackLength.TotalSeconds : (double?)null,
+					AverageSampleRate = (frames != 0 && trackLength.Ticks != 0) ? frames / trackLength.TotalSeconds : (double?)null,
+					MinSampleRate = minSampleRate,
+					MaxSampleRate = maxSampleRate,
+					TrackLength = trackLength,
+					TrackSize = trackSize,
+					SampleCount = frames
+				};
+
+			} catch(Exception) { }
+
+			return null;
 		}
 
-		public class TrackInfo {
-			public double? AverageBitrate { get; internal set; }
-			public double? AverageSampleRate { get; internal set; }
-			public double? MinSampleRate { get; internal set; }
-			public double? MaxSampleRate { get; internal set; }
+		private void ExtractSubtitleInfo() {
+			var assOrSsaContent = Encoding.UTF8.GetString(mkvTrack?.CodecPrivate ?? Array.Empty<byte>());
 
-			public ReadOnlyCollection<SampleRateCountPair> SampleRateHistogram { get; internal set; }
+			var eventSectionStart = assOrSsaContent.InvIndexOf("[Events]");
+			if(eventSectionStart < 0) return;
 
-			public TimeSpan TrackLength { get; internal set; }
-			public long TrackSize { get; internal set; }
-			public int SampleCount { get; internal set; }
+			var formatStart = assOrSsaContent.InvIndexOf("Format:", eventSectionStart);
+			if(formatStart < 0) return;
+			formatStart += 7;
 
-			//public TrackInfo(ReadOnlyCollection<LaceRateCountPair> laceRateHistogram, double? averageBitrate, double? averageLaceRate, TimeSpan trackLength, long trackSize, int laceCount) {
-			//	AverageBitrate = averageBitrate;
-			//	AverageLaceRate = averageLaceRate;
-			//	TrackLength = trackLength; TrackSize = trackSize; LaceCount = laceCount;
-			//	LaceRateHistogram = laceRateHistogram;
-			//}
+			var formatEnd = assOrSsaContent.InvIndexOf("\n", formatStart) - 1;
+			if(formatEnd < 0) return;
+
+			var columns = assOrSsaContent[formatStart..formatEnd].InvReplace(" ", "").Split(',');
+			var startIndex = Array.IndexOf(columns, "Start");
+			var endIndex = Array.IndexOf(columns, "End");
+
+			var lines = assOrSsaContent[(formatEnd + 1)..].Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Split(new[] { ',' }, columns.Length)).ToArray();
+
+			foreach(var line in lines) {
+				Timecodes.Add(new TrackTimecode((ulong)TimeSpan.ParseExact(line[startIndex], @"h\:mm\:ss\.ff", CultureInfo.InvariantCulture).TotalMilliseconds * 1000000, 1, 0));
+			}
+		}
+	}
+
+	public class TrackInfo {
+		public double? AverageBitrate { get; internal set; }
+		public double? AverageSampleRate { get; internal set; }
+		public double? MinSampleRate { get; internal set; }
+		public double? MaxSampleRate { get; internal set; }
+
+		public ReadOnlyCollection<SampleRateCountPair> SampleRateHistogram { get; internal set; }
+
+		public TimeSpan TrackLength { get; internal set; }
+		public long TrackSize { get; internal set; }
+		public int SampleCount { get; internal set; }
+
+		//public TrackInfo(ReadOnlyCollection<LaceRateCountPair> laceRateHistogram, double? averageBitrate, double? averageLaceRate, TimeSpan trackLength, long trackSize, int laceCount) {
+		//	AverageBitrate = averageBitrate;
+		//	AverageLaceRate = averageLaceRate;
+		//	TrackLength = trackLength; TrackSize = trackSize; LaceCount = laceCount;
+		//	LaceRateHistogram = laceRateHistogram;
+		//}
+	}
+
+	public class SampleRateCountPair {
+		public double SampleRate { get; private set; }
+		public long Count { get; private set; }
+		public SampleRateCountPair(double laceRate, long count) { SampleRate = laceRate; Count = count; }
+	}
+
+	public struct TrackTimecode : IComparable<TrackTimecode> {
+		public ulong timeCode;
+		public byte frames;
+		public int size;
+
+		public TrackTimecode(ulong timeCode, byte frames, int size) {
+			this.frames = frames; this.size = size; this.timeCode = timeCode;
 		}
 
-		public class SampleRateCountPair {
-			public double SampleRate { get; private set; }
-			public long Count { get; private set; }
-			public SampleRateCountPair(double laceRate, long count) { SampleRate = laceRate; Count = count; }
-		}
-
-		public struct TrackTimecode : IComparable<TrackTimecode> {
-			public ulong timeCode;
-			public byte frames;
-			public int size;
-
-			public TrackTimecode(ulong timeCode, byte frames, int size) {
-				this.frames = frames; this.size = size; this.timeCode = timeCode;
-			}
-
-			public int CompareTo(TrackTimecode other) {
-				return timeCode.CompareTo(other.timeCode);
-			}
+		public int CompareTo(TrackTimecode other) {
+			return timeCode.CompareTo(other.timeCode);
 		}
 	}
 }

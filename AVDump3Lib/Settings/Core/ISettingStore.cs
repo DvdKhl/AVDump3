@@ -1,14 +1,14 @@
 ﻿using System.Collections.Immutable;
 
-namespace AVDump3Lib.Settings.Core {
-	public interface ISettingStore {
-		static object Unset { get; } = new object();
+namespace AVDump3Lib.Settings.Core;
 
-		ImmutableArray<ISettingProperty> SettingProperties { get; }
+public interface ISettingStore {
+	static object Unset { get; } = new object();
 
-		bool ContainsProperty(ISettingProperty settingProperty);
-		object? GetPropertyValue(ISettingProperty settingProperty);
-		object? GetRawPropertyValue(ISettingProperty settingProperty);
-		void SetPropertyValue(ISettingProperty settingProperty, object? value);
-	}
+	ImmutableArray<ISettingProperty> SettingProperties { get; }
+
+	bool ContainsProperty(ISettingProperty settingProperty);
+	object? GetPropertyValue(ISettingProperty settingProperty);
+	object? GetRawPropertyValue(ISettingProperty settingProperty);
+	void SetPropertyValue(ISettingProperty settingProperty, object? value);
 }

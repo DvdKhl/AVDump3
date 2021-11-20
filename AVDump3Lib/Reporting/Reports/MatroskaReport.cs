@@ -6,47 +6,47 @@ using System;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace AVDump3Lib.Reporting.Reports {
-	public class MatroskaReport : XmlReport {
-		protected override XDocument Report { get; }
+namespace AVDump3Lib.Reporting.Reports;
 
-		public MatroskaReport(FileMetaInfo fileMetaInfo) {
-			Report = new XDocument();
-			var rootElem = new XElement("File");
-			Report.Add(rootElem);
+public class MatroskaReport : XmlReport {
+	protected override XDocument Report { get; }
 
-			var matroskaFile = fileMetaInfo.Providers.OfType<MatroskaProvider>().SingleOrDefault()?.MFI;
-			if(matroskaFile == null) {
-				return;
-			}
+	public MatroskaReport(FileMetaInfo fileMetaInfo) {
+		Report = new XDocument();
+		var rootElem = new XElement("File");
+		Report.Add(rootElem);
 
-			static void traverse(XElement parent, Section section) {
-				foreach(var item in section) {
-					var child = new XElement(item.Key);
-					parent.Add(child);
+		var matroskaFile = fileMetaInfo.Providers.OfType<MatroskaProvider>().SingleOrDefault()?.MFI;
+		if(matroskaFile == null) {
+			return;
+		}
 
-					if(item.Value is Section childSection) {
-						traverse(child, childSection);
+		static void traverse(XElement parent, Section section) {
+			foreach(var item in section) {
+				var child = new XElement(item.Key);
+				parent.Add(child);
 
-					} else {
-						if(item.Value != null) {
+				if(item.Value is Section childSection) {
+					traverse(child, childSection);
 
-							if(item.Value is byte[] b) {
-								child.Add(new XAttribute("Size", b.Length));
-								if(b.Length > 0) {
-									child.Value = BitConverter.ToString(b, 0, Math.Min(1024, b.Length)).Replace("-", "") + (b.Length > 1024 ? "..." : "");
-								}
-							} else {
-								child.Value = item.Value.ToString();
+				} else {
+					if(item.Value != null) {
+
+						if(item.Value is byte[] b) {
+							child.Add(new XAttribute("Size", b.Length));
+							if(b.Length > 0) {
+								child.Value = BitConverter.ToString(b, 0, Math.Min(1024, b.Length)).Replace("-", "") + (b.Length > 1024 ? "..." : "");
 							}
+						} else {
+							child.Value = item.Value.ToString();
 						}
 					}
 				}
-
 			}
 
-			traverse(rootElem, matroskaFile);
-
 		}
+
+		traverse(rootElem, matroskaFile);
+
 	}
 }

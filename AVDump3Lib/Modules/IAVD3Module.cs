@@ -1,24 +1,24 @@
 using System.Collections.Generic;
 
-namespace AVDump3Lib.Modules {
-	public class ModuleInitResult {
-		public bool CancelStartup { get; private set; }
-		public string Reason { get; private set; }
+namespace AVDump3Lib.Modules;
 
-		public ModuleInitResult(bool cancelStartup) { CancelStartup = cancelStartup; }
-		public ModuleInitResult(string cancelReason) { Cancel(cancelReason); }
+public class ModuleInitResult {
+	public bool CancelStartup { get; private set; }
+	public string Reason { get; private set; }
 
-		public void Cancel() { Cancel(""); }
-		public void Cancel(string reason) {
-			CancelStartup = true;
-			Reason = reason;
-		}
+	public ModuleInitResult(bool cancelStartup) { CancelStartup = cancelStartup; }
+	public ModuleInitResult(string cancelReason) { Cancel(cancelReason); }
+
+	public void Cancel() { Cancel(""); }
+	public void Cancel(string reason) {
+		CancelStartup = true;
+		Reason = reason;
 	}
+}
 
-	public interface IAVD3Module {
-		void Initialize(IReadOnlyCollection<IAVD3Module> modules);
-		ModuleInitResult Initialized();
+public interface IAVD3Module {
+	void Initialize(IReadOnlyCollection<IAVD3Module> modules);
+	ModuleInitResult Initialized();
 
-		void Shutdown();
-	}
+	void Shutdown();
 }

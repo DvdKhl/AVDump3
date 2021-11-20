@@ -4,49 +4,49 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace AVDump3Lib.Settings {
-	public interface IAVD3SettingsModule : IAVD3Module {
-		void RegisterSettings(IEnumerable<ISettingProperty> settingProperties);
-		event EventHandler<SettingsModuleInitResult> ConfigurationFinished;
+namespace AVDump3Lib.Settings;
+
+public interface IAVD3SettingsModule : IAVD3Module {
+	void RegisterSettings(IEnumerable<ISettingProperty> settingProperties);
+	event EventHandler<SettingsModuleInitResult> ConfigurationFinished;
+}
+
+public class SettingsModuleInitResult : ModuleInitResult {
+	public ISettingStore Store { get; }
+
+	public SettingsModuleInitResult(ISettingStore store) : base(false) {
+		Store = store ?? throw new ArgumentNullException(nameof(store));
+	}
+}
+
+
+public class AVD3SettingsModule : IAVD3SettingsModule {
+	public event EventHandler<SettingsModuleInitResult> ConfigurationFinished = delegate { };
+
+	private readonly List<ISettingProperty> settingsGroups = new();
+
+	public IReadOnlyList<ISettingProperty> SettingProperties { get; private set; }
+
+	public ISettingStore Store { get; private set; }
+
+
+	public ISettingStore BuildStore() => Store = new SettingStore(settingsGroups.ToImmutableArray());
+
+	public void Initialize(IReadOnlyCollection<IAVD3Module> modules) { }
+
+	public ModuleInitResult Initialized() {
+		var args = new SettingsModuleInitResult(Store);
+		ConfigurationFinished?.Invoke(this, args);
+		return args;
 	}
 
-	public class SettingsModuleInitResult : ModuleInitResult {
-		public ISettingStore Store { get; }
+	public AVD3SettingsModule() {
+		Store = new SettingStore(ImmutableArray<ISettingProperty>.Empty);
 
-		public SettingsModuleInitResult(ISettingStore store) : base(false) {
-			Store = store ?? throw new ArgumentNullException(nameof(store));
-		}
+		SettingProperties = settingsGroups.AsReadOnly();
+
 	}
+	public void Shutdown() { }
 
-
-	public class AVD3SettingsModule : IAVD3SettingsModule {
-		public event EventHandler<SettingsModuleInitResult> ConfigurationFinished = delegate { };
-
-		private readonly List<ISettingProperty> settingsGroups = new();
-
-		public IReadOnlyList<ISettingProperty> SettingProperties { get; private set; }
-
-		public ISettingStore Store { get; private set; }
-
-
-		public ISettingStore BuildStore() => Store = new SettingStore(settingsGroups.ToImmutableArray());
-
-		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) { }
-
-		public ModuleInitResult Initialized() {
-			var args = new SettingsModuleInitResult(Store);
-			ConfigurationFinished?.Invoke(this, args);
-			return args;
-		}
-
-		public AVD3SettingsModule() {
-			Store = new SettingStore(ImmutableArray<ISettingProperty>.Empty);
-
-			SettingProperties = settingsGroups.AsReadOnly();
-
-		}
-		public void Shutdown() { }
-
-		public void RegisterSettings(IEnumerable<ISettingProperty> settingsGroups) => this.settingsGroups.AddRange(settingsGroups);
-	}
+	public void RegisterSettings(IEnumerable<ISettingProperty> settingsGroups) => this.settingsGroups.AddRange(settingsGroups);
 }

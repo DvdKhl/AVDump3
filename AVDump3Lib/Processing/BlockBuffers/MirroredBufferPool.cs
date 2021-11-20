@@ -1,28 +1,28 @@
 ﻿using System.Collections.Generic;
 
-namespace AVDump3Lib.Processing.BlockBuffers {
-	public interface IMirroredBufferPool {
-		int BufferSize { get; }
-		IMirroredBuffer Take();
-		void Release(IMirroredBuffer buffer);
-	}
+namespace AVDump3Lib.Processing.BlockBuffers;
 
-	public class MirroredBufferPool : IMirroredBufferPool {
-		public int BufferSize { get; }
+public interface IMirroredBufferPool {
+	int BufferSize { get; }
+	IMirroredBuffer Take();
+	void Release(IMirroredBuffer buffer);
+}
 
-		private readonly Stack<IMirroredBuffer> slots = new();
+public class MirroredBufferPool : IMirroredBufferPool {
+	public int BufferSize { get; }
 
-		public MirroredBufferPool(int bufferSize) { BufferSize = bufferSize; }
+	private readonly Stack<IMirroredBuffer> slots = new();
 
-		public IMirroredBuffer Take() {
-			lock(slots) {
-				if(slots.Count != 0) {
-					return slots.Pop();
-				} else {
-					return new MirroredBuffer(BufferSize);
-				}
+	public MirroredBufferPool(int bufferSize) { BufferSize = bufferSize; }
+
+	public IMirroredBuffer Take() {
+		lock(slots) {
+			if(slots.Count != 0) {
+				return slots.Pop();
+			} else {
+				return new MirroredBuffer(BufferSize);
 			}
 		}
-		public void Release(IMirroredBuffer buffer) { lock(slots) slots.Push(buffer); }
 	}
+	public void Release(IMirroredBuffer buffer) { lock(slots) slots.Push(buffer); }
 }

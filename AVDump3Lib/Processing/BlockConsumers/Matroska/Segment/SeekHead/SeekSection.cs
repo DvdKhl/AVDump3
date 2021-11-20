@@ -2,28 +2,28 @@ using BXmlLib;
 using BXmlLib.DocTypes.Matroska;
 using System.Collections.Generic;
 
-namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SeekHead {
-	public class SeekSection : Section {
-		private byte[] seekId;
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SeekHead;
 
-		public byte[] SeekId => seekId != null ? (byte[])seekId.Clone() : null;
-		public ulong SeekPosition { get; private set; }
+public class SeekSection : Section {
+	private byte[] seekId;
 
-		protected override bool ProcessElement(IBXmlReader reader) {
-			if(reader.DocElement == MatroskaDocType.SeekID) {
-				seekId = (byte[])reader.RetrieveValue();
-			} else if(reader.DocElement == MatroskaDocType.SeekPosition) {
-				SeekPosition = (ulong)reader.RetrieveValue();
-			} else return false;
+	public byte[] SeekId => seekId != null ? (byte[])seekId.Clone() : null;
+	public ulong SeekPosition { get; private set; }
 
-			return true;
-		}
+	protected override bool ProcessElement(IBXmlReader reader) {
+		if(reader.DocElement == MatroskaDocType.SeekID) {
+			seekId = (byte[])reader.RetrieveValue();
+		} else if(reader.DocElement == MatroskaDocType.SeekPosition) {
+			SeekPosition = (ulong)reader.RetrieveValue();
+		} else return false;
 
-		protected override void Validate() { }
+		return true;
+	}
 
-		public override IEnumerator<KeyValuePair<string, object>> GetEnumerator() {
-			yield return CreatePair("SeekId", SeekId);
-			yield return CreatePair("SeekPosition", SeekPosition);
-		}
+	protected override void Validate() { }
+
+	public override IEnumerator<KeyValuePair<string, object>> GetEnumerator() {
+		yield return CreatePair("SeekId", SeekId);
+		yield return CreatePair("SeekPosition", SeekPosition);
 	}
 }

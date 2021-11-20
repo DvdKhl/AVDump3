@@ -3,73 +3,73 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 
-namespace AVDump3Lib.Processing.StreamProvider {
-	public class NullStream : Stream {
-		private long position;
+namespace AVDump3Lib.Processing.StreamProvider;
 
-		public override bool CanRead { get; } = true;
-		public override bool CanSeek { get; } = false;
-		public override bool CanWrite { get; } = false;
-		public override long Length { get; }
+public class NullStream : Stream {
+	private long position;
 
-		public override long Position {
-			get { return position; }
-			set { position = value; }
-		}
+	public override bool CanRead { get; } = true;
+	public override bool CanSeek { get; } = false;
+	public override bool CanWrite { get; } = false;
+	public override long Length { get; }
 
-		public override void Flush() { }
-
-		public override int Read(Span<byte> buffer) {
-			var bytesread = (int)Math.Min(buffer.Length, Length - position);
-			position += bytesread;
-			return bytesread;
-		}
-		public override int Read(byte[] buffer, int offset, int count) => Read(((Span<byte>)buffer).Slice(offset, count));
-
-		public override long Seek(long offset, SeekOrigin origin) { return 0; }
-
-		public override void SetLength(long value) { }
-
-		public override void Write(byte[] buffer, int offset, int count) { }
-
-		public NullStream(long length) {
-			Length = length;
-		}
+	public override long Position {
+		get { return position; }
+		set { position = value; }
 	}
 
-	public class NullProvidedStream : ProvidedStream {
-		private readonly SemaphoreSlim limiter;
+	public override void Flush() { }
 
-		public NullProvidedStream(object tag, Stream stream, SemaphoreSlim limiter) : base(tag, stream) {
-			this.limiter = limiter;
-		}
-		public override void Dispose() {
-			limiter.Release();
-			GC.SuppressFinalize(this);
+	public override int Read(Span<byte> buffer) {
+		var bytesread = (int)Math.Min(buffer.Length, Length - position);
+		position += bytesread;
+		return bytesread;
+	}
+	public override int Read(byte[] buffer, int offset, int count) => Read(((Span<byte>)buffer).Slice(offset, count));
 
-		}
+	public override long Seek(long offset, SeekOrigin origin) { return 0; }
+
+	public override void SetLength(long value) { }
+
+	public override void Write(byte[] buffer, int offset, int count) { }
+
+	public NullStream(long length) {
+		Length = length;
+	}
+}
+
+public class NullProvidedStream : ProvidedStream {
+	private readonly SemaphoreSlim limiter;
+
+	public NullProvidedStream(object tag, Stream stream, SemaphoreSlim limiter) : base(tag, stream) {
+		this.limiter = limiter;
+	}
+	public override void Dispose() {
+		limiter.Release();
+		GC.SuppressFinalize(this);
+
+	}
+}
+
+public class NullStreamProvider : IStreamProvider {
+	private readonly SemaphoreSlim limiter;
+
+	public long StreamLength { get; }
+	public int StreamCount { get; }
+	public int ParallelStreamCount { get; }
+
+	public NullStreamProvider(int streamCount, long streamLength, int parallelStreamCount) {
+		StreamLength = streamLength;
+		StreamCount = streamCount;
+		ParallelStreamCount = parallelStreamCount;
+
+		limiter = new SemaphoreSlim(parallelStreamCount);
 	}
 
-	public class NullStreamProvider : IStreamProvider {
-		private readonly SemaphoreSlim limiter;
-
-		public long StreamLength { get; }
-		public int StreamCount { get; }
-		public int ParallelStreamCount { get; }
-
-		public NullStreamProvider(int streamCount, long streamLength, int parallelStreamCount) {
-			StreamLength = streamLength;
-			StreamCount = streamCount;
-			ParallelStreamCount = parallelStreamCount;
-
-			limiter = new SemaphoreSlim(parallelStreamCount);
-		}
-
-		public IEnumerable<ProvidedStream> GetConsumingEnumerable(CancellationToken ct) {
-			for(var i = 0; i < StreamCount; i++) {
-				limiter.Wait(CancellationToken.None);
-				yield return new NullProvidedStream("NULL" + i, new NullStream(StreamLength), limiter);
-			}
+	public IEnumerable<ProvidedStream> GetConsumingEnumerable(CancellationToken ct) {
+		for(var i = 0; i < StreamCount; i++) {
+			limiter.Wait(CancellationToken.None);
+			yield return new NullProvidedStream("NULL" + i, new NullStream(StreamLength), limiter);
 		}
 	}
 }

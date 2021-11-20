@@ -77,8 +77,8 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <PostBuildEvent>
-      <Command>copy /Y "$(OutDir)AVD*.dll" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(ConfigurationName)\net5.0\"
-copy /Y "$(OutDir)AVD*.pdb" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(ConfigurationName)\net5.0\"
+      <Command>copy /Y "$(OutDir)AVD*.dll" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(ConfigurationName)\net6.0\"
+copy /Y "$(OutDir)AVD*.pdb" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(ConfigurationName)\net6.0\"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -100,8 +100,8 @@ copy /Y "$(OutDir)AVD*.pdb" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(Confi
       <Profile>true</Profile>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(OutDir)*.dll" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(ConfigurationName)\net5.0\"
-copy /Y "$(OutDir)*.pdb" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(ConfigurationName)\net5.0\"
+      <Command>copy /Y "$(OutDir)*.dll" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(ConfigurationName)\net6.0\"
+copy /Y "$(OutDir)*.pdb" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(ConfigurationName)\net6.0\"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>

@@ -3,40 +3,40 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace AVDump3Lib.Reporting.Core {
-	public abstract class XmlReport : IReport {
-		protected abstract XDocument Report { get; }
-		public string FileExtension { get; } = "xml";
+namespace AVDump3Lib.Reporting.Core;
 
-		public string ReportToString(Encoding encoding) {
-			var settings = new XmlWriterSettings {
-				Indent = true,
-				NewLineChars = "\n",
-				CheckCharacters = false,
-				Encoding = Encoding.UTF8,
-				OmitXmlDeclaration = true,
-				ConformanceLevel = ConformanceLevel.Fragment
-			};
+public abstract class XmlReport : IReport {
+	protected abstract XDocument Report { get; }
+	public string FileExtension { get; } = "xml";
 
-			return ReportToString(settings);
+	public string ReportToString(Encoding encoding) {
+		var settings = new XmlWriterSettings {
+			Indent = true,
+			NewLineChars = "\n",
+			CheckCharacters = false,
+			Encoding = Encoding.UTF8,
+			OmitXmlDeclaration = true,
+			ConformanceLevel = ConformanceLevel.Fragment
+		};
+
+		return ReportToString(settings);
+	}
+	public string ReportToString(XmlWriterSettings settings) {
+		using var memStream = new MemoryStream();
+		using(var xmlWriter = XmlWriter.Create(memStream, settings)) {
+			Report.Root.WriteTo(xmlWriter);
 		}
-		public string ReportToString(XmlWriterSettings settings) {
-			using var memStream = new MemoryStream();
-			using(var xmlWriter = XmlWriter.Create(memStream, settings)) {
-				Report.Root.WriteTo(xmlWriter);
-			}
-			memStream.Position = 0;
+		memStream.Position = 0;
 
-			using var strReader = new StreamReader(memStream);
+		using var strReader = new StreamReader(memStream);
 
-			return strReader.ReadToEnd();
-		}
+		return strReader.ReadToEnd();
+	}
 
-		public XDocument ReportToXml() { return new XDocument(Report); }
+	public XDocument ReportToXml() { return new XDocument(Report); }
 
-		public void SaveToFile(string filePath, string reportContentPrefix, Encoding encoding) {
-			Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-			File.AppendAllText(filePath, (!string.IsNullOrEmpty(reportContentPrefix) ? reportContentPrefix + "\n" : "") + ReportToString(encoding) + "\n\n", encoding);
-		}
+	public void SaveToFile(string filePath, string reportContentPrefix, Encoding encoding) {
+		Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+		File.AppendAllText(filePath, (!string.IsNullOrEmpty(reportContentPrefix) ? reportContentPrefix + "\n" : "") + ReportToString(encoding) + "\n\n", encoding);
 	}
 }

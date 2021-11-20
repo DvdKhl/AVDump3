@@ -3,37 +3,37 @@ using AVDump3Lib.Processing.BlockConsumers;
 using System;
 using System.Collections.Generic;
 
-namespace AVDump3Lib.Information.InfoProvider {
-	public interface IInfoProviderFactory {
-		Type ProviderType { get; }
+namespace AVDump3Lib.Information.InfoProvider;
 
-		MetaDataProvider Create(InfoProviderSetup setup);
+public interface IInfoProviderFactory {
+	Type ProviderType { get; }
+
+	MetaDataProvider Create(InfoProviderSetup setup);
+}
+
+public class InfoProviderSetup {
+	public InfoProviderSetup(string filePath, IReadOnlyCollection<IBlockConsumer> blockConsumers) {
+		FilePath = filePath;
+		BlockConsumers = blockConsumers;
 	}
 
-	public class InfoProviderSetup {
-		public InfoProviderSetup(string filePath, IReadOnlyCollection<IBlockConsumer> blockConsumers) {
-			FilePath = filePath;
-			BlockConsumers = blockConsumers;
-		}
+	public string FilePath { get; }
+	public IReadOnlyCollection<IBlockConsumer> BlockConsumers { get; }
+}
 
-		public string FilePath { get; }
-		public IReadOnlyCollection<IBlockConsumer> BlockConsumers { get; }
+public delegate MetaDataProvider CreateInfoProvider(InfoProviderSetup reader);
+
+public class InfoProviderFactory : IInfoProviderFactory {
+	private readonly CreateInfoProvider createInfoProvider;
+
+
+	public InfoProviderFactory(Type providerType, CreateInfoProvider createInfoProvider) {
+		ProviderType = providerType;
+		this.createInfoProvider = createInfoProvider;
 	}
 
-	public delegate MetaDataProvider CreateInfoProvider(InfoProviderSetup reader);
-
-	public class InfoProviderFactory : IInfoProviderFactory {
-		private readonly CreateInfoProvider createInfoProvider;
-
-
-		public InfoProviderFactory(Type providerType, CreateInfoProvider createInfoProvider) {
-			ProviderType = providerType;
-			this.createInfoProvider = createInfoProvider;
-		}
-
-		public Type ProviderType { get; }
-		public MetaDataProvider Create(InfoProviderSetup setup) {
-			return createInfoProvider(setup);
-		}
+	public Type ProviderType { get; }
+	public MetaDataProvider Create(InfoProviderSetup setup) {
+		return createInfoProvider(setup);
 	}
 }

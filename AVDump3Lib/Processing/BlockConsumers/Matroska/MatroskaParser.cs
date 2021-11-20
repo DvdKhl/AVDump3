@@ -6,40 +6,40 @@ using System;
 using System.Buffers.Binary;
 using System.Threading;
 
-namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
-	public class MatroskaParser : BlockConsumer {
-		public MatroskaFile Info { get; private set; }
+namespace AVDump3Lib.Processing.BlockConsumers.Matroska;
 
-		public MatroskaParser(string name, IBlockStreamReader reader) : base(name, reader) { }
+public class MatroskaParser : BlockConsumer {
+	public MatroskaFile Info { get; private set; }
 
-		public override bool IsConsuming => base.IsConsuming && hasValidHeader;
+	public MatroskaParser(string name, IBlockStreamReader reader) : base(name, reader) { }
 
-		private bool hasValidHeader = false;
+	public override bool IsConsuming => base.IsConsuming && hasValidHeader;
 
-		protected override void DoWork(CancellationToken ct) {
-			if(Reader.Length < 4 || BinaryPrimitives.ReadUInt32BigEndian(Reader.GetBlock(4)) != 0x1A45DFA3U) {
-				return;
-			}
-			hasValidHeader = true;
+	private bool hasValidHeader = false;
 
-			IBXmlDataSource dataSrc = new AVDEbmlBlockDataSource(Reader);
-			using(var cts = new CancellationTokenSource())
-			using(ct.Register(() => cts.Cancel())) {
-				var matroskaDocType = new MatroskaDocType(); //(MatroskaVersion.V3);
-				var bxmlReader = new BXmlReader(dataSrc, matroskaDocType);
+	protected override void DoWork(CancellationToken ct) {
+		if(Reader.Length < 4 || BinaryPrimitives.ReadUInt32BigEndian(Reader.GetBlock(4)) != 0x1A45DFA3U) {
+			return;
+		}
+		hasValidHeader = true;
 
-				var matroskaFile = new MatroskaFile(Reader.Length);
-				try {
-					matroskaFile.Parse(bxmlReader, cts.Token);
+		IBXmlDataSource dataSrc = new AVDEbmlBlockDataSource(Reader);
+		using(var cts = new CancellationTokenSource())
+		using(ct.Register(() => cts.Cancel())) {
+			var matroskaDocType = new MatroskaDocType(); //(MatroskaVersion.V3);
+			var bxmlReader = new BXmlReader(dataSrc, matroskaDocType);
 
-					if(matroskaFile.Segment != null) {
-						Info = matroskaFile;
-					}
-				} catch(Exception ex) {
-					//TODO: Only ignore excpetion when it is not a matroska file
+			var matroskaFile = new MatroskaFile(Reader.Length);
+			try {
+				matroskaFile.Parse(bxmlReader, cts.Token);
+
+				if(matroskaFile.Segment != null) {
+					Info = matroskaFile;
 				}
-
+			} catch(Exception ex) {
+				//TODO: Only ignore excpetion when it is not a matroska file
 			}
+
 		}
 	}
 }

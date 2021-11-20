@@ -7,27 +7,27 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace AVDump3Lib.Processing {
-	public interface IAVD3ProcessingModule : IAVD3Module {
-		CPUInstructions AvailableSIMD { get; }
+namespace AVDump3Lib.Processing;
 
-		ImmutableArray<IBlockConsumerFactory> BlockConsumerFactories { get; }
+public interface IAVD3ProcessingModule : IAVD3Module {
+	CPUInstructions AvailableSIMD { get; }
 
-		event EventHandler<BlockConsumerFilterEventArgs> BlockConsumerFilter;
-		event EventHandler<FilePathFilterEventArgs> FilePathFilter;
+	ImmutableArray<IBlockConsumerFactory> BlockConsumerFactories { get; }
 
-		IStreamProvider CreateFileStreamProvider(string[] paths, bool recursive, PathPartitions pathPartitions, Action<string> onPathAccepted, Action<Exception> onError);
-		IStreamConsumerCollection CreateStreamConsumerCollection(IStreamProvider streamProvider, int bufferLength, int minProducerReadLength, int maxProducerReadLength);
-		void RegisterDefaultBlockConsumers(IDictionary<string, ImmutableArray<string>> arguments);
-	}
+	event EventHandler<BlockConsumerFilterEventArgs> BlockConsumerFilter;
+	event EventHandler<FilePathFilterEventArgs> FilePathFilter;
 
-	public static class AVD3ProcessingModuleService {
-		public static IServiceCollection AddAVD3ProcessingModule(this IServiceCollection services) {
+	IStreamProvider CreateFileStreamProvider(string[] paths, bool recursive, PathPartitions pathPartitions, Action<string> onPathAccepted, Action<Exception> onError);
+	IStreamConsumerCollection CreateStreamConsumerCollection(IStreamProvider streamProvider, int bufferLength, int minProducerReadLength, int maxProducerReadLength);
+	void RegisterDefaultBlockConsumers(IDictionary<string, ImmutableArray<string>> arguments);
+}
+
+public static class AVD3ProcessingModuleService {
+	public static IServiceCollection AddAVD3ProcessingModule(this IServiceCollection services) {
 
 
 
 
-			return services;
-		}
+		return services;
 	}
 }
