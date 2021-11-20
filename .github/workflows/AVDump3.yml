@@ -64,7 +64,7 @@ jobs:
     - name: AVD3Main-DotNetSetup
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 5.0.x
+        dotnet-version: 6.0.x
 
     - name: AVD3Main-DownloadArtifacts
       uses: actions/download-artifact@v2
