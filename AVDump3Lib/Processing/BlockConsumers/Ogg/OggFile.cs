@@ -1,9 +1,5 @@
-﻿using AVDump3Lib.Processing.BlockConsumers.Ogg;
-using AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams;
-using System;
+﻿using AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 	public class OggFile {
@@ -11,7 +7,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 		public long Overhead { get; private set; }
 		public IEnumerable<OGGBitStream> Bitstreams => bitStreams.Values;
 
-		private readonly Dictionary<uint, OGGBitStream> bitStreams = new Dictionary<uint, OGGBitStream>();
+		private readonly Dictionary<uint, OGGBitStream> bitStreams = new();
 
 		public void ProcessOggPage(ref OggPage page) {
 			Overhead += 27 + page.SegmentCount;

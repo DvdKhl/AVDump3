@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace AVDump3Lib.Information.MetaInfo.Core {
 	public class MetaInfoItem<T> : MetaInfoItem {
@@ -18,7 +16,7 @@ namespace AVDump3Lib.Information.MetaInfo.Core {
 
 	public abstract class MetaInfoItem {
 		public MetaInfoItemType Type { get; private set; }
-		public object Value { get { return GetValue(); } }
+		public object Value => GetValue();
 		public IReadOnlyDictionary<string, string> Notes { get; private set; }
 		public MetaDataProvider Provider { get; private set; }
 

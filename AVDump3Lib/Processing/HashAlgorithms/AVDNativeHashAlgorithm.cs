@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
@@ -73,7 +72,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 
 		public ReadOnlySpan<byte> ComputeHash(ReadOnlySpan<byte> data) {
 			var bytesProcessed = TransformFullBlocks(data);
-			return TransformFinalBlock(data.Slice(bytesProcessed));
+			return TransformFinalBlock(data[bytesProcessed..]);
 		}
 	}
 }

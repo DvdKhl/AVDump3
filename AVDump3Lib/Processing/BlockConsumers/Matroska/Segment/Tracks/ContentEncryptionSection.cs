@@ -9,12 +9,12 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
 		private SigHashAlgos? contentSigHashAlgo;
 		private byte[] contentEncKeyId, contentSignature, contentSigKeyId;
 
-		public EncAlgos ContentEncAlgo { get { return contentEncAlgo ?? EncAlgos.SignedOnly; } }
-		public SigAlgos ContentSigAlgo { get { return contentSigAlgo ?? SigAlgos.EncryptionOnly; } }
-		public SigHashAlgos ContentSigHashAlgo { get { return contentSigHashAlgo ?? SigHashAlgos.EncryptionOnly; } }
-		public byte[] ContentEncKeyId { get { return (byte[])contentEncKeyId.Clone(); } }
-		public byte[] ContentSignature { get { return (byte[])contentSignature.Clone(); } }
-		public byte[] ContentSigKeyId { get { return (byte[])contentSigKeyId.Clone(); } }
+		public EncAlgos ContentEncAlgo => contentEncAlgo ?? EncAlgos.SignedOnly;
+		public SigAlgos ContentSigAlgo => contentSigAlgo ?? SigAlgos.EncryptionOnly;
+		public SigHashAlgos ContentSigHashAlgo => contentSigHashAlgo ?? SigHashAlgos.EncryptionOnly;
+		public byte[] ContentEncKeyId => (byte[])contentEncKeyId.Clone();
+		public byte[] ContentSignature => (byte[])contentSignature.Clone();
+		public byte[] ContentSigKeyId => (byte[])contentSigKeyId.Clone();
 
 		protected override bool ProcessElement(IBXmlReader reader) {
 			if(reader.DocElement == MatroskaDocType.ContentEncAlgo) {

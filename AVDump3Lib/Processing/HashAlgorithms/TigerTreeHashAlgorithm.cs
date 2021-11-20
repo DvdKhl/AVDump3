@@ -1,13 +1,7 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
@@ -109,13 +103,13 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 
 				if(leafCount < 2) {
 					//Push node hash into leavesSpan
-					leavesSpan.Slice(0, 24).CopyTo(leavesSpan.Slice(24));
+					leavesSpan[..24].CopyTo(leavesSpan[24..]);
 					nodeSpan.Slice(i * 48, 24).CopyTo(leavesSpan);
 					leafCount++;
 
 				} else {
 					//Fill the next free node hash level
-					nodeSpan.Slice(i * 48, 24).CopyTo(nodeSpan.Slice(nodesCopied * 48));
+					nodeSpan.Slice(i * 48, 24).CopyTo(nodeSpan[(nodesCopied * 48)..]);
 					nodesCopied++;
 				}
 			}
@@ -125,7 +119,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			if(leafCount == 1) {
 				//This can only happen if either there are no node hashes and a single leave hash or there only was a single node hash level occupied and leaveCount was zero.
 				//Therefore the single leave hash is the final hash and nodeCount is now zero
-				leavesSpan.Slice(0, 24).CopyTo(nodeSpan);
+				leavesSpan[..24].CopyTo(nodeSpan);
 			}
 
 			//Will only produce the final hash when leafCount is 2, if it is 1 nothing needs to be done as that is already the final hash.
@@ -139,7 +133,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		public int TransformFullBlocks(in ReadOnlySpan<byte> data) {
 			//Limit the amount of data transformed to 16MiB since the leaves array would overflow otherwise
 			//dataSlice is required to be a multiple of 2048 bytes.
-			var dataSlice = data.Slice(0, Math.Min(16 << 20, data.Length) & ~2047);
+			var dataSlice = data[..(Math.Min(16 << 20, data.Length) & ~2047)];
 
 			fixed(byte* dataPtr = dataSlice) {
 				//Hash Datablocks in parallel and wait for them to finish

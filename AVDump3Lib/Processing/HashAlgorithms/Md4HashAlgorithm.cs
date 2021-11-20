@@ -28,8 +28,6 @@
 //Modified by DvdKhl
 
 using System;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
 	public sealed class Md4HashAlgorithm : AVDHashAlgorithm {
@@ -161,7 +159,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		}
 
 		protected override unsafe void HashCore(in ReadOnlySpan<byte> data) {
-			fixed (byte* pData = data) {
+			fixed(byte* pData = data) {
 				for(var offset = 0; offset < data.Length; offset += BLOCKLENGTH) {
 					TransformMd4Block((uint*)(pData + offset));
 				}
@@ -193,14 +191,14 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		public void ComputeHash(in ReadOnlySpan<byte> data, in Span<byte> hash) {
 			Span<byte> tail = stackalloc byte[128];
 
-			var toProcess = data.Slice(0, (data.Length / BlockSize) * BlockSize);
+			var toProcess = data[..((data.Length / BlockSize) * BlockSize)];
 			if(toProcess.Length > 0) HashCore(toProcess);
 
-			data.Slice(toProcess.Length).TryCopyTo(tail);
+			data[toProcess.Length..].TryCopyTo(tail);
 			BytesProcessed += data.Length - toProcess.Length;
 
 			var padding = PadBuffer(tail);
-			HashCore(tail.Slice(0, padding + 8));
+			HashCore(tail[..(padding + 8)]);
 
 			hash[00] = (byte)(A); hash[01] = (byte)(A >> 8); hash[02] = (byte)(A >> 16); hash[03] = (byte)(A >> 24);
 			hash[04] = (byte)(B); hash[05] = (byte)(B >> 8); hash[06] = (byte)(B >> 16); hash[07] = (byte)(B >> 24);

@@ -32,7 +32,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		}
 
 		private void AddBlockHash(in ReadOnlySpan<byte> data) {
-			Md4Hash(data, ((Span<byte>)blockHashes).Slice(blockHashOffset));
+			Md4Hash(data, ((Span<byte>)blockHashes)[blockHashOffset..]);
 			blockHashOffset += 16;
 		}
 		public static void Md4Hash(ReadOnlySpan<byte> data, Span<byte> hash) {
@@ -58,7 +58,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 				//Data is not multiple of BlockLength (Common case)
 				AddBlockHash(data);
 
-				Md4Hash(hashes.Slice(0, blockHashOffset), hash);
+				Md4Hash(hashes[..blockHashOffset], hash);
 
 				RedHash = BlueHash = hash.ToArray().ToImmutableArray();
 				BlueIsRed = true;
@@ -68,13 +68,13 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 
 				Span<byte> hashNoNull = new byte[16];
 				if(blockHashOffset == 32) {
-					hashNoNull = hashes.Slice(0, 16);
+					hashNoNull = hashes[..16];
 				} else {
-					Md4Hash(hashes.Slice(0, blockHashOffset - 16), hashNoNull);
+					Md4Hash(hashes[..(blockHashOffset - 16)], hashNoNull);
 				}
 
 				Span<byte> hashWithNull = new byte[16];
-				Md4Hash(hashes.Slice(0, blockHashOffset), hashWithNull);
+				Md4Hash(hashes[..blockHashOffset], hashWithNull);
 
 				BlueHash = hashNoNull.ToArray().ToImmutableArray();
 				RedHash = hashWithNull.ToArray().ToImmutableArray();

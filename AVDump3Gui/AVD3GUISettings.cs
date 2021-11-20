@@ -1,11 +1,7 @@
-﻿using AVDump3Lib.Settings;
-using AVDump3Lib.Settings.Core;
+﻿using AVDump3Lib.Settings.Core;
 using AVDump3UI;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Resources;
-using System.Text;
 
 namespace AVDump3Gui {
 	public class AVD3GUISettings : AVD3UISettings {

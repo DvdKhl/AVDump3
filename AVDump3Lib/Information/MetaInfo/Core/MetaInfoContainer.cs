@@ -1,10 +1,7 @@
-using AVDump3Lib.Information.MetaInfo.Core;
 using ExtKnot.StringInvariants;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Reflection;
 
 namespace AVDump3Lib.Information.MetaInfo.Core {
 
@@ -13,8 +10,8 @@ namespace AVDump3Lib.Information.MetaInfo.Core {
 			protected override MetaInfoItemType GetKeyForItem(MetaInfoItem item) => item.Type;
 		}
 
-		private MetaInfoItemCollection items = new MetaInfoItemCollection();
-		private List<MetaInfoContainer> nodes = new List<MetaInfoContainer>();
+		private readonly MetaInfoItemCollection items = new();
+		private readonly List<MetaInfoContainer> nodes = new();
 
 		public IReadOnlyList<MetaInfoItem> Items { get; }
 		public IReadOnlyList<MetaInfoContainer> Nodes { get; }
@@ -44,7 +41,7 @@ namespace AVDump3Lib.Information.MetaInfo.Core {
 		public MetaInfoItem<T>? Select<T>(MetaInfoItemType<T> type) {
 			return items.Contains(type) ? (MetaInfoItem<T>)items[type] : null;
 		}
-		public MetaInfoItem<TValue> Select<TType, TValue>(string typeName) where TType: MetaInfoItemType<TValue> {
+		public MetaInfoItem<TValue> Select<TType, TValue>(string typeName) where TType : MetaInfoItemType<TValue> {
 			return items.OfType<MetaInfoItem<TValue>>().FirstOrDefault(x => x.Type.Key.InvEquals(typeName));
 		}
 

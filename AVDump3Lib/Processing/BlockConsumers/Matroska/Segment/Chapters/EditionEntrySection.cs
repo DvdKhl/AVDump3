@@ -8,13 +8,9 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
 		private bool? hidden, ordered, def;
 
 		public ulong? EditionUId { get; private set; }
-		public Options EditionFlags {
-			get {
-				return (hidden.HasValue && hidden.Value ? Options.Hidden : Options.None) |
+		public Options EditionFlags => (hidden.HasValue && hidden.Value ? Options.Hidden : Options.None) |
 					   (ordered.HasValue && ordered.Value ? Options.Ordered : Options.None) |
 					   (def.HasValue && def.Value ? Options.Default : Options.None);
-			}
-		}
 		public EbmlList<ChapterAtomSection> ChapterAtoms { get; private set; }
 
 		public EditionEntrySection() { ChapterAtoms = new EbmlList<ChapterAtomSection>(); }

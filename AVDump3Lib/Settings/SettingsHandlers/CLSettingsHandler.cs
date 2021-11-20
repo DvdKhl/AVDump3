@@ -4,11 +4,8 @@ using ExtKnot.StringInvariants;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Resources;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -114,34 +111,34 @@ namespace AVDump3Lib.Settings.CLArguments {
 			var unnamedArgs = new List<string>();
 			var settingValues = new Dictionary<ISettingProperty, object?>();
 
-			foreach(var arg in preprocessedArgs) {
-				if(arg.Name.InvStartsWithOrdCI("Help")) {
+			foreach(var (Raw, Namespace, Name, Param) in preprocessedArgs) {
+				if(Name.InvStartsWithOrdCI("Help")) {
 					printHelp = true;
-					if(!string.IsNullOrEmpty(arg.Param)) {
-						printHelpTopic = arg.Param;
+					if(!string.IsNullOrEmpty(Param)) {
+						printHelpTopic = Param;
 					}
 					continue;
 				}
 
-				if(!string.IsNullOrEmpty(arg.Name)) {
-					var comparsionType = arg.Name.Length == 1 ? StringComparison.InvariantCulture : StringComparison.OrdinalIgnoreCase;
+				if(!string.IsNullOrEmpty(Name)) {
+					var comparsionType = Name.Length == 1 ? StringComparison.InvariantCulture : StringComparison.OrdinalIgnoreCase;
 
 
 					var argCandidates =
 						from p in settingProperties
-						where arg.Namespace == null || arg.Namespace.InvEqualsOrdCI(p.Group.FullName)
-						where p.Name.Equals(arg.Name, comparsionType) || p.AlternativeNames.Any(ldKey => ldKey.Equals(arg.Name, comparsionType))
+						where Namespace == null || Namespace.InvEqualsOrdCI(p.Group.FullName)
+						where p.Name.Equals(Name, comparsionType) || p.AlternativeNames.Any(ldKey => ldKey.Equals(Name, comparsionType))
 						select p;
 
 					switch(argCandidates.Count()) {
-						case 0: throw new InvalidOperationException("Argument (" + (!string.IsNullOrEmpty(arg.Namespace) ? arg.Namespace + "." : "") + arg.Name + ") is not registered");
+						case 0: throw new InvalidOperationException("Argument (" + (!string.IsNullOrEmpty(Namespace) ? Namespace + "." : "") + Name + ") is not registered");
 						case 1: break;
 						default: throw new InvalidOperationException("Argument reference is ambiguous: " + string.Join(", ", argCandidates.Select(ldQuery => ldQuery.Group.Name + "." + ldQuery.Name).ToArray()));
 					}
 					var entry = argCandidates.First();
 
 					try {
-						var valueStr = arg.Param ?? (entry.ValueType == typeof(bool) ? "true" : "");
+						var valueStr = Param ?? (entry.ValueType == typeof(bool) ? "true" : "");
 						var value = entry.ToObject(valueStr);
 
 						settingValues[entry] = value;
@@ -149,7 +146,7 @@ namespace AVDump3Lib.Settings.CLArguments {
 					} catch(Exception ex) {
 						throw new InvalidOperationException("Property (" + entry.Group.Name + "." + entry.Name + ") could not be set", ex);
 					}
-				} else unnamedArgs?.Add(arg.Raw);
+				} else unnamedArgs?.Add(Raw);
 			}
 
 			return new CLParseArgsResult(true, "OK", printHelp, printHelpTopic, args.ToImmutableArray(), settingValues.ToImmutableDictionary(), unnamedArgs.ToImmutableArray());
@@ -191,9 +188,9 @@ namespace AVDump3Lib.Settings.CLArguments {
 					Append(ArgToString(prop));
 					sb.Append('|');
 					Append(argGroup.Group.FullName);
-					sb.Append('|'); 
+					sb.Append('|');
 					Append(description);
-					sb.Append('|'); 
+					sb.Append('|');
 					Append(defaultValue);
 					sb.Append('|');
 					Append(example);
@@ -264,27 +261,13 @@ namespace AVDump3Lib.Settings.CLArguments {
 		private static void Print(string msg, bool noColors = false) {
 			var strb = new StringBuilder();
 
-			Func<char, ConsoleColor> charToColor = c => {
-				switch(c) {
-					case '0':
-					case '1':
-					case '2':
-					case '3':
-					case '4':
-					case '5':
-					case '6':
-					case '7':
-					case '8':
-					case '9': return (ConsoleColor)(c - '0');
-					case 'A':
-					case 'B':
-					case 'C':
-					case 'D':
-					case 'E':
-					case 'F': return (ConsoleColor)(c - 'A' + 10);
-					default: throw new InvalidOperationException();
-				}
-			};
+			static ConsoleColor charToColor(char c) {
+				return c switch {
+					'0' or '1' or '2' or '3' or '4' or '5' or '6' or '7' or '8' or '9' => (ConsoleColor)(c - '0'),
+					'A' or 'B' or 'C' or 'D' or 'E' or 'F' => (ConsoleColor)(c - 'A' + 10),
+					_ => throw new InvalidOperationException(),
+				};
+			}
 
 			for(var i = 0; i < msg.Length; i++) {
 				var c = msg[i];

@@ -1,12 +1,5 @@
-﻿using AVDump3Lib.Processing.StreamProvider;
-using ExtKnot.StringInvariants;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Resources;
-using System.Text;
 
 namespace AVDump3Lib.Settings.Core {
 

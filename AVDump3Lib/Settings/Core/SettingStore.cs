@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 
 namespace AVDump3Lib.Settings.Core {
 	public class SettingStore : ISettingStore {
-		private readonly Dictionary<ISettingProperty, object?> values = new Dictionary<ISettingProperty, object?>();
+		private readonly Dictionary<ISettingProperty, object?> values = new();
 
 		public SettingStore(ImmutableArray<ISettingProperty> settingProperties) => SettingProperties = settingProperties;
 

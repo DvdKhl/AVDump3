@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace AVDump3Lib.Processing.StreamProvider {
 	public class NullStream : Stream {
@@ -41,18 +38,20 @@ namespace AVDump3Lib.Processing.StreamProvider {
 	}
 
 	public class NullProvidedStream : ProvidedStream {
-		private SemaphoreSlim limiter;
+		private readonly SemaphoreSlim limiter;
 
 		public NullProvidedStream(object tag, Stream stream, SemaphoreSlim limiter) : base(tag, stream) {
 			this.limiter = limiter;
 		}
 		public override void Dispose() {
 			limiter.Release();
+			GC.SuppressFinalize(this);
+
 		}
 	}
 
 	public class NullStreamProvider : IStreamProvider {
-		private SemaphoreSlim limiter;
+		private readonly SemaphoreSlim limiter;
 
 		public long StreamLength { get; }
 		public int StreamCount { get; }
@@ -68,7 +67,7 @@ namespace AVDump3Lib.Processing.StreamProvider {
 
 		public IEnumerable<ProvidedStream> GetConsumingEnumerable(CancellationToken ct) {
 			for(var i = 0; i < StreamCount; i++) {
-				limiter.Wait();
+				limiter.Wait(CancellationToken.None);
 				yield return new NullProvidedStream("NULL" + i, new NullStream(StreamLength), limiter);
 			}
 		}

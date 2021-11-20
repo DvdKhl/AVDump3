@@ -1,8 +1,6 @@
 ﻿using AVDump3Lib.Processing.BlockBuffers;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading;
 
 namespace AVDump3Lib.Processing.BlockConsumers {

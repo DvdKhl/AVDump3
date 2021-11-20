@@ -1,10 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AVDump3Lib.Information.FormatHeaders {
 
@@ -24,7 +18,7 @@ namespace AVDump3Lib.Information.FormatHeaders {
 		public uint ClrUsed { get; private set; }
 		public uint ClrImportant { get; private set; }
 
-		public string FourCC { get { return new string(new char[] { (char)((Compression >> 00) & 0xFF), (char)((Compression >> 08) & 0xFF), (char)((Compression >> 16) & 0xFF), (char)((Compression >> 24) & 0xFF) }); } }
+		public string FourCC => new(new char[] { (char)((Compression >> 00) & 0xFF), (char)((Compression >> 08) & 0xFF), (char)((Compression >> 16) & 0xFF), (char)((Compression >> 24) & 0xFF) });
 
 		public BitmapInfoHeader(byte[] b) {
 			if(b == null || b.Length < 40) throw new ArgumentException("Passed array need to be at least 40 bytes long", nameof(b));
@@ -40,7 +34,7 @@ namespace AVDump3Lib.Information.FormatHeaders {
 			XPelsPerMeter = BitConverter.ToInt32(b, pos); pos += 4;
 			YPelsPerMeter = BitConverter.ToInt32(b, pos); pos += 4;
 			ClrUsed = BitConverter.ToUInt32(b, pos); pos += 4;
-			ClrImportant = BitConverter.ToUInt32(b, pos); pos += 4;
+			ClrImportant = BitConverter.ToUInt32(b, pos);
 		}
 	}
 }

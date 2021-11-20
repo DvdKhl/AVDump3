@@ -1,9 +1,6 @@
 using AVDump3Lib.Processing.BlockBuffers;
 using ExtKnot.StringInvariants;
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Globalization;
 
 namespace AVDump3Lib.Processing.BlockConsumers {
 	public interface IBlockConsumerFactory {

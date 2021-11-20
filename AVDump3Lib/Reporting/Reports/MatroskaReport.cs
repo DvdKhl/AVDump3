@@ -3,11 +3,7 @@ using AVDump3Lib.Information.MetaInfo.Core;
 using AVDump3Lib.Processing.BlockConsumers.Matroska;
 using AVDump3Lib.Reporting.Core;
 using System;
-using System.Buffers.Binary;
-using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Xml.Linq;
 
 namespace AVDump3Lib.Reporting.Reports {
@@ -24,9 +20,7 @@ namespace AVDump3Lib.Reporting.Reports {
 				return;
 			}
 
-			
-
-			void traverse(XElement parent, Section section) {
+			static void traverse(XElement parent, Section section) {
 				foreach(var item in section) {
 					var child = new XElement(item.Key);
 					parent.Add(child);

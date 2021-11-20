@@ -1,12 +1,9 @@
-﻿using AVDump3Lib.Settings;
-using AVDump3Lib.Settings.Core;
+﻿using AVDump3Lib.Settings.Core;
 using AVDump3UI;
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Resources;
-using System.Text;
 
 namespace AVDump3CL {
 	public class AVD3CLSettings : AVD3UISettings {

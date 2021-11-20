@@ -8,7 +8,6 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster {
 	public class ClusterSection : Section {
@@ -36,9 +35,8 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster {
 		protected override bool ProcessElement(IBXmlReader reader) {
 			if(reader.DocElement == MatroskaDocType.SimpleBlock || reader.DocElement == MatroskaDocType.Block) {
 				MatroskaDocType.RetrieveMatroskaBlock(reader, out var matroskaBlock);
-				Track track;
 				if(
-					!Tracks.TryGetValue(matroskaBlock.TrackNumber, out track) &&
+					!Tracks.TryGetValue(matroskaBlock.TrackNumber, out var track) &&
 					!Tracks.TryGetValue(~matroskaBlock.TrackNumber, out track)
 				) {
 					Tracks.Add(~matroskaBlock.TrackNumber, track = new Track(~matroskaBlock.TrackNumber, 1, null));
@@ -59,14 +57,14 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster {
 
 
 		public class Track {
-			private TrackEntrySection mkvTrack;
+			private readonly TrackEntrySection? mkvTrack;
 
 			public int TrackNumber { get; private set; }
 			public double TimecodeScale { get; private set; }
 
 			public List<TrackTimecode> Timecodes { get; private set; }
 
-			public Track(int trackNumber, double timecodeScale, TrackEntrySection mkvTrack) {
+			public Track(int trackNumber, double timecodeScale, TrackEntrySection? mkvTrack) {
 				TrackNumber = trackNumber;
 				TimecodeScale = mkvTrack?.TrackTimecodeScale ?? 1d;
 				this.mkvTrack = mkvTrack;
@@ -75,14 +73,14 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster {
 			}
 
 
-			public TrackInfo TrackInfo { get { return (trackInfo == null) ? trackInfo = CalcTrackInfo() : trackInfo; } }
+			public TrackInfo TrackInfo => trackInfo ??= CalcTrackInfo();
 			private TrackInfo trackInfo;
 
-			private TrackInfo CalcTrackInfo() {
+			private TrackInfo? CalcTrackInfo() {
 				try {
 					//Hack to get info from subtitles stored CodecPrivate
 					if(
-						Timecodes.Count == 0 && mkvTrack.CodecPrivate != null &&
+						Timecodes.Count == 0 && mkvTrack?.CodecPrivate != null &&
 						("S_TEXT/ASS".Equals(mkvTrack.CodecId) || "S_TEXT/SSA".Equals(mkvTrack.CodecId))
 					) {
 						ExtractSubtitleInfo();
@@ -100,7 +98,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster {
 					double maxDiff;
 
 					int frames = oldTC.frames;
-					long trackSize = (mkvTrack.CodecPrivate?.Length ?? 0) + oldTC.size;
+					long trackSize = (mkvTrack?.CodecPrivate?.Length ?? 0) + oldTC.size;
 
 					var sampleRateHistogram = new Dictionary<double, int>();
 					var bitRateHistogram = new Dictionary<double, int>();
@@ -155,7 +153,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster {
 			}
 
 			private void ExtractSubtitleInfo() {
-				var assOrSsaContent = Encoding.UTF8.GetString(mkvTrack.CodecPrivate);
+				var assOrSsaContent = Encoding.UTF8.GetString(mkvTrack?.CodecPrivate ?? Array.Empty<byte>());
 
 				var eventSectionStart = assOrSsaContent.InvIndexOf("[Events]");
 				if(eventSectionStart < 0) return;
@@ -167,11 +165,11 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster {
 				var formatEnd = assOrSsaContent.InvIndexOf("\n", formatStart) - 1;
 				if(formatEnd < 0) return;
 
-				var columns = assOrSsaContent.Substring(formatStart, formatEnd - formatStart).InvReplace(" ", "").Split(',');
+				var columns = assOrSsaContent[formatStart..formatEnd].InvReplace(" ", "").Split(',');
 				var startIndex = Array.IndexOf(columns, "Start");
 				var endIndex = Array.IndexOf(columns, "End");
 
-				var lines = assOrSsaContent.Substring(formatEnd + 1).Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Split(new[] { ',' }, columns.Length)).ToArray();
+				var lines = assOrSsaContent[(formatEnd + 1)..].Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Split(new[] { ',' }, columns.Length)).ToArray();
 
 				foreach(var line in lines) {
 					Timecodes.Add(new TrackTimecode((ulong)TimeSpan.ParseExact(line[startIndex], @"h\:mm\:ss\.ff", CultureInfo.InvariantCulture).TotalMilliseconds * 1000000, 1, 0));

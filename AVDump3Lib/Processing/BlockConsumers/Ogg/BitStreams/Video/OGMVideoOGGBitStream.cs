@@ -4,9 +4,9 @@ using System.Text;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 	public class OGMVideoOGGBitStream : VideoOGGBitStream, IOGMStream, IVorbisComment {
-		public override string CodecName { get { return "OGMVideo"; } }
+		public override string CodecName => "OGMVideo";
 		public override string CodecVersion { get; protected set; }
-		public override long FrameCount { get { return LastGranulePosition; } }
+		public override long FrameCount => LastGranulePosition;
 		public override double FrameRate { get; }
 
 		public string ActualCodecName { get; private set; }
@@ -18,7 +18,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 			FrameRate = 10000000d / codecInfo.TimeUnit;
 			Width = codecInfo.Width;
 			Height = codecInfo.Height;
-		
+
 		}
 
 		[StructLayout(LayoutKind.Sequential, Size = 52)]
@@ -40,7 +40,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 			commentParser.ParsePage(ref page);
 		}
 
-		private VorbisCommentParser commentParser = new VorbisCommentParser();
+		private readonly VorbisCommentParser commentParser = new();
 		public Comments Comments {
 			get {
 				try {

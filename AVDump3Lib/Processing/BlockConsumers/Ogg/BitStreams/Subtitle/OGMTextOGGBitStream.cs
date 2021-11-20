@@ -4,14 +4,14 @@ using System.Text;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 	public class OGMTextOGGBitStream : SubtitleOGGBitStream, IOGMStream, IVorbisComment {
-		public override string CodecName { get { return "OGMText"; } }
+		public override string CodecName => "OGMText";
 		public override string CodecVersion { get; protected set; }
 		public string ActualCodecName { get; private set; }
 
 		public unsafe OGMTextOGGBitStream(ReadOnlySpan<byte> header)
 			: base(false) {
 			var codecInfo = MemoryMarshal.Read<OGMTextHeader>(header.Slice(1, 0x38));
-			ActualCodecName = new string(codecInfo.SubType, 0 , 4, Encoding.ASCII);
+			ActualCodecName = new string(codecInfo.SubType, 0, 4, Encoding.ASCII);
 		}
 
 		[StructLayout(LayoutKind.Sequential, Size = 52)]
@@ -32,7 +32,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 			commentParser.ParsePage(ref page);
 		}
 
-		private VorbisCommentParser commentParser = new VorbisCommentParser();
+		private readonly VorbisCommentParser commentParser = new();
 		public Comments Comments {
 			get {
 				try {

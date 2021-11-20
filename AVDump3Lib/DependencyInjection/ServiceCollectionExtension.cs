@@ -2,9 +2,6 @@
 using AVDump3Lib.Processing.StreamConsumer;
 using AVDump3Lib.Processing.StreamProvider;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace AVDump3Lib.DependencyInjection {
 	public static class ServiceCollectionExtension {

@@ -6,7 +6,6 @@ using AVDump3Lib.Information.MetaInfo.Core;
 using AVDump3Lib.Misc;
 using AVDump3Lib.Modules;
 using AVDump3Lib.Processing;
-using AVDump3Lib.Processing.BlockBuffers;
 using AVDump3Lib.Processing.BlockConsumers;
 using AVDump3Lib.Processing.FileMove;
 using AVDump3Lib.Processing.StreamConsumer;
@@ -17,14 +16,10 @@ using AVDump3Lib.Settings.CLArguments;
 using AVDump3Lib.Settings.Core;
 using AVDump3UI;
 using ExtKnot.StringInvariants;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -47,8 +42,8 @@ namespace AVDump3CL {
 	public class AVD3CLFileProcessedEventArgs : EventArgs {
 		public FileMetaInfo FileMetaInfo { get; }
 
-		private readonly List<Task<bool>> processingTasks = new List<Task<bool>>();
-		private readonly Dictionary<string, string> fileMoveTokens = new Dictionary<string, string>();
+		private readonly List<Task<bool>> processingTasks = new();
+		private readonly Dictionary<string, string> fileMoveTokens = new();
 
 		public IEnumerable<Task<bool>> ProcessingTasks => processingTasks;
 		public IReadOnlyDictionary<string, string> FileMoveTokens => fileMoveTokens;
@@ -84,21 +79,21 @@ namespace AVDump3CL {
 		public IAVD3Console Console => console;
 
 		private IFileMoveScript fileMove;
-		private HashSet<string> filePathsToSkip = new HashSet<string>();
+		private HashSet<string> filePathsToSkip = new();
 		//private IServiceProvider fileMoveServiceProvider;
 		//private ScriptRunner<string> fileMoveScriptRunner;
 
 		private AVD3CLSettings settings;
-		private readonly object fileSystemLock = new object();
-		private readonly List<WaitHandle> shutdownDelayHandles = new List<WaitHandle>();
-		private readonly AppendLineManager lineWriter = new AppendLineManager();
+		private readonly object fileSystemLock = new();
+		private readonly List<WaitHandle> shutdownDelayHandles = new();
+		private readonly AppendLineManager lineWriter = new();
 
-		private static readonly Regex placeholderPattern = new Regex(@"\$\{(?<Key>[A-Za-z0-9\-\.]+)\}");
+		private static readonly Regex placeholderPattern = new(@"\$\{(?<Key>[A-Za-z0-9\-\.]+)\}");
 		private IReadOnlyCollection<IAVD3Module> modules;
 		private IAVD3ProcessingModule processingModule;
 		private IAVD3InformationModule informationModule;
 		private IAVD3ReportingModule reportingModule;
-		private AVD3Console console = new AVD3Console();
+		private readonly AVD3Console console = new();
 
 		private AVD3ProgressDisplay? progressDisplay;
 
@@ -197,7 +192,7 @@ namespace AVDump3CL {
 			settingsgModule.RegisterSettings(AVD3CLSettings.GetProperties());
 			settingsgModule.ConfigurationFinished += ConfigurationFinished;
 		}
-		public ModuleInitResult Initialized() => new ModuleInitResult(false);
+		public ModuleInitResult Initialized() => new(false);
 
 		public void ConfigurationFinished(object? sender, SettingsModuleInitResult args) {
 			settings = new AVD3CLSettings(args.Store);
@@ -289,8 +284,7 @@ namespace AVDump3CL {
 
 				static string PlaceholderConvert(string pattern) => "return \"" + placeholderPattern.Replace(pattern.Replace("\\", "\\\\").Replace("\"", "\\\""), @""" + Get(""$1"") + """) + "\";";
 
-				fileMove = settings.FileMove.Mode switch
-				{
+				fileMove = settings.FileMove.Mode switch {
 					FileMoveMode.PlaceholderInline => new FileMoveScriptByInlineScript(fileMoveExtensions, PlaceholderConvert(settings.FileMove.Pattern)),
 					FileMoveMode.CSharpScriptInline => new FileMoveScriptByInlineScript(fileMoveExtensions, settings.FileMove.Pattern),
 					FileMoveMode.PlaceholderFile => new FileMoveScriptByScriptFile(fileMoveExtensions, settings.FileMove.Pattern, x => PlaceholderConvert(x)),
@@ -402,7 +396,7 @@ namespace AVDump3CL {
 					acceptedFiles++;
 				},
 				ex => {
-					if(!(ex is UnauthorizedAccessException) || !RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+					if(ex is not UnauthorizedAccessException || !RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
 						System.Console.WriteLine("Filediscovery: " + ex.Message);
 					}
 				}
@@ -505,7 +499,7 @@ namespace AVDump3CL {
 			if(!string.IsNullOrEmpty(settings.Reporting.ExtensionDifferencePath)) {
 				var metaDataProvider = fileMetaInfo.CondensedProviders.Where(x => x.Type == MediaProvider.MediaProviderType).Single();
 				var detExts = metaDataProvider.Select(MediaProvider.SuggestedFileExtensionType)?.Value ?? ImmutableArray.Create<string>();
-				var ext = fileMetaInfo.FileInfo.Extension.StartsWith('.') ? fileMetaInfo.FileInfo.Extension.Substring(1) : fileMetaInfo.FileInfo.Extension;
+				var ext = fileMetaInfo.FileInfo.Extension.StartsWith('.') ? fileMetaInfo.FileInfo.Extension[1..] : fileMetaInfo.FileInfo.Extension;
 
 				if(!detExts.Contains(ext, StringComparer.OrdinalIgnoreCase)) {
 					if(detExts.Length == 0) detExts = ImmutableArray.Create("unknown");
@@ -587,8 +581,8 @@ namespace AVDump3CL {
 							destFilePath = await fileMoveScoped.GetFilePathAsync(fileMetaInfo);
 
 
-							foreach(var replacement in settings.FileMove.Replacements) {
-								destFilePath = destFilePath.InvReplace(replacement.Value, replacement.Replacement);
+							foreach(var (Value, Replacement) in settings.FileMove.Replacements) {
+								destFilePath = destFilePath.InvReplace(Value, Replacement);
 							}
 
 							if(settings.FileMove.DisableFileMove) {
@@ -689,8 +683,7 @@ namespace AVDump3CL {
 		}
 
 		private static string? ReplaceToken(string key, FileMetaInfo fileMetaInfo, IDictionary<string, string?>? additionalTokenValues = null) {
-			var value = key switch
-			{
+			var value = key switch {
 				"FileSize" => fileMetaInfo.FileInfo.Length.ToString(),
 				"FullName" => fileMetaInfo.FileInfo.FullName,
 				"FileName" => fileMetaInfo.FileInfo.Name,
@@ -774,7 +767,7 @@ namespace AVDump3CL {
 			return pathsToProcess;
 		}
 
-		public bool Run(AVD3ModuleManagement moduleManagement) {
+		public static bool Run(AVD3ModuleManagement moduleManagement) {
 			var moduleInitResult = moduleManagement.RaiseInitialized();
 			if(moduleInitResult.CancelStartup) {
 				if(!string.IsNullOrEmpty(moduleInitResult.Reason)) {

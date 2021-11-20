@@ -6,7 +6,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
 	public class ChapterProcessSection : Section {
 		private ulong? chapterProcessCodecId;
 
-		public ulong ChapterProcessCodecId { get { return chapterProcessCodecId.HasValue ? chapterProcessCodecId.Value : 0; } }
+		public ulong ChapterProcessCodecId => chapterProcessCodecId ?? 0;
 		public EbmlList<ChapterProcessCommandSection> ChapterProcessCommands { get; private set; }
 		//ChapProcessPrivate
 

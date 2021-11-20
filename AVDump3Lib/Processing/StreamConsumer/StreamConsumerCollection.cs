@@ -2,9 +2,7 @@ using AVDump3Lib.Processing.BlockBuffers;
 using AVDump3Lib.Processing.BlockConsumers;
 using AVDump3Lib.Processing.StreamProvider;
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,7 +28,7 @@ namespace AVDump3Lib.Processing.StreamConsumer {
 		public IStreamProvider StreamProvider { get; }
 		public event EventHandler<ConsumingStreamEventArgs> ConsumingStream;
 
-		private readonly object isRunningSyncRoot = new object();
+		private readonly object isRunningSyncRoot = new();
 
 
 		public StreamConsumerCollection(IStreamConsumerFactory streamConsumerFactory, IStreamProvider streamProvider) {

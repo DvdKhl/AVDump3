@@ -2,7 +2,6 @@ using AVDump3Lib.Processing.BlockBuffers;
 using AVDump3Lib.Processing.BlockBuffers.Sources;
 using AVDump3Lib.Processing.BlockConsumers;
 using AVDump3Lib.Processing.StreamProvider;
-using System.IO;
 using System.Linq;
 
 namespace AVDump3Lib.Processing.StreamConsumer {

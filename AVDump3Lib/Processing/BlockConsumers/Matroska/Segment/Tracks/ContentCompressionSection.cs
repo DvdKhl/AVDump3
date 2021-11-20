@@ -6,7 +6,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
 	public class ContentCompressionSection : Section {
 		private CompAlgos? contentCompAlgo;
 
-		public CompAlgos ContentCompAlgo { get { return contentCompAlgo ?? CompAlgos.zlib; } }
+		public CompAlgos ContentCompAlgo => contentCompAlgo ?? CompAlgos.zlib;
 		//ContentCompSetting
 
 		protected override bool ProcessElement(IBXmlReader reader) {

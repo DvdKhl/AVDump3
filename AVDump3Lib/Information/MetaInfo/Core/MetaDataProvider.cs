@@ -1,4 +1,3 @@
-using AVDump3Lib.Information.MetaInfo.Core;
 using System.Linq;
 
 namespace AVDump3Lib.Information.MetaInfo.Core {
@@ -18,7 +17,7 @@ namespace AVDump3Lib.Information.MetaInfo.Core {
 
 
 
-		public void Add<T>(MetaInfoContainer container, MetaInfoItemType<T> type, T value, params (string key, string value)[] notes) {
+		public void Add<T>(MetaInfoContainer container, MetaInfoItemType<T> type, T? value, params (string key, string value)[] notes) {
 			if(value != null) {
 				container.Add(new MetaInfoItem<T>(type, value, this, notes.ToDictionary(x => x.key, x => x.value)));
 			}

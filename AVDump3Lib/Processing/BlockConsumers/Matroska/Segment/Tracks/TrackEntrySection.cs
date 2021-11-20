@@ -15,23 +15,19 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
 		public ulong? TrackNumber { get; private set; } //Not 0; Mandatory
 		public ulong? TrackUId { get; private set; } //Not 0
 		public EbmlList<ulong> TrackOverlay { get; private set; }
-		public Types TrackType { get { return trackType ?? Types.Invalid; } } //Mandatory
-		public Options TrackFlags {
-			get { //Set: Default, Enabled
-				return (!enabled.HasValue || enabled.Value ? Options.Enabled : Options.None) |
+		public Types TrackType => trackType ?? Types.Invalid;  //Mandatory
+		public Options TrackFlags => (!enabled.HasValue || enabled.Value ? Options.Enabled : Options.None) |
 					   (forced.HasValue && forced.Value ? Options.Forced : Options.None) |
 					   (!def.HasValue || def.Value ? Options.Default : Options.None) |
 					   (lacing.HasValue && lacing.Value ? Options.Lacing : Options.None);
-			}
-		}
-		public ulong MinCache { get { return minCache ?? 0; } } //Default: 0
+		public ulong MinCache => minCache ?? 0;  //Default: 0
 		public ulong? MaxCache { get; private set; }
-		public ulong MaxBlockAdditionID { get { return maxBlockAdditionID ?? 0; } } //Default: 0
+		public ulong MaxBlockAdditionID => maxBlockAdditionID ?? 0;  //Default: 0
 		public ulong? DefaultDuration { get; private set; }
 		public ulong? DefaultDecodedFieldDuration { get; private set; }
 		public double? TrackTimecodeScale { get; private set; }
 		public string Name { get; private set; }
-		public string Language { get { return language ?? "eng"; } } //Default: 'eng'
+		public string Language => language ?? "eng";  //Default: 'eng'
 		public string CodecId { get; private set; } //Mandatory
 		public byte[] CodecPrivate { get; private set; }
 		public string CodecName { get; private set; }

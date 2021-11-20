@@ -1,12 +1,9 @@
 using Microsoft.Win32.SafeHandles;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace AVDump3Lib.Misc {
 	public static class NtfsAlternateStreamsNativeMethods {
@@ -22,7 +19,7 @@ namespace AVDump3Lib.Misc {
 		// "Characters whose integer representations are in the range from 1 through 31, 
 		// except for alternate streams where these characters are allowed"
 		// http://msdn.microsoft.com/en-us/library/aa365247(v=VS.85).aspx
-		private static readonly char[] InvalidStreamNameChars = Path.GetInvalidFileNameChars().Where(c => c < 1 || c > 31).ToArray();
+		//private static readonly char[] InvalidStreamNameChars = Path.GetInvalidFileNameChars().Where(c => c < 1 || c > 31).ToArray();
 
 		[Flags]
 		public enum NativeFileFlags : uint {
@@ -49,7 +46,7 @@ namespace AVDump3Lib.Misc {
 
 		#region P/Invoke Methods
 
-		[DllImport("kernel32.dll", CharSet = CharSet.Auto, BestFitMapping = false, ThrowOnUnmappableChar = true)]
+		[DllImport("kernel32.dll", CharSet = CharSet.Unicode, BestFitMapping = false, ThrowOnUnmappableChar = true)]
 		private static extern int FormatMessage(
 			int dwFlags,
 			IntPtr lpSource,
@@ -101,63 +98,63 @@ namespace AVDump3Lib.Misc {
 		private static void ThrowIOError(int errorCode, string path) {
 			switch(errorCode) {
 				case 0: {
-					break;
-				}
+						break;
+					}
 				case 2: // File not found
 				{
-					if(string.IsNullOrEmpty(path)) throw new FileNotFoundException();
-					throw new FileNotFoundException(null, path);
-				}
+						if(string.IsNullOrEmpty(path)) throw new FileNotFoundException();
+						throw new FileNotFoundException(null, path);
+					}
 				case 3: // Directory not found
 				{
-					if(string.IsNullOrEmpty(path)) throw new DirectoryNotFoundException();
-					throw new DirectoryNotFoundException("DirectoryNotFound: " + path);
-				}
+						if(string.IsNullOrEmpty(path)) throw new DirectoryNotFoundException();
+						throw new DirectoryNotFoundException("DirectoryNotFound: " + path);
+					}
 				case 5: // Access denied
 				{
-					if(string.IsNullOrEmpty(path)) throw new UnauthorizedAccessException();
-					throw new UnauthorizedAccessException("AccessDenied_Path: " + path);
-				}
+						if(string.IsNullOrEmpty(path)) throw new UnauthorizedAccessException();
+						throw new UnauthorizedAccessException("AccessDenied_Path: " + path);
+					}
 				case 15: // Drive not found
 				{
-					if(string.IsNullOrEmpty(path)) throw new DriveNotFoundException();
-					throw new DriveNotFoundException("DriveNotFound: " + path);
-				}
+						if(string.IsNullOrEmpty(path)) throw new DriveNotFoundException();
+						throw new DriveNotFoundException("DriveNotFound: " + path);
+					}
 				case 32: // Sharing violation
 				{
-					if(string.IsNullOrEmpty(path)) throw new IOException(GetErrorMessage(errorCode), MakeHRFromErrorCode(errorCode));
-					throw new IOException("SharingViolation: " + path, MakeHRFromErrorCode(errorCode));
-				}
+						if(string.IsNullOrEmpty(path)) throw new IOException(GetErrorMessage(errorCode), MakeHRFromErrorCode(errorCode));
+						throw new IOException("SharingViolation: " + path, MakeHRFromErrorCode(errorCode));
+					}
 				case 80: // File already exists
 				{
-					if(!string.IsNullOrEmpty(path)) {
-						throw new IOException("FileAlreadyExists: " + path, MakeHRFromErrorCode(errorCode));
+						if(!string.IsNullOrEmpty(path)) {
+							throw new IOException("FileAlreadyExists: " + path, MakeHRFromErrorCode(errorCode));
+						}
+						break;
 					}
-					break;
-				}
 				case 87: // Invalid parameter
 				{
-					throw new IOException(GetErrorMessage(errorCode), MakeHRFromErrorCode(errorCode));
-				}
+						throw new IOException(GetErrorMessage(errorCode), MakeHRFromErrorCode(errorCode));
+					}
 				case 183: // File or directory already exists
 				{
-					if(!string.IsNullOrEmpty(path)) {
-						throw new IOException("AlreadyExists: " + path, MakeHRFromErrorCode(errorCode));
+						if(!string.IsNullOrEmpty(path)) {
+							throw new IOException("AlreadyExists: " + path, MakeHRFromErrorCode(errorCode));
+						}
+						break;
 					}
-					break;
-				}
 				case 206: // Path too long
 				{
-					throw new PathTooLongException();
-				}
+						throw new PathTooLongException();
+					}
 				case 995: // Operation cancelled
 				{
-					throw new OperationCanceledException();
-				}
+						throw new OperationCanceledException();
+					}
 				default: {
-					Marshal.ThrowExceptionForHR(MakeHRFromErrorCode(errorCode));
-					break;
-				}
+						Marshal.ThrowExceptionForHR(MakeHRFromErrorCode(errorCode));
+						break;
+					}
 			}
 		}
 
@@ -189,7 +186,7 @@ namespace AVDump3Lib.Misc {
 
 
 		public static bool SafeDeleteFile(string name) {
-			if(string.IsNullOrEmpty(name)) throw new ArgumentNullException("name");
+			if(string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
 
 			var result = DeleteFile(name);
 			if(!result) {
@@ -213,8 +210,7 @@ namespace AVDump3Lib.Misc {
 		private static long GetFileSize(string path, SafeFileHandle handle) {
 			var result = 0L;
 			if(null != handle && !handle.IsInvalid) {
-				long value;
-				if(GetFileSizeEx(handle, out value)) {
+				if(GetFileSizeEx(handle, out long value)) {
 					result = value;
 				} else {
 					ThrowLastIOError(path);
@@ -227,9 +223,8 @@ namespace AVDump3Lib.Misc {
 		public static long GetFileSize(string path) {
 			var result = 0L;
 			if(!string.IsNullOrEmpty(path)) {
-				using(var handle = SafeCreateFile(path, NativeFileAccess.GenericRead, FileShare.Read, IntPtr.Zero, FileMode.Open, 0, IntPtr.Zero)) {
-					result = GetFileSize(path, handle);
-				}
+				using var handle = SafeCreateFile(path, NativeFileAccess.GenericRead, FileShare.Read, IntPtr.Zero, FileMode.Open, 0, IntPtr.Zero);
+				result = GetFileSize(path, handle);
 			}
 
 			return result;

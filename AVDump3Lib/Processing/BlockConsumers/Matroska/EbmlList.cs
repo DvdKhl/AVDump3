@@ -5,7 +5,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 	public class EbmlList<T> : IList<T> {
 		protected List<T> items;
 
-		public EbmlList() : this(new T[0]) { }
+		public EbmlList() : this(Array.Empty<T>()) { }
 		public EbmlList(T[] items) {
 			this.items = new List<T>();
 			foreach(var item in items) this.items.Add(item);
@@ -18,12 +18,12 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 			return clone;
 		}
 
-		public int Count { get { return items.Count; } }
+		public int Count => items.Count;
 		public IEnumerator<T> GetEnumerator() { return items.GetEnumerator(); }
 		System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() { return items.GetEnumerator(); }
 		public bool Contains(T item) { return items.Contains(item); }
 		public void CopyTo(T[] array, int arrayIndex) { items.CopyTo(array, arrayIndex); }
-		public bool IsReadOnly { get { return true; } }
+		public bool IsReadOnly => true;
 		public int IndexOf(T item) { return items.IndexOf(item); }
 		public T this[int index] { get { return items[index]; } set { throw new NotSupportedException(); } }
 		public void Insert(int index, T item) { throw new NotSupportedException(); }

@@ -8,7 +8,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SegmentInfo {
 
 		public EbmlList<ulong> EditionUId { get; private set; }
 		public ulong? Codec { get; private set; }
-		public byte[] Id { get { return id != null ? (byte[])id.Clone() : null; } }
+		public byte[] Id => id != null ? (byte[])id.Clone() : null;
 
 		protected override bool ProcessElement(IBXmlReader reader) {
 			if(reader.DocElement == MatroskaDocType.ChapterTranslateEditionUID) {

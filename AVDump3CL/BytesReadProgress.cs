@@ -10,12 +10,12 @@ using System.Threading;
 namespace AVDump3CL {
 	public class BytesReadProgress : IBytesReadProgress {
 		private int filesProcessed;
-		private int[] bcFilesProcessed;
+		private readonly int[] bcFilesProcessed;
 		private DateTimeOffset startedOn;
 		private long bytesProcessed;
-		private long[] bcBytesProcessed;
-		private Dictionary<string, int> bcNameIndexMap;
-		private ConcurrentDictionary<IBlockStream, StreamConsumerProgressInfo> blockStreamProgress;
+		private readonly long[] bcBytesProcessed;
+		private readonly Dictionary<string, int> bcNameIndexMap;
+		private readonly ConcurrentDictionary<IBlockStream, StreamConsumerProgressInfo> blockStreamProgress;
 
 		private class StreamConsumerProgressInfo {
 			public DateTimeOffset StartedOn { get; } = DateTimeOffset.UtcNow.AddMilliseconds(-1);

@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace AVDump3Lib.Misc {
 	public class AppendLineManager {
-		private readonly Dictionary<string, StreamWriter> streamWriters = new Dictionary<string, StreamWriter>();
+		private readonly Dictionary<string, StreamWriter> streamWriters = new();
 
 
 		public void AppendLine(string filePath, string line) {

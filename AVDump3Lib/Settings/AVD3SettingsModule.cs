@@ -1,10 +1,8 @@
 using AVDump3Lib.Modules;
-using AVDump3Lib.Settings.CLArguments;
 using AVDump3Lib.Settings.Core;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace AVDump3Lib.Settings {
 	public interface IAVD3SettingsModule : IAVD3Module {
@@ -13,7 +11,7 @@ namespace AVDump3Lib.Settings {
 	}
 
 	public class SettingsModuleInitResult : ModuleInitResult {
-		public ISettingStore Store { get;  }
+		public ISettingStore Store { get; }
 
 		public SettingsModuleInitResult(ISettingStore store) : base(false) {
 			Store = store ?? throw new ArgumentNullException(nameof(store));
@@ -24,10 +22,10 @@ namespace AVDump3Lib.Settings {
 	public class AVD3SettingsModule : IAVD3SettingsModule {
 		public event EventHandler<SettingsModuleInitResult> ConfigurationFinished = delegate { };
 
-		private List<ISettingProperty> settingsGroups = new List<ISettingProperty>();
+		private readonly List<ISettingProperty> settingsGroups = new();
 
 		public IReadOnlyList<ISettingProperty> SettingProperties { get; private set; }
-		
+
 		public ISettingStore Store { get; private set; }
 
 

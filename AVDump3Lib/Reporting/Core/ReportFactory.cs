@@ -1,6 +1,5 @@
 ﻿using AVDump3Lib.Information.MetaInfo.Core;
 using ExtKnot.StringInvariants;
-using System.Resources;
 
 namespace AVDump3Lib.Reporting.Core {
 	public interface IReportFactory {

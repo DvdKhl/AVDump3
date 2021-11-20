@@ -1,5 +1,6 @@
 using AVDump3Lib.Information.MetaInfo;
 using AVDump3Lib.Information.MetaInfo.Core;
+using ExtKnot.StringInvariants;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -7,20 +8,16 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using ExtKnot.StringInvariants;
-using static AVDump3Lib.Information.InfoProvider.MediaInfoLibNativeMethods;
-using System.Text.Unicode;
 
 namespace AVDump3Lib.Information.InfoProvider {
 	public class FormatInfoProvider : MetaDataProvider {
 		public FormatInfoProvider(string filePath) : base("FormatInfoProvider", MediaProvider.MediaProviderType) {
-			var fileExtensionProvider = new FileExtensionProvider();
-			fileExtensionProvider.AddMetaData(this, filePath);
+			FileExtensionProvider.AddMetaData(this, filePath);
 
 		}
 
 
-		public static readonly MetaInfoContainerType FormatInfoProviderType = new MetaInfoContainerType("FormatInfoProvider");
+		public static readonly MetaInfoContainerType FormatInfoProviderType = new("FormatInfoProvider");
 
 	}
 
@@ -35,10 +32,10 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 	//TODO: Complete rewrite
 	public class FileExtensionProvider {
-		private static byte[] Conv(string str) => Encoding.ASCII.GetBytes(str);
+		//private static byte[] Conv(string str) => Encoding.ASCII.GetBytes(str);
 
 
-		public void AddMetaData(MetaDataProvider provider, string path) {
+		public static void AddMetaData(MetaDataProvider provider, string path) {
 			Stream stream = null;
 			if(File.Exists(path)) {
 				try {
@@ -179,9 +176,9 @@ namespace AVDump3Lib.Information.InfoProvider {
 			//stream.Position = Math.Max(stream.Length / 2 , stream.Position);
 
 			var counter = 0;
-			Layer layer = 0, layerTmp;
-			for(var i = 0; i < 100; i++) if(ReadFrame(stream, out layer) && ReadFrame(stream, out layerTmp)) break;
-			for(var i = 0; i < 10; i++) counter += ReadFrame(stream, out layerTmp) ? 1 : 0;
+			Layer layer = 0;
+			for(var i = 0; i < 100; i++) if(ReadFrame(stream, out layer) && ReadFrame(stream, out _)) break;
+			for(var i = 0; i < 10; i++) counter += ReadFrame(stream, out _) ? 1 : 0;
 
 
 			if(counter < 7) { IsCandidate = false; return; }
@@ -189,7 +186,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 			PossibleExtensions = new string[] { (layer == Layer.Layer1) ? "mp1" : ((layer == Layer.Layer2) ? "mp2" : "mp3") };
 		}
 
-		private bool ReadFrame(Stream stream, out Layer layer) {
+		private static bool ReadFrame(Stream stream, out Layer layer) {
 			int oldByte = 0, newByte, counter = 0;
 			while((newByte = stream.ReadByte()) != -1) {
 				if(oldByte == 0xFF && (newByte & 0xE0) == 0xE0) break;
@@ -232,7 +229,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 	public class SrtFileType : FileType {
 		public SrtFileType() : base("", identifier: "text/srt") { PossibleExtensions = new string[] { "srt" }; fileType = MediaProvider.SubtitleStreamType; }
 
-		private static Regex regexParse = new Regex(@"^(?<start>\d{1,4} ?\: ?\d{1,4} ?\: ?\d{1,4} ?[,:.] ?\d{1,4}) ?--\> ?(?<end>\d{1,4} ?\: ?\d{1,4} ?\: ?\d{1,4} ?[,:.] ?\d{1,4})", RegexOptions.Compiled | RegexOptions.ECMAScript);
+		private static readonly Regex regexParse = new(@"^(?<start>\d{1,4} ?\: ?\d{1,4} ?\: ?\d{1,4} ?[,:.] ?\d{1,4}) ?--\> ?(?<end>\d{1,4} ?\: ?\d{1,4} ?\: ?\d{1,4} ?[,:.] ?\d{1,4})", RegexOptions.Compiled | RegexOptions.ECMAScript);
 
 		public override void ElaborateCheck(Stream stream) {
 			if(stream.Length > 10 * 1024 * 1024) IsCandidate = false;
@@ -374,8 +371,8 @@ namespace AVDump3Lib.Information.InfoProvider {
 					var container = new MetaInfoContainer((ulong)i, fileType);
 					provider.AddNode(container);
 					provider.Add(container, MediaStream.ContainerCodecIdType, identifier);
-					provider.Add(container, MediaStream.LanguageType, !string.IsNullOrEmpty(idx.Subtitles[i].language) ? idx.Subtitles[i].language : idx.Subtitles[i].languageId);
-					provider.Add(container, MediaStream.IndexType, idx.Subtitles[i].index);
+					provider.Add(container, MediaStream.LanguageType, !string.IsNullOrEmpty(idx.Subtitles[i].Language) ? idx.Subtitles[i].Language : idx.Subtitles[i].LanguageId);
+					provider.Add(container, MediaStream.IndexType, idx.Subtitles[i].Index);
 				}
 
 			} else {
@@ -683,8 +680,8 @@ namespace AVDump3Lib.Information.InfoProvider {
 	public class WavFileType : FileType { public WavFileType() : base(new string[] { "RIFX", "RIFF" }) { PossibleExtensions = new string[] { "wav" }; fileType = MediaProvider.AudioStreamType; } public override void ElaborateCheck(Stream stream) => IsCandidate &= Check(stream, 8, "WAVE"); }
 
 	public abstract class FileType : IFileType {
-		private byte[][] magicBytesLst;
-		private int[] magicBytesPos;
+		private readonly byte[][] magicBytesLst;
+		private readonly int[] magicBytesPos;
 		private int offset;
 
 		protected string identifier;
@@ -739,7 +736,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 			return isValid;
 		}
 
-		protected static bool FindSequence(Stream stream, string sequenceStr, int bytesToCheck) => FindSequence(stream, Encoding.ASCII.GetBytes(sequenceStr), 2048);
+		protected static bool FindSequence(Stream stream, string sequenceStr, int bytesToCheck) => FindSequence(stream, Encoding.ASCII.GetBytes(sequenceStr), Math.Min(bytesToCheck, 2048));
 		protected static bool FindSequence(Stream stream, byte[] sequence, int bytesToCheck) {
 			var sequencePos = 0;
 			while(stream.Position != stream.Length && bytesToCheck-- != 0 && sequence.Length != sequencePos) if(sequence[sequencePos++] != stream.ReadByte()) sequencePos = 0;
@@ -797,19 +794,17 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 
 	public class IDX {
-		private Dictionary<string, string> info;
+		private readonly Dictionary<string, string> info;
 		private Subs[] subtitles;
 
-		public Subs[] Subtitles {
-			get { return (Subs[])subtitles.Clone(); }
-		}
+		public Subs[] Subtitles => (Subs[])subtitles.Clone();
 
 		public IDX(string source) {
 			info = new Dictionary<string, string>();
 			Parse(source);
 		}
 
-		private static Regex tagRegex = new Regex(@"^([^#]+?)\:[ ]?" + "([^\r\n]+)", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.Multiline);
+		private static readonly Regex tagRegex = new(@"^([^#]+?)\:[ ]?" + "([^\r\n]+)", RegexOptions.Compiled | RegexOptions.ECMAScript | RegexOptions.Multiline);
 		private void Parse(string source) {
 			MatchCollection matches = tagRegex.Matches(source);
 
@@ -819,7 +814,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 			string languageId;
 			TimeSpan? delay = null;
 			List<TimeSpan> sub = null;
-			List<Subs> subs = new List<Subs>();
+			List<Subs> subs = new();
 
 			for(int i = 0; i < matches.Count; i++) {
 				match = matches[i];
@@ -828,14 +823,14 @@ namespace AVDump3Lib.Information.InfoProvider {
 				if(key.InvEquals("timestamp") && sub != null) {
 					try {
 						var timestampstr = Regex.Match(match.Groups[2].Value, "([^,]+)").Groups[1].Value;
-						timestampstr = timestampstr.Substring(0, timestampstr.LastIndexOf(':')) + "." + timestampstr.Substring(timestampstr.LastIndexOf(':') + 1);
+						timestampstr = timestampstr[..timestampstr.LastIndexOf(':')] + "." + timestampstr[(timestampstr.LastIndexOf(':') + 1)..];
 						sub.Add(TimeSpan.Parse(timestampstr).Add(delay != null ? delay.Value : TimeSpan.FromTicks(0)));
 
 					} catch(Exception ex) { }
 
 				} else if(key.InvEquals("Delay")) {
 					var timestampstr = Regex.Match(match.Groups[2].Value, "([^,]+)").Groups[1].Value;
-					timestampstr = timestampstr.Substring(0, timestampstr.LastIndexOf(':')) + "." + timestampstr.Substring(timestampstr.LastIndexOf(':') + 1);
+					timestampstr = timestampstr[..timestampstr.LastIndexOf(':')] + "." + timestampstr[(timestampstr.LastIndexOf(':') + 1)..];
 					delay = TimeSpan.Parse(timestampstr);
 
 				} else if(key.InvEquals("id")) {
@@ -845,7 +840,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 					languageId = subMatch.Groups[1].Value;
 					if(!int.TryParse(subMatch.Groups[2].Value, out var index)) throw new Exception();
 
-					language = source.Substring(match.Index, (i + 1 < matches.Count ? matches[i + 1].Index : source.Length) - match.Index);
+					language = source[match.Index..(i + 1 < matches.Count ? matches[i + 1].Index : source.Length)];
 					language = Regex.Match(language, @"alt\: " + "([^\r\n]+)").Groups[1].Value;
 					delay = null;
 
@@ -861,19 +856,19 @@ namespace AVDump3Lib.Information.InfoProvider {
 		}
 
 		public class Subs {
-			public int index { get; private set; }
-			public string languageId { get; private set; }
-			public string language { get; private set; }
+			public int Index { get; private set; }
+			public string LanguageId { get; private set; }
+			public string Language { get; private set; }
 
-			private List<TimeSpan> subtitles;
+			private readonly List<TimeSpan> subtitles;
 
-			public int SubtitleCount { get { return subtitles.Count; } }
+			public int SubtitleCount => subtitles.Count;
 
 			internal Subs(int index, string langId, string lang, List<TimeSpan> subs) {
-				this.index = index;
-				this.language = lang;
-				this.languageId = langId;
-				this.subtitles = subs;
+				Index = index;
+				Language = lang;
+				LanguageId = langId;
+				subtitles = subs;
 			}
 		}
 	}

@@ -7,7 +7,7 @@ namespace AVDump3Lib.Processing.FileMove {
 	public interface IMoveScript {
 		string GetFilePath(FileMoveContext ctx);
 	}
-	
+
 	public class FileMoveScriptByAssembly : FileMoveScript {
 		private readonly FileInfo assemblyFileInfo;
 

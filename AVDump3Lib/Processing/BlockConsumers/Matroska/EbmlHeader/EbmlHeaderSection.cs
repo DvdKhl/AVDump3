@@ -12,13 +12,13 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.EbmlHeader {
 		private ulong? docTypeVersion;
 		private ulong? docTypeReadVersion;
 
-		public ulong EbmlVersion { get { return ebmlVersion ?? 1; } }
-		public ulong EbmlReadVersion { get { return ebmlReadVersion ?? 1; } }
-		public ulong EbmlMaxIdLength { get { return ebmlMaxIdLength ?? 4; } }
-		public ulong EbmlMaxSizeLength { get { return ebmlMaxSizeLength ?? 8; } }
-		public ulong DocTypeReadVersion { get { return docTypeReadVersion ?? 1; } }
-		public ulong DocTypeVersion { get { return docTypeVersion ?? 1; } }
-		public string DocType { get { return docType ?? "matroska"; } }
+		public ulong EbmlVersion => ebmlVersion ?? 1;
+		public ulong EbmlReadVersion => ebmlReadVersion ?? 1;
+		public ulong EbmlMaxIdLength => ebmlMaxIdLength ?? 4;
+		public ulong EbmlMaxSizeLength => ebmlMaxSizeLength ?? 8;
+		public ulong DocTypeReadVersion => docTypeReadVersion ?? 1;
+		public ulong DocTypeVersion => docTypeVersion ?? 1;
+		public string DocType => docType ?? "matroska";
 
 		protected sealed override bool ProcessElement(IBXmlReader reader) {
 			if(reader.DocElement == EbmlDocType.DocType) {

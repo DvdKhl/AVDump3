@@ -1,6 +1,5 @@
 using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 
@@ -15,7 +14,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 		private byte[] data;
 		private int dataLength;
 
-		private byte[] header = new byte[] { 0x03, (byte)'v', (byte)'o', (byte)'r', (byte)'b', (byte)'i', (byte)'s' };
+		private readonly byte[] header = new byte[] { 0x03, (byte)'v', (byte)'o', (byte)'r', (byte)'b', (byte)'i', (byte)'s' };
 
 
 		public void ParsePage(ref OggPage page) {
@@ -29,7 +28,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 			if(data == null) data = new byte[commentData.Length * 5];
 			else if(data.Length - dataLength < commentData.Length) Array.Resize(ref data, (data.Length + commentData.Length) * 2);
 
-			commentData.CopyTo(((Span<byte>)data).Slice(dataLength));
+			commentData.CopyTo(((Span<byte>)data)[dataLength..]);
 			dataLength += commentData.Length;
 
 
@@ -95,8 +94,8 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 				comment = new Comment { Key = "undefined" };
 				comment.Value.Add(commentStr);
 			} else {
-				comment = new Comment { Key = commentStr.Substring(0, pos).ToLower() };
-				comment.Value.Add(commentStr.Substring(pos + 1));
+				comment = new Comment { Key = commentStr[..pos].ToLower() };
+				comment.Value.Add(commentStr[(pos + 1)..]);
 			}
 			return comment;
 		}

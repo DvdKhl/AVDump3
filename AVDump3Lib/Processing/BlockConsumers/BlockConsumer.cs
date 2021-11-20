@@ -40,6 +40,8 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 
 		protected abstract void DoWork(CancellationToken ct);
 
-		public virtual void Dispose() { }
+		public virtual void Dispose() {
+			GC.SuppressFinalize(this);
+		}
 	}
 }

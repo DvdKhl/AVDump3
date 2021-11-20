@@ -2,13 +2,10 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
-using Avalonia.Data;
 using Avalonia.Markup.Xaml;
-using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Resources;
 
 namespace AVDump3Gui.Controls.Settings {
@@ -65,13 +62,13 @@ namespace AVDump3Gui.Controls.Settings {
 			var view = avaloniaObject as SettingsView;
 			if(!isChanging) view.SettingsGroupsControl.Items = view.SettingGroups;
 
-		//	if(!isChanging) {
-		//		foreach(var prop in view.SettingsSource.Groups.SelectMany(x => x.Properties)) {
-		//			if(!view.SettingsSource.Values.Any(x => x.Property == prop)) {
-		//				view.SettingsSource.Values.Add(view.SettingsSource.CreateValue(prop));
-		//			}
-		//		}
-		//	}
+			//	if(!isChanging) {
+			//		foreach(var prop in view.SettingsSource.Groups.SelectMany(x => x.Properties)) {
+			//			if(!view.SettingsSource.Values.Any(x => x.Property == prop)) {
+			//				view.SettingsSource.Values.Add(view.SettingsSource.CreateValue(prop));
+			//			}
+			//		}
+			//	}
 		}
 
 	}

@@ -12,7 +12,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters {
 		public string ChapterStringUId { get; private set; }
 		public ulong? ChapterTimeStart { get; private set; } //Def: 0?
 		public ulong? ChapterTimeEnd { get; private set; }
-		public Options ChapterFlags { get { return (hidden.HasValue && hidden.Value ? Options.Hidden : Options.None) | (!enabled.HasValue || enabled.Value ? Options.Enabled : Options.None); } }
+		public Options ChapterFlags => (hidden.HasValue && hidden.Value ? Options.Hidden : Options.None) | (!enabled.HasValue || enabled.Value ? Options.Enabled : Options.None);
 		public ImmutableArray<byte> ChapterSegmentUId { get; private set; }
 		public ulong? ChapterSegmentEditionUId { get; private set; }
 		public ulong? ChapterPhysicalEquiv { get; private set; }

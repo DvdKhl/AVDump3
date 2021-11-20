@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
 	public unsafe class SHA256NativeHashAlgorithm : AVDNativeHashAlgorithm {

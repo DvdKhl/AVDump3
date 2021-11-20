@@ -6,7 +6,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SeekHead {
 	public class SeekSection : Section {
 		private byte[] seekId;
 
-		public byte[] SeekId { get { return seekId != null ? (byte[])seekId.Clone() : null; } }
+		public byte[] SeekId => seekId != null ? (byte[])seekId.Clone() : null;
 		public ulong SeekPosition { get; private set; }
 
 		protected override bool ProcessElement(IBXmlReader reader) {

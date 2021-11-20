@@ -4,7 +4,7 @@ using System.Text;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 	public class OGMAudioOGGBitStream : AudioOGGBitStream, IOGMStream, IVorbisComment {
-		public override string CodecName { get { return "OGMAudio"; } }
+		public override string CodecName => "OGMAudio";
 		public override string CodecVersion { get; protected set; }
 		public string ActualCodecName { get; private set; }
 		public override long SampleCount => LastGranulePosition;
@@ -16,7 +16,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 			var codecInfo = MemoryMarshal.Read<OGMAudioHeader>(header.Slice(1, 56));
 			ChannelCount = codecInfo.ChannelCount;
 			SampleRate = codecInfo.SamplesPerUnit;
-			ActualCodecName = new string(codecInfo.SubType, 0, 4, Encoding.ASCII); 
+			ActualCodecName = new string(codecInfo.SubType, 0, 4, Encoding.ASCII);
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
@@ -40,7 +40,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 			commentParser.ParsePage(ref page);
 		}
 
-		private VorbisCommentParser commentParser = new VorbisCommentParser();
+		private readonly VorbisCommentParser commentParser = new();
 		public Comments Comments {
 			get {
 				try {

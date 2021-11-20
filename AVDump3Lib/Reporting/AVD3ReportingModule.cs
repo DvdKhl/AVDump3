@@ -27,7 +27,7 @@ namespace AVDump3Lib.Reporting {
 		public void AddReportFactory(ReportFactory reportFactory) { reportFactories.Add(reportFactory); }
 
 		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) { }
-		public ModuleInitResult Initialized() => new ModuleInitResult(false);
+		public ModuleInitResult Initialized() => new(false);
 		public void Shutdown() { }
 	}
 }

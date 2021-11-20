@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Immutable;
-using System.Security.Cryptography;
 
 namespace AVDump3Lib.Processing.HashAlgorithms {
 	public sealed class Ed2kHashAlgorithm : AVDHashAlgorithm {
@@ -45,7 +44,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			if(blockHashOffset == 0) {
 				md4.ComputeHash(data, hash);
 
-				RedHash = BlueHash = hash.ToArray() ;
+				RedHash = BlueHash = hash.ToArray();
 				BlueIsRed = true;
 
 			} else if(!data.IsEmpty) {
@@ -53,7 +52,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 				md4.ComputeHash(data, hashes.Slice(blockHashOffset, 16));
 				blockHashOffset += 16;
 
-				md4.ComputeHash(hashes.Slice(0, blockHashOffset), hash);
+				md4.ComputeHash(hashes[..blockHashOffset], hash);
 
 				RedHash = BlueHash = hash.ToArray();
 				BlueIsRed = true;
@@ -64,14 +63,14 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 
 				Span<byte> hashNoNull = new byte[16];
 				if(blockHashOffset == 32) {
-					hashNoNull = hashes.Slice(0, 16);
+					hashNoNull = hashes[..16];
 				} else {
-					md4.ComputeHash(hashes.Slice(0, blockHashOffset - 16), hashNoNull);
+					md4.ComputeHash(hashes[..(blockHashOffset - 16)], hashNoNull);
 				}
 
 				Span<byte> hashWithNull = new byte[16];
-				md4.ComputeHash(hashes.Slice(0, blockHashOffset), hashWithNull);
-				System.IO.File.WriteAllBytes("ed2k.bin", hashes.Slice(0, blockHashOffset).ToArray());
+				md4.ComputeHash(hashes[..blockHashOffset], hashWithNull);
+				System.IO.File.WriteAllBytes("ed2k.bin", hashes[..blockHashOffset].ToArray());
 				BlueHash = hashNoNull.ToArray();
 				RedHash = hashWithNull.ToArray();
 				hash = hashWithNull;

@@ -1,12 +1,10 @@
 using AVDump3CL;
-using AVDump3Lib.Misc;
 using AVDump3Lib.Processing.HashAlgorithms;
 using AVDump3Lib.Settings;
 using AVDump3Lib.Settings.CLArguments;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Xml.Linq;
@@ -56,7 +54,7 @@ namespace AVDump3Tests {
 					Span<byte> b = new byte[(int)testVectorElem.Attribute("length")];
 					var patternName = (string)testVectorElem.Attribute("pattern");
 					switch(patternName) {
-						case "BinaryZeros":  break;
+						case "BinaryZeros": break;
 						case "BinaryOnes": for(int i = 0; i < b.Length; i++) b[i] = 0xFF; break;
 						case "ASCIIZeros": for(int i = 0; i < b.Length; i++) b[i] = (byte)'0'; break;
 						default: break;
@@ -70,10 +68,10 @@ namespace AVDump3Tests {
 
 						var bytesProcessed = 0L;
 						while(bytesProcessed + hashAlg.BlockSize <= b.Length) {
-							hashAlg.TransformFullBlocks(b.Slice(0, hashAlg.BlockSize));
+							hashAlg.TransformFullBlocks(b[..hashAlg.BlockSize]);
 							bytesProcessed += hashAlg.BlockSize;
 						}
-						var hash = hashAlg.TransformFinalBlock(b.Slice(b.Length - b.Length % hashAlg.BlockSize));
+						var hash = hashAlg.TransformFinalBlock(b[^(b.Length % hashAlg.BlockSize)..]);
 						Assert.True(!b.SequenceEqual(bHash), "Source Data has been corrupted");
 
 						var hashStr = BitConverter.ToString(hash.ToArray()).Replace("-", "").ToLower();

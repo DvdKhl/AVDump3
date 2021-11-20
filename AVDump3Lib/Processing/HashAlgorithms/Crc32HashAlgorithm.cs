@@ -44,7 +44,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 				var entry = (uint)i;
 				for(var j = 0; j < 8; j++) {
 					if((entry & 1) == 1) entry = (entry >> 1) ^ polynomial;
-					else entry = entry >> 1;
+					else entry >>= 1;
 				}
 				createTable[i] = entry;
 			}
@@ -59,7 +59,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 			return crc;
 		}
 
-		private byte[] UInt32ToBigEndianBytes(uint x) {
+		private static byte[] UInt32ToBigEndianBytes(uint x) {
 			return new byte[] { (byte)((x >> 24) & 0xff), (byte)((x >> 16) & 0xff), (byte)((x >> 8) & 0xff), (byte)(x & 0xff) };
 		}
 	}

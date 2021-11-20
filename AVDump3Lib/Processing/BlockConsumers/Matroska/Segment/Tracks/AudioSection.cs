@@ -7,9 +7,9 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
 		private double? samplingFrequency, outputSamplingFrequency;
 		private ulong? channelCount;
 
-		public double SamplingFrequency { get { return samplingFrequency ?? 8000f; } } //Default: 8000
-		public double? OutputSamplingFrequency { get { return outputSamplingFrequency ?? SamplingFrequency; } }
-		public ulong ChannelCount { get { return channelCount ?? 1; } } //Default: 1
+		public double SamplingFrequency => samplingFrequency ?? 8000f;  //Default: 8000
+		public double? OutputSamplingFrequency => outputSamplingFrequency ?? SamplingFrequency;
+		public ulong ChannelCount => channelCount ?? 1;  //Default: 1
 		public ulong? BitDepth { get; private set; }
 
 		protected override bool ProcessElement(IBXmlReader reader) {

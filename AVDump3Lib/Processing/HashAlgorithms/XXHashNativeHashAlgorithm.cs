@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
-
-namespace AVDump3Lib.Processing.HashAlgorithms {
+﻿namespace AVDump3Lib.Processing.HashAlgorithms {
 
 
 	//public enum XXHashLength { Bits32 = 32, Bits64 = 64, Bits128 = 128 };

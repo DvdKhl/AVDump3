@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -125,18 +124,18 @@ namespace AVDump3CL {
 	public class AVD3Console : IDisposable, IAVD3Console {
 		public const int TickPeriod = 100;
 
-		private readonly object progressWriteLock = new object();
-		private readonly object progressWriteActiveChangeLock = new object();
+		private readonly object progressWriteLock = new();
+		private readonly object progressWriteActiveChangeLock = new();
 
 		private readonly Timer progressTimer;
-		private readonly AVD3ConsoleProgressBuilder progressBuilder = new AVD3ConsoleProgressBuilder();
-		private readonly List<string> toWrite = new List<string>();
+		private readonly AVD3ConsoleProgressBuilder progressBuilder = new();
+		private readonly List<string> toWrite = new();
 
 		private readonly bool canManipulateCursor;
 		private int displaySkipCount;
 		private int maxTopCursorPos;
 		private int jitterDisplayUpdateCount;
-		private Stopwatch perfWatch = new Stopwatch();
+		private readonly Stopwatch perfWatch = new();
 
 		public event WriteProgress WriteProgress = delegate { };
 		public bool ShowDisplayJitter { get; set; }
@@ -160,7 +159,7 @@ namespace AVDump3CL {
 
 		public int BufferWidth {
 			get => canManipulateCursor ? Console.BufferWidth : 80;
-			set { if(canManipulateCursor) Console.BufferWidth = value; }
+			set { if(canManipulateCursor && OperatingSystem.IsWindows()) Console.BufferWidth = value; }
 		}
 
 		public void StartProgressDisplay() {
@@ -306,6 +305,8 @@ namespace AVDump3CL {
 		public void Dispose() {
 			((IDisposable)progressTimer).Dispose();
 			CursorVisible = true;
+			GC.SuppressFinalize(this);
+
 		}
 
 		private class ProxyDisposable : IDisposable {

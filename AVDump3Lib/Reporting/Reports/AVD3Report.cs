@@ -1,14 +1,11 @@
 using AVDump3Lib.Information.MetaInfo.Core;
-using AVDump3Lib.Misc;
 using AVDump3Lib.Reporting.Core;
 using ExtKnot.StringInvariants;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
 
 namespace AVDump3Lib.Reporting.Reports {
@@ -45,11 +42,11 @@ namespace AVDump3Lib.Reporting.Reports {
 			var rootElem = new XElement(container.Type?.Name ?? container.GetType().Name);
 
 			foreach(var item in container.Items) {
-				object valueStr;
+				object? valueStr;
 				if(item.Type.ValueType == typeof(byte[])) {
 					valueStr = BitConverter.ToString(((byte[]?)item.Value) ?? Array.Empty<byte>()).InvReplace("-", "");
-				} else if(item.Value is ImmutableArray<byte>) {
-					valueStr = BitConverter.ToString(((ImmutableArray<byte>)item.Value).ToArray()).InvReplace("-", "");
+				} else if(item.Value is ImmutableArray<byte> itemAsArray) {
+					valueStr = BitConverter.ToString(itemAsArray.ToArray()).InvReplace("-", "");
 				} else if(item.Value is ICollection) {
 					var values = new List<XElement>();
 					foreach(var itemValue in (IEnumerable)item.Value) {

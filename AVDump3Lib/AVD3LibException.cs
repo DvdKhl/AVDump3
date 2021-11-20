@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Linq;
@@ -107,9 +106,9 @@ namespace AVDump3Lib {
 	public class SensitiveData {
 		private static readonly Guid session = Guid.NewGuid();
 		private static readonly SHA512 hashObj = SHA512.Create();
-		private object data;
+		private readonly object data;
 
-		public static XElement GetSessionElement => new XElement("Session", session);
+		public static XElement GetSessionElement => new("Session", session);
 
 		private static string ComputeHash(string value) {
 			lock(hashObj) { //TODO: Good Enough? We're not protecting banks here.

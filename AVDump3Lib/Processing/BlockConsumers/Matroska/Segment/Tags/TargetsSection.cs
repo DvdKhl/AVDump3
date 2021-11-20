@@ -5,14 +5,14 @@ using System.Collections.Generic;
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tags {
 	public class TargetsSection : Section {
 		private ulong? targetTypeValue;
-		private EbmlList<ulong> trackUId, editionUId, chapterUId, attachmentUId;
+		private readonly EbmlList<ulong> trackUId, editionUId, chapterUId, attachmentUId;
 
-		public ulong TargetTypeValue { get { return targetTypeValue.HasValue ? targetTypeValue.Value : 50; } } //Def: 50
+		public ulong TargetTypeValue => targetTypeValue ?? 50;  //Def: 50
 		public string TargetType { get; private set; }
-		public EbmlList<ulong> TrackUIds { get { return trackUId.Count != 0 ? trackUId : new EbmlList<ulong>(new ulong[] { 0 }); } }
-		public EbmlList<ulong> EditionUIds { get { return editionUId.Count != 0 ? editionUId : new EbmlList<ulong>(new ulong[] { 0 }); } }
-		public EbmlList<ulong> ChapterUIds { get { return chapterUId.Count != 0 ? chapterUId : new EbmlList<ulong>(new ulong[] { 0 }); } }
-		public EbmlList<ulong> AttachmentUIds { get { return attachmentUId.Count != 0 ? attachmentUId : new EbmlList<ulong>(new ulong[] { 0 }); } }
+		public EbmlList<ulong> TrackUIds => trackUId.Count != 0 ? trackUId : new EbmlList<ulong>(new ulong[] { 0 });
+		public EbmlList<ulong> EditionUIds => editionUId.Count != 0 ? editionUId : new EbmlList<ulong>(new ulong[] { 0 });
+		public EbmlList<ulong> ChapterUIds => chapterUId.Count != 0 ? chapterUId : new EbmlList<ulong>(new ulong[] { 0 });
+		public EbmlList<ulong> AttachmentUIds => attachmentUId.Count != 0 ? attachmentUId : new EbmlList<ulong>(new ulong[] { 0 });
 		//public EbmlList<SimpleTagSection> SimpleTags { get; private set; }
 
 

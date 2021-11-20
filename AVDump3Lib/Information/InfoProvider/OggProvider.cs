@@ -20,7 +20,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 			Add(FileSizeType, oggFile.FileSize);
 			Add(OverheadType, oggFile.Overhead);
 
-			var knownStreams = oggFile.Bitstreams.Where(b => !(b is UnknownOGGBitStream)).ToArray();
+			var knownStreams = oggFile.Bitstreams.Where(b => b is not UnknownOGGBitStream).ToArray();
 
 			var maxDuration = TimeSpan.Zero;
 			var trackIndeces = new int[4];
@@ -77,7 +77,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 					if(track.Comments.Items.Contains("title")) Add(stream, MediaStream.TitleType, track.Comments.Items["title"].Value.Aggregate((acc, str) => acc + "," + str));
 					if(track.Comments.Items.Contains("language")) Add(stream, MediaStream.LanguageType, track.Comments.Items["language"].Value.Aggregate((acc, str) => acc + "," + str));
 				}
-				if(bitStream is IOGMStream) Add(stream, MediaStream.ContainerCodecCCType, ((IOGMStream)bitStream).ActualCodecName);
+				if(bitStream is IOGMStream ogmStream) Add(stream, MediaStream.ContainerCodecCCType, ogmStream.ActualCodecName);
 			}
 
 			if(maxDuration != TimeSpan.Zero) Add(DurationType, maxDuration.TotalSeconds);

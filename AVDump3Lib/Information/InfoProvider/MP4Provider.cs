@@ -3,7 +3,7 @@ using AVDump3Lib.Information.MetaInfo.Core;
 using AVDump3Lib.Processing.BlockConsumers.MP4;
 using BXmlLib.DocTypes.MP4;
 using BXmlLib.DocTypes.MP4.Boxes;
-using System.Collections.Generic;
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -76,11 +76,12 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 
 		private MetaInfoContainer PopulateVideoTrack(MP4Node trackNode, in TrackHeaderBox trackHeaderBox, in MediaHeaderBox mediaHeaderBox, in SampleDescriptionBox sampleDescriptionBox) {
-			var trackData = BuildTrackData(trackNode);
+			//var trackData = 
+			BuildTrackData(trackNode);
 
-			var pixelDimensions = new Dimensions((int)trackHeaderBox.Width, (int)trackHeaderBox.Height);
-			var displayDimensions = new Dimensions((int)trackHeaderBox.Width, (int)trackHeaderBox.Height);
-			var frameCount = 0L;
+			Dimensions? pixelDimensions = new((int)trackHeaderBox.Width, (int)trackHeaderBox.Height);
+			//var displayDimensions = new Dimensions((int)trackHeaderBox.Width, (int)trackHeaderBox.Height);
+			//var frameCount = 0L;
 
 			var frameCountPerSample = new int[sampleDescriptionBox.EntryCount];
 			for(var i = 0; i < sampleDescriptionBox.EntryCount; i++) {
@@ -106,6 +107,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 			MetaInfoContainer stream;
 			stream = new MetaInfoContainer(trackHeaderBox.TrackId, VideoStreamType);
+
 			Add(stream, VideoStream.PixelDimensionsType, pixelDimensions);
 			Add(stream, VideoStream.DisplayDimensionsType, pixelDimensions);
 			//Add(stream, MediaStream.SampleCountType, mediaHeaderBox., ("Source", "TrackHeader"));
@@ -114,11 +116,11 @@ namespace AVDump3Lib.Information.InfoProvider {
 		}
 
 		private class TrackData {
-			public SampleToIndex[] SampleToIndexMap;
-			public uint[] SampleSizes;
-			public SampleToChunkBox.SampleToChunkItem[] SampleToChunkItems;
-			public CompositionOffsetBox.SampleItem[] CompositionOffsetItems;
-			public TimeToSampleBox.SampleItem[] TimeToSampleItems;
+			public SampleToIndex[] SampleToIndexMap = Array.Empty<SampleToIndex>();
+			public uint[] SampleSizes = Array.Empty<uint>();
+			public SampleToChunkBox.SampleToChunkItem[] SampleToChunkItems = Array.Empty<SampleToChunkBox.SampleToChunkItem>();
+			public CompositionOffsetBox.SampleItem[] CompositionOffsetItems = Array.Empty<CompositionOffsetBox.SampleItem>();
+			public TimeToSampleBox.SampleItem[] TimeToSampleItems = Array.Empty<TimeToSampleBox.SampleItem>();
 
 		}
 		private struct SampleToIndex {

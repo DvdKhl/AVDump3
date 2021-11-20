@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace AVDump3Lib.Processing.BlockBuffers {
 	public interface IMirroredBufferPool {
@@ -12,7 +10,7 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 	public class MirroredBufferPool : IMirroredBufferPool {
 		public int BufferSize { get; }
 
-		private Stack<IMirroredBuffer> slots = new Stack<IMirroredBuffer>();
+		private readonly Stack<IMirroredBuffer> slots = new();
 
 		public MirroredBufferPool(int bufferSize) { BufferSize = bufferSize; }
 

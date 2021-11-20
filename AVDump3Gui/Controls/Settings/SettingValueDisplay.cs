@@ -14,8 +14,7 @@ namespace AVDump3Gui.Controls.Settings {
 		public SettingValueDisplayType Type { get; private set; }
 
 		public object Value {
-			get => Type switch
-			{
+			get => Type switch {
 				SettingValueDisplayType.Default => Property.DefaultValue,
 				SettingValueDisplayType.Current => Property.ValueRaw == ISettingStore.Unset ? null : Property.ValueRaw,
 				SettingValueDisplayType.Active => Property.Value,

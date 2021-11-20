@@ -1,12 +1,10 @@
 using AVDump3Lib.Information.InfoProvider;
 using AVDump3Lib.Information.MetaInfo;
-using AVDump3Lib.Information.MetaInfo.Core;
 using AVDump3Lib.Modules;
 using AVDump3Lib.Processing.BlockConsumers;
 using AVDump3Lib.Processing.BlockConsumers.Matroska;
 using AVDump3Lib.Processing.BlockConsumers.MP4;
 using AVDump3Lib.Processing.BlockConsumers.Ogg;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -37,7 +35,7 @@ namespace AVDump3Lib.Information {
 		public void AddProviderFactory(IInfoProviderFactory infoProviderFactory) { infoProviderFactories.Add(infoProviderFactory); }
 
 		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) { }
-		public ModuleInitResult Initialized() => new ModuleInitResult(false);
+		public ModuleInitResult Initialized() => new(false);
 		public void Shutdown() { }
 
 	}

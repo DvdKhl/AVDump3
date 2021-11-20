@@ -1,5 +1,4 @@
-﻿using AVDump3Lib.Information.MetaInfo.Core;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace AVDump3Lib.Processing.FileMove {
 	public interface IFileMoveConfigure {

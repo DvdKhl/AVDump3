@@ -1,9 +1,7 @@
-﻿using AVDump3Lib.Information.MetaInfo.Core;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
+﻿using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace AVDump3Lib.Processing.FileMove {

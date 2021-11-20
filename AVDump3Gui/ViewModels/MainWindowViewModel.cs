@@ -1,21 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Reactive.Linq;
-using System.Reflection;
-using System.Resources;
-using System.Text;
-using AVDump3Gui.Controls.Settings;
-using AVDump3Lib;
+﻿using AVDump3Gui.Controls.Settings;
 using AVDump3Lib.Misc;
 using AVDump3Lib.Settings.CLArguments;
 using AVDump3Lib.Settings.Core;
 using AVDump3UI;
 using ExtKnot.StringInvariants;
-using ReactiveUI;
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
+using System.Linq;
+using System.Reactive.Linq;
+using System.Resources;
 
 namespace AVDump3Gui.ViewModels {
 
@@ -75,8 +70,8 @@ namespace AVDump3Gui.ViewModels {
 
 
 	public class MainWindowViewModel : ViewModelBase {
-		private ISettingStore fileSettingStore;
-		private ISettingStore userSettingStore;
+		//private readonly ISettingStore fileSettingStore;
+		private readonly ISettingStore userSettingStore;
 
 
 		public List<SettingsGroupViewModel> SettingGroups { get; }

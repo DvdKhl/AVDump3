@@ -26,7 +26,7 @@ namespace AVDump3Lib.Processing.HashAlgorithms {
 		public ImmutableArray<ImmutableArray<byte>> AdditionalHashes { get; protected set; } = ImmutableArray<ImmutableArray<byte>>.Empty;
 
 		public int TransformFullBlocks(in ReadOnlySpan<byte> data) {
-			var toProcess = data.Slice(0, (data.Length / BlockSize) * BlockSize);
+			var toProcess = data[..((data.Length / BlockSize) * BlockSize)];
 			if(!toProcess.IsEmpty) HashCore(toProcess);
 			return toProcess.Length;
 		}

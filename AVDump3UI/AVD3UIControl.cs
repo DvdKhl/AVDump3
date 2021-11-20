@@ -1,12 +1,10 @@
 ﻿using AVDump3Lib;
-using AVDump3Lib.Information;
 using AVDump3Lib.Information.InfoProvider;
 using AVDump3Lib.Information.MetaInfo;
 using AVDump3Lib.Information.MetaInfo.Core;
 using AVDump3Lib.Misc;
 using AVDump3Lib.Modules;
 using AVDump3Lib.Processing;
-using AVDump3Lib.Processing.BlockBuffers;
 using AVDump3Lib.Processing.BlockConsumers;
 using AVDump3Lib.Processing.BlockConsumers.Matroska;
 using AVDump3Lib.Processing.BlockConsumers.MP4;
@@ -15,24 +13,16 @@ using AVDump3Lib.Processing.FileMove;
 using AVDump3Lib.Processing.HashAlgorithms;
 using AVDump3Lib.Processing.StreamConsumer;
 using AVDump3Lib.Processing.StreamProvider;
-using AVDump3Lib.Reporting;
 using AVDump3Lib.Reporting.Core;
 using AVDump3Lib.Settings;
-using AVDump3Lib.Settings.CLArguments;
 using AVDump3Lib.Settings.Core;
-using AVDump3UI;
 using ExtKnot.StringInvariants;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -46,8 +36,8 @@ namespace AVDump3UI {
 	public class AVD3UIControlFileProcessedEventArgs : EventArgs {
 		public FileMetaInfo FileMetaInfo { get; }
 
-		private readonly List<Task<bool>> processingTasks = new List<Task<bool>>();
-		private readonly Dictionary<string, string> fileMoveTokens = new Dictionary<string, string>();
+		private readonly List<Task<bool>> processingTasks = new();
+		private readonly Dictionary<string, string> fileMoveTokens = new();
 
 		public IEnumerable<Task<bool>> ProcessingTasks => processingTasks;
 		public IReadOnlyDictionary<string, string> FileMoveTokens => fileMoveTokens;
@@ -60,7 +50,7 @@ namespace AVDump3UI {
 	}
 
 
-	public interface IAVD3UIControl: IAVD3Module {
+	public interface IAVD3UIControl : IAVD3Module {
 		event EventHandler<AVD3UIControlExceptionEventArgs> ExceptionThrown;
 		event EventHandler<AVD3UIControlFileProcessedEventArgs> FileProcessed;
 		event EventHandler ProcessingFinished;
@@ -99,14 +89,14 @@ namespace AVDump3UI {
 		public IAVD3Console Console { get; }
 
 		private IFileMoveScript fileMove;
-		private HashSet<string> filePathsToSkip = new HashSet<string>();
+		private HashSet<string> filePathsToSkip = new();
 		//private IServiceProvider fileMoveServiceProvider;
 		//private ScriptRunner<string> fileMoveScriptRunner;
 
 		private AVD3UISettings settings;
-		private readonly object fileSystemLock = new object();
-		private readonly List<WaitHandle> shutdownDelayHandles = new List<WaitHandle>();
-		private readonly AVD3ModuleManagement moduleManagement = new AVD3ModuleManagement();
+		private readonly object fileSystemLock = new();
+		private readonly List<WaitHandle> shutdownDelayHandles = new();
+		private readonly AVD3ModuleManagement moduleManagement = new();
 
 		public AVD3UIControl(IAVD3Console console) {
 			//AppDomain.CurrentDomain.UnhandledException += UnhandleException;
@@ -126,7 +116,7 @@ namespace AVDump3UI {
 
 
 		public IReadOnlyList<ISettingProperty> SettingProperties => settingProperties;
-		private readonly List<ISettingProperty> settingProperties = new List<ISettingProperty>();
+		private readonly List<ISettingProperty> settingProperties = new();
 		public IReadOnlyCollection<IInfoProviderFactory> InfoProviderFactories { get; }
 
 
@@ -136,7 +126,7 @@ namespace AVDump3UI {
 			var factories = new Dictionary<string, IBlockConsumerFactory>();
 			void addOrReplace(IBlockConsumerFactory factory) => factories[factory.Name] = factory;
 			string? getArgumentAt(BlockConsumerSetup s, int index, string? defVal) {
-				if (arguments == null) return defVal;
+				if(arguments == null) return defVal;
 				return arguments.TryGetValue(s.Name, out var args) && index < args.Length ? args[index] ?? defVal : defVal;
 			}
 
@@ -250,7 +240,7 @@ namespace AVDump3UI {
 		}
 		void IAVD3Module.Initialize(IReadOnlyCollection<IAVD3Module> modules) => Initialize();
 
-		public ModuleInitResult Initialized() => new ModuleInitResult(false);
+		public ModuleInitResult Initialized() => new(false);
 		public void Shutdown() { }
 
 		public void ConfigurationFinished(object? sender, SettingsModuleInitResult args) {
@@ -331,8 +321,7 @@ namespace AVDump3UI {
 
 				static string PlaceholderConvert(string pattern) => "return \"" + Regex.Replace(pattern.Replace("\\", "\\\\").Replace("\"", "\\\""), @"\$\{([A-Za-z0-9\-\.]+)\}", @""" + Get(""$1"") + """) + "\";";
 
-				fileMove = settings.FileMove.Mode switch
-				{
+				fileMove = settings.FileMove.Mode switch {
 					FileMoveMode.PlaceholderInline => new FileMoveScriptByInlineScript(fileMoveExtensions, PlaceholderConvert(settings.FileMove.Pattern)),
 					FileMoveMode.CSharpScriptInline => new FileMoveScriptByInlineScript(fileMoveExtensions, settings.FileMove.Pattern),
 					FileMoveMode.PlaceholderFile => new FileMoveScriptByScriptFile(fileMoveExtensions, settings.FileMove.Pattern, x => PlaceholderConvert(x)),
@@ -550,7 +539,7 @@ namespace AVDump3UI {
 			if(!string.IsNullOrEmpty(settings.Reporting.ExtensionDifferencePath)) {
 				var metaDataProvider = fileMetaInfo.CondensedProviders.Where(x => x.Type == MediaProvider.MediaProviderType).Single();
 				var detExts = metaDataProvider.Select(MediaProvider.SuggestedFileExtensionType)?.Value ?? ImmutableArray.Create<string>();
-				var ext = fileMetaInfo.FileInfo.Extension.StartsWith('.') ? fileMetaInfo.FileInfo.Extension.Substring(1) : fileMetaInfo.FileInfo.Extension;
+				var ext = fileMetaInfo.FileInfo.Extension.StartsWith('.') ? fileMetaInfo.FileInfo.Extension[1..] : fileMetaInfo.FileInfo.Extension;
 
 				if(!detExts.Contains(ext, StringComparer.OrdinalIgnoreCase)) {
 					if(detExts.Length == 0) detExts = ImmutableArray.Create("unknown");
@@ -723,8 +712,7 @@ namespace AVDump3UI {
 		string IFileMoveConfigure.ReplaceToken(string key, FileMoveContext ctx) {
 			var fileMetaInfo = ctx.FileMetaInfo;
 
-			var value = key switch
-			{
+			var value = key switch {
 				"FullName" => fileMetaInfo.FileInfo.FullName,
 				"FileName" => fileMetaInfo.FileInfo.Name,
 				"FileExtension" => fileMetaInfo.FileInfo.Extension,

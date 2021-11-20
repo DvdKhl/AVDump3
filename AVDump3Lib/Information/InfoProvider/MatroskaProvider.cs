@@ -246,8 +246,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 
 		private static AspectRatioBehavior Convert(VideoSection.ARType t) {
-			return t switch
-			{
+			return t switch {
 				VideoSection.ARType.FreeResizing => AspectRatioBehavior.FreeResizing,
 				VideoSection.ARType.KeepAR => AspectRatioBehavior.KeepAR,
 				VideoSection.ARType.Fixed => AspectRatioBehavior.Fixed,
@@ -256,8 +255,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 		}
 
 		private static DisplayUnit Convert(VideoSection.Unit u) {
-			return u switch
-			{
+			return u switch {
 				VideoSection.Unit.Pixels => DisplayUnit.Pixel,
 				VideoSection.Unit.Centimeters => DisplayUnit.Meter,
 				VideoSection.Unit.Inches => DisplayUnit.Meter,
@@ -266,8 +264,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 			};
 		}
 		private static StereoModes Convert(VideoSection.StereoModes s) {
-			return s switch
-			{
+			return s switch {
 				VideoSection.StereoModes.Mono => StereoModes.Mono,
 				VideoSection.StereoModes.LeftRight => StereoModes.LeftRight,
 				VideoSection.StereoModes.BottomTop => StereoModes.TopBottom | StereoModes.Reversed,
@@ -286,12 +283,12 @@ namespace AVDump3Lib.Information.InfoProvider {
 				_ => StereoModes.Other,
 			};
 		}
-		private static StereoModes Convert(VideoSection.OldStereoModes? s) {
-			return (s.GetValueOrDefault(VideoSection.OldStereoModes.Mono)) switch
-			{
-				VideoSection.OldStereoModes.Mono => StereoModes.Mono,
-				_ => StereoModes.Other,
-			};
-		}
+		//private static StereoModes Convert(VideoSection.OldStereoModes? s) {
+		//	return (s.GetValueOrDefault(VideoSection.OldStereoModes.Mono)) switch
+		//	{
+		//		VideoSection.OldStereoModes.Mono => StereoModes.Mono,
+		//		_ => StereoModes.Other,
+		//	};
+		//}
 	}
 }

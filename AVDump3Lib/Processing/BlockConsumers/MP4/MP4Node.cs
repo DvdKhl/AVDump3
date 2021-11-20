@@ -2,21 +2,43 @@
 using BXmlLib.DocTypes.MP4;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Text;
 
 namespace AVDump3Lib.Processing.BlockConsumers.MP4 {
 	public class MP4Node {
-		private static readonly HashSet<MP4DocElement> DocElementsWithData = new HashSet<MP4DocElement>() {
-			MP4DocType.MovieHeader, MP4DocType.TrackHeader, MP4DocType.MediaHeader, MP4DocType.Handler,
-			MP4DocType.VideoMediaHeader, MP4DocType.SoundMediaHeader, MP4DocType.HintMediaHeader,
-			MP4DocType.DataReference, MP4DocType.SampleDescription, MP4DocType.TimeToSample,
-			MP4DocType.CompositionOffset, MP4DocType.SyncSample, MP4DocType.SampleToChunk, MP4DocType.SampleSize,
-			MP4DocType.ChunkOffset, MP4DocType.ChunkLargeOffset, MP4DocType.DataEntryUrl, MP4DocType.DataEntryUrn,
-			MP4DocType.Copyright, MP4DocType.FileType, MP4DocType.MovieExtendsHeader, MP4DocType.TrackFragmentHeader,
-			MP4DocType.MovieFragmentRandomAccessOffset, MP4DocType.NullMediaHeader, MP4DocType.PaddingBits,
-			MP4DocType.OriginalFormat, MP4DocType.PrimaryItem, MP4DocType.ProgressiveDownloadInfo, MP4DocType.SampleGroupDescription,
-			MP4DocType.SchemeInformation, MP4DocType.SchemeType, MP4DocType.ShadowSyncSample, MP4DocType.SubSampleInformation,
+		private static readonly HashSet<MP4DocElement> DocElementsWithData = new() {
+			MP4DocType.MovieHeader,
+			MP4DocType.TrackHeader,
+			MP4DocType.MediaHeader,
+			MP4DocType.Handler,
+			MP4DocType.VideoMediaHeader,
+			MP4DocType.SoundMediaHeader,
+			MP4DocType.HintMediaHeader,
+			MP4DocType.DataReference,
+			MP4DocType.SampleDescription,
+			MP4DocType.TimeToSample,
+			MP4DocType.CompositionOffset,
+			MP4DocType.SyncSample,
+			MP4DocType.SampleToChunk,
+			MP4DocType.SampleSize,
+			MP4DocType.ChunkOffset,
+			MP4DocType.ChunkLargeOffset,
+			MP4DocType.DataEntryUrl,
+			MP4DocType.DataEntryUrn,
+			MP4DocType.Copyright,
+			MP4DocType.FileType,
+			MP4DocType.MovieExtendsHeader,
+			MP4DocType.TrackFragmentHeader,
+			MP4DocType.MovieFragmentRandomAccessOffset,
+			MP4DocType.NullMediaHeader,
+			MP4DocType.PaddingBits,
+			MP4DocType.OriginalFormat,
+			MP4DocType.PrimaryItem,
+			MP4DocType.ProgressiveDownloadInfo,
+			MP4DocType.SampleGroupDescription,
+			MP4DocType.SchemeInformation,
+			MP4DocType.SchemeType,
+			MP4DocType.ShadowSyncSample,
+			MP4DocType.SubSampleInformation,
 			MP4DocType.TrackRun
 		};
 
@@ -25,7 +47,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.MP4 {
 		public ReadOnlyMemory<byte> Data { get; private set; } = ReadOnlyMemory<byte>.Empty;
 		public long Size { get; private set; }
 		public MP4Node Parent { get; private set; }
-		public IReadOnlyList<MP4Node> Children => children; private List<MP4Node> children = new List<MP4Node>();
+		public IReadOnlyList<MP4Node> Children => children; private readonly List<MP4Node> children = new();
 
 		public IEnumerable<MP4Node> Descendents(MP4DocElement docElement) {
 			var toVisit = new Queue<MP4Node>(Children);

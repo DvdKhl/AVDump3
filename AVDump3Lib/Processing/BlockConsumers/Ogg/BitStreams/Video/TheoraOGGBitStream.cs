@@ -1,11 +1,10 @@
 using System;
-using System.Runtime.InteropServices;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 	public class TheoraOGGBitStream : VideoOGGBitStream {
-		public override string CodecName { get { return "Theora"; } }
+		public override string CodecName => "Theora";
 		public override string CodecVersion { get; protected set; }
-		public override long FrameCount { get { return LastGranulePosition; } }
+		public override long FrameCount => LastGranulePosition;
 		public override double FrameRate { get; }
 
 		public TheoraOGGBitStream(ReadOnlySpan<byte> header) : base(true) {

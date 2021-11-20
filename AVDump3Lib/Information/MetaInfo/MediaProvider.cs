@@ -15,91 +15,91 @@ namespace AVDump3Lib.Information.MetaInfo {
 		//public IEnumerable<SubtitleStream> SubtitleStreams { get; private set; }
 
 		public MediaProvider(string name) : base(name, MediaProviderType) { }
-		public static readonly MetaInfoContainerType MediaProviderType = new MetaInfoContainerType("MediaProvider");
+		public static readonly MetaInfoContainerType MediaProviderType = new("MediaProvider");
 
-		public static readonly MetaInfoItemType<string> FileTypeIdentifierType = new MetaInfoItemType<string>("FileTypeIdentifier"); //TODO
+		public static readonly MetaInfoItemType<string> FileTypeIdentifierType = new("FileTypeIdentifier"); //TODO
 
-		public static readonly MetaInfoItemType<long> FileSizeType = new MetaInfoItemType<long>("FileSize", "bytes");
-		public static readonly MetaInfoItemType<long> OverheadType = new MetaInfoItemType<long>("Overhead", "bytes");
-		public static readonly MetaInfoItemType<string> ContainerVersionType = new MetaInfoItemType<string>("ContainerVersion");
+		public static readonly MetaInfoItemType<long> FileSizeType = new("FileSize", "bytes");
+		public static readonly MetaInfoItemType<long> OverheadType = new("Overhead", "bytes");
+		public static readonly MetaInfoItemType<string> ContainerVersionType = new("ContainerVersion");
 
-		public static readonly MetaInfoItemType<ImmutableArray<byte>> IdType = new MetaInfoItemType<ImmutableArray<byte>>("Id");
-		public static readonly MetaInfoItemType<ImmutableArray<byte>> RelationIdType = new MetaInfoItemType<ImmutableArray<byte>>("RelationId");
-		public static readonly MetaInfoItemType<ImmutableArray<byte>> NextIdType = new MetaInfoItemType<ImmutableArray<byte>>("NextId");
-		public static readonly MetaInfoItemType<ImmutableArray<byte>> PreviousIdType = new MetaInfoItemType<ImmutableArray<byte>>("PreviousId");
-		public static readonly MetaInfoItemType<string> NextFileNameType = new MetaInfoItemType<string>("NextFileName");
-		public static readonly MetaInfoItemType<string> PreviousFileNameType = new MetaInfoItemType<string>("PreviousName");
+		public static readonly MetaInfoItemType<ImmutableArray<byte>> IdType = new("Id");
+		public static readonly MetaInfoItemType<ImmutableArray<byte>> RelationIdType = new("RelationId");
+		public static readonly MetaInfoItemType<ImmutableArray<byte>> NextIdType = new("NextId");
+		public static readonly MetaInfoItemType<ImmutableArray<byte>> PreviousIdType = new("PreviousId");
+		public static readonly MetaInfoItemType<string> NextFileNameType = new("NextFileName");
+		public static readonly MetaInfoItemType<string> PreviousFileNameType = new("PreviousName");
 
-		public static readonly MetaInfoItemType<long> TimecodeScaleType = new MetaInfoItemType<long>("TimecodeScale");
-		public static readonly MetaInfoItemType<double> DurationType = new MetaInfoItemType<double>("Duration", "s");
-		public static readonly MetaInfoItemType<DateTime> CreationDateType = new MetaInfoItemType<DateTime>("CreationDate");
-		public static readonly MetaInfoItemType<DateTime> ModificationDateType = new MetaInfoItemType<DateTime>("ModificationDate");
-		public static readonly MetaInfoItemType<string> TitleType = new MetaInfoItemType<string>("Title");
-		public static readonly MetaInfoItemType<string> MuxingAppType = new MetaInfoItemType<string>("MuxingApp");
-		public static readonly MetaInfoItemType<string> WritingAppType = new MetaInfoItemType<string>("WritingApp");
-		public static readonly MetaInfoItemType<string> DirectoryNameType = new MetaInfoItemType<string>("DirectoryName");
-		public static readonly MetaInfoItemType<string> FileNameType = new MetaInfoItemType<string>("FileName");
-		public static readonly MetaInfoItemType<string> FileExtensionType = new MetaInfoItemType<string>("FileExtension");
-		public static readonly MetaInfoItemType<ImmutableArray<string>> SuggestedFileExtensionType = new MetaInfoItemType<ImmutableArray<string>>("SuggestedFileExtension");
-		public static readonly MetaInfoItemType<List<TargetedTag>> TagsType = new MetaInfoItemType<List<TargetedTag>>("Tags");
-		public static readonly MetaInfoItemType<long> AttachmentsSizeType = new MetaInfoItemType<long>("AttachmentSize");
+		public static readonly MetaInfoItemType<long> TimecodeScaleType = new("TimecodeScale");
+		public static readonly MetaInfoItemType<double> DurationType = new("Duration", "s");
+		public static readonly MetaInfoItemType<DateTime> CreationDateType = new("CreationDate");
+		public static readonly MetaInfoItemType<DateTime> ModificationDateType = new("ModificationDate");
+		public static readonly MetaInfoItemType<string> TitleType = new("Title");
+		public static readonly MetaInfoItemType<string> MuxingAppType = new("MuxingApp");
+		public static readonly MetaInfoItemType<string> WritingAppType = new("WritingApp");
+		public static readonly MetaInfoItemType<string> DirectoryNameType = new("DirectoryName");
+		public static readonly MetaInfoItemType<string> FileNameType = new("FileName");
+		public static readonly MetaInfoItemType<string> FileExtensionType = new("FileExtension");
+		public static readonly MetaInfoItemType<ImmutableArray<string>> SuggestedFileExtensionType = new("SuggestedFileExtension");
+		public static readonly MetaInfoItemType<List<TargetedTag>> TagsType = new("Tags");
+		public static readonly MetaInfoItemType<long> AttachmentsSizeType = new("AttachmentSize");
 
 
-		public static readonly MetaInfoContainerType MediaStreamType = new MetaInfoContainerType("MediaStream");
-		public static readonly MetaInfoContainerType AudioStreamType = new MetaInfoContainerType("AudioStream");
-		public static readonly MetaInfoContainerType VideoStreamType = new MetaInfoContainerType("VideoStream");
-		public static readonly MetaInfoContainerType SubtitleStreamType = new MetaInfoContainerType("SubtitleStream");
-		public static readonly MetaInfoContainerType AttachmentType = new MetaInfoContainerType("Attachment");
-		public static readonly MetaInfoContainerType JoinTrackBlocksType = new MetaInfoContainerType("JoinTrackBlocks");
-		public static readonly MetaInfoContainerType CombineTrackPlanesType = new MetaInfoContainerType("CombineTrackPlanes");
-		public static readonly MetaInfoContainerType ChaptersType = new MetaInfoContainerType("Chapters");
+		public static readonly MetaInfoContainerType MediaStreamType = new("MediaStream");
+		public static readonly MetaInfoContainerType AudioStreamType = new("AudioStream");
+		public static readonly MetaInfoContainerType VideoStreamType = new("VideoStream");
+		public static readonly MetaInfoContainerType SubtitleStreamType = new("SubtitleStream");
+		public static readonly MetaInfoContainerType AttachmentType = new("Attachment");
+		public static readonly MetaInfoContainerType JoinTrackBlocksType = new("JoinTrackBlocks");
+		public static readonly MetaInfoContainerType CombineTrackPlanesType = new("CombineTrackPlanes");
+		public static readonly MetaInfoContainerType ChaptersType = new("Chapters");
 	}
 
 	#region MediaStream
 	public static class MediaStream {
-		public static readonly MetaInfoItemType<ulong> IdType = new MetaInfoItemType<ulong>("Id");
-		public static readonly MetaInfoItemType<int> IndexType = new MetaInfoItemType<int>("Index");
-		public static readonly MetaInfoItemType<bool> IsEnabledType = new MetaInfoItemType<bool>("IsEnabled");
-		public static readonly MetaInfoItemType<bool> IsDefaultType = new MetaInfoItemType<bool>("IsDefault");
-		public static readonly MetaInfoItemType<bool> IsForcedType = new MetaInfoItemType<bool>("IsForced");
-		public static readonly MetaInfoItemType<bool> IsOverlayType = new MetaInfoItemType<bool>("IsOverlay");
-		public static readonly MetaInfoItemType<string> TitleType = new MetaInfoItemType<string>("Title");
-		public static readonly MetaInfoItemType<string> LanguageType = new MetaInfoItemType<string>("Language");
-		public static readonly MetaInfoItemType<string> CodecIdType = new MetaInfoItemType<string>("CodecId");
-		public static readonly MetaInfoItemType<string> CodecProfileType = new MetaInfoItemType<string>("CodecProfile");
-		public static readonly MetaInfoItemType<string> CodecVersionType = new MetaInfoItemType<string>("CodecVersion");
-		public static readonly MetaInfoItemType<string> CodecAdditionalFeaturesType = new MetaInfoItemType<string>("CodecAdditionalFeatures");
-		public static readonly MetaInfoItemType<string> CodecCommercialIdType = new MetaInfoItemType<string>("CodecCommercialId");
-		public static readonly MetaInfoItemType<string> ContainerCodecIdType = new MetaInfoItemType<string>("ContainerCodecId");
-		public static readonly MetaInfoItemType<string> ContainerCodecCCType = new MetaInfoItemType<string>("ContainerCodecCC");
-		public static readonly MetaInfoItemType<string> ContainerCodecIdWithCodecPrivateType = new MetaInfoItemType<string>("ContainerCodecIdWithCodecPrivate");
-		public static readonly MetaInfoItemType<string> ContainerCodecNameType = new MetaInfoItemType<string>("ContainerCodecName");
-		public static readonly MetaInfoItemType<string> CodecNameType = new MetaInfoItemType<string>("CodecName");
-		public static readonly MetaInfoItemType<DateTime> CreationDateType = new MetaInfoItemType<DateTime>("CreationDate");
-		public static readonly MetaInfoItemType<DateTime> ModificationDateType = new MetaInfoItemType<DateTime>("ModificationDate");
+		public static readonly MetaInfoItemType<ulong> IdType = new("Id");
+		public static readonly MetaInfoItemType<int> IndexType = new("Index");
+		public static readonly MetaInfoItemType<bool> IsEnabledType = new("IsEnabled");
+		public static readonly MetaInfoItemType<bool> IsDefaultType = new("IsDefault");
+		public static readonly MetaInfoItemType<bool> IsForcedType = new("IsForced");
+		public static readonly MetaInfoItemType<bool> IsOverlayType = new("IsOverlay");
+		public static readonly MetaInfoItemType<string> TitleType = new("Title");
+		public static readonly MetaInfoItemType<string> LanguageType = new("Language");
+		public static readonly MetaInfoItemType<string> CodecIdType = new("CodecId");
+		public static readonly MetaInfoItemType<string> CodecProfileType = new("CodecProfile");
+		public static readonly MetaInfoItemType<string> CodecVersionType = new("CodecVersion");
+		public static readonly MetaInfoItemType<string> CodecAdditionalFeaturesType = new("CodecAdditionalFeatures");
+		public static readonly MetaInfoItemType<string> CodecCommercialIdType = new("CodecCommercialId");
+		public static readonly MetaInfoItemType<string> ContainerCodecIdType = new("ContainerCodecId");
+		public static readonly MetaInfoItemType<string> ContainerCodecCCType = new("ContainerCodecCC");
+		public static readonly MetaInfoItemType<string> ContainerCodecIdWithCodecPrivateType = new("ContainerCodecIdWithCodecPrivate");
+		public static readonly MetaInfoItemType<string> ContainerCodecNameType = new("ContainerCodecName");
+		public static readonly MetaInfoItemType<string> CodecNameType = new("CodecName");
+		public static readonly MetaInfoItemType<DateTime> CreationDateType = new("CreationDate");
+		public static readonly MetaInfoItemType<DateTime> ModificationDateType = new("ModificationDate");
 
-		public static readonly MetaInfoItemType<int> CueCountType = new MetaInfoItemType<int>("CueCount");
+		public static readonly MetaInfoItemType<int> CueCountType = new("CueCount");
 
-		public static readonly MetaInfoItemType<long> SizeType = new MetaInfoItemType<long>("Size", "bytes");
-		public static readonly MetaInfoItemType<int> CodecPrivateSizeType = new MetaInfoItemType<int>("CodecPrivateSize", "bytes");
-		public static readonly MetaInfoItemType<TimeSpan> DurationType = new MetaInfoItemType<TimeSpan>("Duration", "s");
-		public static readonly MetaInfoItemType<double> BitrateType = new MetaInfoItemType<double>("Bitrate", "bit/s");
-		public static readonly MetaInfoItemType<string> StatedBitrateModeType = new MetaInfoItemType<string>("StatedBitrateMode");
+		public static readonly MetaInfoItemType<long> SizeType = new("Size", "bytes");
+		public static readonly MetaInfoItemType<int> CodecPrivateSizeType = new("CodecPrivateSize", "bytes");
+		public static readonly MetaInfoItemType<TimeSpan> DurationType = new("Duration", "s");
+		public static readonly MetaInfoItemType<double> BitrateType = new("Bitrate", "bit/s");
+		public static readonly MetaInfoItemType<string> StatedBitrateModeType = new("StatedBitrateMode");
 
-		public static readonly MetaInfoItemType<string> EncoderNameType = new MetaInfoItemType<string>("EncoderName");
-		public static readonly MetaInfoItemType<string> EncoderSettingsType = new MetaInfoItemType<string>("EncoderSettings");
+		public static readonly MetaInfoItemType<string> EncoderNameType = new("EncoderName");
+		public static readonly MetaInfoItemType<string> EncoderSettingsType = new("EncoderSettings");
 
 
-		public static readonly MetaInfoItemType<long> SampleCountType = new MetaInfoItemType<long>("SampleCount");
-		public static readonly MetaInfoItemType<double> StatedSampleRateType = new MetaInfoItemType<double>("StatedSampleRate", "s^-1");
-		public static readonly MetaInfoItemType<double> MaxSampleRateType = new MetaInfoItemType<double>("MaxSampleRate", "s^-1");
-		public static readonly MetaInfoItemType<double> MinSampleRateType = new MetaInfoItemType<double>("MinSampleRate", "s^-1");
-		public static readonly MetaInfoItemType<double> AverageSampleRateType = new MetaInfoItemType<double>("AverageSampleRate", "s^-1");
-		public static readonly MetaInfoItemType<double> DominantSampleRateType = new MetaInfoItemType<double>("DominantSampleRate", "s^-1");
-		public static readonly MetaInfoItemType<List<SampleRateCountPair>> SampleRateHistogramType = new MetaInfoItemType<List<SampleRateCountPair>>("SampleRateHistogram", "s^-1");
-		public static readonly MetaInfoItemType<double> SampleRateVarianceType = new MetaInfoItemType<double>("SampleRateVariance", "s^-1");
+		public static readonly MetaInfoItemType<long> SampleCountType = new("SampleCount");
+		public static readonly MetaInfoItemType<double> StatedSampleRateType = new("StatedSampleRate", "s^-1");
+		public static readonly MetaInfoItemType<double> MaxSampleRateType = new("MaxSampleRate", "s^-1");
+		public static readonly MetaInfoItemType<double> MinSampleRateType = new("MinSampleRate", "s^-1");
+		public static readonly MetaInfoItemType<double> AverageSampleRateType = new("AverageSampleRate", "s^-1");
+		public static readonly MetaInfoItemType<double> DominantSampleRateType = new("DominantSampleRate", "s^-1");
+		public static readonly MetaInfoItemType<List<SampleRateCountPair>> SampleRateHistogramType = new("SampleRateHistogram", "s^-1");
+		public static readonly MetaInfoItemType<double> SampleRateVarianceType = new("SampleRateVariance", "s^-1");
 
-		public static readonly MetaInfoItemType<double> OutputSampleRateType = new MetaInfoItemType<double>("OutputSampleRate", "s^-1");
+		public static readonly MetaInfoItemType<double> OutputSampleRateType = new("OutputSampleRate", "s^-1");
 	}
 
 	public class SampleRateCountPair {
@@ -110,30 +110,30 @@ namespace AVDump3Lib.Information.MetaInfo {
 		public override string ToString() { return string.Format(CultureInfo.InvariantCulture, "{0}, {1}", Rate, Count); }
 	}
 	public static class AudioStream {
-		public static readonly MetaInfoItemType<int> ChannelCountType = new MetaInfoItemType<int>("ChannelCount");
-		public static readonly MetaInfoItemType<int> BitDepthType = new MetaInfoItemType<int>("BitDepth");
+		public static readonly MetaInfoItemType<int> ChannelCountType = new("ChannelCount");
+		public static readonly MetaInfoItemType<int> BitDepthType = new("BitDepth");
 	}
 
 	#region VideoStream
 	public static class VideoStream {
-		public static readonly MetaInfoItemType<bool> IsInterlacedType = new MetaInfoItemType<bool>("IsInterlaced");
-		public static readonly MetaInfoItemType<bool> HasVariableFrameRateType = new MetaInfoItemType<bool>("HasVariableFrameRate");
-		public static readonly MetaInfoItemType<bool> HasAlphaType = new MetaInfoItemType<bool>("HasAlpha");
-		public static readonly MetaInfoItemType<StereoModes> StereoModeType = new MetaInfoItemType<StereoModes>("StereoMode");
+		public static readonly MetaInfoItemType<bool> IsInterlacedType = new("IsInterlaced");
+		public static readonly MetaInfoItemType<bool> HasVariableFrameRateType = new("HasVariableFrameRate");
+		public static readonly MetaInfoItemType<bool> HasAlphaType = new("HasAlpha");
+		public static readonly MetaInfoItemType<StereoModes> StereoModeType = new("StereoMode");
 
-		public static readonly MetaInfoItemType<Dimensions> PixelDimensionsType = new MetaInfoItemType<Dimensions>("PixelDimensions");
-		public static readonly MetaInfoItemType<Dimensions> DisplayDimensionsType = new MetaInfoItemType<Dimensions>("DisplayDimensions");
-		public static readonly MetaInfoItemType<DisplayUnit> DisplayUnitType = new MetaInfoItemType<DisplayUnit>("DisplayUnit");
-		public static readonly MetaInfoItemType<AspectRatioBehavior> AspectRatioBehaviorType = new MetaInfoItemType<AspectRatioBehavior>("AspectRatioBehavior");
+		public static readonly MetaInfoItemType<Dimensions> PixelDimensionsType = new("PixelDimensions");
+		public static readonly MetaInfoItemType<Dimensions> DisplayDimensionsType = new("DisplayDimensions");
+		public static readonly MetaInfoItemType<DisplayUnit> DisplayUnitType = new("DisplayUnit");
+		public static readonly MetaInfoItemType<AspectRatioBehavior> AspectRatioBehaviorType = new("AspectRatioBehavior");
 
-		public static readonly MetaInfoItemType<double> DisplayAspectRatioType = new MetaInfoItemType<double>("DisplayAspectRatio");
-		public static readonly MetaInfoItemType<double> PixelAspectRatioType = new MetaInfoItemType<double>("PixelAspectRatio");
-		public static readonly MetaInfoItemType<double> StorageAspectRatioType = new MetaInfoItemType<double>("StorageAspectRatio");
+		public static readonly MetaInfoItemType<double> DisplayAspectRatioType = new("DisplayAspectRatio");
+		public static readonly MetaInfoItemType<double> PixelAspectRatioType = new("PixelAspectRatio");
+		public static readonly MetaInfoItemType<double> StorageAspectRatioType = new("StorageAspectRatio");
 
-		public static readonly MetaInfoItemType<CropSides> PixelCropType = new MetaInfoItemType<CropSides>("PixelCrop");
-		public static readonly MetaInfoItemType<ChromeSubsampling> ChromaSubsamplingType = new MetaInfoItemType<ChromeSubsampling>("ChromaSubsampling");
-		public static readonly MetaInfoItemType<int> ColorSpaceType = new MetaInfoItemType<int>("ColorSpace");
-		public static readonly MetaInfoItemType<int> ColorBitDepthType = new MetaInfoItemType<int>("ColorBitDepth");
+		public static readonly MetaInfoItemType<CropSides> PixelCropType = new("PixelCrop");
+		public static readonly MetaInfoItemType<ChromeSubsampling> ChromaSubsamplingType = new("ChromaSubsampling");
+		public static readonly MetaInfoItemType<int> ColorSpaceType = new("ColorSpace");
+		public static readonly MetaInfoItemType<int> ColorBitDepthType = new("ColorBitDepth");
 	}
 
 	[Flags]
@@ -203,60 +203,60 @@ namespace AVDump3Lib.Information.MetaInfo {
 
 	#region Attachment
 	public static class Attachment {
-		public static readonly MetaInfoItemType<long> IdType = new MetaInfoItemType<long>("Id");
-		public static readonly MetaInfoItemType<long> SizeType = new MetaInfoItemType<long>("Size", "bytes");
-		public static readonly MetaInfoItemType<string> DescriptionType = new MetaInfoItemType<string>("Description");
-		public static readonly MetaInfoItemType<string> NameType = new MetaInfoItemType<string>("Name");
-		public static readonly MetaInfoItemType<string> TypeType = new MetaInfoItemType<string>("Type");
+		public static readonly MetaInfoItemType<long> IdType = new("Id");
+		public static readonly MetaInfoItemType<long> SizeType = new("Size", "bytes");
+		public static readonly MetaInfoItemType<string> DescriptionType = new("Description");
+		public static readonly MetaInfoItemType<string> NameType = new("Name");
+		public static readonly MetaInfoItemType<string> TypeType = new("Type");
 	}
 	#endregion
 
 	#region Planes
 	public static class CombineTrackPlanes {
-		public static readonly MetaInfoItemType<CombineTrackPlane> CombineTrackPlaneType = new MetaInfoItemType<CombineTrackPlane>("CombineTrackPlane");
+		public static readonly MetaInfoItemType<CombineTrackPlane> CombineTrackPlaneType = new("CombineTrackPlane");
 
 	}
 	public class CombineTrackPlane {
-		public static readonly MetaInfoItemType<int> TrackIdType = new MetaInfoItemType<int>("TrackId");
-		public static readonly MetaInfoItemType<TrackPlaneType> TrackPlaneTypeType = new MetaInfoItemType<TrackPlaneType>("TrackPlaneTypes");
+		public static readonly MetaInfoItemType<int> TrackIdType = new("TrackId");
+		public static readonly MetaInfoItemType<TrackPlaneType> TrackPlaneTypeType = new("TrackPlaneTypes");
 	}
 	public enum TrackPlaneType { Left, Right, Background }
 	public static class JoinTrackBlocks {
-		public static readonly MetaInfoItemType<int> TrackIdType = new MetaInfoItemType<int>("TrackId");
+		public static readonly MetaInfoItemType<int> TrackIdType = new("TrackId");
 	}
 	#endregion
 
 	#region Chapters
 	public static class Chapters {
-		public static readonly MetaInfoItemType<int> IdType = new MetaInfoItemType<int>("Id");
-		public static readonly MetaInfoItemType<string> FormatType = new MetaInfoItemType<string>("Format");
-		public static readonly MetaInfoItemType<bool> IsHiddenType = new MetaInfoItemType<bool>("IsHidden");
-		public static readonly MetaInfoItemType<bool> IsDefaultType = new MetaInfoItemType<bool>("IsDefault");
-		public static readonly MetaInfoItemType<bool> IsOrderedType = new MetaInfoItemType<bool>("IsOrdered");
-		public static readonly MetaInfoContainerType ChapterType = new MetaInfoContainerType("Chapter");
+		public static readonly MetaInfoItemType<int> IdType = new("Id");
+		public static readonly MetaInfoItemType<string> FormatType = new("Format");
+		public static readonly MetaInfoItemType<bool> IsHiddenType = new("IsHidden");
+		public static readonly MetaInfoItemType<bool> IsDefaultType = new("IsDefault");
+		public static readonly MetaInfoItemType<bool> IsOrderedType = new("IsOrdered");
+		public static readonly MetaInfoContainerType ChapterType = new("Chapter");
 	}
 
 	public static class Chapter {
 
-		public static readonly MetaInfoItemType<int> IdType = new MetaInfoItemType<int>("Id");
-		public static readonly MetaInfoItemType<string> IdStringType = new MetaInfoItemType<string>("IdString");
+		public static readonly MetaInfoItemType<int> IdType = new("Id");
+		public static readonly MetaInfoItemType<string> IdStringType = new("IdString");
 
-		public static readonly MetaInfoItemType<double> TimeStartType = new MetaInfoItemType<double>("TimeStart", "byte");
-		public static readonly MetaInfoItemType<double> TimeEndType = new MetaInfoItemType<double>("TimeStart", "byte");
+		public static readonly MetaInfoItemType<double> TimeStartType = new("TimeStart", "byte");
+		public static readonly MetaInfoItemType<double> TimeEndType = new("TimeStart", "byte");
 
-		public static readonly MetaInfoItemType<ImmutableArray<byte>> SegmentIdType = new MetaInfoItemType<ImmutableArray<byte>>("SegmentId");
-		public static readonly MetaInfoItemType<int> SegmentChaptersIdType = new MetaInfoItemType<int>("SegmentChaptersId");
+		public static readonly MetaInfoItemType<ImmutableArray<byte>> SegmentIdType = new("SegmentId");
+		public static readonly MetaInfoItemType<int> SegmentChaptersIdType = new("SegmentChaptersId");
 
-		public static readonly MetaInfoItemType<int> PhysicalEquivalentType = new MetaInfoItemType<int>("PhysicalEquivalent");
+		public static readonly MetaInfoItemType<int> PhysicalEquivalentType = new("PhysicalEquivalent");
 
-		public static readonly MetaInfoItemType<int> AssociatedTrackType = new MetaInfoItemType<int>("AssociatedTrack");
+		public static readonly MetaInfoItemType<int> AssociatedTrackType = new("AssociatedTrack");
 
-		public static readonly MetaInfoItemType<bool> IsHiddenType = new MetaInfoItemType<bool>("IsHidden");
-		public static readonly MetaInfoItemType<bool> IsEnabledType = new MetaInfoItemType<bool>("IsEnabled");
+		public static readonly MetaInfoItemType<bool> IsHiddenType = new("IsHidden");
+		public static readonly MetaInfoItemType<bool> IsEnabledType = new("IsEnabled");
 
-		public static readonly MetaInfoItemType<ImmutableArray<ChapterTitle>> TitlesType = new MetaInfoItemType<ImmutableArray<ChapterTitle>>("Titles");
+		public static readonly MetaInfoItemType<ImmutableArray<ChapterTitle>> TitlesType = new("Titles");
 
-		public static readonly MetaInfoItemType<bool> HasOperationsType = new MetaInfoItemType<bool>("HasOperations");
+		public static readonly MetaInfoItemType<bool> HasOperationsType = new("HasOperations");
 	}
 
 	public class ChapterTitle {

@@ -1,9 +1,6 @@
-﻿using AVDump3UI;
-using System;
-using System.Diagnostics;
+﻿using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace AVDump3CL {
 
@@ -85,8 +82,7 @@ namespace AVDump3CL {
 				totalSpeedDisplayAverages[2] = (int)totalSpeedAverages[2] >> 20;
 				totalSpeedDisplayUnit = "TiB/s";
 
-			}
-			else if(totalSpeedAverages[0] > 9999 || totalSpeedAverages[1] > 9999 || totalSpeedAverages[2] > 9999) {
+			} else if(totalSpeedAverages[0] > 9999 || totalSpeedAverages[1] > 9999 || totalSpeedAverages[2] > 9999) {
 				totalSpeedDisplayAverages[0] = (int)totalSpeedAverages[0] >> 10;
 				totalSpeedDisplayAverages[1] = (int)totalSpeedAverages[1] >> 10;
 				totalSpeedDisplayAverages[2] = (int)totalSpeedAverages[2] >> 10;

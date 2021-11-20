@@ -1,10 +1,7 @@
 ﻿using AVDump3Lib.Information.InfoProvider;
-using AVDump3Lib.Information.MetaInfo.Core;
 using AVDump3Lib.Reporting.Core;
 using ExtKnot.StringInvariants;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Xml.Linq;
 using static AVDump3Lib.Information.InfoProvider.MediaInfoLibNativeMethods;
 

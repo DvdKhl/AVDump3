@@ -57,7 +57,7 @@ namespace AVDump3Lib.Settings.Core {
 
 		private readonly ISettingGroup settingGroup;
 		private readonly ISettingStore store;
-		private readonly Dictionary<string, ISettingProperty> properties = new Dictionary<string, ISettingProperty>();
+		private readonly Dictionary<string, ISettingProperty> properties = new();
 
 		public SettingFacade(ISettingGroup settingGroup, ISettingStore store) {
 			this.settingGroup = settingGroup ?? throw new ArgumentNullException(nameof(settingGroup));

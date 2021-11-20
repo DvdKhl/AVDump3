@@ -1,4 +1,3 @@
-using AVDump3Lib.Misc;
 using AVDump3Lib.Modules;
 using AVDump3Lib.Processing.BlockBuffers;
 using AVDump3Lib.Processing.BlockConsumers;
@@ -14,7 +13,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Resources;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
@@ -142,7 +140,7 @@ namespace AVDump3Lib.Processing {
 		}
 
 		public void Initialize(IReadOnlyCollection<IAVD3Module> modules) { }
-		public ModuleInitResult Initialized() => new ModuleInitResult(false);
+		public ModuleInitResult Initialized() => new(false);
 		public void Shutdown() { }
 	}
 }

@@ -9,9 +9,9 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
 		private CEScopes? contentEncodingScope;
 		private CETypes? contentEncodingType;
 
-		public ulong? ContentEncodingOrder { get { return contentEncodingOrder ?? 0; } } //Default: 0
-		public CEScopes ContentEncodingScope { get { return contentEncodingScope ?? CEScopes.AllFrames; } } //Default: 1
-		public CETypes ContentEncodingType { get { return contentEncodingType ?? CETypes.Compression; } } //Default: 0
+		public ulong? ContentEncodingOrder => contentEncodingOrder ?? 0;  //Default: 0
+		public CEScopes ContentEncodingScope => contentEncodingScope ?? CEScopes.AllFrames;  //Default: 1
+		public CETypes ContentEncodingType => contentEncodingType ?? CETypes.Compression;  //Default: 0
 
 		public ContentCompressionSection ContentCompression { get; private set; }
 

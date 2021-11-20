@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -25,12 +24,12 @@ namespace AVDump3Lib.Misc {
 
 
 		public static string Truncate(this string value, int maxLength) {
-			return (value ?? "").Length <= maxLength ? value : value.Substring(0, maxLength);
+			return (value ?? "").Length <= maxLength ? value : value[..maxLength];
 		}
 
 		public static void Sort(this XElement source, Comparison<XElement> comparison) {
 			//Make sure there is a valid source
-			if(source == null) throw new ArgumentNullException("source");
+			if(source == null) throw new ArgumentNullException(nameof(source));
 
 			//Sort attributes if needed
 			//if(bSortAttributes) {
@@ -87,9 +86,7 @@ namespace AVDump3Lib.Misc {
 
 			// reverse it
 			for(int i = 0, j = sb.Length - 1; i < j; i++, j--) {
-				var t = sb[i];
-				sb[i] = sb[j];
-				sb[j] = t;
+				(sb[j], sb[i]) = (sb[i], sb[j]);
 			}
 
 			return sb.ToString();

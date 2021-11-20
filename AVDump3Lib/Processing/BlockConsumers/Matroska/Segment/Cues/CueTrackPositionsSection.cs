@@ -13,8 +13,8 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cues {
 		public ulong CueClusterPosition { get; private set; }
 		public ulong? CueRelativePosition { get; private set; }
 		public ulong? CueDuration { get; private set; }
-		public ulong CueBlockNumber { get { return cueBlockNumber.HasValue && cueBlockNumber.Value == 0 ? 1 : (cueBlockNumber ?? 1); } } //Default: 1, not 0
-		public ulong CueCodecState { get { return cueCodecState ?? 0; } } //Default: 0
+		public ulong CueBlockNumber => cueBlockNumber.HasValue && cueBlockNumber.Value == 0 ? 1 : (cueBlockNumber ?? 1);  //Default: 1, not 0
+		public ulong CueCodecState => cueCodecState ?? 0;  //Default: 0
 
 		public CueTrackPositionsSection() { CueReferences = new EbmlList<CueReferenceSection>(); }
 

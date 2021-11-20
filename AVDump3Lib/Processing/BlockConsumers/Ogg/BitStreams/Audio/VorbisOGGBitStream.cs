@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 	public sealed class VorbisOGGBitStream : AudioOGGBitStream, IVorbisComment {
-		public override string CodecName { get { return "Vorbis"; } }
+		public override string CodecName => "Vorbis";
 		public override string CodecVersion { get; protected set; }
 		public override long SampleCount => LastGranulePosition;
 		public override double SampleRate { get; }
@@ -37,7 +37,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 			commentParser.ParsePage(ref page);
 		}
 
-		private VorbisCommentParser commentParser = new VorbisCommentParser();
+		private readonly VorbisCommentParser commentParser = new();
 		public Comments Comments {
 			get {
 				try {

@@ -1,9 +1,8 @@
 using System;
-using System.Runtime.InteropServices;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Ogg.BitStreams {
 	public class FlacOGGBitStream : AudioOGGBitStream {
-		public override string CodecName { get { return "Flac"; } }
+		public override string CodecName => "Flac";
 		public override string CodecVersion { get; protected set; }
 		public override long SampleCount => LastGranulePosition;
 		public override double SampleRate { get; }

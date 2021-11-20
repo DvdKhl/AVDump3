@@ -1,25 +1,19 @@
 ﻿using AVDump3Lib.Processing.StreamProvider;
-using AVDump3Lib.Settings.CLArguments;
 using AVDump3Lib.Settings.Core;
 using ExtKnot.StringInvariants;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Resources;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace AVDump3UI {
 	public class AVD3UISettings {
-		public static readonly object UnspecifiedType = new object();
-		public static readonly object PasswordType = new object();
+		public static readonly object UnspecifiedType = new();
+		public static readonly object PasswordType = new();
 
 		protected class ResourceManagerMerged : ResourceManager {
 			private readonly ResourceManager main;
@@ -128,7 +122,7 @@ namespace AVDump3UI {
 			yield return FromWithNullToNull(SettingGroup, nameof(WithExtensions), Names("WExts"), AVD3UISettings.UnspecifiedType, new FileExtensionsSetting() { Allow = true },
 				(p, s) => {
 					var value = new FileExtensionsSetting { Allow = s == null || s.Length != 0 && s[0] != '-' };
-					if(!value.Allow) s = s?.Substring(1) ?? "";
+					if(!value.Allow) s = s?[1..] ?? "";
 					value.Items = ImmutableArray.Create((s ?? "").Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries));
 					return value;
 				},
@@ -187,7 +181,7 @@ namespace AVDump3UI {
 					}).ToArray());
 				},
 				(p, o) => {
-					if(!(o is ImmutableArray<ConsumerSettings> lst) || lst.Length == 0) return null;
+					if(o is not ImmutableArray<ConsumerSettings> lst || lst.Length == 0) return null;
 					//A bit odd at first, but with this we make Consumers==null the special case (i.e. list the consumers)
 					return lst.Length == 0 ? "" : string.Join(",", lst.Select(x => x.Name + string.Concat(x.Arguments.Select(y => ":" + y))));
 				}

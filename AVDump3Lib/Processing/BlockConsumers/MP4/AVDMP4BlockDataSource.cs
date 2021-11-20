@@ -1,12 +1,6 @@
 ﻿using AVDump3Lib.Processing.BlockBuffers;
-using AVDump3Lib.Processing.BlockConsumers.Matroska;
 using BXmlLib.DocTypes.MP4;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AVDump3Lib.Processing.BlockConsumers.MP4 {
 	public class AVDMP4BlockDataSource : MP4BlockDataSource {
@@ -31,6 +25,6 @@ namespace AVDump3Lib.Processing.BlockConsumers.MP4 {
 			IsEndOfStream = reader.Length == reader.BytesRead + offset;
 		}
 
-		protected override ReadOnlySpan<byte> GetDataBlock(int minLength) => reader.GetBlock(minLength).Slice(offset);
+		protected override ReadOnlySpan<byte> GetDataBlock(int minLength) => reader.GetBlock(minLength)[offset..];
 	}
 }

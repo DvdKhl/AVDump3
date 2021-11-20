@@ -1,11 +1,9 @@
 using AVDump3Lib.Information.MetaInfo;
 using AVDump3Lib.Information.MetaInfo.Core;
-using AVDump3Lib.Misc;
 using ExtKnot.StringInvariants;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -229,6 +227,8 @@ namespace AVDump3Lib.Information.InfoProvider {
 		public void Dispose() {
 			if(Handle == IntPtr.Zero) return;
 			MediaInfo_Delete(Handle);
+			GC.SuppressFinalize(this);
+
 		}
 	}
 
@@ -253,7 +253,7 @@ namespace AVDump3Lib.Information.InfoProvider {
 				var streamCount = mil.GetCount(streamType);
 
 				for(var streamIndex = 0; streamIndex < streamCount; streamIndex++) {
-					string streamGet(string key) => new string(mil.Get(key, streamType, streamIndex)?.Trim().Where(c => XmlConvert.IsXmlChar(c)).ToArray() ?? Array.Empty<char>()); //TODO
+					string streamGet(string key) => new(mil.Get(key, streamType, streamIndex)?.Trim().Where(c => XmlConvert.IsXmlChar(c)).ToArray() ?? Array.Empty<char>()); //TODO
 
 					ulong? id = null;
 					try {
@@ -380,9 +380,9 @@ namespace AVDump3Lib.Information.InfoProvider {
 
 					var languages = new List<string>();
 					if((uint)title.InvIndexOf(":") < 5) {
-						var language = title.InvContains(":") ? title.Substring(0, title.InvIndexOf(":")) : "";
+						var language = title.InvContains(":") ? title[..title.InvIndexOf(":")] : "";
 						if(!string.IsNullOrEmpty(language)) languages.Add(language);
-						title = title.Substring(language.Length + 1);
+						title = title[(language.Length + 1)..];
 
 					} else if(!string.IsNullOrEmpty(languageChapters)) {
 						languages.Add(languageChapters);

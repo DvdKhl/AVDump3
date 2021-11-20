@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace AVDump3Lib.Processing.BlockBuffers {
 	public interface IMirroredBuffer : IDisposable {
@@ -43,10 +40,10 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public ReadOnlySpan<byte> ReadOnlySlice(int offset, int length) => new ReadOnlySpan<byte>(Data + offset, length);
+		public ReadOnlySpan<byte> ReadOnlySlice(int offset, int length) => new(Data + offset, length);
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public Span<byte> Slice(int offset, int length) => new Span<byte>(Data + offset, length);
+		public Span<byte> Slice(int offset, int length) => new(Data + offset, length);
 
 		#region IDisposable Support
 		private bool disposedValue = false;

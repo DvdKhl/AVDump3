@@ -30,7 +30,7 @@ namespace AVDump3Lib.Processing.StreamProvider {
 
 	public sealed class StreamFromPathsProvider : IStreamProvider, IDisposable {
 		private readonly List<LocalConcurrency> localConcurrencyPartitions;
-		private readonly SemaphoreSlim globalConcurrency = new SemaphoreSlim(1);
+		private readonly SemaphoreSlim globalConcurrency = new(1);
 
 		public int TotalFileCount { get; private set; }
 		public long TotalBytes { get; private set; }

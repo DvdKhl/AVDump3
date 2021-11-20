@@ -20,7 +20,7 @@ namespace AVDump3Lib.Information.MetaInfo {
 				}
 			}
 		}
-		public static readonly MetaInfoContainerType HashProviderType = new MetaInfoContainerType("HashProvider");
+		public static readonly MetaInfoContainerType HashProviderType = new("HashProvider");
 
 
 		//public static readonly MetaInfoItemType CRC32Type = new MetaInfoItemType("CRC32", null, typeof(byte[]));

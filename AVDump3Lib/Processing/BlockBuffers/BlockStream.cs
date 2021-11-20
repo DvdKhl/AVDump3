@@ -60,8 +60,8 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 		}
 		public long Length => blockSource.Length;
 
-		private readonly object consumerLock = new object();
-		private readonly object producerLock = new object();
+		private readonly object consumerLock = new();
+		private readonly object producerLock = new();
 		private void Produce() {
 			//Thread.CurrentThread.Priority = ThreadPriority.Lowest; //TODO: Parameterfy
 
@@ -78,7 +78,7 @@ namespace AVDump3Lib.Processing.BlockBuffers {
 				}
 
 				//Limit read chunk length (Avoids bouncing between buffer underrun and overrun)
-				writerSpan = writerSpan.Slice(0, Math.Min(writerSpan.Length, MaxProducerReadLength));
+				writerSpan = writerSpan[..Math.Min(writerSpan.Length, MaxProducerReadLength)];
 
 				var readBytes = blockSource.Read(writerSpan);
 				progress?.Report(new BlockStreamProgress(this, -1, readBytes));

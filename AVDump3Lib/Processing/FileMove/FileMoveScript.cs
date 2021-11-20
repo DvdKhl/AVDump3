@@ -11,7 +11,7 @@ namespace AVDump3Lib.Processing.FileMove {
 
 	public abstract class FileMoveScript : IFileMoveScript {
 		private readonly IServiceProvider serviceProvider;
-		private readonly List<AVDTokenHandler> tokenHandlers = new List<AVDTokenHandler>();
+		private readonly List<AVDTokenHandler> tokenHandlers = new();
 
 		public abstract void Load();
 		public abstract bool CanReload { get; }
@@ -29,10 +29,10 @@ namespace AVDump3Lib.Processing.FileMove {
 			var destFilePath = "";
 			try {
 				destFilePath = await ExecuteInternalAsync(ctx).ConfigureAwait(false);
-				if (destFilePath == null) return null;
+				if(destFilePath == null) return null;
 				destFilePath = Path.GetFullPath(destFilePath);
 
-			} catch (Exception) {
+			} catch(Exception) {
 				destFilePath = null;
 			}
 
@@ -44,7 +44,7 @@ namespace AVDump3Lib.Processing.FileMove {
 		public FileMoveScript(IEnumerable<IFileMoveConfigure> extensions) {
 			var serviceCollection = new ServiceCollection();
 
-			foreach (var extension in extensions) {
+			foreach(var extension in extensions) {
 				extension.ConfigureServiceCollection(serviceCollection);
 				tokenHandlers.Add(extension.ReplaceToken);
 			}
@@ -58,7 +58,9 @@ namespace AVDump3Lib.Processing.FileMove {
 			return new FileMoveScriptScoped(this, serviceScope);
 		}
 
-		public void Dispose() { }
+		public void Dispose() {
+			GC.SuppressFinalize(this);
+		}
 
 		private class FileMoveScriptScoped : IFileMoveScript {
 			private readonly FileMoveScript parent;

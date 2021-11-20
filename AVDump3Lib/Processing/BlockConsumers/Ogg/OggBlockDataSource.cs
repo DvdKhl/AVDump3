@@ -1,11 +1,7 @@
 ﻿using AVDump3Lib.Processing.BlockBuffers;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 	public enum PageFlags { None = 0, SpanBefore = 1, Header = 2, Footer = 4, SpanAfter = 1 << 31 }
@@ -36,7 +32,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 
 		public long Length => reader.Length;
 
-		private static readonly ReadOnlyMemory<byte> OggS = new ReadOnlyMemory<byte>(new[] { (byte)'O', (byte)'g', (byte)'g', (byte)'S' });
+		private static readonly ReadOnlyMemory<byte> OggS = new(new[] { (byte)'O', (byte)'g', (byte)'g', (byte)'S' });
 		public bool SeekPastSyncBytes(bool advanceReader, int maxSkippableBytes = 1 << 20) {
 			var bytesSkipped = 0;
 			var magicBytes = OggS.Span;
@@ -63,8 +59,8 @@ namespace AVDump3Lib.Processing.BlockConsumers.Ogg {
 			page.Version = block[0];
 			page.Flags = (PageFlags)block[1];
 			page.GranulePosition = block.Slice(2, 8);
-			page.StreamId = MemoryMarshal.Read<uint>(block.Slice(10));
-			page.PageIndex = MemoryMarshal.Read<uint>(block.Slice(14));
+			page.StreamId = MemoryMarshal.Read<uint>(block[10..]);
+			page.PageIndex = MemoryMarshal.Read<uint>(block[14..]);
 			page.Checksum = block.Slice(18, 4);
 
 			var segmentCount = page.SegmentCount = block[22];

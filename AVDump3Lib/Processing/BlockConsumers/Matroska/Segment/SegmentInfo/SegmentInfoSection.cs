@@ -6,17 +6,17 @@ using System.Collections.Generic;
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.SegmentInfo {
 	public class SegmentInfoSection : Section {
 		private ulong? timecodeScale;
-		private EbmlList<byte[]> segmentFamily;
+		private readonly EbmlList<byte[]> segmentFamily;
 		private byte[] segmentUId, prevUId, nextUId;
 
-		public byte[] SegmentUId { get { return segmentUId == null ? null : (byte[])segmentUId.Clone(); } }
-		public byte[] PreviousUId { get { return prevUId == null ? null : (byte[])prevUId.Clone(); } }
-		public byte[] NextUId { get { return nextUId == null ? null : (byte[])nextUId.Clone(); } }
+		public byte[] SegmentUId => segmentUId == null ? null : (byte[])segmentUId.Clone();
+		public byte[] PreviousUId => prevUId == null ? null : (byte[])prevUId.Clone();
+		public byte[] NextUId => nextUId == null ? null : (byte[])nextUId.Clone();
 		public string SegmentFilename { get; private set; }
 		public string PreviousFilename { get; private set; }
 		public string NextFilename { get; private set; }
-		public EbmlList<byte[]> SegmentFamily { get { return segmentFamily.DeepClone(item => { return (byte[])item.Clone(); }); } }
-		public ulong TimecodeScale { get { return timecodeScale ?? 1000000; } }
+		public EbmlList<byte[]> SegmentFamily => segmentFamily.DeepClone(item => { return (byte[])item.Clone(); });
+		public ulong TimecodeScale => timecodeScale ?? 1000000;
 		public double? Duration { get; private set; }
 		public string Title { get; private set; }
 		public string MuxingApp { get; private set; }

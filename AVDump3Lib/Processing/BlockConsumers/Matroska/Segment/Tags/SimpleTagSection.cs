@@ -14,10 +14,10 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tags {
 
 
 		public string TagName { get; private set; }
-		public string TagLanguage { get { return tagLanguage ?? "und"; } } //Def: und
+		public string TagLanguage => tagLanguage ?? "und";  //Def: und
 		public string TagString { get; private set; }
-		public bool TagDefault { get { return tagdefault.GetValueOrDefault(true); } } //Def: True
-		public byte[] TagBinary { get { return tagBinary?.ToArray() ?? Array.Empty<byte>(); } }
+		public bool TagDefault => tagdefault.GetValueOrDefault(true);  //Def: True
+		public byte[] TagBinary => tagBinary?.ToArray() ?? Array.Empty<byte>();
 
 		public SimpleTagSection() { SimpleTags = new EbmlList<SimpleTagSection>(); }
 

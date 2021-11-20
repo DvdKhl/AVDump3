@@ -6,7 +6,6 @@ using BXmlLib.DocTypes.Matroska;
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Xml.Linq;
 
 namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 	public class MatroskaFile : Section {
@@ -42,6 +41,7 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska {
 					break;
 				}
 			}
+			ct.ThrowIfCancellationRequested();
 
 			if(reader.DocElement != null && reader.DocElement == MatroskaDocType.Segment) {
 				Segment = CreateRead(new SegmentSection(), reader);

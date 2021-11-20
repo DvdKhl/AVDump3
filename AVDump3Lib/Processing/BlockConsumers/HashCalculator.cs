@@ -2,8 +2,6 @@ using AVDump3Lib.Processing.BlockBuffers;
 using AVDump3Lib.Processing.HashAlgorithms;
 using System;
 using System.Collections.Immutable;
-using System.IO;
-using System.Security.Cryptography;
 using System.Threading;
 
 namespace AVDump3Lib.Processing.BlockConsumers {
@@ -15,7 +13,7 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 		}
 
 		public string Name { get; }
-		public ImmutableArray<byte> Value { get;  }
+		public ImmutableArray<byte> Value { get; }
 	}
 
 	public class HashCalculator : BlockConsumer {
@@ -41,7 +39,7 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 						}
 					};
 				}
-			} 
+			}
 			ReadLength = length;
 		}
 
@@ -70,6 +68,8 @@ namespace AVDump3Lib.Processing.BlockConsumers {
 		public override void Dispose() {
 			HashAlgorithm.Dispose();
 			base.Dispose();
+			GC.SuppressFinalize(this);
+
 		}
 	}
 

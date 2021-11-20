@@ -19,21 +19,21 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Tracks {
 
 		public double? FrameRate { get; private set; }
 		public double? Gamma { get; private set; }
-		public byte[] ColorSpace { get { return colorSpace != null ? (byte[])colorSpace.Clone() : null; } }
+		public byte[] ColorSpace => colorSpace != null ? (byte[])colorSpace.Clone() : null;
 		public ulong PixelWidth { get; private set; }
 		public ulong PixelHeight { get; private set; }
-		public ARType AspectRatioType { get { return aspectRatioType ?? ARType.FreeResizing; } } //Default: FreeResizing (0)
+		public ARType AspectRatioType => aspectRatioType ?? ARType.FreeResizing;  //Default: FreeResizing (0)
 		public OldStereoModes? OldStereoMode { get; private set; }
-		public ulong AlphaMode { get { return alphaMode ?? 0; } } //Default: FreeResizing (0)
-		public StereoModes StereoMode { get { return stereoMode ?? StereoModes.Mono; } } //Default: FreeResizing (0)
-		public bool Interlaced { get { return interlaced ?? false; } } //Default: FreeResizing (0)
-		public ulong PixelCropBottom { get { return pixelCropBottom ?? 0; } } //Default: 0
-		public ulong PixelCropTop { get { return pixelCropTop ?? 0; } } //Default: 0
-		public ulong PixelCropLeft { get { return pixelCropLeft ?? 0; } } //Default: 0
-		public ulong PixelCropRight { get { return pixelCropRight ?? 0; } } //Default: 0
-		public ulong DisplayWidth { get { return displayWidth ?? PixelWidth; } } //Default: $PixelWidth
-		public ulong DisplayHeight { get { return displayHeight ?? PixelHeight; } } //Default: $PixelHeight
-		public Unit DisplayUnit { get { return displayUnit ?? Unit.Pixels; } } //Default: Pixels (0)
+		public ulong AlphaMode => alphaMode ?? 0;  //Default: FreeResizing (0)
+		public StereoModes StereoMode => stereoMode ?? StereoModes.Mono;  //Default: FreeResizing (0)
+		public bool Interlaced => interlaced ?? false;  //Default: FreeResizing (0)
+		public ulong PixelCropBottom => pixelCropBottom ?? 0;  //Default: 0
+		public ulong PixelCropTop => pixelCropTop ?? 0;  //Default: 0
+		public ulong PixelCropLeft => pixelCropLeft ?? 0;  //Default: 0
+		public ulong PixelCropRight => pixelCropRight ?? 0;  //Default: 0
+		public ulong DisplayWidth => displayWidth ?? PixelWidth;  //Default: $PixelWidth
+		public ulong DisplayHeight => displayHeight ?? PixelHeight;  //Default: $PixelHeight
+		public Unit DisplayUnit => displayUnit ?? Unit.Pixels;  //Default: Pixels (0)
 
 		protected override bool ProcessElement(IBXmlReader reader) {
 			if(reader.DocElement == MatroskaDocType.PixelWidth) {

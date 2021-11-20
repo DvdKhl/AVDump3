@@ -15,11 +15,8 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Linq;
-using System.Collections;
-using System.Diagnostics;
+using System.Text;
 
 namespace AVDump3Lib.Misc {
 	[Flags]
@@ -77,13 +74,13 @@ namespace AVDump3Lib.Misc {
 
 			// after this, we're gonna split it into eight 5 bit
 			// values. 
-			StringBuilder sb = new StringBuilder();
+			StringBuilder sb = new();
 			//int resultLen = 4*((len + 2)/3);
 			//StringBuffer result = new StringBuffer(resultLen);
 
 			// Translate all full groups from byte array elements to Base64
 			int byteIndexer = 0;
-			for(int i = 0;i < numberOfGroups;i++) {
+			for(int i = 0; i < numberOfGroups; i++) {
 				byte b0 = inArray[byteIndexer++];
 				byte b1 = inArray[byteIndexer++];
 				byte b2 = inArray[byteIndexer++];

@@ -1,9 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AVDump3Lib.Information.FormatHeaders {
 	public class VMpeg4IsoAvcHeader {
@@ -18,20 +13,21 @@ namespace AVDump3Lib.Information.FormatHeaders {
 		public IEnumerable<string> PictureParameterSets { get; private set; }
 
 		public static VMpeg4IsoAvcHeader Create(byte[] b) {
-			var header = new VMpeg4IsoAvcHeader();
-
-			header.ConfigurationVersion = b[0];
-			header.Profile = b[1];
-			header.ProfileCompatibility = b[2];
-			header.Level = b[3];
-			header.ReservedC = (byte)((b[4] & 0xFC) >> 2);
-			header.NALULengthSizeMinus1 = (byte)(b[4] & 0x3);
-			header.ReservedD = (byte)((b[5] & 0xE0) >> 5);
-
 			var pos = 6;
 			var count = (byte)(b[5] & 0x1F);
+
+			var header = new VMpeg4IsoAvcHeader {
+				ConfigurationVersion = b[0],
+				Profile = b[1],
+				ProfileCompatibility = b[2],
+				Level = b[3],
+				ReservedC = (byte)((b[4] & 0xFC) >> 2),
+				NALULengthSizeMinus1 = (byte)(b[4] & 0x3),
+				ReservedD = (byte)((b[5] & 0xE0) >> 5)
+			};
 			header.SequenceParameterSets = GetSet(b, count, ref pos); count = b[pos++];
 			header.PictureParameterSets = GetSet(b, count, ref pos);
+
 
 			return header;
 		}

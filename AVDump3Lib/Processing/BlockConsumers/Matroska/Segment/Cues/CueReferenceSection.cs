@@ -10,8 +10,8 @@ namespace AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cues {
 		public ulong CueClusterPosition { get; private set; }
 		public ulong CueRefCluster { get; private set; }
 
-		public ulong CueRefNumber { get { return cueRefNumber.HasValue && cueRefNumber.Value == 0 ? 1 : (cueRefNumber ?? 1); } } //Default: 1, not 0
-		public ulong CueRefCodecState { get { return cueRefCodecState ?? 0; } } //Default: 0
+		public ulong CueRefNumber => cueRefNumber.HasValue && cueRefNumber.Value == 0 ? 1 : (cueRefNumber ?? 1);  //Default: 1, not 0
+		public ulong CueRefCodecState => cueRefCodecState ?? 0;  //Default: 0
 
 		protected override bool ProcessElement(IBXmlReader reader) {
 			if(reader.DocElement == MatroskaDocType.CueClusterPosition) {
