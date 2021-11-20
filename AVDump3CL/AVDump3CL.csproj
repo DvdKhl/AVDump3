@@ -5,7 +5,7 @@
     <FileVersion>3.1.8238.0</FileVersion>
     <Version>3.1.8238</Version>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <ApplicationIcon>AVD3Icon.ico</ApplicationIcon>
     <StartupObject>AVDump3CL.Program</StartupObject>
     <Company>extknot</Company>

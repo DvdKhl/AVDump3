@@ -571,6 +571,7 @@ namespace AVDump3CL {
 		private async Task<bool> HandleFileMove(FileMetaInfo fileMetaInfo) {
 			var success = true;
 			if(fileMove != null) {
+				using var fileMoveScoped = fileMove.CreateScope();
 				using var clLock = settings.FileMove.Test ? console.LockConsole() : null;
 
 				try {
@@ -581,9 +582,9 @@ namespace AVDump3CL {
 
 						string? destFilePath = null;
 						try {
-							if(settings.FileMove.Test) fileMove.Load();
+							if(settings.FileMove.Test) fileMoveScoped.Load();
 
-							destFilePath = await fileMove.GetFilePathAsync(fileMetaInfo);
+							destFilePath = await fileMoveScoped.GetFilePathAsync(fileMetaInfo);
 
 
 							foreach(var replacement in settings.FileMove.Replacements) {
@@ -620,7 +621,7 @@ namespace AVDump3CL {
 								System.Console.WriteLine("Press any key to cancel automatic mode");
 
 
-								while(!System.Console.KeyAvailable && !fileMove.SourceChanged()) {
+								while(!System.Console.KeyAvailable && !fileMoveScoped.SourceChanged()) {
 									await Task.Delay(500);
 								}
 

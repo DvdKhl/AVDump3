@@ -2,7 +2,6 @@ using AVDump3Lib.Information.FormatHeaders;
 using AVDump3Lib.Information.MetaInfo;
 using AVDump3Lib.Information.MetaInfo.Core;
 using AVDump3Lib.Misc;
-using AVDump3Lib.Misc.Linq;
 using AVDump3Lib.Processing.BlockConsumers.Matroska;
 using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Chapters;
 using AVDump3Lib.Processing.BlockConsumers.Matroska.Segment.Cluster;

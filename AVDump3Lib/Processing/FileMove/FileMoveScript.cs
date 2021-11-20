@@ -18,7 +18,10 @@ namespace AVDump3Lib.Processing.FileMove {
 
 		public abstract Task<string?> ExecuteInternalAsync(FileMoveContext ctx);
 
-		public async Task<string?> GetFilePathAsync(FileMetaInfo fileMetaInfo) {
+		public Task<string?> GetFilePathAsync(FileMetaInfo fileMetaInfo) {
+			return GetFilePathInternalAsync(fileMetaInfo, serviceProvider);
+		}
+		private async Task<string?> GetFilePathInternalAsync(FileMetaInfo fileMetaInfo, IServiceProvider serviceProvider) {
 			FileMoveContext? ctx = null;
 			string TokenHandler(string key) => tokenHandlers.Select(x => x.Invoke(key, ctx)).FirstOrDefault(x => x != null);
 			ctx = new FileMoveContext(TokenHandler, serviceProvider, fileMetaInfo);
@@ -26,10 +29,10 @@ namespace AVDump3Lib.Processing.FileMove {
 			var destFilePath = "";
 			try {
 				destFilePath = await ExecuteInternalAsync(ctx).ConfigureAwait(false);
-				if(destFilePath == null) return null;
+				if (destFilePath == null) return null;
 				destFilePath = Path.GetFullPath(destFilePath);
 
-			} catch(Exception) {
+			} catch (Exception) {
 				destFilePath = null;
 			}
 
@@ -41,7 +44,7 @@ namespace AVDump3Lib.Processing.FileMove {
 		public FileMoveScript(IEnumerable<IFileMoveConfigure> extensions) {
 			var serviceCollection = new ServiceCollection();
 
-			foreach(var extension in extensions) {
+			foreach (var extension in extensions) {
 				extension.ConfigureServiceCollection(serviceCollection);
 				tokenHandlers.Add(extension.ReplaceToken);
 			}
@@ -49,5 +52,40 @@ namespace AVDump3Lib.Processing.FileMove {
 			serviceProvider = serviceCollection.BuildServiceProvider();
 		}
 
+		public IFileMoveScript CreateScope() {
+			var serviceScope = serviceProvider.CreateScope();
+
+			return new FileMoveScriptScoped(this, serviceScope);
+		}
+
+		public void Dispose() { }
+
+		private class FileMoveScriptScoped : IFileMoveScript {
+			private readonly FileMoveScript parent;
+			private readonly IServiceScope serviceScope;
+
+			public FileMoveScriptScoped(FileMoveScript parent, IServiceScope serviceScope) {
+				this.parent = parent ?? throw new ArgumentNullException(nameof(parent));
+				this.serviceScope = serviceScope ?? throw new ArgumentNullException(nameof(serviceScope));
+			}
+
+			public bool CanReload => parent.CanReload;
+
+			public IFileMoveScript CreateScope() { throw new NotSupportedException(); }
+
+			public void Dispose() => serviceScope.Dispose();
+
+			public Task<string?> GetFilePathAsync(FileMetaInfo fileMetaInfo) {
+				return parent.GetFilePathInternalAsync(fileMetaInfo, serviceScope.ServiceProvider);
+			}
+
+			public void Load() {
+				parent.Load();
+			}
+
+			public bool SourceChanged() {
+				return parent.SourceChanged();
+			}
+		}
 	}
 }
