@@ -14,29 +14,30 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        os: [windows-latest, ubuntu-latest, macos-latest]
         include: 
         - os: windows-latest
           platform: windows
         - os: ubuntu-latest
           platform: linux
+        - os: macos-latest
+          platform: macos
           
     steps:
     - name: AVD3Native-Checkout
       uses: actions/checkout@v2.1.0
 
-    - name: AVD3Native-Compile-Linux
-      if: matrix.platform == 'linux'
+    - name: AVD3Native-Compile-LinuxOrMacOS
+      if: matrix.platform == 'linux' ||  matrix.platform == 'macos'
       run: |         
         make -C AVDump3NativeLib
 
-    - name: AVD3Native-ArtifactUpload-Linux
-      if: matrix.platform == 'linux'
+    - name: AVD3Native-ArtifactUpload-LinuxOrMacOS
+      if: matrix.platform == 'linux' ||  matrix.platform == 'macos'
       uses: actions/upload-artifact@v2
       with:
         name: AVDump3NativeLib.Linux
         path: ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib.so
-
 
     - name: AVD3Native-MSBuildSetup-Windows
       if: matrix.platform == 'windows'
