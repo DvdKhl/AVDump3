@@ -3,8 +3,11 @@
 #include <string.h>
 #include <malloc.h>
 #include <stdint.h>
+
+#ifdef __x86_64__
 #include <nmmintrin.h>
 #include <immintrin.h>
+#endif
 
 #include "DLLDefines.h"
 
