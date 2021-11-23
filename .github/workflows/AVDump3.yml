@@ -41,7 +41,7 @@ jobs:
         distro: ubuntu20.04
         githubToken: ${{ github.token }}
         run: |
-          ls -lh \;
+          ls -lh \
           make -C AVDump3NativeLib
 
     - name: AVD3Native-ArtifactUpload-LinuxOrMacOS
