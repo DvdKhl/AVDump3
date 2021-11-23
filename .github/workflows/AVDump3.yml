@@ -37,7 +37,7 @@ jobs:
       if: matrix.platform == 'linux'
       run: |         
         sudo apt install gcc make gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
-        make -C AVDump3NativeLib
+        make ARCH=aarch64 -C AVDump3NativeLib
 
     - name: AVD3Native-ArtifactUpload-LinuxOrMacOS
       if: matrix.platform == 'linux' ||  matrix.platform == 'macos'
