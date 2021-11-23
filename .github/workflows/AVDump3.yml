@@ -33,22 +33,23 @@ jobs:
       run: |         
         make -C AVDump3NativeLib
 
+    - name: AVD3Native-ArtifactUpload-LinuxAarch64
+      if: matrix.platform == 'linux'
+      uses: uraimo/run-on-arch-action@v2.0.5
+      with:
+        arch: aarch64
+        distro: ubuntu20.04
+        githubToken: ${{ github.token }}
+        run: |
+          ls -lh \;
+          make -C AVDump3NativeLib
+
     - name: AVD3Native-ArtifactUpload-LinuxOrMacOS
       if: matrix.platform == 'linux' ||  matrix.platform == 'macos'
       uses: actions/upload-artifact@v2
       with:
         name: AVDump3NativeLib.Linux
         path: ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib.so
-
-    - name: AVD3Native-ArtifactUpload-LinuxAarch64
-      uses: uraimo/run-on-arch-action@v2.0.5
-      with:
-        arch: aarch64
-        distro: archarm_latest
-        githubToken: ${{ github.token }}
-        run: |
-          ls -lh \;
-          make -C AVDump3NativeLib
 
     - name: AVD3Native-MSBuildSetup-Windows
       if: matrix.platform == 'windows'
