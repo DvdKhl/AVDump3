@@ -17,7 +17,7 @@ $(OBJ_SSE4): SSE4_FLAGS := -msse4
 $(OBJ_SHA): SHA_FLAGS := -msha
 endif
 
-AVDump3NativeLib-$(ARCH).so: $(OBJ)
+AVDump3NativeLib.so: $(OBJ)
 	$(CC) -shared -o $@ $^ $(CFLAGS)
 
 %.o: src/%.c
