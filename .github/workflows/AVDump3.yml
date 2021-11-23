@@ -32,19 +32,29 @@ jobs:
       if: matrix.platform == 'linux' ||  matrix.platform == 'macos'
       run: |         
         make -C AVDump3NativeLib
-
-    - name: AVD3Native-Compile-LinuxAarch
-      if: matrix.platform == 'linux'
-      run: |         
-        sudo apt install gcc make gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
-        make ARCH=aarch64 -C AVDump3NativeLib
+        move ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib.so ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-x64.so
 
     - name: AVD3Native-ArtifactUpload-LinuxOrMacOS
       if: matrix.platform == 'linux' ||  matrix.platform == 'macos'
       uses: actions/upload-artifact@v2
       with:
         name: AVDump3NativeLib.Linux
-        path: ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib.so
+        path: ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-x64.so
+
+    - name: AVD3Native-Compile-LinuxAarch64
+      if: matrix.platform == 'linux'
+      run: |         
+        sudo apt install gcc make gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+        rm -f *.o
+        make ARCH=aarch64 -C AVDump3NativeLib
+        move ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib.so ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-aarch64.so
+
+    - name: AVD3Native-ArtifactUpload-LinuxAarch64
+      if: matrix.platform == 'linux'
+      uses: actions/upload-artifact@v2
+      with:
+        name: AVDump3NativeLib.Linux
+        path: ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-aarch64.so
 
     - name: AVD3Native-MSBuildSetup-Windows
       if: matrix.platform == 'windows'
