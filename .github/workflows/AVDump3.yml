@@ -14,14 +14,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        #os: [windows-latest, ubuntu-latest, macos-latest]
+        os: [windows-latest, ubuntu-latest]
         include: 
         - os: windows-latest
           platform: windows
         - os: ubuntu-latest
           platform: linux
-        - os: macos-latest
-          platform: macos
+        #- os: macos-latest
+        #  platform: macos
           
     steps:
     - name: AVD3Native-Checkout
@@ -38,6 +39,16 @@ jobs:
       with:
         name: AVDump3NativeLib.Linux
         path: ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib.so
+
+    - name: AVD3Native-ArtifactUpload-LinuxAarch64
+      uses: uraimo/run-on-arch-action@v2.0.5
+      with:
+        arch: aarch64
+        distro: archarm_latest
+        githubToken: ${{ github.token }}
+        run: |
+          ls -lh \;
+          make -C AVDump3NativeLib
 
     - name: AVD3Native-MSBuildSetup-Windows
       if: matrix.platform == 'windows'
