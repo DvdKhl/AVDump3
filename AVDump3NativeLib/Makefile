@@ -1,9 +1,9 @@
-CC=gcc
+ARCH ?= $(shell uname -m)
+
+CC = $(ARCH)-linux-gnu-gcc
+
 CFLAGS=-I. -Wall -Werror -fpic -O3 -lrt
 OBJ = AVD3MirrorBuffer.o AVD3NativeLibApi.o InstructionCheck.o CRC32.o MD4.o SHA3.o Tiger.o
-
-ARCH := $(shell uname -m)
-$(info uname_m=$(ARCH))
 
 SSE4_FLAGS :=
 SHA_FLAGS :=
