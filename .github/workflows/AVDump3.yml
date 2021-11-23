@@ -33,16 +33,11 @@ jobs:
       run: |         
         make -C AVDump3NativeLib
 
-    - name: AVD3Native-ArtifactUpload-LinuxAarch64
+    - name: AVD3Native-Compile-LinuxAarch
       if: matrix.platform == 'linux'
-      uses: uraimo/run-on-arch-action@v2.0.5
-      with:
-        arch: aarch64
-        distro: ubuntu20.04
-        githubToken: ${{ github.token }}
-        run: |
-          ls -lh \
-          make -C AVDump3NativeLib
+      run: |         
+        sudo apt install gcc make gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+        make -C AVDump3NativeLib
 
     - name: AVD3Native-ArtifactUpload-LinuxOrMacOS
       if: matrix.platform == 'linux' ||  matrix.platform == 'macos'
