@@ -95,6 +95,7 @@ public class AVD3CLModule : IAVD3CLModule, IFileMoveConfigure {
 
 	public AVD3CLModule() {
 		AppDomain.CurrentDomain.UnhandledException += UnhandleException;
+		Utils.AddNativeLibraryResolver();
 	}
 
 

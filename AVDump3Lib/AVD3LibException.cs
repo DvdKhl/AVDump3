@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Globalization;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Linq;
@@ -48,6 +49,11 @@ public abstract class AVD3LibException : Exception {
 		infoElem.Add(new XElement("UserInteractive", Environment.UserInteractive));
 		infoElem.Add(new XElement("SystemPageSize", Environment.SystemPageSize));
 		infoElem.Add(new XElement("WorkingSet", Environment.WorkingSet));
+		infoElem.Add(new XElement("ProcessArchitecture", RuntimeInformation.ProcessArchitecture));
+		infoElem.Add(new XElement("OSArchitecture", RuntimeInformation.OSArchitecture));
+		infoElem.Add(new XElement("OSDescription", RuntimeInformation.OSDescription));
+		infoElem.Add(new XElement("FrameworkDescription", RuntimeInformation.FrameworkDescription));
+		infoElem.Add(new XElement("RuntimeIdentifier", RuntimeInformation.RuntimeIdentifier));
 
 		return infoElem;
 	}
