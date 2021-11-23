@@ -4,7 +4,7 @@
 #include <malloc.h>
 #include <stdint.h>
 
-#ifdef __x86_64__
+#if defined(_M_X64) || defined(__x86_64__)
 #include <nmmintrin.h>
 #include <immintrin.h>
 #endif
