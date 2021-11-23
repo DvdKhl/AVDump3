@@ -45,7 +45,7 @@ jobs:
       if: matrix.platform == 'linux'
       run: |         
         sudo apt install gcc make gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
-        rm -f *.o src/*.o
+        rm -rf *.o
         make ARCH=aarch64 -C AVDump3NativeLib
         mv ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib.so ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-aarch64.so
 
