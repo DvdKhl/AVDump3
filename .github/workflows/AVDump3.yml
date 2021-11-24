@@ -129,7 +129,7 @@ jobs:
     - name: AVD3Release-CompressAsset
       run: |
         cd ${{ github.workspace }}/AVDump3CL
-        zip -r ${{ github.workspace }}/AVDump3CL-B${{ steps.avd3releasegettag.outputs.tag }}.zip ${{ github.workspace }}/AVDump3CL
+        zip -r ${{ github.workspace }}/AVDump3CL-B${{ steps.avd3releasegettag.outputs.tag }}.zip *
      
     - name: AVD3Release-Create
       id: avd3releasecreate
