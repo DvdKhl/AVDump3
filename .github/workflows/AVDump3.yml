@@ -100,7 +100,7 @@ jobs:
       
     - name: AVD3Main-CopyLibs  
       run: |
-        cp $GITHUB_WORKSPACE/AVDump3Lib/Libs/MediaInfo-*.* $GITHUB_WORKSPACE/AVDump3CL/bin/GithubWorkflow/net6.0/
+        cp $GITHUB_WORKSPACE/AVDump3Lib/Libs/MediaInfo*.* $GITHUB_WORKSPACE/AVDump3CL/bin/GithubWorkflow/net6.0/
       
     - name: AVD3Main-ArtifactUpload
       uses: actions/upload-artifact@v2
