@@ -22,6 +22,15 @@ public static class Utils {
 				}
 			}
 		}
+		if(libraryName.Equals("MediaInfo")) {
+			if(RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) {
+				if(RuntimeInformation.ProcessArchitecture == Architecture.Arm64) {
+					return NativeLibrary.Load("MediaInfo-aarch64", assembly, searchPath);
+				} else if(RuntimeInformation.ProcessArchitecture == Architecture.X64) {
+					return NativeLibrary.Load("MediaInfo-x64", assembly, searchPath);
+				}
+			}
+		}
 		return IntPtr.Zero;
 	}
 }
