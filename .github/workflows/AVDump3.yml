@@ -64,7 +64,7 @@ jobs:
     - name: AVD3Native-Compile-Windows
       if: matrix.platform == 'windows'
       run: |
-        msbuild AVDump3NativeLib\AVDump3NativeLib.vcxproj /p:Configuration="GithubWorkflow" /p:BuildProjectReferences=false
+        msbuild AVDump3NativeLib\AVDump3NativeLib.vcxproj /p:Configuration="GithubWorkflow" /p:platform=x64 /p:BuildProjectReferences=false
 
     - name: AVD3Native-ArtifactUpload-Windows
       if: matrix.platform == 'windows'
