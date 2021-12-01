@@ -17,7 +17,7 @@
     <NeutralLanguage>en</NeutralLanguage>
     <Copyright>Copyright © 2020 extknot</Copyright>
     <Platforms>AnyCPU</Platforms>
-    <Configurations>Debug;Release;GithubWorkflow</Configurations>
+    <Configurations>Debug;Release</Configurations>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
@@ -25,10 +25,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <Optimize>false</Optimize>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='GithubWorkflow|AnyCPU'">
-    <Optimize>True</Optimize>
   </PropertyGroup>
 
   <ItemGroup>
