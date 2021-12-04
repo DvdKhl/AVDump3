@@ -13,7 +13,10 @@
 
 char* CreateMirrorBuffer(uint32_t minLength, AVD3MirrorBufferCreateHandle* handle) {
 	uint32_t pageSize = getpagesize();
-	uint32_t length = (minLength / pageSize + (minLength % pageSize == 0 ? 0 : 1)) * pageSize;
+
+	uint32_t pageCount = minLength / pageSize + (minLength % pageSize == 0 ? 0 : 1);
+	if (pageCount > UINT32_MAX / pageSize / 2) return "requested length is too big";
+	uint32_t length = pageCount * pageSize;
 
 	char path[] = "/AVD3WrapAroundBuffer";
 	int fd = shm_open(path, O_RDWR | O_CREAT | O_EXCL, 0600);
@@ -66,7 +69,9 @@ char* CreateMirrorBuffer(uint32_t minLength, AVD3MirrorBufferCreateHandle * hand
 	uint32_t pageSize = sysInfo.dwAllocationGranularity;
 	if (pageSize <= 0) return "GetSystemInfo dwAllocationGranularity is zero or negative";
 
-	uint32_t length = (minLength / pageSize + (minLength % pageSize == 0 ? 0 : 1)) * pageSize;
+	uint32_t pageCount = minLength / pageSize + (minLength % pageSize == 0 ? 0 : 1);
+	if (pageCount > UINT32_MAX / pageSize / 2) return "requested length is too big";
+	uint32_t length = pageCount * pageSize;
 
 	HANDLE fileMappingHandle = CreateFileMapping(INVALID_HANDLE_VALUE, 0, PAGE_READWRITE, 0, length, NULL);
 	if (fileMappingHandle == NULL) return "CreateFileMapping returned NULL";
