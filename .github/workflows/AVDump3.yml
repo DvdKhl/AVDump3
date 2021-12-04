@@ -14,28 +14,27 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        #os: [windows-latest, ubuntu-latest, macos-latest]
-        os: [windows-latest, ubuntu-latest]
+        os: [windows-latest, ubuntu-latest, macos-latest]
         include: 
         - os: windows-latest
           platform: windows
         - os: ubuntu-latest
           platform: linux
-        #- os: macos-latest
-        #  platform: macos
+        - os: macos-latest
+          platform: macos
           
     steps:
     - name: AVD3Native-Checkout
       uses: actions/checkout@v2.1.0
 
-    - name: AVD3Native-Compile-LinuxOrMacOS
-      if: matrix.platform == 'linux' ||  matrix.platform == 'macos'
+    - name: AVD3Native-Compile-Linux
+      if: matrix.platform == 'linux'
       run: |         
         make -C AVDump3NativeLib
         mv ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib.so ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-x64.so
 
-    - name: AVD3Native-ArtifactUpload-LinuxOrMacOS
-      if: matrix.platform == 'linux' ||  matrix.platform == 'macos'
+    - name: AVD3Native-ArtifactUpload-Linux
+      if: matrix.platform == 'linux'
       uses: actions/upload-artifact@v2
       with:
         name: AVDump3NativeLib.Linux
@@ -56,6 +55,23 @@ jobs:
       with:
         name: AVDump3NativeLib.Linux
         path: ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-aarch64.so
+
+    - name: AVD3Native-Compile-MacOS
+      if: matrix.platform == 'macos'
+      run: |
+        # Match .NET Core's macOS target versions
+        make ARCH=x86_64 -C AVDump3NativeLib MACOSX_DEPLOYMENT_TARGET=10.13
+        mv ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib.dylib ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-x64.dylib
+        make -B ARCH=arm64 -C AVDump3NativeLib MACOSX_DEPLOYMENT_TARGET=11.0
+        mv ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib.dylib ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-arm64.dylib
+        lipo -create ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-{x64,arm64}.dylib -output ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib.dylib
+
+    - name: AVD3Native-ArtifactUpload-MacOS
+      if: matrix.platform == 'macos'
+      uses: actions/upload-artifact@v2
+      with:
+        name: AVDump3NativeLib.MacOS
+        path: ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib.dylib
 
     - name: AVD3Native-MSBuildSetup-Windows
       if: matrix.platform == 'windows'

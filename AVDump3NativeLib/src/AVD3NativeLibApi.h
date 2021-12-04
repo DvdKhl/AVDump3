@@ -1,8 +1,8 @@
 #pragma once
 
 #include <string.h>
-#include <malloc.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #if defined(_M_X64) || defined(__x86_64__)
 #include <nmmintrin.h>
@@ -83,7 +83,6 @@ DLL_PUBLIC char* FreeMirrorBuffer(AVD3MirrorBufferCreateHandle* handle);
 //https://github.com/google/cityhash/blob/8af9b8c2b889d80c22d6bc26ba0df1afb79a30db/src/city.cc#L50
 #ifdef _MSC_VER
 
-#include <stdlib.h>
 #define bswap_32(x) _byteswap_ulong(x)
 #define bswap_64(x) _byteswap_uint64(x)
 
