@@ -2,7 +2,7 @@ ARCH ?= $(shell uname -m)
 
 CC = $(ARCH)-linux-gnu-gcc
 
-CFLAGS=-I. -Wall -Werror -fpic -O3 -lrt
+CFLAGS=-I. -Wall -Werror -fpic -O3
 OBJ = AVD3MirrorBuffer.o AVD3NativeLibApi.o InstructionCheck.o CRC32.o MD4.o SHA3.o Tiger.o
 
 SSE4_FLAGS :=
