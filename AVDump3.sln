@@ -52,7 +52,6 @@ Global
 		{DCFC3FDF-95BB-4112-9791-787D74DE8662}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DCFC3FDF-95BB-4112-9791-787D74DE8662}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DCFC3FDF-95BB-4112-9791-787D74DE8662}.GithubWorkflow|Any CPU.ActiveCfg = Release|Any CPU
-		{DCFC3FDF-95BB-4112-9791-787D74DE8662}.GithubWorkflow|Any CPU.Build.0 = Release|Any CPU
 		{DCFC3FDF-95BB-4112-9791-787D74DE8662}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DCFC3FDF-95BB-4112-9791-787D74DE8662}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
