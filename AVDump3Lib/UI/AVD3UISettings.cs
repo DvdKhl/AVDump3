@@ -6,7 +6,7 @@ using System.Globalization;
 using System.Resources;
 using System.Text.RegularExpressions;
 
-namespace AVDump3UI;
+namespace AVDump3Lib.UI;
 
 public class AVD3UISettings {
 	public static readonly object UnspecifiedType = new();
@@ -210,7 +210,7 @@ public class FileMoveSettings : SettingFacade {
 		yield return From(SettingGroup, nameof(DisableFileRename), None, AVD3UISettings.UnspecifiedType, false);
 		yield return From(SettingGroup, nameof(Replacements), None, AVD3UISettings.UnspecifiedType, ImmutableArray<(string Value, string Replacement)>.Empty,
 			(p, s) => (s ?? "").Split(';').Select(x => x.Split('=')).Select(x => (x[0], x[1])).ToImmutableArray(),
-			(p, o) => string.Join(", ", ((IEnumerable<(string Value, string Replacement)>)o).Select(x => $"({x.Value}, {x.Replacement})"))
+			(p, o) => string.Join(";", ((IEnumerable<(string Value, string Replacement)>)o).Select(x => $"{x.Value}={x.Replacement}"))
 		);
 	}
 

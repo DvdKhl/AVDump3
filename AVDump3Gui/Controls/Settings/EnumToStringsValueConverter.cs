@@ -1,8 +1,9 @@
-﻿using Avalonia.Data;
-using Avalonia.Data.Converters;
+﻿using System;
+using System.Linq;
+using System.Windows.Data;
 using System.Globalization;
 
-namespace AVDump3Gui.Controls.Settings;
+namespace AVDump3GUI.Controls.Settings;
 
 public class EnumToStringsValueConverter : IValueConverter {
 	public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
@@ -10,7 +11,7 @@ public class EnumToStringsValueConverter : IValueConverter {
 			return Enum.GetNames(value.GetType()).Select(x => Enum.Parse(value.GetType(), x));
 
 		} else {
-			return BindingOperations.DoNothing;
+			return Binding.DoNothing;
 		}
 	}
 

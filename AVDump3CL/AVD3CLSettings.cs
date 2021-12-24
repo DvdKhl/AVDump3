@@ -1,5 +1,5 @@
 ﻿using AVDump3Lib.Settings.Core;
-using AVDump3UI;
+using AVDump3Lib.UI;
 using System.Collections.Immutable;
 using System.Resources;
 

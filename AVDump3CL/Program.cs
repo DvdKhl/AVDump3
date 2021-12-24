@@ -71,8 +71,7 @@ class Program {
 			Console.OutputEncoding = Encoding.UTF8;
 		}
 
-		var moduleManagement = CreateModules();
-		moduleManagement.RaiseIntialize();
+		var moduleManagement = AVD3CLModule.Create(AppDomain.CurrentDomain.BaseDirectory);
 
 		var settingsModule = moduleManagement.GetModule<AVD3SettingsModule>();
 
@@ -110,13 +109,7 @@ class Program {
 		}
 
 
-		var moduleInitResult = moduleManagement.RaiseInitialized();
-		if(moduleInitResult.CancelStartup) {
-			if(!string.IsNullOrEmpty(moduleInitResult.Reason)) {
-				Console.WriteLine("Startup Cancel: " + moduleInitResult.Reason);
-			}
-			return;
-		}
+		if(!AVD3CLModule.Run(moduleManagement)) return;
 
 
 		var clModule = moduleManagement.GetModule<AVD3CLModule>();
@@ -126,14 +119,16 @@ class Program {
 		moduleManagement.Shutdown();
 	}
 
-	private static AVD3ModuleManagement CreateModules() {
-		var moduleManagement = new AVD3ModuleManagement();
-		moduleManagement.LoadModuleFromType(typeof(AVD3CLModule));
-		moduleManagement.LoadModules(AppDomain.CurrentDomain.BaseDirectory ?? throw new Exception("AppDomain.CurrentDomain.BaseDirectory is null"));
-		moduleManagement.LoadModuleFromType(typeof(AVD3InformationModule));
-		moduleManagement.LoadModuleFromType(typeof(AVD3ProcessingModule));
-		moduleManagement.LoadModuleFromType(typeof(AVD3ReportingModule));
-		moduleManagement.LoadModuleFromType(typeof(AVD3SettingsModule));
-		return moduleManagement;
-	}
+	//private static AVD3ModuleManagement CreateModules() {
+	//	var moduleManagement = new AVD3ModuleManagement();
+	//	moduleManagement.LoadModuleFromType(typeof(AVD3CLModule));
+	//	moduleManagement.LoadModules(AppDomain.CurrentDomain.BaseDirectory ?? throw new Exception("AppDomain.CurrentDomain.BaseDirectory is null"));
+	//	moduleManagement.LoadModuleFromType(typeof(AVD3InformationModule));
+	//	moduleManagement.LoadModuleFromType(typeof(AVD3ProcessingModule));
+	//	moduleManagement.LoadModuleFromType(typeof(AVD3ReportingModule));
+	//	moduleManagement.LoadModuleFromType(typeof(AVD3SettingsModule));
+	//	return moduleManagement;
+	//}
+
+
 }

@@ -1,0 +1,25 @@
+﻿<UserControl x:Class="AVDump3GUI.Controls.Files.FilesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:AVDump3GUI.Controls.Files"
+             mc:Ignorable="d" 
+             x:Name="RootControl"
+             d:DesignHeight="450" d:DesignWidth="800">
+ <DockPanel>
+  <Button DockPanel.Dock="Bottom" Command="{Binding StartCommand, ElementName=RootControl}" Content="Start" />
+  <ListView ItemsSource="{Binding Files, ElementName=RootControl}" AllowDrop="True" DragDrop.DragEnter="ListView_DragEnter" DragDrop.Drop="ListView_Drop">
+   <ListView.View>
+    <GridView>
+     <GridView.Columns>
+      <GridViewColumn Header="Status" DisplayMemberBinding="{Binding Status}"/>
+      <GridViewColumn Header="Completed" DisplayMemberBinding="{Binding Completed}"/>
+      <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Info.Name}"/>
+      <GridViewColumn Header="Folder Path" DisplayMemberBinding="{Binding Info.DirectoryName}"/>
+     </GridView.Columns>
+    </GridView>
+   </ListView.View>
+  </ListView>
+ </DockPanel>
+</UserControl>

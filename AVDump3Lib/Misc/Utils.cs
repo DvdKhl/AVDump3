@@ -31,6 +31,7 @@ public static class Utils {
 				}
 			}
 		}
+
 		return IntPtr.Zero;
 	}
 }

@@ -3,6 +3,7 @@ using BXmlLib;
 using BXmlLib.DocTypes.Matroska;
 using ExtKnot.StringInvariants;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 
@@ -32,14 +33,15 @@ public class ClusterSection : Section {
 
 	protected override bool ProcessElement(IBXmlReader reader) {
 		if(reader.DocElement == MatroskaDocType.SimpleBlock || reader.DocElement == MatroskaDocType.Block) {
-			MatroskaDocType.RetrieveMatroskaBlock(reader, out var matroskaBlock);
+			MatroskaDocType.RetrieveMatroskaHeaderBlock(reader, out var matroskaBlock);
+
 			if(
 				!Tracks.TryGetValue(matroskaBlock.TrackNumber, out var track) &&
 				!Tracks.TryGetValue(~matroskaBlock.TrackNumber, out track)
 			) {
 				Tracks.Add(~matroskaBlock.TrackNumber, track = new Track(~matroskaBlock.TrackNumber, 1, null));
 			}
-			track.Timecodes.Add(new TrackTimecode((ulong)((matroskaBlock.TimeCode + timecode) * track.TimecodeScale * TimeCodeScale), matroskaBlock.FrameCount, matroskaBlock.Data.Length));
+			track.Timecodes.Add(new TrackTimecode((ulong)((matroskaBlock.TimeCode + timecode) * track.TimecodeScale * TimeCodeScale), matroskaBlock.FrameCountMinusOne, (int)(reader.Header.DataLength - matroskaBlock.HeaderLength)));
 
 		} else if(reader.DocElement == MatroskaDocType.BlockGroup) {
 			Read(reader);
@@ -95,15 +97,15 @@ public class ClusterSection : Section {
 				int pos = 0, prevPos = 0, prevprevPos;
 				double maxDiff;
 
-				int frames = oldTC.frames;
-				long trackSize = (mkvTrack?.CodecPrivate?.Length ?? 0) + oldTC.size;
+				int frames = oldTC.FrameCount;
+				long trackSize = (mkvTrack?.CodecPrivate?.Length ?? 0) + oldTC.Size;
 
 				var sampleRateHistogram = new Dictionary<double, int>();
 				var bitRateHistogram = new Dictionary<double, int>();
 
 				foreach(var timecode in Timecodes.Skip(1)) {
 					//fps[pos] = 1d / ((timecode.timeCode - oldTC.timeCode) / (double)oldTC.frames / 1000000000d);
-					rate[pos] = (1000000000d * oldTC.frames) / (timecode.timeCode - oldTC.timeCode);
+					rate[pos] = (1000000000d * oldTC.FrameCount) / (timecode.TimeCode - oldTC.TimeCode);
 
 					if(!double.IsInfinity(rate[pos]) && !double.IsNaN(rate[pos])) {
 						if(!sampleRateHistogram.ContainsKey(rate[pos])) sampleRateHistogram[rate[pos]] = 0;
@@ -111,10 +113,10 @@ public class ClusterSection : Section {
 					}
 
 
-					var bitRate = timecode.size * 8000000000d / (timecode.frames * (timecode.timeCode - oldTC.timeCode));
+					var bitRate = timecode.Size * 8000000000d / ((uint)timecode.FrameCount * (timecode.TimeCode - oldTC.TimeCode));
 					if(!double.IsInfinity(bitRate) && !double.IsNaN(bitRate)) {
 						if(!bitRateHistogram.ContainsKey(bitRate)) bitRateHistogram[bitRate] = 0;
-						bitRateHistogram[bitRate] += timecode.frames;
+						bitRateHistogram[bitRate] += timecode.FrameCount;
 					}
 
 					oldTC = timecode;
@@ -122,8 +124,8 @@ public class ClusterSection : Section {
 					prevPos = pos;
 					pos = (pos + 1) % 3;
 
-					trackSize += timecode.size;
-					frames += timecode.frames;
+					trackSize += timecode.Size;
+					frames += timecode.FrameCount;
 
 					maxDiff = (rate[prevprevPos] + rate[pos] / 2) * 0.1;
 					if(Math.Abs(rate[prevPos] - rate[prevprevPos]) < maxDiff && Math.Abs(rate[prevPos] - rate[pos]) < maxDiff) {
@@ -132,7 +134,7 @@ public class ClusterSection : Section {
 					}
 				}
 
-				var trackLength = TimeSpan.FromMilliseconds((Timecodes.LastOrDefault().timeCode - Timecodes.FirstOrDefault().timeCode) / 1000000);
+				var trackLength = TimeSpan.FromMilliseconds((Timecodes.LastOrDefault().TimeCode - Timecodes.FirstOrDefault().TimeCode) / 1000000);
 
 				return new TrackInfo {
 					SampleRateHistogram = sampleRateHistogram.Select(kvp => new SampleRateCountPair(kvp.Key, kvp.Value)).ToList().AsReadOnly(),
@@ -202,16 +204,18 @@ public class ClusterSection : Section {
 	}
 
 	public struct TrackTimecode : IComparable<TrackTimecode> {
-		public ulong timeCode;
-		public byte frames;
-		public int size;
+		public ulong TimeCode;
+		public byte FrameCountMinusOne;
+		public int Size;
 
-		public TrackTimecode(ulong timeCode, byte frames, int size) {
-			this.frames = frames; this.size = size; this.timeCode = timeCode;
+		public int FrameCount => FrameCountMinusOne + 1;
+
+		public TrackTimecode(ulong timeCode, byte frameCountMinusOne, int size) {
+			this.FrameCountMinusOne = frameCountMinusOne; this.Size = size; this.TimeCode = timeCode;
 		}
 
 		public int CompareTo(TrackTimecode other) {
-			return timeCode.CompareTo(other.timeCode);
+			return TimeCode.CompareTo(other.TimeCode);
 		}
 	}
 }

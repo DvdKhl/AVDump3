@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using AVDump3Lib.UI;
+using System.Diagnostics;
 using System.Text;
 
 namespace AVDump3CL;
@@ -109,12 +110,12 @@ public class AVD3ConsoleProgressBuilder {
 
 public delegate void WriteProgress(AVD3ConsoleProgressBuilder builder);
 
-public interface IAVD3Console {
+public interface IAVD3Console : IAVD3UIConsole {
 	event WriteProgress WriteProgress;
 
-	IDisposable LockConsole();
-	void WriteLine(IEnumerable<string> values);
-	void WriteLine(string value);
+	//IDisposable LockConsole();
+	//void WriteLine(IEnumerable<string> values);
+	//void WriteLine(string value);
 }
 
 public class AVD3Console : IDisposable, IAVD3Console {

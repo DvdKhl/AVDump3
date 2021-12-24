@@ -1,20 +1,31 @@
 ﻿using AVDump3Lib.Settings.Core;
+using Prism.Commands;
+using Prism.Mvvm;
+using System;
+using System.ComponentModel;
 
-namespace AVDump3Gui.Controls.Settings;
+namespace AVDump3GUI.Controls.Settings;
 
-public enum SettingValueDisplayType {
-	Default, Current, Active
-}
-public class SettingValueDisplay {
+public class SettingValueDisplay : BindableBase {
 	public SettingValueDisplay(ISettingPropertyItem settingProperty, SettingValueDisplayType type) {
 		Property = settingProperty;
 		Type = type;
+
+		if(settingProperty is INotifyPropertyChanged npc) {
+
+			npc.PropertyChanged += (s, e) => {
+				if(e.PropertyName?.Equals("Value") ?? false) {
+					RaisePropertyChanged(nameof(ValueAsString));
+					RaisePropertyChanged(nameof(Value));
+				}
+			};
+		}
 	}
 
 	public ISettingPropertyItem Property { get; private set; }
 	public SettingValueDisplayType Type { get; private set; }
 
-	public object Value {
+	public object? Value {
 		get => Type switch {
 			SettingValueDisplayType.Default => Property.DefaultValue,
 			SettingValueDisplayType.Current => Property.ValueRaw == ISettingStore.Unset ? null : Property.ValueRaw,
@@ -27,6 +38,14 @@ public class SettingValueDisplay {
 			}
 		}
 	}
+
+	public DelegateCommand ResetCommand => resetCommand ??= new DelegateCommand(ResetExecute);
+	private DelegateCommand? resetCommand;
+
+	private void ResetExecute() {
+		Property.ValueRaw = ISettingStore.Unset;
+	}
+
 
 	public bool IsReadOnly => Type != SettingValueDisplayType.Current;
 

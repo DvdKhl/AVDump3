@@ -10,6 +10,7 @@ public interface IBlockStreamReader {
 	bool Completed { get; }
 	int SuggestedReadLength { get; }
 	int MaxReadLength { get; }
+	int BufferLength { get; }
 
 	void Complete();
 }
@@ -24,6 +25,7 @@ public class BlockStreamReader : IBlockStreamReader {
 
 	public bool Completed { get; private set; }
 
+	public int BufferLength { get; }
 	public int SuggestedReadLength { get; }
 	public int MaxReadLength { get; }
 
@@ -31,6 +33,7 @@ public class BlockStreamReader : IBlockStreamReader {
 		this.blockStream = blockStream;
 		this.readerIndex = readerIndex;
 
+		BufferLength = blockStream.BufferLength;
 		MaxReadLength = blockStream.BufferLength / 2;
 		SuggestedReadLength = MaxReadLength / 2;
 	}

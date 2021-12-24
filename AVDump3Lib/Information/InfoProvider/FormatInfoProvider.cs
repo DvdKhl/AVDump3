@@ -681,17 +681,17 @@ public abstract class FileType : IFileType {
 	private readonly int[] magicBytesPos;
 	private int offset;
 
-	protected string identifier;
+	protected string? identifier;
 	protected MetaInfoContainerType fileType = MediaProvider.MediaStreamType;
 
 	public bool NeedsMoreMagicBytes { get; private set; }
 	public bool IsCandidate { get; protected set; }
-	public string[] PossibleExtensions { get; protected set; }
+	public string[] PossibleExtensions { get; protected set; } = Array.Empty<string>();
 
-	public FileType(string magicString, int offset = 0, string identifier = null) : this(new string[] { magicString }, offset, identifier) { }
-	public FileType(byte[] magicBytes, int offset = 0, string identifier = null) : this(new byte[][] { magicBytes }, offset, identifier) { }
-	public FileType(string[] magicStringLst, int offset = 0, string identifier = null) : this(magicStringLst.Select(magicString => Encoding.ASCII.GetBytes(magicString)).ToArray(), offset, identifier) { }
-	public FileType(byte[][] magicBytesLst, int offset = 0, string identifier = null) {
+	public FileType(string magicString, int offset = 0, string? identifier = null) : this(new string[] { magicString }, offset, identifier) { }
+	public FileType(byte[] magicBytes, int offset = 0, string? identifier = null) : this(new byte[][] { magicBytes }, offset, identifier) { }
+	public FileType(string[] magicStringLst, int offset = 0, string? identifier = null) : this(magicStringLst.Select(magicString => Encoding.ASCII.GetBytes(magicString)).ToArray(), offset, identifier) { }
+	public FileType(byte[][] magicBytesLst, int offset = 0, string? identifier = null) {
 		this.magicBytesLst = magicBytesLst;
 		this.offset = offset;
 
@@ -715,7 +715,7 @@ public abstract class FileType : IFileType {
 				isCandidate |= magicBytesLst[i][magicBytesPos[i]++] == b;
 				if(magicBytesLst[i].Length == magicBytesPos[i] && isCandidate) magicBytesLst[i] = null;
 			}
-			needsMoreMagicBytes |= isCandidate && (magicBytesLst[i] != null && magicBytesLst[i].Length != magicBytesPos[i]);
+			needsMoreMagicBytes |= isCandidate && magicBytesLst[i] != null && magicBytesLst[i].Length != magicBytesPos[i];
 		}
 
 		NeedsMoreMagicBytes &= needsMoreMagicBytes;

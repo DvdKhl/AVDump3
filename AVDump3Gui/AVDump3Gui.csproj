@@ -1,38 +1,34 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
-    <ApplicationIcon>AVD3Icon.ico</ApplicationIcon>
-    <Platforms>AnyCPU</Platforms>
+    <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
   </PropertyGroup>
+
   <ItemGroup>
-    <Folder Include="Models\" />
-    <AvaloniaResource Include="Assets\**" />
+    <PackageReference Include="Prism.Unity" Version="8.1.97" />
+    <PackageReference Include="System.Resources.ResourceManager" Version="4.3.0" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.10.10" />
-    <PackageReference Include="Avalonia.Controls.DataGrid" Version="0.10.10" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.10.10" />
-    <PackageReference Include="Avalonia.Diagnostics" Version="0.10.10" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.10" />
-  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\AVDump3Lib\AVDump3Lib.csproj" />
-    <ProjectReference Include="..\AVDump3UI\AVDump3UI.csproj" />
   </ItemGroup>
+
   <ItemGroup>
     <Compile Update="Lang.Designer.cs">
-      <DependentUpon>Lang.resx</DependentUpon>
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
+      <DependentUpon>Lang.resx</DependentUpon>
     </Compile>
   </ItemGroup>
+
   <ItemGroup>
     <EmbeddedResource Update="Lang.resx">
-      <LastGenOutput>Lang.Designer.cs</LastGenOutput>
       <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Lang.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+
 </Project>

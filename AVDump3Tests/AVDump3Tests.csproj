@@ -26,9 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AVDump3CL\AVDump3CL.csproj" />
-    <ProjectReference Include="..\AVDump3Gui\AVDump3Gui.csproj" />
     <ProjectReference Include="..\AVDump3Lib\AVDump3Lib.csproj" />
-    <ProjectReference Include="..\AVDump3UI\AVDump3UI.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -82,7 +82,8 @@ char* CreateMirrorBuffer(uint32_t minLength, AVD3MirrorBufferCreateHandle* handl
 	int success = shm_unlink(path);
 	if (success != 0) return "shm_unlink returned non-zero";
 
-	success = ftruncate(fd, length * 2);
+	success = ftruncate(fd, length);
+	if (success != 0) success = ftruncate(fd, length * 2); //Necessary for macos, following mmap call returns "invalid arguments" otherwise
 	if (success != 0) return "ftruncate returned non-zero";
 
 	uint8_t* data = mmap(0, length * 2, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
