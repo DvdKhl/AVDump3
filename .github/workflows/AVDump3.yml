@@ -91,8 +91,7 @@ jobs:
 
   build-avd3-main:
     needs: build-avd3-native
-    #runs-on: ubuntu-latest
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
     - name: AVD3Main-Checkout
       uses: actions/checkout@v2
@@ -113,7 +112,7 @@ jobs:
         rm -R -- $GITHUB_WORKSPACE/AVDump3CL/bin/Release/net6.0/*/
     
     - name: AVD3Main-Compile
-      run: dotnet build --configuration GithubWorkflow        
+      run: dotnet build --configuration GithubWorkflow AVDump3CL/AVDump3CL.csproj
       
     - name: AVD3Main-CopyLibs  
       run: |
