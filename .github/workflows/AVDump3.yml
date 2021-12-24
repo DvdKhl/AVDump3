@@ -91,7 +91,8 @@ jobs:
 
   build-avd3-main:
     needs: build-avd3-native
-    runs-on: ubuntu-latest
+    #runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
     - name: AVD3Main-Checkout
       uses: actions/checkout@v2
