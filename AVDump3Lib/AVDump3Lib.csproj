@@ -39,7 +39,6 @@
     <PackageReference Include="ExtKnot.StringInvariants" Version="1.0.4-alpha" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.1.0-1.final" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
-    <PackageReference Include="Serilog.Extensions.Logging" Version="3.1.0" />
   </ItemGroup>
 
   <ItemGroup>
