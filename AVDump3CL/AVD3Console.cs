@@ -235,7 +235,7 @@ public class AVD3Console : IDisposable, IAVD3Console {
 						//}
 						if(lines[j].Length < progressBuilder.DisplayWidth) {
 							progressBuilder.Buffer.Append(' ', progressBuilder.DisplayWidth - lines[j].Length);
-						} else if(lines[j].Length >= progressBuilder.ConsoleWidth) {
+						} else if(progressBuilder.DisplayWidth != 0 && lines[j].Length >= progressBuilder.ConsoleWidth) {
 							progressBuilder.Buffer.Append(' ', Math.Max(0, progressBuilder.DisplayWidth - 2 - lines[j].Length % progressBuilder.DisplayWidth));
 						}
 
