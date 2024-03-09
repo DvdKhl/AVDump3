@@ -41,22 +41,22 @@
    <DockPanel>
     <Button DockPanel.Dock="Bottom" Content="Save" Command="{Binding SaveSettingsCommand}" />
     <sv:SettingsView SettingGroups="{Binding SettingGroups}" >
-    <sv:SettingsView.SettingValueTemplateSelector>
-     <sv:SettingValueTemplateSelector>
-      <sv:SettingValueTemplateSelector.Templates>
-       <DataTemplate x:Key="default">
-        <TextBox Text="{Binding ValueAsString, Mode=TwoWay, ValidatesOnExceptions=True}" IsReadOnly="{Binding IsReadOnly}" TextWrapping="Wrap" VerticalAlignment="Center" />
-       </DataTemplate>
-       <DataTemplate x:Key="enum">
-        <ComboBox ItemsSource="{Binding Property.DefaultValue, Converter={StaticResource enumToStringsValueConverter}}" SelectedItem="{Binding Value, Mode=TwoWay}" IsEnabled="{Binding IsReadOnly, Converter={StaticResource inverseBooleanConverter}}" VerticalAlignment="Center" />
-       </DataTemplate>
-       <DataTemplate x:Key="Boolean">
-        <CheckBox IsThreeState="False" IsChecked="{Binding Value, Mode=TwoWay}" IsEnabled="{Binding IsReadOnly, Converter={StaticResource inverseBooleanConverter}}" VerticalAlignment="Center" />
-       </DataTemplate>
-      </sv:SettingValueTemplateSelector.Templates>
-     </sv:SettingValueTemplateSelector>
-    </sv:SettingsView.SettingValueTemplateSelector>
-   </sv:SettingsView>
+     <sv:SettingsView.SettingValueTemplateSelector>
+      <sv:SettingValueTemplateSelector>
+       <sv:SettingValueTemplateSelector.Templates>
+        <DataTemplate x:Key="default">
+         <TextBox Text="{Binding ValueAsString, Mode=TwoWay, ValidatesOnExceptions=True}" IsReadOnly="{Binding IsReadOnly}" TextWrapping="Wrap" VerticalAlignment="Center" />
+        </DataTemplate>
+        <DataTemplate x:Key="enum">
+         <ComboBox ItemsSource="{Binding Property.DefaultValue, Converter={StaticResource enumToStringsValueConverter}}" SelectedItem="{Binding Value, Mode=TwoWay}" IsEnabled="{Binding IsReadOnly, Converter={StaticResource inverseBooleanConverter}}" VerticalAlignment="Center" />
+        </DataTemplate>
+        <DataTemplate x:Key="Boolean">
+         <CheckBox IsThreeState="False" IsChecked="{Binding Value, Mode=TwoWay}" IsEnabled="{Binding IsReadOnly, Converter={StaticResource inverseBooleanConverter}}" VerticalAlignment="Center" />
+        </DataTemplate>
+       </sv:SettingValueTemplateSelector.Templates>
+      </sv:SettingValueTemplateSelector>
+     </sv:SettingsView.SettingValueTemplateSelector>
+    </sv:SettingsView>
    </DockPanel>
   </TabItem>
  </TabControl>

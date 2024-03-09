@@ -27,16 +27,6 @@ using System.Xml.Linq;
 namespace AVDump3CL;
 
 
-public interface IAVD3CLModule : IAVD3Module {
-	event EventHandler<AVD3UIModuleExceptionEventArgs> ExceptionThrown;
-	event EventHandler<AVD3UIFileProcessedEventArgs> FileProcessed;
-	event EventHandler ProcessingFinished;
-
-	IAVD3Console Console { get; }
-
-	void RegisterShutdownDelay(WaitHandle waitHandle);
-	void WriteLine(string value);
-}
 
 
 
