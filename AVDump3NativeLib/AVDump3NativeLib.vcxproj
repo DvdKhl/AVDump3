@@ -23,14 +23,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
@@ -38,7 +38,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='GithubWorkflow|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
@@ -82,8 +82,8 @@
       <LanguageStandard_C>Default</LanguageStandard_C>
     </ClCompile>
     <PostBuildEvent>
-      <Command>copy /Y "$(OutDir)AVD*.dll" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(ConfigurationName)\net6.0\"
-copy /Y "$(OutDir)AVD*.pdb" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(ConfigurationName)\net6.0\"
+      <Command>copy /Y "$(OutDir)AVD*.dll" "$(SolutionDir)AVDump3CL\bin\$(ConfigurationName)\net6.0\"
+copy /Y "$(OutDir)AVD*.pdb" "$(SolutionDir)AVDump3CL\bin\$(ConfigurationName)\net6.0\"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -107,8 +107,8 @@ copy /Y "$(OutDir)AVD*.pdb" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(Confi
       <Profile>true</Profile>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(OutDir)*.dll" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(ConfigurationName)\net6.0\"
-copy /Y "$(OutDir)*.pdb" "$(SolutionDir)AVDump3CL\bin\$(PlatformName)\$(ConfigurationName)\net6.0\"
+      <Command>copy /Y "$(OutDir)*.dll" "$(SolutionDir)AVDump3CL\bin\$(ConfigurationName)\net6.0\"
+copy /Y "$(OutDir)*.pdb" "$(SolutionDir)AVDump3CL\bin\$(ConfigurationName)\net6.0\"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
