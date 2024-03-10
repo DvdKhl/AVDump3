@@ -9,7 +9,7 @@ jobs:
   prepare-mediainfo:
     runs-on: ubuntu-latest
     env:
-      MEDIAINFO_VERSION: 21.09
+      MEDIAINFO_VERSION: 24.01
 
     steps:
     - name: Check out AVDump3
