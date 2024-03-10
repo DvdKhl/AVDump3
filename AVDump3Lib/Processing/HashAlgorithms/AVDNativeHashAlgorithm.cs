@@ -70,8 +70,17 @@ public unsafe class AVDNativeHashAlgorithm : AVDHashAlgorithm {
 		base.Dispose(disposing);
 	}
 
-	public ReadOnlySpan<byte> ComputeHash(ReadOnlySpan<byte> data) {
-		var bytesProcessed = TransformFullBlocks(data);
-		return TransformFinalBlock(data[bytesProcessed..]);
-	}
+    public ReadOnlySpan<byte> ComputeHash(in ReadOnlySpan<byte> data) {
+        var bytesProcessed = TransformFullBlocks(data);
+
+        //return TransformFinalBlock(data[bytesProcessed..]); 
+
+        var remainingData = data[bytesProcessed..];
+        var hash = new byte[HashLengthInBits / 8];
+        fixed(byte* hashPtr = hash, bPtr = remainingData) {
+            final(handle, bPtr, remainingData.Length, hashPtr);
+        }
+        return hash;
+
+    }
 }
