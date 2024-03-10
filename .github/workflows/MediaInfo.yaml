@@ -1,0 +1,411 @@
+name: MediaInfo
+
+on:
+  push:
+    branches: [ mediainfo ]
+
+jobs:
+  prepare-mediainfo:
+    runs-on: ubuntu-latest
+    env:
+      MEDIAINFO_VERSION: 21.09
+
+    steps:
+    - name: Check out AVDump3
+      uses: actions/checkout@v2.1.0
+      with:
+        path: AVDump3
+
+    - name: Check out MediaInfo
+      run: |
+        curl -LOSs \
+          https://mediaarea.net/download/source/libmediainfo/${MEDIAINFO_VERSION}/libmediainfo_${MEDIAINFO_VERSION}_AllInclusive.7z
+        7z x libmediainfo_${MEDIAINFO_VERSION}_AllInclusive.7z
+
+    - name: Fix build-breaking MediaInfo bugs
+      working-directory: libmediainfo_AllInclusive
+      run: |
+        # Missing include breaks build on non-Windows without _POSIX_PRIORITY_SCHEDULING (Alpine)
+        sed -i~ '1i\
+        #include <signal.h>\
+        ' MediaInfoLib/Source/MediaInfo/MediaInfo_Internal.cpp
+
+        # Function is called but not compiled with MEDIAINFO_MINIMAL_YES
+        cr=$'\r'
+        patch MediaInfoLib/Source/MediaInfo/MediaInfo_Inform.cpp <<EOF
+        @@ -65,2 +65,2 @@
+        -#if defined(MEDIAINFO_XML_YES) || defined(MEDIAINFO_JSON_YES)$cr
+        +#if defined(MEDIAINFO_XML_YES) || defined(MEDIAINFO_JSON_YES) || MEDIAINFO_ADVANCED$cr
+         Ztring Xml_Name_Escape_0_7_78 (const Ztring &Name)$cr
+        EOF
+
+        # Broken CMake BUILD_SHARED_LIBS shadowing causes ZenLib to be linked dynamically
+        # instead of statically. Also, while not quite build-breaking, old CMake semantics
+        # prevent interprocedural optimization and apply hidden visibility only selectively.
+        # All of this could be fixed at build-time by passing -DCMAKE_POLICY_DEFAULT_CMP00XX=NEW
+        # command-line options to `cmake`, but this patch additionally validates
+        # that our CMake is actually new enough to understand and support the new behavior.
+        for project in ZenLib MediaInfoLib; do
+          sed -i~ 's/cmake_minimum_required(VERSION 2.8.11)/cmake_minimum_required(VERSION 3.13)/' \
+            $project/Project/CMake/CMakeLists.txt
+        done
+
+    - name: Disable unused MediaInfo features
+      working-directory: libmediainfo_AllInclusive
+      run: |
+        echo 'target_compile_definitions(mediainfo PRIVATE MEDIAINFO_MINIMAL_YES)' \
+          >> MediaInfoLib/Project/CMake/CMakeLists.txt
+
+        find . -name MediaInfoLib.vcxproj -exec sed -i~ '
+          /<PreprocessorDefinitions>/s|\(MEDIAINFO_[0-9A-Za-z_]*;\)\{1,\}|MEDIAINFO_MINIMAL_YES;|g
+        ' '{}' ';'
+
+    - name: Hide unused MediaInfo symbols
+      working-directory: libmediainfo_AllInclusive
+      run: |
+        grep -hIR 'extern .*MediaInfo' ../AVDump3/AVDump3Lib \
+          | sed 's/^.*extern [^ ]* \([^(]*\).*$/\1/' \
+          > libmediainfo.sym
+        { echo EXPORTS; cat libmediainfo.sym; } \
+          > MediaInfoLib/Source/MediaInfoDLL/MediaInfoDLL.def
+        {
+          echo '{'
+          echo 'global:'
+          sed 's/$/;/' libmediainfo.sym
+          echo 'local:'
+          echo '*;'
+          echo '};'
+        } > libmediainfo.map
+
+        for module in MediaInfo MediaInfoList; do
+          sed -i~ 's/class MEDIAINFO_EXP/class/' \
+            MediaInfoLib/Source/MediaInfo/$module.h
+        done
+
+        sed -i~ 's|^MEDIAINFO_EXP|/*MEDIAINFO_EXP*/|' \
+          MediaInfoLib/Source/MediaInfoDLL/MediaInfoDLL_Static.h
+        for symbol in $(cat libmediainfo.sym); do
+         sed -i~ "s|^/\*MEDIAINFO_EXP\*/\(.* __stdcall $symbol \)|MEDIAINFO_EXP\1|" \
+           MediaInfoLib/Source/MediaInfoDLL/MediaInfoDLL_Static.h
+        done
+
+    - name: Configure MSVC to statically link C++ runtime library
+      working-directory: libmediainfo_AllInclusive
+      run: |
+        find . -name '*.vcxproj' -exec sed -i~ s/MultiThreadedDLL/MultiThreaded/g '{}' ';'
+
+    - name: Configure MSVC to minimize binary size
+      working-directory: libmediainfo_AllInclusive
+      run: |
+        find . -name '*.vcxproj' -exec sed -i~ '
+          s|<Optimization>.*</Optimization>||g
+          s|<InlineFunctionExpansion>.*</InlineFunctionExpansion>||g
+          s|<WholeProgramOptimization>.*</WholeProgramOptimization>||g
+          s|<RuntimeTypeInfo>.*</RuntimeTypeInfo>||g
+          s|<BufferSecurityCheck>.*</BufferSecurityCheck>||g
+          s|<ClCompile>|&\
+            <Optimization>MinSpace</Optimization>\
+            <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>\
+            <WholeProgramOptimization>true</WholeProgramOptimization>\
+            <RuntimeTypeInfo>false</RuntimeTypeInfo>\
+            <BufferSecurityCheck>false</BufferSecurityCheck>\
+            <AdditionalOptions>/Gw</AdditionalOptions>|g
+        ' '{}' ';'
+
+    - name: Configure CMake to further reduce macOS binary size
+      working-directory: libmediainfo_AllInclusive
+      run: |
+        for project in ZenLib MediaInfoLib; do
+          cat >> $project/Project/CMake/CMakeLists.txt <<'EOF'
+        if(APPLE)
+          foreach(lang C CXX OBJC OBJCXX)
+            # Force -Oz instead of CMake's default -Os to target truly minimum code size
+            # (upstream: https://gitlab.kitware.com/cmake/cmake/-/issues/22458).
+            string(REGEX REPLACE "-Os" "-Oz" CMAKE_${lang}_FLAGS_MINSIZEREL "${CMAKE_${lang}_FLAGS_MINSIZEREL}")
+
+            # Force -flto instead of CMake's default -flto=thin
+            # because it is more aggressive and reduces the output size more
+            # (upstream: https://gitlab.kitware.com/cmake/cmake/-/issues/22913).
+            set(CMAKE_${lang}_COMPILE_OPTIONS_IPO "-flto")
+
+            # Remove unnecessary -headerpad_max_install_names to squeeze out another 16 KiB.
+            string(REGEX REPLACE "-Wl,-headerpad_max_install_names" "" CMAKE_${lang}_LINK_FLAGS "${CMAKE_${lang}_LINK_FLAGS}")
+            string(REGEX REPLACE "-Wl,-headerpad_max_install_names" "" CMAKE_SHARED_LIBRARY_CREATE_${lang}_FLAGS "${CMAKE_SHARED_LIBRARY_CREATE_${lang}_FLAGS}")
+          endforeach()
+        endif()
+        EOF
+        done
+
+    - name: Create UNIX build script
+      working-directory: libmediainfo_AllInclusive
+      run: |
+        cat > build.sh <<'EOF'
+        #!/bin/sh -e
+
+        mkdir MediaInfoLib/Project/CMake/build
+        cd MediaInfoLib/Project/CMake/build
+
+        # Switch off external packages so they are not accidentally picked up from the build host.
+        # LTO (IPO) and hidden visibility both save space and improve MediaInfo's performance.
+        # MediaInfo doesn't use RTTI (typeid & dynamic_cast), so omit it to save space.
+        # We'll only load the library at runtime, so we can save a few bytes on macOS install_name.
+        cmake .. \
+          -DCMAKE_RULE_MESSAGES=OFF \
+          -DCMAKE_VERBOSE_MAKEFILE=ON \
+          -DCMAKE_DISABLE_FIND_PACKAGE_CURL=ON \
+          -DCMAKE_DISABLE_FIND_PACKAGE_TinyXML=ON \
+          -DBUILD_ZENLIB=ON \
+          -DBUILD_SHARED_LIBS=ON \
+          -DCMAKE_BUILD_TYPE=MinSizeRel \
+          -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON \
+          -DCMAKE_C_VISIBILITY_PRESET=hidden \
+          -DCMAKE_CXX_VISIBILITY_PRESET=hidden \
+          -DCMAKE_VISIBILITY_INLINES_HIDDEN=ON \
+          -DCMAKE_CXX_FLAGS="-fno-rtti" \
+          -DCMAKE_OSX_ARCHITECTURES="$ARCH" \
+          -DCMAKE_INSTALL_NAME_DIR="" \
+          -DCMAKE_SHARED_LINKER_FLAGS="$LDFLAGS" \
+          "$@"
+        make -j$NPROC
+
+        fullname=./libmediainfo.$SOEXT
+        while target=$(readlink "$fullname"); do fullname=${fullname%/*}/$target; done
+        mv "$fullname" ../../../../MediaInfo-$RID.$SOEXT
+        EOF
+        chmod +x build.sh
+
+    - name: Pack MediaInfo
+      run: |
+        tar cJf libmediainfo_AllInclusive.tar.xz libmediainfo_AllInclusive
+
+    - name: Upload prepared MediaInfo source artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: MediaInfo.src
+        path: libmediainfo_AllInclusive.tar.xz
+
+  build-mediainfo-win:
+    needs: prepare-mediainfo
+    name: build-mediainfo-${{ matrix.rid }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        rid: [win-x64]
+
+    steps:
+    - name: Download prepared MediaInfo source artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: MediaInfo.src
+
+    - name: Unpack MediaInfo source
+      shell: sh
+      run: |
+        tar xJf libmediainfo_AllInclusive.tar.xz
+        mv libmediainfo_AllInclusive/* .
+
+    - name: Set up MSBuild
+      uses: microsoft/setup-msbuild@v1.0.3
+
+    - name: Build MediaInfo
+      run: >
+        msbuild MediaInfoLib\Project\MSVC2019\MediaInfoLib.sln
+        /m /t:MediaInfoDll /p:Configuration=Release /p:Platform=x64
+
+    - name: Upload MediaInfo binary artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: MediaInfo.${{ matrix.rid }}
+        path: MediaInfoLib\Project\MSVC2019\x64\Release\MediaInfo.dll
+
+  build-mediainfo-osx:
+    needs: prepare-mediainfo
+    name: build-mediainfo-${{ matrix.rid }}
+    runs-on: macos-11  # needed for ARM support in system headers
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - rid: osx-x64
+          arch: x86_64
+          # Match .NET Core's target version from:
+          # https://github.com/dotnet/runtime/blob/main/eng/native/configurecompiler.cmake
+          macosx_version_min: 10.13
+
+        - rid: osx-arm64
+          arch: arm64
+          macosx_version_min: '11.0'
+
+    steps:
+    - name: Download prepared MediaInfo source artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: MediaInfo.src
+
+    - name: Unpack MediaInfo source
+      run: |
+        tar xJf libmediainfo_AllInclusive.tar.xz
+        mv libmediainfo_AllInclusive/* .
+
+    - name: Build MediaInfo
+      env:
+        MACOSX_DEPLOYMENT_TARGET: ${{ matrix.macosx_version_min }}
+        ARCH: ${{ matrix.arch }}
+        RID: ${{ matrix.rid }}
+        SOEXT: dylib
+        # Ask `ld` to strip out non-global symbols to save space:
+        # `strip` won't work, and the compiler doesn't understand `-s`.
+        LDFLAGS: -Wl,-x
+      run: |
+        NPROC=$(sysctl -n hw.ncpu) ./build.sh
+
+    - name: Upload MediaInfo binary artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: MediaInfo.${{ matrix.rid }}
+        path: ${{ github.workspace }}/MediaInfo-${{ matrix.rid }}.dylib
+
+  build-mediainfo-linux:
+    needs: prepare-mediainfo
+    name: build-mediainfo-${{ matrix.rid }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - os: ubuntu
+          rid: linux-musl-x64
+          docker_image: alpine:3.12
+
+        - os: ubuntu
+          rid: linux-musl-arm64
+          qemu: true
+          docker_image: arm64v8/alpine:3.12
+
+        - os: ubuntu
+          rid: linux-x64
+          docker_image: centos:7
+          # latest as of 2022-01-16
+          devtoolset: 11
+
+        - os: ubuntu
+          rid: linux-arm64
+          qemu: true
+          docker_image: arm64v8/centos:7
+          # latest that contains gcc-c++ as of 2022-01-16
+          devtoolset: 10
+
+    defaults:
+      run:
+        shell: /usr/bin/docker exec dockerciimage sh -e {0}
+
+    steps:
+    - name: Download prepared MediaInfo source artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: MediaInfo.src
+
+    - name: Unpack MediaInfo source
+      shell: sh
+      run: |
+        tar xJf libmediainfo_AllInclusive.tar.xz
+        mv libmediainfo_AllInclusive/* .
+
+    - name: Set up QEMU for Docker
+      if: matrix.qemu
+      shell: sh
+      run: |
+        docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+
+    - name: Start Docker container
+      shell: sh
+      run: |
+        # Note: With this setup everything inside the container will be run as root
+        docker pull "${{ matrix.docker_image }}"
+        docker create --name dockerciimage \
+          -v "/home/runner/work:/home/runner/work" --workdir "$PWD"  \
+          --entrypoint "tail" "${{ matrix.docker_image }}" "-f" "/dev/null"
+        docker start dockerciimage
+
+    - name: Install build dependencies
+      run: |
+        touch setup_devtools.sh
+        case "${{ matrix.rid }}" in
+          linux-musl*)
+            apk add cmake g++ make zlib-dev
+            ;;
+
+          linux*)
+            echo ::group::Add repositories
+            yum -y --setopt=skip_missing_names_on_install=False \
+              install centos-release-scl-rh epel-release
+            echo ::endgroup::
+
+            echo ::group::Install packages
+            yum -y --setopt=skip_missing_names_on_install=False \
+              install cmake3 devtoolset-${{ matrix.devtoolset }}-{gcc-c++,make} zlib-devel
+            echo ::endgroup::
+
+            echo ::group::Create environment setup script
+            # scl_source uses nonzero $? internally
+            echo >> setup_devtools.sh \
+              'set +e; . scl_source enable devtoolset-${{ matrix.devtoolset }} || exit; set -e'
+            echo >> setup_devtools.sh 'alias cmake=cmake3'
+            echo ::endgroup::
+            ;;
+        esac
+
+    - name: Build MediaInfo
+      # We can't use the CI's `env` key here because this may run in a
+      # Docker container that doesn't see the CI's native environment
+      run: |
+        . ./setup_devtools.sh
+
+        NPROC=$(nproc)
+        RID=${{ matrix.rid }}
+        SOEXT=so
+        LDFLAGS="-flto=$NPROC -Wl,--version-script,${{ github.workspace }}/libmediainfo.map"
+
+        # To allow aliasing CMake, execute the build script by sourcing it
+        . ./build.sh
+
+    - name: Discard symbol table  # to save space
+      run: |
+        strip MediaInfo-${{ matrix.rid }}.so
+
+    - name: Stop Docker container
+      if: always()
+      shell: sh
+      run: |
+        docker rm --force dockerciimage
+
+    - name: Upload MediaInfo binary artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: MediaInfo.${{ matrix.rid }}
+        path: ${{ github.workspace }}/MediaInfo-${{ matrix.rid }}.so
+
+  lipo-mediainfo:
+    needs: build-mediainfo-osx
+    runs-on: macos-11
+    steps:
+    - name: Download Intel build
+      uses: actions/download-artifact@v2
+      with:
+        name: MediaInfo.osx-x64
+
+    - name: Download ARM build
+      uses: actions/download-artifact@v2
+      with:
+        name: MediaInfo.osx-arm64
+
+    - name: Create universal binary
+      run: |
+        lipo -create MediaInfo-*.dylib -output MediaInfo.dylib
+
+    - name: Upload universal binary artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: MediaInfo.osx-universal
+        path: ${{ github.workspace }}/MediaInfo.dylib
