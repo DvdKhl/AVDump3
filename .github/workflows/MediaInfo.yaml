@@ -23,33 +23,39 @@ jobs:
           https://mediaarea.net/download/source/libmediainfo/${MEDIAINFO_VERSION}/libmediainfo_${MEDIAINFO_VERSION}_AllInclusive.7z
         7z x libmediainfo_${MEDIAINFO_VERSION}_AllInclusive.7z
 
-#    - name: Fix build-breaking MediaInfo bugs
-#      working-directory: libmediainfo_AllInclusive
-#      run: |
-#        # Missing include breaks build on non-Windows without _POSIX_PRIORITY_SCHEDULING (Alpine)
-#        sed -i~ '1i\
-#        #include <signal.h>\
-#        ' MediaInfoLib/Source/MediaInfo/MediaInfo_Internal.cpp
-#
-#        # Function is called but not compiled with MEDIAINFO_MINIMAL_YES
-#        cr=$'\r'
-#        patch MediaInfoLib/Source/MediaInfo/MediaInfo_Inform.cpp <<EOF
-#        @@ -65,2 +65,2 @@
-#        -#if defined(MEDIAINFO_XML_YES) || defined(MEDIAINFO_JSON_YES)$cr
-#        +#if defined(MEDIAINFO_XML_YES) || defined(MEDIAINFO_JSON_YES) || MEDIAINFO_ADVANCED$cr
-#         Ztring Xml_Name_Escape_0_7_78 (const Ztring &Name)$cr
-#        EOF
-#
-#        # Broken CMake BUILD_SHARED_LIBS shadowing causes ZenLib to be linked dynamically
-#        # instead of statically. Also, while not quite build-breaking, old CMake semantics
-#        # prevent interprocedural optimization and apply hidden visibility only selectively.
-#        # All of this could be fixed at build-time by passing -DCMAKE_POLICY_DEFAULT_CMP00XX=NEW
-#        # command-line options to `cmake`, but this patch additionally validates
-#        # that our CMake is actually new enough to understand and support the new behavior.
-#        for project in ZenLib MediaInfoLib; do
-#          sed -i~ 's/cmake_minimum_required(VERSION 2.8.11)/cmake_minimum_required(VERSION 3.13)/' \
-#            $project/Project/CMake/CMakeLists.txt
-#        done
+    - name: Fix build-breaking MediaInfo bugs
+      working-directory: libmediainfo_AllInclusive
+      run: |
+        # Missing include breaks build on non-Windows without _POSIX_PRIORITY_SCHEDULING (Alpine)
+        sed -i~ '1i\
+        #include <signal.h>\
+        ' MediaInfoLib/Source/MediaInfo/MediaInfo_Internal.cpp
+
+        cr=$'\r'
+        patch MediaInfoLib/Source/MediaInfo/MediaInfo_Inform.cpp <<EOF
+        @@ -53,2 +53,2 @@
+        -# if defined(MEDIAINFO_XML_YES) || defined(MEDIAINFO_JSON_YES)$cr
+        +#if defined(MEDIAINFO_XML_YES) || defined(MEDIAINFO_JSON_YES) || MEDIAINFO_ADVANCED$cr
+        EOF
+
+        # Function is called but not compiled with MEDIAINFO_MINIMAL_YES
+        patch MediaInfoLib/Source/MediaInfo/MediaInfo_Inform.cpp <<EOF
+        @@ -65,2 +65,2 @@
+        -#if defined(MEDIAINFO_XML_YES) || defined(MEDIAINFO_JSON_YES)$cr
+        +#if defined(MEDIAINFO_XML_YES) || defined(MEDIAINFO_JSON_YES) || MEDIAINFO_ADVANCED$cr
+         Ztring Xml_Name_Escape_0_7_78 (const Ztring &Name)$cr
+        EOF
+
+        # Broken CMake BUILD_SHARED_LIBS shadowing causes ZenLib to be linked dynamically
+        # instead of statically. Also, while not quite build-breaking, old CMake semantics
+        # prevent interprocedural optimization and apply hidden visibility only selectively.
+        # All of this could be fixed at build-time by passing -DCMAKE_POLICY_DEFAULT_CMP00XX=NEW
+        # command-line options to `cmake`, but this patch additionally validates
+        # that our CMake is actually new enough to understand and support the new behavior.
+        for project in ZenLib MediaInfoLib; do
+          sed -i~ 's/cmake_minimum_required(VERSION 2.8.11)/cmake_minimum_required(VERSION 3.13)/' \
+            $project/Project/CMake/CMakeLists.txt
+        done
 
     - name: Disable unused MediaInfo features
       working-directory: libmediainfo_AllInclusive
