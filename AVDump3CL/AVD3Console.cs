@@ -130,7 +130,7 @@ public class AVD3Console : IDisposable, IAVD3Console {
 
 	private readonly bool canManipulateCursor;
 	private int displaySkipCount;
-	private int maxTopCursorPos;
+	private int maxTopCursorPos = 0;
 	private int jitterDisplayUpdateCount;
 	private readonly Stopwatch perfWatch = new();
 
@@ -177,12 +177,13 @@ public class AVD3Console : IDisposable, IAVD3Console {
 				progressBuilder.MarkFinished();
 
 				progressBuilder.Reset(this);
-				var cursorTop = Console.CursorTop;
+				var cursorTop = canManipulateCursor ? Console.CursorTop : 0;
 				for(int i = cursorTop; i < maxTopCursorPos; i++) {
 					progressBuilder.AppendLine();
 				}
 				Console.Write(progressBuilder.Buffer);
-				Console.SetCursorPosition(0, cursorTop);
+				if (canManipulateCursor)
+					Console.SetCursorPosition(0, cursorTop);
 			}
 		}
 	}
@@ -208,8 +209,11 @@ public class AVD3Console : IDisposable, IAVD3Console {
 			var progressLineCountPrev = progressBuilder.ProgressLineCount;
 			progressBuilder.Reset(this);
 
-			maxTopCursorPos = Math.Max(maxTopCursorPos, Console.CursorTop);
-			Console.SetCursorPosition(0, Math.Max(0, Console.CursorTop - progressLineCountPrev));
+			if (canManipulateCursor)
+			{
+				maxTopCursorPos = Math.Max(maxTopCursorPos, Console.CursorTop);
+				Console.SetCursorPosition(0, Math.Max(0, Console.CursorTop - progressLineCountPrev));
+			}
 
 			string[] toWrite;
 			lock(this.toWrite) {
@@ -231,7 +235,7 @@ public class AVD3Console : IDisposable, IAVD3Console {
 						//}
 						if(lines[j].Length < progressBuilder.DisplayWidth) {
 							progressBuilder.Buffer.Append(' ', progressBuilder.DisplayWidth - lines[j].Length);
-						} else if(lines[j].Length >= progressBuilder.ConsoleWidth) {
+						} else if(progressBuilder.DisplayWidth != 0 && lines[j].Length >= progressBuilder.ConsoleWidth) {
 							progressBuilder.Buffer.Append(' ', Math.Max(0, progressBuilder.DisplayWidth - 2 - lines[j].Length % progressBuilder.DisplayWidth));
 						}
 
@@ -290,10 +294,12 @@ public class AVD3Console : IDisposable, IAVD3Console {
 	public IDisposable LockConsole() {
 		progressTimer.Change(Timeout.Infinite, Timeout.Infinite);
 		Monitor.Enter(progressWriteLock);
-		Console.SetCursorPosition(0, maxTopCursorPos);
+		if (canManipulateCursor)
+			Console.SetCursorPosition(0, maxTopCursorPos);
 
 		return new ProxyDisposable(() => {
-			maxTopCursorPos = Math.Max(maxTopCursorPos, Console.CursorTop);
+			if (canManipulateCursor)
+				maxTopCursorPos = Math.Max(maxTopCursorPos, Console.CursorTop);
 			Monitor.Exit(progressWriteLock);
 			progressTimer.Change(500, TickPeriod);
 		});
