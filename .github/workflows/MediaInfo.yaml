@@ -202,7 +202,7 @@ jobs:
 
     steps:
     - name: Download prepared MediaInfo source artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: MediaInfo.src
 
@@ -246,7 +246,7 @@ jobs:
 
     steps:
     - name: Download prepared MediaInfo source artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: MediaInfo.src
 
@@ -309,7 +309,7 @@ jobs:
 
     steps:
     - name: Download prepared MediaInfo source artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: MediaInfo.src
 
@@ -398,12 +398,12 @@ jobs:
     runs-on: macos-11
     steps:
     - name: Download Intel build
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: MediaInfo.osx-x64
 
     - name: Download ARM build
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: MediaInfo.osx-arm64
 

@@ -102,7 +102,7 @@ jobs:
         dotnet-version: 6.0.x
 
     - name: AVD3Main-DownloadArtifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         path: ${{ github.workspace }}/AVDump3CL/bin/Release/net6.0/
     
@@ -131,7 +131,7 @@ jobs:
 
     steps:
     - name: AVD3Release-DownloadArtifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4.1.7
       with:
         name: AVDump3CL
         path: ${{ github.workspace }}/AVDump3CL
