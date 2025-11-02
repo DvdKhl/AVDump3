@@ -2,7 +2,7 @@
 /* sha3.c - an implementation of Secure Hash Algorithm 3 (Keccak).
  * based on the
  * The Keccak SHA-3 submission. Submission to NIST (Round 3), 2011
- * by Guido Bertoni, Joan Daemen, Michaël Peeters and Gilles Van Assche
+ * by Guido Bertoni, Joan Daemen, Michaï¿½l Peeters and Gilles Van Assche
  *
  * Copyright (c) 2013, Aleksey Kravchenko <rhash.admin@gmail.com>
  *

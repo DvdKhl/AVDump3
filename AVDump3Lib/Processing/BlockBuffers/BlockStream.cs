@@ -68,7 +68,7 @@ public class BlockStream : IBlockStream {
 			if((writerSpan = Buffer.ProducerBlock()).Length < MinProducerReadLength) {
 				lock(producerLock) {
 					while(!Buffer.IsProducionCompleted && (writerSpan = Buffer.ProducerBlock()).Length < MinProducerReadLength) {
-						Monitor.Wait(producerLock, 100);
+						Monitor.Wait(producerLock);
 						ct.ThrowIfCancellationRequested();
 						BufferOverrunCount++;
 					}
@@ -105,7 +105,7 @@ public class BlockStream : IBlockStream {
 						break;
 					}
 
-					Monitor.Wait(consumerLock, 100);
+					Monitor.Wait(consumerLock);
 					ct.ThrowIfCancellationRequested();
 					BufferUnderrunCount++;
 				}

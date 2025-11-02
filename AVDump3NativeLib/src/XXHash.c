@@ -1,4 +1,4 @@
-//https://github.com/Cyan4973/xxHash/blob/cd59de7b583d8e8b0067805c36a93eeffc7c6f84/xxhash.h
+ï»¿//https://github.com/Cyan4973/xxHash/blob/cd59de7b583d8e8b0067805c36a93eeffc7c6f84/xxhash.h
 
 /*
  * xxHash - Extremely Fast Hash algorithm
@@ -3070,7 +3070,7 @@ extern "C" {
             int i;
             for (i = 0; i < nbRounds; ++i) {
                 /* GCC has a bug, _mm512_stream_load_si512 accepts 'void*', not 'void const*',
-                 * this will warn "discards ‘const’ qualifier". */
+                 * this will warn "discards ï¿½constï¿½ qualifier". */
                 union {
                     XXH_ALIGN(64) const __m512i* cp;
                     XXH_ALIGN(64) void* p;
