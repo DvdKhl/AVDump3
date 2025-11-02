@@ -4,7 +4,7 @@
     <AssemblyVersion>3.2.9001.0</AssemblyVersion>
     <FileVersion>3.2.9001.0</FileVersion>
     <Version>3.2.9001</Version>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Authors>DvdKhl</Authors>
     <Company>extknot</Company>
     <Product>AVDump3</Product>
@@ -37,9 +37,9 @@
 
   <ItemGroup>
     <PackageReference Include="ExtKnot.StringInvariants" Version="1.0.4-alpha" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.9.2" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
-    <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.14.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.10" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.2" />
   </ItemGroup>
 
   <ItemGroup>
