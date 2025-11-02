@@ -25,7 +25,7 @@ jobs:
           
     steps:
     - name: AVD3Native-Checkout
-      uses: actions/checkout@v2.1.0
+      uses: actions/checkout@v4
 
     - name: AVD3Native-Compile-Linux
       if: matrix.platform == 'linux'
@@ -35,7 +35,7 @@ jobs:
 
     - name: AVD3Native-ArtifactUpload-Linux
       if: matrix.platform == 'linux'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: AVDump3NativeLib.Linux
         path: ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-x64.so
@@ -51,7 +51,7 @@ jobs:
 
     - name: AVD3Native-ArtifactUpload-LinuxAarch64
       if: matrix.platform == 'linux'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: AVDump3NativeLib.Linux
         path: ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-aarch64.so
@@ -68,7 +68,7 @@ jobs:
 
     - name: AVD3Native-ArtifactUpload-MacOS
       if: matrix.platform == 'macos'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: AVDump3NativeLib.MacOS
         path: ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib.dylib
@@ -84,7 +84,7 @@ jobs:
 
     - name: AVD3Native-ArtifactUpload-Windows
       if: matrix.platform == 'windows'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: AVDump3NativeLib.Windows
         path: ${{ github.workspace }}\AVDump3NativeLib\x64\GithubWorkflow\AVDump3NativeLib.dll
@@ -94,15 +94,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: AVD3Main-Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       
     - name: AVD3Main-DotNetSetup
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
 
     - name: AVD3Main-DownloadArtifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         path: ${{ github.workspace }}/AVDump3CL/bin/Release/net6.0/
     
@@ -119,7 +119,7 @@ jobs:
         cp $GITHUB_WORKSPACE/AVDump3Lib/Libs/MediaInfo*.* $GITHUB_WORKSPACE/AVDump3CL/bin/Release/net8.0/
       
     - name: AVD3Main-ArtifactUpload
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: AVDump3CL
         path: ${{ github.workspace }}/AVDump3CL/bin/Release/net8.0/
@@ -131,7 +131,7 @@ jobs:
 
     steps:
     - name: AVD3Release-DownloadArtifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: AVDump3CL
         path: ${{ github.workspace }}/AVDump3CL
