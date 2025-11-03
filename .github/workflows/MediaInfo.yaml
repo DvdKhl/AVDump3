@@ -9,7 +9,7 @@ jobs:
   prepare-mediainfo:
     runs-on: ubuntu-latest
     env:
-      MEDIAINFO_VERSION: 24.01
+      MEDIAINFO_VERSION: 25.09
 
     steps:
     - name: Check out AVDump3
@@ -229,7 +229,7 @@ jobs:
   build-mediainfo-osx:
     needs: prepare-mediainfo
     name: build-mediainfo-${{ matrix.rid }}
-    runs-on: macos-11  # needed for ARM support in system headers
+    runs-on: macos-15  # needed for ARM support in system headers
     strategy:
       fail-fast: false
       matrix:
