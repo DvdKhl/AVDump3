@@ -21,7 +21,7 @@ jobs:
           
     steps:
     - name: AVD3Native-Checkout
-      uses: actions/checkout@v2.1.0
+      uses: actions/checkout@v4
 
     - name: AVD3Native-Compile-Linux-X64
       if: matrix.platform == 'linux'
@@ -31,7 +31,7 @@ jobs:
 
     - name: AVD3Native-ArtifactUpload-Linux-X64
       if: matrix.platform == 'linux'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: AVDump3NativeLib.Linux
         path: ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-linux-x64.so
@@ -47,7 +47,7 @@ jobs:
 
     - name: AVD3Native-ArtifactUpload-LinuxArm64
       if: matrix.platform == 'linux'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: AVDump3NativeLib.Linux
         path: ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-linux-arm64.so
@@ -64,14 +64,14 @@ jobs:
 
     - name: AVD3Native-ArtifactUpload-MacOS
       if: matrix.platform == 'macos'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: AVDump3NativeLib.MacOS
         path: ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-osx.dylib
 
     - name: AVD3Native-MSBuildSetup-Windows
       if: matrix.platform == 'windows'
-      uses: microsoft/setup-msbuild@v1.0.3
+      uses: microsoft/setup-msbuild@v2
 
     - name: AVD3Native-Compile-Windows
       if: matrix.platform == 'windows'
@@ -81,7 +81,7 @@ jobs:
 
     - name: AVD3Native-ArtifactUpload-Windows
       if: matrix.platform == 'windows'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: AVDump3NativeLib.Windows
         path: ${{ github.workspace }}\AVDump3NativeLib\x64\GithubWorkflow\AVDump3NativeLib-windows-x64.dll

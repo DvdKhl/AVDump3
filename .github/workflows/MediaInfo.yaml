@@ -13,7 +13,7 @@ jobs:
 
     steps:
     - name: Check out AVDump3
-      uses: actions/checkout@v2.1.0
+      uses: actions/checkout@v4
       with:
         path: AVDump3
 
@@ -186,7 +186,7 @@ jobs:
         tar cJf libmediainfo_AllInclusive.tar.xz libmediainfo_AllInclusive
 
     - name: Upload prepared MediaInfo source artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: MediaInfo.src
         path: libmediainfo_AllInclusive.tar.xz
@@ -202,7 +202,7 @@ jobs:
 
     steps:
     - name: Download prepared MediaInfo source artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: MediaInfo.src
 
@@ -213,7 +213,7 @@ jobs:
         mv libmediainfo_AllInclusive/* .
 
     - name: Set up MSBuild
-      uses: microsoft/setup-msbuild@v1.0.3
+      uses: microsoft/setup-msbuild@v2
 
     - name: Build MediaInfo
       run: >
@@ -221,7 +221,7 @@ jobs:
         /m /t:MediaInfoDll /p:Configuration=Release /p:Platform=x64
 
     - name: Upload MediaInfo binary artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: MediaInfo.${{ matrix.rid }}
         path: MediaInfoLib\Project\MSVC2019\x64\Release\MediaInfo.dll
@@ -246,7 +246,7 @@ jobs:
 
     steps:
     - name: Download prepared MediaInfo source artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: MediaInfo.src
 
@@ -268,7 +268,7 @@ jobs:
         NPROC=$(sysctl -n hw.ncpu) ./build.sh
 
     - name: Upload MediaInfo binary artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: MediaInfo.${{ matrix.rid }}
         path: ${{ github.workspace }}/MediaInfo-${{ matrix.rid }}.dylib
@@ -309,7 +309,7 @@ jobs:
 
     steps:
     - name: Download prepared MediaInfo source artifact
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: MediaInfo.src
 
@@ -388,7 +388,7 @@ jobs:
         docker rm --force dockerciimage
 
     - name: Upload MediaInfo binary artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: MediaInfo.${{ matrix.rid }}
         path: ${{ github.workspace }}/MediaInfo-${{ matrix.rid }}.so
@@ -398,12 +398,12 @@ jobs:
     runs-on: macos-11
     steps:
     - name: Download Intel build
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: MediaInfo.osx-x64
 
     - name: Download ARM build
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
         name: MediaInfo.osx-arm64
 
@@ -412,7 +412,7 @@ jobs:
         lipo -create MediaInfo-*.dylib -output MediaInfo.dylib
 
     - name: Upload universal binary artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: MediaInfo.osx-universal
         path: ${{ github.workspace }}/MediaInfo.dylib
