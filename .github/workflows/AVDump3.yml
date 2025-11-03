@@ -138,7 +138,7 @@ jobs:
 
     - name: AVD3Release-GetTag
       id: avd3releasegettag
-      uses: olegtarasov/get-tag@v2.1
+      uses: olegtarasov/get-tag@v2.1.4
       with:
         tagRegex: "B(\\d+)"
       
@@ -149,7 +149,7 @@ jobs:
      
     - name: AVD3Release-Create
       id: avd3releasecreate
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         name: Build ${{ steps.avd3releasegettag.outputs.tag }}
         draft: false
