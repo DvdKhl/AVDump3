@@ -379,6 +379,11 @@ jobs:
             echo >> setup_devtools.sh \
               'set +e; . scl_source enable devtoolset-${{ matrix.devtoolset }} || exit; set -e'
             echo >> setup_devtools.sh 'alias cmake=cmake3'
+            
+            # For ARM64, create gmake symlink since devtoolset-10 make is named differently
+            if [ "$(uname -m)" = "aarch64" ]; then
+              echo >> setup_devtools.sh 'ln -sf /opt/rh/devtoolset-${{ matrix.devtoolset }}/root/usr/bin/make /opt/rh/devtoolset-${{ matrix.devtoolset }}/root/usr/bin/gmake'
+            fi
             echo ::endgroup::
             ;;
         esac
