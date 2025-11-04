@@ -57,139 +57,139 @@ jobs:
     #         $project/Project/CMake/CMakeLists.txt
     #     done
 
-    - name: Disable unused MediaInfo features
-      working-directory: libmediainfo_AllInclusive
-      run: |
-        echo 'target_compile_definitions(mediainfo PRIVATE MEDIAINFO_MINIMAL_YES)' \
-          >> MediaInfoLib/Project/CMake/CMakeLists.txt
-
-        find . -name MediaInfoLib.vcxproj -exec sed -i~ '
-          /<PreprocessorDefinitions>/s|\(MEDIAINFO_[0-9A-Za-z_]*;\)\{1,\}|MEDIAINFO_MINIMAL_YES;|g
-        ' '{}' ';'
-
-    - name: Hide unused MediaInfo symbols
-      working-directory: libmediainfo_AllInclusive
-      run: |
-        grep -hIR 'extern .*MediaInfo' ../AVDump3/AVDump3Lib \
-          | sed 's/^.*extern [^ ]* \([^(]*\).*$/\1/' \
-          > libmediainfo.sym
-        { echo EXPORTS; cat libmediainfo.sym; } \
-          > MediaInfoLib/Source/MediaInfoDLL/MediaInfoDLL.def
-        {
-          echo '{'
-          echo 'global:'
-          sed 's/$/;/' libmediainfo.sym
-          echo 'local:'
-          echo '*;'
-          echo '};'
-        } > libmediainfo.map
-
-        for module in MediaInfo MediaInfoList; do
-          sed -i~ 's/class MEDIAINFO_EXP/class/' \
-            MediaInfoLib/Source/MediaInfo/$module.h
-        done
-
-        sed -i~ 's|^MEDIAINFO_EXP|/*MEDIAINFO_EXP*/|' \
-          MediaInfoLib/Source/MediaInfoDLL/MediaInfoDLL_Static.h
-        for symbol in $(cat libmediainfo.sym); do
-         sed -i~ "s|^/\*MEDIAINFO_EXP\*/\(.* __stdcall $symbol \)|MEDIAINFO_EXP\1|" \
-           MediaInfoLib/Source/MediaInfoDLL/MediaInfoDLL_Static.h
-        done
-
-    - name: Configure MSVC to statically link C++ runtime library
-      working-directory: libmediainfo_AllInclusive
-      run: |
-        find . -name '*.vcxproj' -exec sed -i~ s/MultiThreadedDLL/MultiThreaded/g '{}' ';'
-
-    - name: Configure MSVC to minimize binary size
-      working-directory: libmediainfo_AllInclusive
-      run: |
-        find . -name '*.vcxproj' -exec sed -i~ '
-          s|<Optimization>.*</Optimization>||g
-          s|<InlineFunctionExpansion>.*</InlineFunctionExpansion>||g
-          s|<WholeProgramOptimization>.*</WholeProgramOptimization>||g
-          s|<RuntimeTypeInfo>.*</RuntimeTypeInfo>||g
-          s|<BufferSecurityCheck>.*</BufferSecurityCheck>||g
-          s|<ClCompile>|&\
-            <Optimization>MinSpace</Optimization>\
-            <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>\
-            <WholeProgramOptimization>true</WholeProgramOptimization>\
-            <RuntimeTypeInfo>false</RuntimeTypeInfo>\
-            <BufferSecurityCheck>false</BufferSecurityCheck>\
-            <AdditionalOptions>/Gw</AdditionalOptions>|g
-        ' '{}' ';'
-
-    - name: Configure CMake to further reduce macOS binary size
-      working-directory: libmediainfo_AllInclusive
-      run: |
-        for project in ZenLib MediaInfoLib; do
-          cat >> $project/Project/CMake/CMakeLists.txt <<'EOF'
-        if(APPLE)
-          foreach(lang C CXX OBJC OBJCXX)
-            # Force -Oz instead of CMake's default -Os to target truly minimum code size
-            # (upstream: https://gitlab.kitware.com/cmake/cmake/-/issues/22458).
-            string(REGEX REPLACE "-Os" "-Oz" CMAKE_${lang}_FLAGS_MINSIZEREL "${CMAKE_${lang}_FLAGS_MINSIZEREL}")
-
-            # Force -flto instead of CMake's default -flto=thin
-            # because it is more aggressive and reduces the output size more
-            # (upstream: https://gitlab.kitware.com/cmake/cmake/-/issues/22913).
-            set(CMAKE_${lang}_COMPILE_OPTIONS_IPO "-flto")
-
-            # Remove unnecessary -headerpad_max_install_names to squeeze out another 16 KiB.
-            string(REGEX REPLACE "-Wl,-headerpad_max_install_names" "" CMAKE_${lang}_LINK_FLAGS "${CMAKE_${lang}_LINK_FLAGS}")
-            string(REGEX REPLACE "-Wl,-headerpad_max_install_names" "" CMAKE_SHARED_LIBRARY_CREATE_${lang}_FLAGS "${CMAKE_SHARED_LIBRARY_CREATE_${lang}_FLAGS}")
-          endforeach()
-        endif()
-        EOF
-        done
-
-    - name: Create UNIX build script
-      working-directory: libmediainfo_AllInclusive
-      run: |
-        cat > build.sh <<'EOF'
-        #!/bin/sh -e
-
-        mkdir MediaInfoLib/Project/CMake/build
-        cd MediaInfoLib/Project/CMake/build
-
-        # Switch off external packages so they are not accidentally picked up from the build host.
-        # LTO (IPO) and hidden visibility both save space and improve MediaInfo's performance.
-        # MediaInfo doesn't use RTTI (typeid & dynamic_cast), so omit it to save space.
-        # We'll only load the library at runtime, so we can save a few bytes on macOS install_name.
-        cmake .. \
-          -DCMAKE_RULE_MESSAGES=OFF \
-          -DCMAKE_VERBOSE_MAKEFILE=ON \
-          -DCMAKE_DISABLE_FIND_PACKAGE_CURL=ON \
-          -DCMAKE_DISABLE_FIND_PACKAGE_TinyXML=ON \
-          -DBUILD_ZENLIB=ON \
-          -DBUILD_SHARED_LIBS=ON \
-          -DCMAKE_BUILD_TYPE=MinSizeRel \
-          -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON \
-          -DCMAKE_C_VISIBILITY_PRESET=hidden \
-          -DCMAKE_CXX_VISIBILITY_PRESET=hidden \
-          -DCMAKE_VISIBILITY_INLINES_HIDDEN=ON \
-          -DCMAKE_CXX_FLAGS="-fno-rtti" \
-          -DCMAKE_OSX_ARCHITECTURES="$ARCH" \
-          -DCMAKE_INSTALL_NAME_DIR="" \
-          -DCMAKE_SHARED_LINKER_FLAGS="$LDFLAGS" \
-          "$@"
-        make -j$NPROC
-
-        fullname=./libmediainfo.$SOEXT
-        while target=$(readlink "$fullname"); do fullname=${fullname%/*}/$target; done
-        mv "$fullname" ../../../../MediaInfo-$RID.$SOEXT
-        EOF
-        chmod +x build.sh
-
-    - name: Pack MediaInfo
-      run: |
-        tar cJf libmediainfo_AllInclusive.tar.xz libmediainfo_AllInclusive
-
-    - name: Upload prepared MediaInfo source artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: MediaInfo.src
-        path: libmediainfo_AllInclusive.tar.xz
+    #- name: Disable unused MediaInfo features
+    #  working-directory: libmediainfo_AllInclusive
+    #  run: |
+    #    echo 'target_compile_definitions(mediainfo PRIVATE MEDIAINFO_MINIMAL_YES)' \
+    #      >> MediaInfoLib/Project/CMake/CMakeLists.txt
+#
+    #    find . -name MediaInfoLib.vcxproj -exec sed -i~ '
+    #      /<PreprocessorDefinitions>/s|\(MEDIAINFO_[0-9A-Za-z_]*;\)\{1,\}|MEDIAINFO_MINIMAL_YES;|g
+    #    ' '{}' ';'
+#
+    #- name: Hide unused MediaInfo symbols
+    #  working-directory: libmediainfo_AllInclusive
+    #  run: |
+    #    grep -hIR 'extern .*MediaInfo' ../AVDump3/AVDump3Lib \
+    #      | sed 's/^.*extern [^ ]* \([^(]*\).*$/\1/' \
+    #      > libmediainfo.sym
+    #    { echo EXPORTS; cat libmediainfo.sym; } \
+    #      > MediaInfoLib/Source/MediaInfoDLL/MediaInfoDLL.def
+    #    {
+    #      echo '{'
+    #      echo 'global:'
+    #      sed 's/$/;/' libmediainfo.sym
+    #      echo 'local:'
+    #      echo '*;'
+    #      echo '};'
+    #    } > libmediainfo.map
+#
+    #    for module in MediaInfo MediaInfoList; do
+    #      sed -i~ 's/class MEDIAINFO_EXP/class/' \
+    #        MediaInfoLib/Source/MediaInfo/$module.h
+    #    done
+#
+    #    sed -i~ 's|^MEDIAINFO_EXP|/*MEDIAINFO_EXP*/|' \
+    #      MediaInfoLib/Source/MediaInfoDLL/MediaInfoDLL_Static.h
+    #    for symbol in $(cat libmediainfo.sym); do
+    #     sed -i~ "s|^/\*MEDIAINFO_EXP\*/\(.* __stdcall $symbol \)|MEDIAINFO_EXP\1|" \
+    #       MediaInfoLib/Source/MediaInfoDLL/MediaInfoDLL_Static.h
+    #    done
+#
+    #- name: Configure MSVC to statically link C++ runtime library
+    #  working-directory: libmediainfo_AllInclusive
+    #  run: |
+    #    find . -name '*.vcxproj' -exec sed -i~ s/MultiThreadedDLL/MultiThreaded/g '{}' ';'
+#
+    #- name: Configure MSVC to minimize binary size
+    #  working-directory: libmediainfo_AllInclusive
+    #  run: |
+    #    find . -name '*.vcxproj' -exec sed -i~ '
+    #      s|<Optimization>.*</Optimization>||g
+    #      s|<InlineFunctionExpansion>.*</InlineFunctionExpansion>||g
+    #      s|<WholeProgramOptimization>.*</WholeProgramOptimization>||g
+    #      s|<RuntimeTypeInfo>.*</RuntimeTypeInfo>||g
+    #      s|<BufferSecurityCheck>.*</BufferSecurityCheck>||g
+    #      s|<ClCompile>|&\
+    #        <Optimization>MinSpace</Optimization>\
+    #        <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>\
+    #        <WholeProgramOptimization>true</WholeProgramOptimization>\
+    #        <RuntimeTypeInfo>false</RuntimeTypeInfo>\
+    #        <BufferSecurityCheck>false</BufferSecurityCheck>\
+    #        <AdditionalOptions>/Gw</AdditionalOptions>|g
+    #    ' '{}' ';'
+#
+    #- name: Configure CMake to further reduce macOS binary size
+    #  working-directory: libmediainfo_AllInclusive
+    #  run: |
+    #    for project in ZenLib MediaInfoLib; do
+    #      cat >> $project/Project/CMake/CMakeLists.txt <<'EOF'
+    #    if(APPLE)
+    #      foreach(lang C CXX OBJC OBJCXX)
+    #        # Force -Oz instead of CMake's default -Os to target truly minimum code size
+    #        # (upstream: https://gitlab.kitware.com/cmake/cmake/-/issues/22458).
+    #        string(REGEX REPLACE "-Os" "-Oz" CMAKE_${lang}_FLAGS_MINSIZEREL "${CMAKE_${lang}_FLAGS_MINSIZEREL}")
+#
+    #        # Force -flto instead of CMake's default -flto=thin
+    #        # because it is more aggressive and reduces the output size more
+    #        # (upstream: https://gitlab.kitware.com/cmake/cmake/-/issues/22913).
+    #        set(CMAKE_${lang}_COMPILE_OPTIONS_IPO "-flto")
+#
+    #        # Remove unnecessary -headerpad_max_install_names to squeeze out another 16 KiB.
+    #        string(REGEX REPLACE "-Wl,-headerpad_max_install_names" "" CMAKE_${lang}_LINK_FLAGS "${CMAKE_${lang}_LINK_FLAGS}")
+    #        string(REGEX REPLACE "-Wl,-headerpad_max_install_names" "" CMAKE_SHARED_LIBRARY_CREATE_${lang}_FLAGS "${CMAKE_SHARED_LIBRARY_CREATE_${lang}_FLAGS}")
+    #      endforeach()
+    #    endif()
+    #    EOF
+    #    done
+#
+    #- name: Create UNIX build script
+    #  working-directory: libmediainfo_AllInclusive
+    #  run: |
+    #    cat > build.sh <<'EOF'
+    #    #!/bin/sh -e
+#
+    #    mkdir MediaInfoLib/Project/CMake/build
+    #    cd MediaInfoLib/Project/CMake/build
+#
+    #    # Switch off external packages so they are not accidentally picked up from the build host.
+    #    # LTO (IPO) and hidden visibility both save space and improve MediaInfo's performance.
+    #    # MediaInfo doesn't use RTTI (typeid & dynamic_cast), so omit it to save space.
+    #    # We'll only load the library at runtime, so we can save a few bytes on macOS install_name.
+    #    cmake .. \
+    #      -DCMAKE_RULE_MESSAGES=OFF \
+    #      -DCMAKE_VERBOSE_MAKEFILE=ON \
+    #      -DCMAKE_DISABLE_FIND_PACKAGE_CURL=ON \
+    #      -DCMAKE_DISABLE_FIND_PACKAGE_TinyXML=ON \
+    #      -DBUILD_ZENLIB=ON \
+    #      -DBUILD_SHARED_LIBS=ON \
+    #      -DCMAKE_BUILD_TYPE=MinSizeRel \
+    #      -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON \
+    #      -DCMAKE_C_VISIBILITY_PRESET=hidden \
+    #      -DCMAKE_CXX_VISIBILITY_PRESET=hidden \
+    #      -DCMAKE_VISIBILITY_INLINES_HIDDEN=ON \
+    #      -DCMAKE_CXX_FLAGS="-fno-rtti" \
+    #      -DCMAKE_OSX_ARCHITECTURES="$ARCH" \
+    #      -DCMAKE_INSTALL_NAME_DIR="" \
+    #      -DCMAKE_SHARED_LINKER_FLAGS="$LDFLAGS" \
+    #      "$@"
+    #    make -j$NPROC
+#
+    #    fullname=./libmediainfo.$SOEXT
+    #    while target=$(readlink "$fullname"); do fullname=${fullname%/*}/$target; done
+    #    mv "$fullname" ../../../../MediaInfo-$RID.$SOEXT
+    #    EOF
+    #    chmod +x build.sh
+#
+    #- name: Pack MediaInfo
+    #  run: |
+    #    tar cJf libmediainfo_AllInclusive.tar.xz libmediainfo_AllInclusive
+#
+    #- name: Upload prepared MediaInfo source artifact
+    #  uses: actions/upload-artifact@v4
+    #  with:
+    #    name: MediaInfo.src
+    #    path: libmediainfo_AllInclusive.tar.xz
 
   build-mediainfo-win:
     needs: prepare-mediainfo
