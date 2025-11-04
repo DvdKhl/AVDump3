@@ -217,14 +217,14 @@ jobs:
 
     - name: Build MediaInfo
       run: >
-        msbuild MediaInfoLib\Project\MSVC2019\MediaInfoLib.sln
+        msbuild MediaInfoLib\Project\MSVC2022\MediaInfoLib.sln
         /m /t:MediaInfoDll /p:Configuration=Release /p:Platform=x64
 
     - name: Upload MediaInfo binary artifact
       uses: actions/upload-artifact@v4
       with:
         name: MediaInfo.${{ matrix.rid }}
-        path: MediaInfoLib\Project\MSVC2019\x64\Release\MediaInfo.dll
+        path: MediaInfoLib\Project\MSVC2022\x64\Release\MediaInfo.dll
 
   build-mediainfo-osx:
     needs: prepare-mediainfo
