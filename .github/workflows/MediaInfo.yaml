@@ -356,7 +356,7 @@ jobs:
 
             echo ::group::Fix SCL repository mirrors
             sed -i 's|^mirrorlist=|#mirrorlist=|g' /etc/yum.repos.d/CentOS-SCLo-*.repo
-            sed -i 's|^# baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-SCLo-*.repo
+            sed -i 's|^#* *baseurl=http://mirror.centos.org/centos/7|baseurl=http://vault.centos.org/centos/7|g' /etc/yum.repos.d/CentOS-SCLo-*.repo
             echo ::endgroup::
 
             echo ::group::Install packages
