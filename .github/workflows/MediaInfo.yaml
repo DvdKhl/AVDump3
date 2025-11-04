@@ -354,6 +354,11 @@ jobs:
               install centos-release-scl-rh epel-release
             echo ::endgroup::
 
+            echo ::group::Fix SCL repository mirrors
+            sed -i 's|^mirrorlist=|#mirrorlist=|g' /etc/yum.repos.d/CentOS-SCLo-*.repo
+            sed -i 's|^# baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-SCLo-*.repo
+            echo ::endgroup::
+
             echo ::group::Install packages
             yum -y --setopt=skip_missing_names_on_install=False \
               install cmake3 devtoolset-${{ matrix.devtoolset }}-{gcc-c++,make} zlib-devel
