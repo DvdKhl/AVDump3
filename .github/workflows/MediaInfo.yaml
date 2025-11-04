@@ -181,15 +181,15 @@ jobs:
     #    EOF
     #    chmod +x build.sh
 #
-    #- name: Pack MediaInfo
-    #  run: |
-    #    tar cJf libmediainfo_AllInclusive.tar.xz libmediainfo_AllInclusive
-#
-    #- name: Upload prepared MediaInfo source artifact
-    #  uses: actions/upload-artifact@v4
-    #  with:
-    #    name: MediaInfo.src
-    #    path: libmediainfo_AllInclusive.tar.xz
+    - name: Pack MediaInfo
+      run: |
+        tar cJf libmediainfo_AllInclusive.tar.xz libmediainfo_AllInclusive
+
+    - name: Upload prepared MediaInfo source artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MediaInfo.src
+        path: libmediainfo_AllInclusive.tar.xz
 
   build-mediainfo-win:
     needs: prepare-mediainfo
