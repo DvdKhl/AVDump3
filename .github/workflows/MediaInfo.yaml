@@ -143,44 +143,44 @@ jobs:
     #    EOF
     #    done
 #
-    #- name: Create UNIX build script
-    #  working-directory: libmediainfo_AllInclusive
-    #  run: |
-    #    cat > build.sh <<'EOF'
-    #    #!/bin/sh -e
-#
-    #    mkdir MediaInfoLib/Project/CMake/build
-    #    cd MediaInfoLib/Project/CMake/build
-#
-    #    # Switch off external packages so they are not accidentally picked up from the build host.
-    #    # LTO (IPO) and hidden visibility both save space and improve MediaInfo's performance.
-    #    # MediaInfo doesn't use RTTI (typeid & dynamic_cast), so omit it to save space.
-    #    # We'll only load the library at runtime, so we can save a few bytes on macOS install_name.
-    #    cmake .. \
-    #      -DCMAKE_RULE_MESSAGES=OFF \
-    #      -DCMAKE_VERBOSE_MAKEFILE=ON \
-    #      -DCMAKE_DISABLE_FIND_PACKAGE_CURL=ON \
-    #      -DCMAKE_DISABLE_FIND_PACKAGE_TinyXML=ON \
-    #      -DBUILD_ZENLIB=ON \
-    #      -DBUILD_SHARED_LIBS=ON \
-    #      -DCMAKE_BUILD_TYPE=MinSizeRel \
-    #      -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON \
-    #      -DCMAKE_C_VISIBILITY_PRESET=hidden \
-    #      -DCMAKE_CXX_VISIBILITY_PRESET=hidden \
-    #      -DCMAKE_VISIBILITY_INLINES_HIDDEN=ON \
-    #      -DCMAKE_CXX_FLAGS="-fno-rtti" \
-    #      -DCMAKE_OSX_ARCHITECTURES="$ARCH" \
-    #      -DCMAKE_INSTALL_NAME_DIR="" \
-    #      -DCMAKE_SHARED_LINKER_FLAGS="$LDFLAGS" \
-    #      "$@"
-    #    make -j$NPROC
-#
-    #    fullname=./libmediainfo.$SOEXT
-    #    while target=$(readlink "$fullname"); do fullname=${fullname%/*}/$target; done
-    #    mv "$fullname" ../../../../MediaInfo-$RID.$SOEXT
-    #    EOF
-    #    chmod +x build.sh
-#
+    - name: Create UNIX build script
+      working-directory: libmediainfo_AllInclusive
+      run: |
+        cat > build.sh <<'EOF'
+        #!/bin/sh -e
+
+        mkdir MediaInfoLib/Project/CMake/build
+        cd MediaInfoLib/Project/CMake/build
+
+        # Switch off external packages so they are not accidentally picked up from the build host.
+        # LTO (IPO) and hidden visibility both save space and improve MediaInfo's performance.
+        # MediaInfo doesn't use RTTI (typeid & dynamic_cast), so omit it to save space.
+        # We'll only load the library at runtime, so we can save a few bytes on macOS install_name.
+        cmake .. \
+          -DCMAKE_RULE_MESSAGES=OFF \
+          -DCMAKE_VERBOSE_MAKEFILE=ON \
+          -DCMAKE_DISABLE_FIND_PACKAGE_CURL=ON \
+          -DCMAKE_DISABLE_FIND_PACKAGE_TinyXML=ON \
+          -DBUILD_ZENLIB=ON \
+          -DBUILD_SHARED_LIBS=ON \
+          -DCMAKE_BUILD_TYPE=MinSizeRel \
+          -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON \
+          -DCMAKE_C_VISIBILITY_PRESET=hidden \
+          -DCMAKE_CXX_VISIBILITY_PRESET=hidden \
+          -DCMAKE_VISIBILITY_INLINES_HIDDEN=ON \
+          -DCMAKE_CXX_FLAGS="-fno-rtti" \
+          -DCMAKE_OSX_ARCHITECTURES="$ARCH" \
+          -DCMAKE_INSTALL_NAME_DIR="" \
+          -DCMAKE_SHARED_LINKER_FLAGS="$LDFLAGS" \
+          "$@"
+        make -j$NPROC
+
+        fullname=./libmediainfo.$SOEXT
+        while target=$(readlink "$fullname"); do fullname=${fullname%/*}/$target; done
+        mv "$fullname" ../../../../MediaInfo-$RID.$SOEXT
+        EOF
+        chmod +x build.sh
+
     - name: Pack MediaInfo
       run: |
         tar cJf libmediainfo_AllInclusive.tar.xz libmediainfo_AllInclusive
