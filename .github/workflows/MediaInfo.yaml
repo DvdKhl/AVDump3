@@ -368,7 +368,7 @@ jobs:
 
         # Limit parallelism under QEMU to avoid GCC ICE/segfaults on ARM64
         if [ "$(uname -m)" = "aarch64" ]; then
-          NPROC=2
+          NPROC=1
         else
           NPROC=$(nproc)
         fi
@@ -380,8 +380,15 @@ jobs:
           LDFLAGS="$LDFLAGS -Wl,--version-script,$VSCRIPT"
         fi
 
+        # On ARM64 under QEMU, disable IPO and lower optimization to avoid GCC ICEs
+        CMAKE_ARGS=""
+        if [ "$(uname -m)" = "aarch64" ]; then
+          CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF"
+          CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_C_FLAGS_MINSIZEREL='-O1' -DCMAKE_CXX_FLAGS_MINSIZEREL='-O1'"
+        fi
+
         # To allow aliasing CMake, execute the build script by sourcing it
-        . ./build.sh
+        . ./build.sh $CMAKE_ARGS
 
     - name: Discard symbol table  # to save space
       run: |
