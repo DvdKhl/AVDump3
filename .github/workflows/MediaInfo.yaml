@@ -328,8 +328,9 @@ jobs:
       shell: sh
       run: |
         # Note: With this setup everything inside the container will be run as root
-        docker pull "${{ matrix.docker_image }}"
-        docker create --name dockerciimage \
+        if [ "${{ matrix.qemu }}" = "true" ]; then PLATFORM="--platform=linux/arm64"; else PLATFORM=""; fi
+        docker pull $PLATFORM "${{ matrix.docker_image }}"
+        docker create $PLATFORM --name dockerciimage \
           -v "/home/runner/work:/home/runner/work" --workdir "$PWD"  \
           --entrypoint "tail" "${{ matrix.docker_image }}" "-f" "/dev/null"
         docker start dockerciimage
