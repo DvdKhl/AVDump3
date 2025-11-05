@@ -374,7 +374,7 @@ jobs:
               install cmake3 devtoolset-${{ matrix.devtoolset }}-{gcc-c++,make} zlib-devel
             echo ::endgroup::
 
-            yum clean metadata && yum upgrade
+            yum clean metadata && yum upgrade -y
 
             echo ::group::Create environment setup script
             # scl_source uses nonzero $? internally
