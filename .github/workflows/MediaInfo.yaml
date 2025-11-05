@@ -374,7 +374,12 @@ jobs:
         fi
         RID=${{ matrix.rid }}
         SOEXT=so
-        LDFLAGS="-flto=$NPROC"
+        # Disable LTO on aarch64 to avoid ICE/segfaults under emulation
+        if [ "$(uname -m)" = "aarch64" ]; then
+          LDFLAGS=""
+        else
+          LDFLAGS="-flto=$NPROC"
+        fi
         VSCRIPT="${{ github.workspace }}/libmediainfo.map"
         if [ -f "$VSCRIPT" ]; then
           LDFLAGS="$LDFLAGS -Wl,--version-script,$VSCRIPT"
@@ -384,7 +389,7 @@ jobs:
         CMAKE_ARGS=""
         if [ "$(uname -m)" = "aarch64" ]; then
           CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF"
-          CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_C_FLAGS_MINSIZEREL='-O1' -DCMAKE_CXX_FLAGS_MINSIZEREL='-O1'"
+          CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_C_FLAGS_MINSIZEREL=-O0 -DCMAKE_CXX_FLAGS_MINSIZEREL=-O0"
         fi
 
         # To allow aliasing CMake, execute the build script by sourcing it
