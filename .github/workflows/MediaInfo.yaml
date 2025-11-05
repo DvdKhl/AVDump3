@@ -355,7 +355,7 @@ jobs:
             echo ::endgroup::
 
             echo ::group::Add repositories
-            yum -y --setopt=skip_missing_names_on_install=False \
+            yum -y --setopt=skip_missing_names_on_install=False --setopt=timeout=10 \
               install centos-release-scl-rh epel-release
             echo ::endgroup::
 
@@ -370,7 +370,7 @@ jobs:
             echo ::endgroup::
 
             echo ::group::Install packages
-            yum -y --setopt=skip_missing_names_on_install=False \
+            yum -y --setopt=skip_missing_names_on_install=False --setopt=timeout=10 \
               install cmake3 devtoolset-${{ matrix.devtoolset }}-{gcc-c++,make} zlib-devel
             echo ::endgroup::
 
