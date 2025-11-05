@@ -299,9 +299,8 @@ jobs:
         - os: ubuntu
           rid: linux-arm64
           qemu: true
-          docker_image: quay.io/pypa/manylinux2014_aarch64
-          # manylinux2014 aarch64 image for glibc compatibility
-          devtoolset: 10
+          docker_image: arm64v8/ubuntu:22.04
+          # Modern glibc environment on ARM64; compatibility with very old systems is not required
 
     defaults:
       run:
@@ -348,7 +347,7 @@ jobs:
             fi
             ;;
 
-          linux*)
+          linux-x64)
             echo "::group::Install CMake in manylinux via pip"
             # Pick the latest available CPython's pip inside manylinux image
             PIP=$(ls -1d /opt/python/cp3*/bin/pip 2>/dev/null | sort | tail -n1)
@@ -363,23 +362,23 @@ jobs:
             # Some projects/tools expect 'gmake'; provide a compatibility symlink
             ln -sf /usr/bin/make /usr/bin/gmake || true
             echo "::endgroup::"
+            ;;
 
-            # On aarch64, install a modern Clang toolchain to avoid GCC ICEs
-            if [ "$(uname -m)" = "aarch64" ]; then
-              echo "::group::Install Clang toolchain (aarch64)"
-              URL="https://github.com/llvm/llvm-project/releases/download/llvmorg-16.0.6/clang+llvm-16.0.6-aarch64-linux-gnu.tar.xz"
-              if command -v curl >/dev/null 2>&1; then
-                curl -L -o /tmp/clang.tar.xz "$URL"
-              elif command -v wget >/dev/null 2>&1; then
-                wget -O /tmp/clang.tar.xz "$URL"
-              else
-                echo "Neither curl nor wget found in image" >&2; exit 1
-              fi
-              mkdir -p /opt/clang
-              tar -xJf /tmp/clang.tar.xz -C /opt/clang --strip-components=1
-              echo >> setup_devtools.sh "export CC=/opt/clang/bin/clang CXX=/opt/clang/bin/clang++ AR=/opt/clang/bin/llvm-ar RANLIB=/opt/clang/bin/llvm-ranlib LD=/opt/clang/bin/ld.lld"
-              echo "::endgroup::"
-            fi
+          linux-arm64)
+            echo "::group::Install build deps via apt (Ubuntu 22.04)"
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update
+            apt-get install -y --no-install-recommends \
+              ca-certificates \
+              cmake \
+              clang \
+              lld \
+              make \
+              g++ \
+              zlib1g-dev
+            update-ca-certificates || true
+            echo >> setup_devtools.sh "export CC=clang CXX=clang++ AR=llvm-ar RANLIB=llvm-ranlib LD=ld.lld"
+            echo "::endgroup::"
             ;;
         esac
 
@@ -408,12 +407,35 @@ jobs:
           LDFLAGS="$LDFLAGS -Wl,--version-script,$VSCRIPT"
         fi
 
-        # On ARM64 under QEMU, disable IPO and lower optimization to avoid GCC ICEs
+        # On ARM64 under QEMU, disable IPO and lower optimization to avoid compiler issues
         CMAKE_ARGS=""
         if [ "$(uname -m)" = "aarch64" ]; then
           CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF"
           CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_C_FLAGS_MINSIZEREL=-O0 -DCMAKE_CXX_FLAGS_MINSIZEREL=-O0"
+          # For linux-arm64 with clang, pass compilers and LLVM binutils explicitly
+          if [ "$RID" = "linux-arm64" ] && [ -n "$CC" ] && [ -n "$CXX" ]; then
+            CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX"
+            case "$CC" in
+              *clang)
+                if command -v llvm-ar >/dev/null 2>&1; then
+                  CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_AR=$(command -v llvm-ar)"
+                fi
+                if command -v llvm-ranlib >/dev/null 2>&1; then
+                  CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_RANLIB=$(command -v llvm-ranlib)"
+                fi
+                if command -v ld.lld >/dev/null 2>&1; then
+                  CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_LINKER=$(command -v ld.lld)"
+                fi
+                ;;
+            esac
+          fi
         fi
+
+        # Diagnostics to help track toolchain selection
+        echo "CC: ${CC:-$(command -v cc || true)}"
+        echo "CXX: ${CXX:-$(command -v c++ || true)}"
+        { command -v "$CC" >/dev/null 2>&1 && "$CC" --version || true; } | head -n1
+        { command -v "$CXX" >/dev/null 2>&1 && "$CXX" --version || true; } | head -n1
 
         # To allow aliasing CMake, execute the build script by sourcing it
         . ./build.sh $CMAKE_ARGS
