@@ -341,6 +341,11 @@ jobs:
         case "${{ matrix.rid }}" in
           linux-musl*)
             apk add cmake g++ make zlib-dev
+            # Prefer clang/lld on aarch64 to avoid GCC ICEs under QEMU
+            if [ "$(uname -m)" = "aarch64" ]; then
+              apk add clang lld
+              echo >> setup_devtools.sh "export CC=clang CXX=clang++ AR=llvm-ar RANLIB=llvm-ranlib LD=ld.lld"
+            fi
             ;;
 
           linux*)
@@ -357,6 +362,23 @@ jobs:
             # Some projects/tools expect 'gmake'; provide a compatibility symlink
             ln -sf /usr/bin/make /usr/bin/gmake || true
             echo ::endgroup::
+
+            # On aarch64, install a modern Clang toolchain to avoid GCC ICEs
+            if [ "$(uname -m)" = "aarch64" ]; then
+              echo ::group::Install Clang toolchain (aarch64)
+              URL="https://github.com/llvm/llvm-project/releases/download/llvmorg-16.0.6/clang+llvm-16.0.6-aarch64-linux-gnu.tar.xz"
+              if command -v curl >/dev/null 2>&1; then
+                curl -L -o /tmp/clang.tar.xz "$URL"
+              elif command -v wget >/dev/null 2>&1; then
+                wget -O /tmp/clang.tar.xz "$URL"
+              else
+                echo "Neither curl nor wget found in image" >&2; exit 1
+              fi
+              mkdir -p /opt/clang
+              tar -xJf /tmp/clang.tar.xz -C /opt/clang --strip-components=1
+              echo >> setup_devtools.sh "export CC=/opt/clang/bin/clang CXX=/opt/clang/bin/clang++ AR=/opt/clang/bin/llvm-ar RANLIB=/opt/clang/bin/llvm-ranlib LD=/opt/clang/bin/ld.lld"
+              echo ::endgroup::
+            fi
             ;;
         esac
 
