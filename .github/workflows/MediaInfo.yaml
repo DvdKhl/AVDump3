@@ -292,15 +292,15 @@ jobs:
 
         - os: ubuntu
           rid: linux-x64
-          docker_image: centos:7
-          # latest as of 2022-01-16
+          docker_image: quay.io/pypa/manylinux2014_x86_64
+          # manylinux2014 (CentOS 7 baseline) for wide glibc compatibility
           devtoolset: 11
 
         - os: ubuntu
           rid: linux-arm64
           qemu: true
-          docker_image: arm64v8/centos:7
-          # latest that contains gcc-c++ as of 2022-01-16
+          docker_image: quay.io/pypa/manylinux2014_aarch64
+          # manylinux2014 aarch64 image for glibc compatibility
           devtoolset: 10
 
     defaults:
@@ -344,48 +344,18 @@ jobs:
             ;;
 
           linux*)
-            echo ::group::Switch to CentOS vault for EOL CentOS 7
-            sed -i 's|^mirrorlist=|#mirrorlist=|g' /etc/yum.repos.d/CentOS-*.repo
-            sed -i 's|^#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*.repo
-            
-            # ARM64 uses altarch path instead of centos path
-            if [ "$(uname -m)" = "aarch64" ]; then
-              sed -i 's|vault.centos.org/centos|vault.centos.org/altarch|g' /etc/yum.repos.d/CentOS-*.repo
+            echo ::group::Install CMake in manylinux via pip
+            # Pick the latest available CPython's pip inside manylinux image
+            PIP=$(ls -1d /opt/python/cp3*/bin/pip 2>/dev/null | sort | tail -n1)
+            if [ -z "$PIP" ]; then
+              echo "No pip found under /opt/python; manylinux image unexpected" >&2
+              exit 1
             fi
-            echo ::endgroup::
-
-            echo ::group::Add repositories
-            yum -y --setopt=skip_missing_names_on_install=False --setopt=timeout=10 \
-              install centos-release-scl-rh epel-release
-            echo ::endgroup::
-
-            echo ::group::Fix SCL repository mirrors
-            sed -i 's|^mirrorlist=|#mirrorlist=|g' /etc/yum.repos.d/CentOS-SCLo-*.repo
-            sed -i 's|^#* *baseurl=http://mirror.centos.org/centos/7|baseurl=http://vault.centos.org/centos/7|g' /etc/yum.repos.d/CentOS-SCLo-*.repo
-            
-            # ARM64 uses altarch path for SCL repos too
-            if [ "$(uname -m)" = "aarch64" ]; then
-              sed -i 's|vault.centos.org/centos|vault.centos.org/altarch|g' /etc/yum.repos.d/CentOS-SCLo-*.repo
-            fi
-            echo ::endgroup::
-
-            echo ::group::Install packages
-            yum -y --setopt=skip_missing_names_on_install=False --setopt=timeout=10 \
-              install cmake3 devtoolset-${{ matrix.devtoolset }}-{gcc-c++,make} zlib-devel
-            echo ::endgroup::
-
-            yum clean metadata && yum upgrade -y
-
-            echo ::group::Create environment setup script
-            # scl_source uses nonzero $? internally
-            echo >> setup_devtools.sh \
-              'set +e; . scl_source enable devtoolset-${{ matrix.devtoolset }} || exit; set -e'
-            echo >> setup_devtools.sh 'alias cmake=cmake3'
-            
-            # For ARM64, create gmake symlink since devtoolset-10 make is named differently
-            if [ "$(uname -m)" = "aarch64" ]; then
-              echo >> setup_devtools.sh 'ln -sf /opt/rh/devtoolset-${{ matrix.devtoolset }}/root/usr/bin/make /opt/rh/devtoolset-${{ matrix.devtoolset }}/root/usr/bin/gmake'
-            fi
+            "$PIP" install --no-cache-dir cmake
+            # Ensure the Python bin directory (with cmake) is on PATH for subsequent steps
+            echo >> setup_devtools.sh "export PATH=$(dirname $PIP):\$PATH"
+            # Some projects/tools expect 'gmake'; provide a compatibility symlink
+            ln -sf /usr/bin/make /usr/bin/gmake || true
             echo ::endgroup::
             ;;
         esac
@@ -399,7 +369,11 @@ jobs:
         NPROC=$(nproc)
         RID=${{ matrix.rid }}
         SOEXT=so
-        LDFLAGS="-flto=$NPROC -Wl,--version-script,${{ github.workspace }}/libmediainfo.map"
+        LDFLAGS="-flto=$NPROC"
+        VSCRIPT="${{ github.workspace }}/libmediainfo.map"
+        if [ -f "$VSCRIPT" ]; then
+          LDFLAGS="$LDFLAGS -Wl,--version-script,$VSCRIPT"
+        fi
 
         # To allow aliasing CMake, execute the build script by sourcing it
         . ./build.sh
