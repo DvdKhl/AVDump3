@@ -344,8 +344,6 @@ jobs:
             ;;
 
           linux*)
-            yum clean metadata && yum upgrade
-
             echo ::group::Switch to CentOS vault for EOL CentOS 7
             sed -i 's|^mirrorlist=|#mirrorlist=|g' /etc/yum.repos.d/CentOS-*.repo
             sed -i 's|^#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*.repo
@@ -375,6 +373,8 @@ jobs:
             yum -y --setopt=skip_missing_names_on_install=False --setopt=timeout=10 \
               install cmake3 devtoolset-${{ matrix.devtoolset }}-{gcc-c++,make} zlib-devel
             echo ::endgroup::
+
+            yum clean metadata && yum upgrade
 
             echo ::group::Create environment setup script
             # scl_source uses nonzero $? internally
