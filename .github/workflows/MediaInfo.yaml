@@ -349,7 +349,7 @@ jobs:
             ;;
 
           linux*)
-            echo ::group::Install CMake in manylinux via pip
+            echo "::group::Install CMake in manylinux via pip"
             # Pick the latest available CPython's pip inside manylinux image
             PIP=$(ls -1d /opt/python/cp3*/bin/pip 2>/dev/null | sort | tail -n1)
             if [ -z "$PIP" ]; then
@@ -358,14 +358,15 @@ jobs:
             fi
             "$PIP" install --no-cache-dir cmake
             # Ensure the Python bin directory (with cmake) is on PATH for subsequent steps
-            echo >> setup_devtools.sh "export PATH=$(dirname $PIP):\$PATH"
+            PIPDIR=$(dirname "$PIP")
+            echo >> setup_devtools.sh "export PATH=$PIPDIR:\$PATH"
             # Some projects/tools expect 'gmake'; provide a compatibility symlink
             ln -sf /usr/bin/make /usr/bin/gmake || true
-            echo ::endgroup::
+            echo "::endgroup::"
 
             # On aarch64, install a modern Clang toolchain to avoid GCC ICEs
             if [ "$(uname -m)" = "aarch64" ]; then
-              echo ::group::Install Clang toolchain (aarch64)
+              echo "::group::Install Clang toolchain (aarch64)"
               URL="https://github.com/llvm/llvm-project/releases/download/llvmorg-16.0.6/clang+llvm-16.0.6-aarch64-linux-gnu.tar.xz"
               if command -v curl >/dev/null 2>&1; then
                 curl -L -o /tmp/clang.tar.xz "$URL"
@@ -377,7 +378,7 @@ jobs:
               mkdir -p /opt/clang
               tar -xJf /tmp/clang.tar.xz -C /opt/clang --strip-components=1
               echo >> setup_devtools.sh "export CC=/opt/clang/bin/clang CXX=/opt/clang/bin/clang++ AR=/opt/clang/bin/llvm-ar RANLIB=/opt/clang/bin/llvm-ranlib LD=/opt/clang/bin/ld.lld"
-              echo ::endgroup::
+              echo "::endgroup::"
             fi
             ;;
         esac
