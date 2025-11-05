@@ -366,7 +366,12 @@ jobs:
       run: |
         . ./setup_devtools.sh
 
-        NPROC=$(nproc)
+        # Limit parallelism under QEMU to avoid GCC ICE/segfaults on ARM64
+        if [ "$(uname -m)" = "aarch64" ]; then
+          NPROC=2
+        else
+          NPROC=$(nproc)
+        fi
         RID=${{ matrix.rid }}
         SOEXT=so
         LDFLAGS="-flto=$NPROC"
