@@ -1,13 +1,11 @@
 name: AVDump3
 
 on:
-  #push:
-  #  tags: [ 'B[0-9]+-GitHubRelease' ]
-  #  branches: [ master ]
+  push:
+    tags: [ 'B[0-9]+-GitHubRelease' ]
+    branches: [ master ]
   pull_request:
     branches: [ master ]
-  push:
-    branches: [ NET10 ]
 
 jobs:
   build-avd3-main:
