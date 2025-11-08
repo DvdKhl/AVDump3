@@ -10,139 +10,25 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MEDIAINFO_VERSION: 25.09
+      MEDIAINFO_BASE_URL: https://mediaarea.net/download/source/libmediainfo
+      MACOS_RUNNER: macos-15
+      UBUNTU_RUNNER_X64: ubuntu-latest
+      UBUNTU_RUNNER_ARM64: ubuntu-24.04-arm
+      DOCKER_ALPINE_X64: alpine:3.12
+      DOCKER_ALPINE_ARM64: arm64v8/alpine:3.12
+      DOCKER_MANYLINUX_X64: quay.io/pypa/manylinux2014_x86_64
+      DOCKER_UBUNTU_ARM64: arm64v8/ubuntu:22.04
+      MACOSX_MIN_X64: '10.13'
+      MACOSX_MIN_ARM64: '11.0'
+      MAC_LDFLAGS: -Wl,-x
 
     steps:
-    - name: Check out AVDump3
-      uses: actions/checkout@v4
-      with:
-        path: AVDump3
-
     - name: Check out MediaInfo
       run: |
         curl -LOSs \
-          https://mediaarea.net/download/source/libmediainfo/${MEDIAINFO_VERSION}/libmediainfo_${MEDIAINFO_VERSION}_AllInclusive.7z
-        7z x libmediainfo_${MEDIAINFO_VERSION}_AllInclusive.7z
+          "$MEDIAINFO_BASE_URL/${MEDIAINFO_VERSION}/libmediainfo_${MEDIAINFO_VERSION}_AllInclusive.7z"
+        7z x "libmediainfo_${MEDIAINFO_VERSION}_AllInclusive.7z"
 
-    # - name: Fix build-breaking MediaInfo bugs
-    #   working-directory: libmediainfo_AllInclusive
-    #   run: |
-    #     # Missing include breaks build on non-Windows without _POSIX_PRIORITY_SCHEDULING (Alpine)
-    #     sed -i~ '1i\
-    #     #include <signal.h>\
-    #     ' MediaInfoLib/Source/MediaInfo/MediaInfo_Internal.cpp
-
-    #     cr=$'\r'
-    #     patch MediaInfoLib/Source/MediaInfo/MediaInfo_Inform.cpp <<EOF
-    #     @@ -53,2 +53,2 @@
-    #     -# if defined(MEDIAINFO_XML_YES) || defined(MEDIAINFO_JSON_YES)$cr
-    #     +#if defined(MEDIAINFO_XML_YES) || defined(MEDIAINFO_JSON_YES) || MEDIAINFO_ADVANCED$cr
-    #     EOF
-
-    #     # Function is called but not compiled with MEDIAINFO_MINIMAL_YES
-    #     patch MediaInfoLib/Source/MediaInfo/MediaInfo_Inform.cpp <<EOF
-    #     @@ -65,2 +65,2 @@
-    #     -#if defined(MEDIAINFO_XML_YES) || defined(MEDIAINFO_JSON_YES)$cr
-    #     +#if defined(MEDIAINFO_XML_YES) || defined(MEDIAINFO_JSON_YES) || MEDIAINFO_ADVANCED$cr
-    #      Ztring Xml_Name_Escape_0_7_78 (const Ztring &Name)$cr
-    #     EOF
-
-    #     # Broken CMake BUILD_SHARED_LIBS shadowing causes ZenLib to be linked dynamically
-    #     # instead of statically. Also, while not quite build-breaking, old CMake semantics
-    #     # prevent interprocedural optimization and apply hidden visibility only selectively.
-    #     # All of this could be fixed at build-time by passing -DCMAKE_POLICY_DEFAULT_CMP00XX=NEW
-    #     # command-line options to `cmake`, but this patch additionally validates
-    #     # that our CMake is actually new enough to understand and support the new behavior.
-    #     for project in ZenLib MediaInfoLib; do
-    #       sed -i~ 's/cmake_minimum_required(VERSION 2.8.11)/cmake_minimum_required(VERSION 3.13)/' \
-    #         $project/Project/CMake/CMakeLists.txt
-    #     done
-
-    #- name: Disable unused MediaInfo features
-    #  working-directory: libmediainfo_AllInclusive
-    #  run: |
-    #    echo 'target_compile_definitions(mediainfo PRIVATE MEDIAINFO_MINIMAL_YES)' \
-    #      >> MediaInfoLib/Project/CMake/CMakeLists.txt
-#
-    #    find . -name MediaInfoLib.vcxproj -exec sed -i~ '
-    #      /<PreprocessorDefinitions>/s|\(MEDIAINFO_[0-9A-Za-z_]*;\)\{1,\}|MEDIAINFO_MINIMAL_YES;|g
-    #    ' '{}' ';'
-#
-    #- name: Hide unused MediaInfo symbols
-    #  working-directory: libmediainfo_AllInclusive
-    #  run: |
-    #    grep -hIR 'extern .*MediaInfo' ../AVDump3/AVDump3Lib \
-    #      | sed 's/^.*extern [^ ]* \([^(]*\).*$/\1/' \
-    #      > libmediainfo.sym
-    #    { echo EXPORTS; cat libmediainfo.sym; } \
-    #      > MediaInfoLib/Source/MediaInfoDLL/MediaInfoDLL.def
-    #    {
-    #      echo '{'
-    #      echo 'global:'
-    #      sed 's/$/;/' libmediainfo.sym
-    #      echo 'local:'
-    #      echo '*;'
-    #      echo '};'
-    #    } > libmediainfo.map
-#
-    #    for module in MediaInfo MediaInfoList; do
-    #      sed -i~ 's/class MEDIAINFO_EXP/class/' \
-    #        MediaInfoLib/Source/MediaInfo/$module.h
-    #    done
-#
-    #    sed -i~ 's|^MEDIAINFO_EXP|/*MEDIAINFO_EXP*/|' \
-    #      MediaInfoLib/Source/MediaInfoDLL/MediaInfoDLL_Static.h
-    #    for symbol in $(cat libmediainfo.sym); do
-    #     sed -i~ "s|^/\*MEDIAINFO_EXP\*/\(.* __stdcall $symbol \)|MEDIAINFO_EXP\1|" \
-    #       MediaInfoLib/Source/MediaInfoDLL/MediaInfoDLL_Static.h
-    #    done
-#
-    #- name: Configure MSVC to statically link C++ runtime library
-    #  working-directory: libmediainfo_AllInclusive
-    #  run: |
-    #    find . -name '*.vcxproj' -exec sed -i~ s/MultiThreadedDLL/MultiThreaded/g '{}' ';'
-#
-    #- name: Configure MSVC to minimize binary size
-    #  working-directory: libmediainfo_AllInclusive
-    #  run: |
-    #    find . -name '*.vcxproj' -exec sed -i~ '
-    #      s|<Optimization>.*</Optimization>||g
-    #      s|<InlineFunctionExpansion>.*</InlineFunctionExpansion>||g
-    #      s|<WholeProgramOptimization>.*</WholeProgramOptimization>||g
-    #      s|<RuntimeTypeInfo>.*</RuntimeTypeInfo>||g
-    #      s|<BufferSecurityCheck>.*</BufferSecurityCheck>||g
-    #      s|<ClCompile>|&\
-    #        <Optimization>MinSpace</Optimization>\
-    #        <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>\
-    #        <WholeProgramOptimization>true</WholeProgramOptimization>\
-    #        <RuntimeTypeInfo>false</RuntimeTypeInfo>\
-    #        <BufferSecurityCheck>false</BufferSecurityCheck>\
-    #        <AdditionalOptions>/Gw</AdditionalOptions>|g
-    #    ' '{}' ';'
-#
-    #- name: Configure CMake to further reduce macOS binary size
-    #  working-directory: libmediainfo_AllInclusive
-    #  run: |
-    #    for project in ZenLib MediaInfoLib; do
-    #      cat >> $project/Project/CMake/CMakeLists.txt <<'EOF'
-    #    if(APPLE)
-    #      foreach(lang C CXX OBJC OBJCXX)
-    #        # Force -Oz instead of CMake's default -Os to target truly minimum code size
-    #        # (upstream: https://gitlab.kitware.com/cmake/cmake/-/issues/22458).
-    #        string(REGEX REPLACE "-Os" "-Oz" CMAKE_${lang}_FLAGS_MINSIZEREL "${CMAKE_${lang}_FLAGS_MINSIZEREL}")
-#
-    #        # Force -flto instead of CMake's default -flto=thin
-    #        # because it is more aggressive and reduces the output size more
-    #        # (upstream: https://gitlab.kitware.com/cmake/cmake/-/issues/22913).
-    #        set(CMAKE_${lang}_COMPILE_OPTIONS_IPO "-flto")
-#
-    #        # Remove unnecessary -headerpad_max_install_names to squeeze out another 16 KiB.
-    #        string(REGEX REPLACE "-Wl,-headerpad_max_install_names" "" CMAKE_${lang}_LINK_FLAGS "${CMAKE_${lang}_LINK_FLAGS}")
-    #        string(REGEX REPLACE "-Wl,-headerpad_max_install_names" "" CMAKE_SHARED_LIBRARY_CREATE_${lang}_FLAGS "${CMAKE_SHARED_LIBRARY_CREATE_${lang}_FLAGS}")
-    #      endforeach()
-    #    endif()
-    #    EOF
-    #    done
-#
     - name: Create UNIX build script
       working-directory: libmediainfo_AllInclusive
       run: |
@@ -229,7 +115,7 @@ jobs:
   build-mediainfo-osx:
     needs: prepare-mediainfo
     name: build-mediainfo-${{ matrix.rid }}
-    runs-on: macos-15  # needed for ARM support in system headers
+    runs-on: ${{ env.MACOS_RUNNER }}  # needed for ARM support in system headers
     strategy:
       fail-fast: false
       matrix:
@@ -238,11 +124,11 @@ jobs:
           arch: x86_64
           # Match .NET Core's target version from:
           # https://github.com/dotnet/runtime/blob/main/eng/native/configurecompiler.cmake
-          macosx_version_min: 10.13
+          macosx_version_min: ${{ env.MACOSX_MIN_X64 }}
 
         - rid: osx-arm64
           arch: arm64
-          macosx_version_min: '11.0'
+          macosx_version_min: ${{ env.MACOSX_MIN_ARM64 }}
 
     steps:
     - name: Download prepared MediaInfo source artifact
@@ -263,7 +149,7 @@ jobs:
         SOEXT: dylib
         # Ask `ld` to strip out non-global symbols to save space:
         # `strip` won't work, and the compiler doesn't understand `-s`.
-        LDFLAGS: -Wl,-x
+        LDFLAGS: ${{ env.MAC_LDFLAGS }}
       run: |
         NPROC=$(sysctl -n hw.ncpu) ./build.sh
 
@@ -276,35 +162,38 @@ jobs:
   build-mediainfo-linux:
     needs: prepare-mediainfo
     name: build-mediainfo-${{ matrix.rid }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runs_on }}
+    container: ${{ matrix.docker_image }}
     strategy:
       fail-fast: false
       matrix:
         include:
         - os: ubuntu
           rid: linux-musl-x64
-          docker_image: alpine:3.12
+          runs_on: ${{ env.UBUNTU_RUNNER_X64 }}
+          docker_image: ${{ env.DOCKER_ALPINE_X64 }}
 
         - os: ubuntu
           rid: linux-musl-arm64
-          qemu: true
-          docker_image: arm64v8/alpine:3.12
+          runs_on: ${{ env.UBUNTU_RUNNER_ARM64 }}
+          docker_image: ${{ env.DOCKER_ALPINE_ARM64 }}
 
         - os: ubuntu
           rid: linux-x64
-          docker_image: quay.io/pypa/manylinux2014_x86_64
-          # manylinux2014 (CentOS 7 baseline) for wide glibc compatibility
-          devtoolset: 11
+          runs_on: ${{ env.UBUNTU_RUNNER_X64 }}
+          docker_image: ${{ env.DOCKER_MANYLINUX_X64 }}
+          # manylinux2014 (CentOS 7 baseline) for wide glibc compatibility.
+          # Keep GCC toolchain to preserve oldest glibc/libstdc++ ABI surface for legacy x64 systems.
 
         - os: ubuntu
           rid: linux-arm64
-          qemu: true
-          docker_image: arm64v8/ubuntu:22.04
+          runs_on: ${{ env.UBUNTU_RUNNER_ARM64 }}
+          docker_image: ${{ env.DOCKER_UBUNTU_ARM64 }}
           # Modern glibc environment on ARM64; compatibility with very old systems is not required
 
     defaults:
       run:
-        shell: /usr/bin/docker exec dockerciimage sh -e {0}
+        shell: sh -e {0}
 
     steps:
     - name: Download prepared MediaInfo source artifact
@@ -318,55 +207,32 @@ jobs:
         tar xJf libmediainfo_AllInclusive.tar.xz
         mv libmediainfo_AllInclusive/* .
 
-    - name: Set up QEMU for Docker
-      if: matrix.qemu
-      shell: sh
-      run: |
-        docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-
-    - name: Start Docker container
-      shell: sh
-      run: |
-        # Note: With this setup everything inside the container will be run as root
-        if [ "${{ matrix.qemu }}" = "true" ]; then PLATFORM="--platform=linux/arm64"; else PLATFORM=""; fi
-        docker pull $PLATFORM "${{ matrix.docker_image }}"
-        docker create $PLATFORM --name dockerciimage \
-          -v "/home/runner/work:/home/runner/work" --workdir "$PWD"  \
-          --entrypoint "tail" "${{ matrix.docker_image }}" "-f" "/dev/null"
-        docker start dockerciimage
-
     - name: Install build dependencies
       run: |
-        touch setup_devtools.sh
         case "${{ matrix.rid }}" in
           linux-musl*)
-            apk add cmake g++ make zlib-dev
-            # Prefer clang/lld on aarch64 to avoid GCC ICEs under QEMU
-            if [ "$(uname -m)" = "aarch64" ]; then
-              apk add clang lld
-              echo >> setup_devtools.sh "export CC=clang CXX=clang++ AR=llvm-ar RANLIB=llvm-ranlib LD=ld.lld"
-            fi
+            apk add --no-cache cmake g++ make zlib-dev clang lld
+            # clang toolchain for musl
+            {
+              echo 'CC=clang'
+              echo 'CXX=clang++'
+              echo 'AR=llvm-ar'
+              echo 'RANLIB=llvm-ranlib'
+              echo 'LD=ld.lld'
+            } >> "$GITHUB_ENV"
             ;;
-
           linux-x64)
-            echo "::group::Install CMake in manylinux via pip"
-            # Pick the latest available CPython's pip inside manylinux image
+            # Install latest CMake via the newest bundled CPython's pip
             PIP=$(ls -1d /opt/python/cp3*/bin/pip 2>/dev/null | sort | tail -n1)
             if [ -z "$PIP" ]; then
-              echo "No pip found under /opt/python; manylinux image unexpected" >&2
+              echo "No pip under /opt/python; unexpected manylinux image" >&2
               exit 1
             fi
             "$PIP" install --no-cache-dir cmake
-            # Ensure the Python bin directory (with cmake) is on PATH for subsequent steps
             PIPDIR=$(dirname "$PIP")
-            echo >> setup_devtools.sh "export PATH=$PIPDIR:\$PATH"
-            # Some projects/tools expect 'gmake'; provide a compatibility symlink
-            ln -sf /usr/bin/make /usr/bin/gmake || true
-            echo "::endgroup::"
+            echo "PATH=$PIPDIR:$PATH" >> "$GITHUB_ENV"
             ;;
-
           linux-arm64)
-            echo "::group::Install build deps via apt (Ubuntu 22.04)"
             export DEBIAN_FRONTEND=noninteractive
             apt-get update
             apt-get install -y --no-install-recommends \
@@ -375,81 +241,42 @@ jobs:
               clang \
               lld \
               make \
-              g++ \
+              libstdc++-dev \
               zlib1g-dev
             update-ca-certificates || true
-            echo >> setup_devtools.sh "export CC=clang CXX=clang++ AR=llvm-ar RANLIB=llvm-ranlib LD=ld.lld"
-            echo "::endgroup::"
+            {
+              echo 'CC=clang'
+              echo 'CXX=clang++'
+              echo 'AR=llvm-ar'
+              echo 'RANLIB=llvm-ranlib'
+              echo 'LD=ld.lld'
+            } >> "$GITHUB_ENV"
             ;;
         esac
 
     - name: Build MediaInfo
-      # We can't use the CI's `env` key here because this may run in a
-      # Docker container that doesn't see the CI's native environment
       run: |
-        . ./setup_devtools.sh
-
-        # Limit parallelism under QEMU to avoid GCC ICE/segfaults on ARM64
-        if [ "$(uname -m)" = "aarch64" ]; then
-          NPROC=1
-        else
-          NPROC=$(nproc)
-        fi
+        # Parallelism: use all available cores inside the container
+        NPROC=$(nproc)
         RID=${{ matrix.rid }}
         SOEXT=so
-        # Disable LTO on aarch64 to avoid ICE/segfaults under emulation
-        if [ "$(uname -m)" = "aarch64" ]; then
-          LDFLAGS=""
-        else
-          LDFLAGS="-flto=$NPROC"
-        fi
+
+        # Common LTO flags
+        LDFLAGS="-flto=$NPROC"
         VSCRIPT="${{ github.workspace }}/libmediainfo.map"
-        if [ -f "$VSCRIPT" ]; then
-          LDFLAGS="$LDFLAGS -Wl,--version-script,$VSCRIPT"
-        fi
+        [ -f "$VSCRIPT" ] && LDFLAGS="$LDFLAGS -Wl,--version-script,$VSCRIPT"
 
-        # On ARM64 under QEMU, disable IPO and lower optimization to avoid compiler issues
-        CMAKE_ARGS=""
-        if [ "$(uname -m)" = "aarch64" ]; then
-          CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF"
-          CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_C_FLAGS_MINSIZEREL=-O0 -DCMAKE_CXX_FLAGS_MINSIZEREL=-O0"
-          # For linux-arm64 with clang, pass compilers and LLVM binutils explicitly
-          if [ "$RID" = "linux-arm64" ] && [ -n "$CC" ] && [ -n "$CXX" ]; then
-            CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX"
-            case "$CC" in
-              *clang)
-                if command -v llvm-ar >/dev/null 2>&1; then
-                  CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_AR=$(command -v llvm-ar)"
-                fi
-                if command -v llvm-ranlib >/dev/null 2>&1; then
-                  CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_RANLIB=$(command -v llvm-ranlib)"
-                fi
-                if command -v ld.lld >/dev/null 2>&1; then
-                  CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_LINKER=$(command -v ld.lld)"
-                fi
-                ;;
-            esac
-          fi
-        fi
-
-        # Diagnostics to help track toolchain selection
+        # Diagnostics
         echo "CC: ${CC:-$(command -v cc || true)}"
         echo "CXX: ${CXX:-$(command -v c++ || true)}"
-        { command -v "$CC" >/dev/null 2>&1 && "$CC" --version || true; } | head -n1
-        { command -v "$CXX" >/dev/null 2>&1 && "$CXX" --version || true; } | head -n1
+        { command -v "${CC:-cc}" >/dev/null 2>&1 && "${CC:-cc}" --version || true; } | head -n1
+        { command -v "${CXX:-c++}" >/dev/null 2>&1 && "${CXX:-c++}" --version || true; } | head -n1
 
-        # To allow aliasing CMake, execute the build script by sourcing it
-        . ./build.sh $CMAKE_ARGS
+        ./build.sh
 
     - name: Discard symbol table  # to save space
       run: |
-        strip MediaInfo-${{ matrix.rid }}.so
-
-    - name: Stop Docker container
-      if: always()
-      shell: sh
-      run: |
-        docker rm --force dockerciimage
+        strip MediaInfo-${{ matrix.rid }}.so || true
 
     - name: Upload MediaInfo binary artifact
       uses: actions/upload-artifact@v4
