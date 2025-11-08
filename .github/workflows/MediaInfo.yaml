@@ -3,7 +3,7 @@ name: MediaInfo
 on:
   workflow_dispatch:
   push:
-    branches: [ mediainfo, NET10 ]
+    branches: [ NET10, mediainfo ]
 
 env:
   MEDIAINFO_VERSION: '25.09'
