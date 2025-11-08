@@ -100,10 +100,15 @@ jobs:
         [ -f "$out/MediaInfo-windows-x64.dll" ] || [ -f "$out/MediaInfo.dll" ] && mv -f "$out"/MediaInfo.dll "$out"/MediaInfo-windows-x64.dll 2>/dev/null || true
         [ -f "$out/MediaInfo-linux-x64.so" ] || [ -f "$out/MediaInfo.linux-x64.so" ] && mv -f "$out"/MediaInfo.linux-x64.so "$out"/MediaInfo-linux-x64.so 2>/dev/null || true
         [ -f "$out/MediaInfo-linux-arm64.so" ] || [ -f "$out/MediaInfo.linux-arm64.so" ] && mv -f "$out"/MediaInfo.linux-arm64.so "$out"/MediaInfo-linux-arm64.so 2>/dev/null || true
-        [ -f "$out/MediaInfo-linux-x64-musl.so" ] || [ -f "$out/MediaInfo.linux-musl-x64.so" ] && mv -f "$out"/MediaInfo.linux-musl-x64.so "$out"/MediaInfo-linux-x64-musl.so 2>/dev/null || true
-        [ -f "$out/MediaInfo-linux-arm64-musl.so" ] || [ -f "$out/MediaInfo.linux-musl-arm64.so" ] && mv -f "$out"/MediaInfo.linux-musl-arm64.so "$out"/MediaInfo-linux-arm64-musl.so 2>/dev/null || true
-        # Provide extensionless MediaInfo-linux-arm64 if required
-        [ -f "$out/MediaInfo-linux-arm64" ] || [ -f "$out/MediaInfo-linux-arm64.so" ] && cp -f "$out/MediaInfo-linux-arm64.so" "$out/MediaInfo-linux-arm64" 2>/dev/null || true
+        # musl variants may be named with musl between arch tokens in artifacts; normalize both dotted and hyphenated forms
+        if [ ! -f "$out/MediaInfo-linux-x64-musl.so" ]; then
+          [ -f "$out/MediaInfo.linux-musl-x64.so" ] && mv -f "$out/MediaInfo.linux-musl-x64.so" "$out/MediaInfo-linux-x64-musl.so" || true
+          [ -f "$out/MediaInfo-linux-musl-x64.so" ] && mv -f "$out/MediaInfo-linux-musl-x64.so" "$out/MediaInfo-linux-x64-musl.so" || true
+        fi
+        if [ ! -f "$out/MediaInfo-linux-arm64-musl.so" ]; then
+          [ -f "$out/MediaInfo.linux-musl-arm64.so" ] && mv -f "$out/MediaInfo.linux-musl-arm64.so" "$out/MediaInfo-linux-arm64-musl.so" || true
+          [ -f "$out/MediaInfo-linux-musl-arm64.so" ] && mv -f "$out/MediaInfo-linux-musl-arm64.so" "$out/MediaInfo-linux-arm64-musl.so" || true
+        fi
 
     - name: Verify required dependency payload
       run: |
@@ -115,7 +120,7 @@ jobs:
           AVDump3NativeLib-linux-arm64.so
           AVDump3NativeLib-linux-x64.so
           AVDump3NativeLib-windows-x64.dll
-          MediaInfo-linux-arm64
+          MediaInfo-linux-arm64.so
           MediaInfo-linux-arm64-musl.so
           MediaInfo-linux-x64.so
           MediaInfo-linux-x64-musl.so
