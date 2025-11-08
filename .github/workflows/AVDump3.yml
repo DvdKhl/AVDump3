@@ -92,7 +92,7 @@ jobs:
         find "$dest" -type d -mindepth 1 -maxdepth 3 -empty -delete || true
 
     - name: AVD3Main-Compile
-      run: dotnet build --configuration Release
+      run: dotnet build AVDump3CL/AVDump3CL.csproj --configuration Release
 
     - name: AVD3Main-CopyLibs
       run: |
