@@ -33,7 +33,7 @@ jobs:
       if: matrix.platform == 'linux'
       uses: actions/upload-artifact@v4
       with:
-        name: AVDump3NativeLib.Linux
+        name: AVDump3NativeLib.Linux.x64
         path: ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-linux-x64.so
 
     - name: AVD3Native-Compile-Linux-Arm64
@@ -49,7 +49,7 @@ jobs:
       if: matrix.platform == 'linux'
       uses: actions/upload-artifact@v4
       with:
-        name: AVDump3NativeLib.Linux
+        name: AVDump3NativeLib.Linux.arm64
         path: ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-linux-arm64.so
 
     - name: AVD3Native-Compile-MacOS
@@ -60,7 +60,7 @@ jobs:
         mv ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib.dylib ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-osx-x64.dylib
         make -B ARCH=arm64 -C AVDump3NativeLib MACOSX_DEPLOYMENT_TARGET=11.0
         mv ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib.dylib ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-osx-arm64.dylib
-        lipo -create ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-{x64,arm64}.dylib -output ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-osx.dylib
+        lipo -create ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-osx-x64.dylib ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-osx-arm64.dylib -output ${{ github.workspace }}/AVDump3NativeLib/AVDump3NativeLib-osx.dylib
 
     - name: AVD3Native-ArtifactUpload-MacOS
       if: matrix.platform == 'macos'
@@ -76,7 +76,7 @@ jobs:
     - name: AVD3Native-Compile-Windows
       if: matrix.platform == 'windows'
       run: |
-        msbuild AVDump3NativeLib\AVDump3NativeLib.vcxproj /p:Configuration="GithubWorkflow" /p:platform=x64 /p:BuildProjectReferences=false
+        msbuild AVDump3NativeLib\AVDump3NativeLib.vcxproj /p:Configuration="GithubWorkflow" /p:Platform=x64 /p:PlatformToolset=v143 /p:BuildProjectReferences=false
         move ${{ github.workspace }}\AVDump3NativeLib\x64\GithubWorkflow\AVDump3NativeLib.dll ${{ github.workspace }}\AVDump3NativeLib\x64\GithubWorkflow\AVDump3NativeLib-windows-x64.dll
 
     - name: AVD3Native-ArtifactUpload-Windows
