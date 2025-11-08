@@ -50,7 +50,7 @@ jobs:
         # LTO (IPO) and hidden visibility both save space and improve MediaInfo's performance.
         # MediaInfo doesn't use RTTI (typeid & dynamic_cast), so omit it to save space.
         # We'll only load the library at runtime, so we can save a few bytes on macOS install_name.
-        cmake .. \
+        CMAKE_ARGS="\
           -DCMAKE_RULE_MESSAGES=OFF \
           -DCMAKE_VERBOSE_MAKEFILE=ON \
           -DCMAKE_DISABLE_FIND_PACKAGE_CURL=ON \
@@ -62,18 +62,22 @@ jobs:
           -DCMAKE_C_VISIBILITY_PRESET=hidden \
           -DCMAKE_CXX_VISIBILITY_PRESET=hidden \
           -DCMAKE_VISIBILITY_INLINES_HIDDEN=ON \
-          -DCMAKE_CXX_FLAGS="-fno-rtti" \
-          -DCMAKE_OSX_ARCHITECTURES="$ARCH" \
-          -DCMAKE_INSTALL_NAME_DIR="" \
-          -DCMAKE_SHARED_LINKER_FLAGS="$LDFLAGS" \
-          -DCMAKE_MODULE_LINKER_FLAGS="$LDFLAGS" \
-          -DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS" \
-          -DCMAKE_C_COMPILER="$CC" \
-          -DCMAKE_CXX_COMPILER="$CXX" \
-          -DCMAKE_AR="${AR}" \
-          -DCMAKE_RANLIB="${RANLIB}" \
-          -DCMAKE_LINKER="${LD}" \
-          "$@"
+          -DCMAKE_CXX_FLAGS=\"-fno-rtti\" \
+          -DCMAKE_OSX_ARCHITECTURES=\"$ARCH\" \
+          -DCMAKE_INSTALL_NAME_DIR=\"\" \
+          -DCMAKE_SHARED_LINKER_FLAGS=\"$LDFLAGS\" \
+          -DCMAKE_MODULE_LINKER_FLAGS=\"$LDFLAGS\" \
+          -DCMAKE_EXE_LINKER_FLAGS=\"$LDFLAGS\"\
+        "
+
+        # Only force toolchain programs if provided
+        [ -n "$CC" ] && CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_C_COMPILER=$CC"
+        [ -n "$CXX" ] && CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_CXX_COMPILER=$CXX"
+        [ -n "$AR" ] && CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_AR=$AR"
+        [ -n "$RANLIB" ] && CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_RANLIB=$RANLIB"
+        [ -n "$LD" ] && CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_LINKER=$LD"
+
+        cmake .. $CMAKE_ARGS "$@"
         make -j$NPROC
 
         # Resolve the built library path in a robust way across platforms
@@ -247,11 +251,16 @@ jobs:
           linux-musl-x64)
             docker run --rm -v "${PWD}:/work" -w /work alpine:3.12 sh -lc '
               set -e
-              apk add --no-cache cmake g++ make zlib-dev clang lld coreutils findutils
+              apk add --no-cache cmake g++ make zlib-dev clang lld coreutils findutils binutils
               export CC=clang CXX=clang++ AR=llvm-ar RANLIB=llvm-ranlib LD=ld.lld
               NPROC=$(nproc)
               # clang 10: use -flto with lld; avoid LLVMgold plugin by forcing lld
               LDFLAGS="-flto -fuse-ld=lld -Wl,--threads"
+              # If lld is missing fall back without LTO
+              if ! command -v ld.lld >/dev/null 2>&1; then
+                echo "lld not found; disabling LTO for musl build" >&2
+                LDFLAGS=""
+              fi
               [ -f /work/libmediainfo.map ] && LDFLAGS="$LDFLAGS -Wl,--version-script,/work/libmediainfo.map"
               RID=linux-musl-x64 SOEXT=so NPROC=$NPROC LDFLAGS="$LDFLAGS" ./build.sh
             '
@@ -259,11 +268,15 @@ jobs:
           linux-musl-arm64)
             docker run --rm -v "${PWD}:/work" -w /work arm64v8/alpine:3.12 sh -lc '
               set -e
-              apk add --no-cache cmake g++ make zlib-dev clang lld coreutils findutils
+              apk add --no-cache cmake g++ make zlib-dev clang lld coreutils findutils binutils
               export CC=clang CXX=clang++ AR=llvm-ar RANLIB=llvm-ranlib LD=ld.lld
               NPROC=$(nproc)
               # clang 10: use -flto with lld; avoid LLVMgold plugin by forcing lld
               LDFLAGS="-flto -fuse-ld=lld -Wl,--threads"
+              if ! command -v ld.lld >/dev/null 2>&1; then
+                echo "lld not found; disabling LTO for musl build" >&2
+                LDFLAGS=""
+              fi
               [ -f /work/libmediainfo.map ] && LDFLAGS="$LDFLAGS -Wl,--version-script,/work/libmediainfo.map"
               RID=linux-musl-arm64 SOEXT=so NPROC=$NPROC LDFLAGS="$LDFLAGS" ./build.sh
             '
