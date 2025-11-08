@@ -22,6 +22,9 @@ jobs:
       with:
         dotnet-version: 10.0.x
 
+    - name: AVD3Main-Compile
+      run: dotnet build AVDump3CL/AVDump3CL.csproj --configuration Release
+
     - name: Fetch AVD3Native artifacts from latest successful run
       env:
         GH_TOKEN: ${{ github.token }}
@@ -89,18 +92,21 @@ jobs:
         find "$dest" -type f -mindepth 1 -maxdepth 3 -print -exec mv -f {} "$dest" \;
         find "$dest" -type d -mindepth 1 -maxdepth 3 -empty -delete || true
 
-    - name: AVD3Main-Compile
-      run: dotnet build AVDump3CL/AVDump3CL.csproj --configuration Release
-
-    - name: AVD3Main-CopyLibs
+    - name: Normalize dependency filenames and prune extras
       run: |
+        set -euo pipefail
         out="$GITHUB_WORKSPACE/AVDump3CL/bin/Release/net10.0"
-        # Copy MediaInfo libs (if present) into output dir
-        shopt -s nullglob
-        for f in "$out"/MediaInfo-*.* "$out"/MediaInfo.*; do
-          [ -f "$f" ] && echo "Keeping MediaInfo artifact: $(basename "$f")"
-        done
-        # Nothing to do here if already downloaded to output.
+        # Normalize MediaInfo file names
+        if [ -f "$out/MediaInfo.dll" ]; then
+          mv -f "$out/MediaInfo.dll" "$out/MediaInfo-windows-x64.dll"
+        fi
+        # musl naming consistency: also provide -x64-musl and -arm64-musl
+        [ -f "$out/MediaInfo-linux-musl-x64.so" ] && cp -f "$out/MediaInfo-linux-musl-x64.so" "$out/MediaInfo-linux-x64-musl.so"
+        [ -f "$out/MediaInfo-linux-musl-arm64.so" ] && cp -f "$out/MediaInfo-linux-musl-arm64.so" "$out/MediaInfo-linux-arm64-musl.so"
+        # provide extensionless arm64 variant if expected
+        [ -f "$out/MediaInfo-linux-arm64.so" ] && cp -f "$out/MediaInfo-linux-arm64.so" "$out/MediaInfo-linux-arm64"
+        # Remove macOS libs from the CLI release (not listed as expected)
+        rm -f "$out"/AVDump3NativeLib-osx*.dylib "$out"/MediaInfo-*.dylib || true
 
     - name: AVD3Main-ArtifactUpload
       uses: actions/upload-artifact@v4
