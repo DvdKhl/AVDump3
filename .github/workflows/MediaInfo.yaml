@@ -243,7 +243,8 @@ jobs:
               apk add --no-cache cmake g++ make zlib-dev clang lld coreutils findutils
               export CC=clang CXX=clang++ AR=llvm-ar RANLIB=llvm-ranlib LD=ld.lld
               NPROC=$(nproc)
-              LDFLAGS="-flto=$NPROC"
+              # clang 10 does not support -flto=<jobs>; use plain -flto and enable lld threads
+              LDFLAGS="-flto -Wl,--threads"
               [ -f /work/libmediainfo.map ] && LDFLAGS="$LDFLAGS -Wl,--version-script,/work/libmediainfo.map"
               RID=linux-musl-x64 SOEXT=so NPROC=$NPROC LDFLAGS="$LDFLAGS" ./build.sh
             '
@@ -254,7 +255,8 @@ jobs:
               apk add --no-cache cmake g++ make zlib-dev clang lld coreutils findutils
               export CC=clang CXX=clang++ AR=llvm-ar RANLIB=llvm-ranlib LD=ld.lld
               NPROC=$(nproc)
-              LDFLAGS="-flto=$NPROC"
+              # clang 10 does not support -flto=<jobs>; use plain -flto and enable lld threads
+              LDFLAGS="-flto -Wl,--threads"
               [ -f /work/libmediainfo.map ] && LDFLAGS="$LDFLAGS -Wl,--version-script,/work/libmediainfo.map"
               RID=linux-musl-arm64 SOEXT=so NPROC=$NPROC LDFLAGS="$LDFLAGS" ./build.sh
             '
@@ -267,7 +269,8 @@ jobs:
               "$PIP" install --no-cache-dir cmake
               export PATH="$(dirname "$PIP"):$PATH"
               NPROC=$(nproc)
-              LDFLAGS="-flto=$NPROC"
+              # GCC supports -flto, avoid job count for broader compatibility
+              LDFLAGS="-flto"
               [ -f /work/libmediainfo.map ] && LDFLAGS="$LDFLAGS -Wl,--version-script,/work/libmediainfo.map"
               RID=linux-x64 SOEXT=so NPROC=$NPROC LDFLAGS="$LDFLAGS" ./build.sh
             '
@@ -285,7 +288,8 @@ jobs:
             sudo update-ca-certificates || true
             export CC=clang CXX=clang++ AR=llvm-ar RANLIB=llvm-ranlib LD=ld.lld
             NPROC=$(nproc)
-            LDFLAGS="-flto=$NPROC"
+      # clang 14+ on Ubuntu 22.04 supports -flto; no job count here
+      LDFLAGS="-flto -Wl,--threads"
             [ -f "${PWD}/libmediainfo.map" ] && LDFLAGS="$LDFLAGS -Wl,--version-script,${PWD}/libmediainfo.map"
             RID=linux-arm64 SOEXT=so NPROC=$NPROC LDFLAGS="$LDFLAGS" ./build.sh
             ;;
