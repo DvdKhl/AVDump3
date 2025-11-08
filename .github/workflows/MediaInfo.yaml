@@ -296,8 +296,8 @@ jobs:
             sudo update-ca-certificates || true
             export CC=clang CXX=clang++ AR=llvm-ar RANLIB=llvm-ranlib LD=ld.lld
             NPROC=$(nproc)
-            # clang 14+ on Ubuntu 22.04 supports -flto; no job count here
-            LDFLAGS="-flto -Wl,--threads"
+            # Force lld for LTO to avoid bfd ld; no --threads (bfd doesn't support it)
+            LDFLAGS="-flto -fuse-ld=lld"
             [ -f "${PWD}/libmediainfo.map" ] && LDFLAGS="$LDFLAGS -Wl,--version-script,${PWD}/libmediainfo.map"
             RID=linux-arm64 SOEXT=so NPROC=$NPROC LDFLAGS="$LDFLAGS" ./build.sh
             ;;
