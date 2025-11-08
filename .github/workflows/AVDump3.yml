@@ -31,8 +31,8 @@ jobs:
       with:
         dotnet-version: 10.0.x
 
-    - name: AVD3Main-Compile
-      run: dotnet build AVDump3CL/AVDump3CL.csproj --configuration Release
+    - name: AVD3Main-Compile (restore only)
+      run: dotnet restore AVDump3CL/AVDump3CL.csproj
 
     - name: Prepare output folder
       run: |
@@ -137,11 +137,67 @@ jobs:
           exit 1
         fi
 
+    - name: Publish CLI for multiple RIDs
+      run: |
+        set -euo pipefail
+        base="$GITHUB_WORKSPACE/AVDump3CL"
+        pub="$base/publish"
+        mkdir -p "$pub/win-x64" "$pub/linux-x64" "$pub/linux-arm64" "$pub/linux-musl-x64" "$pub/linux-musl-arm64"
+        # Publish framework-dependent executables per RID
+        dotnet publish "$base/AVDump3CL.csproj" -c Release -r win-x64 -o "$pub/win-x64" --no-self-contained
+        dotnet publish "$base/AVDump3CL.csproj" -c Release -r linux-x64 -o "$pub/linux-x64" --no-self-contained
+        dotnet publish "$base/AVDump3CL.csproj" -c Release -r linux-arm64 -o "$pub/linux-arm64" --no-self-contained
+        dotnet publish "$base/AVDump3CL.csproj" -c Release -r linux-musl-x64 -o "$pub/linux-musl-x64" --no-self-contained
+        dotnet publish "$base/AVDump3CL.csproj" -c Release -r linux-musl-arm64 -o "$pub/linux-musl-arm64" --no-self-contained
+
+    - name: Copy native and MediaInfo libs into published outputs
+      run: |
+        set -euo pipefail
+        stage="$GITHUB_WORKSPACE/AVDump3CL/bin/Release/net10.0"
+        pub="$GITHUB_WORKSPACE/AVDump3CL/publish"
+        # Windows x64
+        cp -f "$stage/AVDump3NativeLib-windows-x64.dll" "$pub/win-x64/" 2>/dev/null || true
+        cp -f "$stage/MediaInfo-windows-x64.dll" "$pub/win-x64/" 2>/dev/null || true
+        # Linux x64
+        cp -f "$stage/AVDump3NativeLib-linux-x64.so" "$pub/linux-x64/" 2>/dev/null || true
+        cp -f "$stage/MediaInfo-linux-x64.so" "$pub/linux-x64/" 2>/dev/null || true
+        # Linux arm64
+        cp -f "$stage/AVDump3NativeLib-linux-arm64.so" "$pub/linux-arm64/" 2>/dev/null || true
+        cp -f "$stage/MediaInfo-linux-arm64.so" "$pub/linux-arm64/" 2>/dev/null || true
+        # Linux musl x64 (reuse native glibc lib if musl variant not provided)
+        cp -f "$stage/AVDump3NativeLib-linux-x64.so" "$pub/linux-musl-x64/" 2>/dev/null || true
+        cp -f "$stage/MediaInfo-linux-x64-musl.so" "$pub/linux-musl-x64/" 2>/dev/null || true
+        # Linux musl arm64 (reuse native glibc lib if musl variant not provided)
+        cp -f "$stage/AVDump3NativeLib-linux-arm64.so" "$pub/linux-musl-arm64/" 2>/dev/null || true
+        cp -f "$stage/MediaInfo-linux-arm64-musl.so" "$pub/linux-musl-arm64/" 2>/dev/null || true
+
+    - name: Verify published executables exist
+      run: |
+        set -euo pipefail
+        pub="$GITHUB_WORKSPACE/AVDump3CL/publish"
+        req=(
+          "$pub/win-x64/AVDump3CL.exe"
+          "$pub/linux-x64/AVDump3CL"
+          "$pub/linux-arm64/AVDump3CL"
+          "$pub/linux-musl-x64/AVDump3CL"
+          "$pub/linux-musl-arm64/AVDump3CL"
+        )
+        missing=()
+        for p in "${req[@]}"; do
+          [ -f "$p" ] || missing+=("$p")
+        done
+        if [ ${#missing[@]} -gt 0 ]; then
+          echo "ERROR: Missing published executables:" >&2
+          printf ' - %s\n' "${missing[@]}" >&2
+          exit 1
+        fi
+        echo "Published outputs:" && find "$pub" -maxdepth 2 -type f -printf '%P\n' | sort
+
     - name: AVD3Main-ArtifactUpload
       uses: actions/upload-artifact@v4
       with:
         name: AVDump3CL
-        path: ${{ github.workspace }}/AVDump3CL/bin/Release/net10.0/
+        path: ${{ github.workspace }}/AVDump3CL/publish/
 
   release-avd3-main:
     if: contains(github.ref, 'tags/B')
