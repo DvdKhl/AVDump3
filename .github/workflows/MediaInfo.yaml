@@ -3,7 +3,7 @@ name: MediaInfo
 on:
   workflow_dispatch:
   push:
-    branches: [ mediainfo ]
+    branches: [ mediainfo, NET10 ]
 
 env:
   MEDIAINFO_VERSION: '25.09'
@@ -37,6 +37,12 @@ jobs:
         cat > build.sh <<'EOF'
         #!/bin/sh -e
 
+        # Defaults for portability across environments
+        : "${NPROC:=$( (command -v nproc >/dev/null 2>&1 && nproc) || (sysctl -n hw.ncpu 2>/dev/null) || echo 1 )}"
+        : "${SOEXT:=so}"
+        : "${RID:=unknown}"
+        : "${LDFLAGS:=}"
+
         mkdir MediaInfoLib/Project/CMake/build
         cd MediaInfoLib/Project/CMake/build
 
@@ -63,8 +69,28 @@ jobs:
           "$@"
         make -j$NPROC
 
-        fullname=./libmediainfo.$SOEXT
-        while target=$(readlink "$fullname"); do fullname=${fullname%/*}/$target; done
+        # Resolve the built library path in a robust way across platforms
+        # Prefer a symlink named libmediainfo.<ext> if present, else take the first match
+        cand="./libmediainfo.$SOEXT"
+        if [ ! -e "$cand" ]; then
+          # Linux often has versioned names like libmediainfo.so.0.XXXX
+          cand=$(ls -1 ./libmediainfo.*$SOEXT* 2>/dev/null | head -n1 || true)
+        fi
+
+        if [ -z "$cand" ] || [ ! -e "$cand" ]; then
+          echo "Could not locate built libmediainfo (SOEXT=$SOEXT)" >&2
+          exit 1
+        fi
+
+        # Follow symlinks (portable): iterate readlink until it is not a link
+        fullname="$cand"
+        while target=$(readlink "$fullname" 2>/dev/null); do
+          case "$target" in
+            /*) fullname="$target" ;;
+            *)  fullname=${fullname%/*}/$target ;;
+          esac
+        done
+
         mv "$fullname" ../../../../MediaInfo-$RID.$SOEXT
         EOF
         chmod +x build.sh
@@ -165,7 +191,6 @@ jobs:
     needs: prepare-mediainfo
     name: build-mediainfo-${{ matrix.rid }}
     runs-on: ${{ matrix.runs_on }}
-    container: ${{ matrix.docker_image }}
     strategy:
       fail-fast: false
       matrix:
@@ -193,10 +218,6 @@ jobs:
           docker_image: arm64v8/ubuntu:22.04
           # Modern glibc environment on ARM64; compatibility with very old systems is not required
 
-    defaults:
-      run:
-        shell: sh -e {0}
-
     steps:
     - name: Download prepared MediaInfo source artifact
       uses: actions/download-artifact@v4
@@ -204,40 +225,56 @@ jobs:
         name: MediaInfo.src
 
     - name: Unpack MediaInfo source
-      shell: sh
+      shell: bash
       run: |
         tar xJf libmediainfo_AllInclusive.tar.xz
         mv libmediainfo_AllInclusive/* .
 
-    - name: Install build dependencies
+    - name: Build MediaInfo (containerized where needed)
+      shell: bash
       run: |
-        case "${{ matrix.rid }}" in
-          linux-musl*)
-            apk add --no-cache cmake g++ make zlib-dev clang lld
-            # clang toolchain for musl
-            {
-              echo 'CC=clang'
-              echo 'CXX=clang++'
-              echo 'AR=llvm-ar'
-              echo 'RANLIB=llvm-ranlib'
-              echo 'LD=ld.lld'
-            } >> "$GITHUB_ENV"
+        set -euo pipefail
+        RID="${{ matrix.rid }}"
+        echo "Building for RID=$RID"
+        case "$RID" in
+          linux-musl-x64)
+            docker run --rm -v "${PWD}:/work" -w /work alpine:3.12 sh -lc '
+              set -e
+              apk add --no-cache cmake g++ make zlib-dev clang lld coreutils findutils
+              export CC=clang CXX=clang++ AR=llvm-ar RANLIB=llvm-ranlib LD=ld.lld
+              NPROC=$(nproc)
+              LDFLAGS="-flto=$NPROC"
+              [ -f /work/libmediainfo.map ] && LDFLAGS="$LDFLAGS -Wl,--version-script,/work/libmediainfo.map"
+              RID=linux-musl-x64 SOEXT=so NPROC=$NPROC LDFLAGS="$LDFLAGS" ./build.sh
+            '
+            ;;
+          linux-musl-arm64)
+            docker run --rm -v "${PWD}:/work" -w /work arm64v8/alpine:3.12 sh -lc '
+              set -e
+              apk add --no-cache cmake g++ make zlib-dev clang lld coreutils findutils
+              export CC=clang CXX=clang++ AR=llvm-ar RANLIB=llvm-ranlib LD=ld.lld
+              NPROC=$(nproc)
+              LDFLAGS="-flto=$NPROC"
+              [ -f /work/libmediainfo.map ] && LDFLAGS="$LDFLAGS -Wl,--version-script,/work/libmediainfo.map"
+              RID=linux-musl-arm64 SOEXT=so NPROC=$NPROC LDFLAGS="$LDFLAGS" ./build.sh
+            '
             ;;
           linux-x64)
-            # Install latest CMake via the newest bundled CPython's pip
-            PIP=$(ls -1d /opt/python/cp3*/bin/pip 2>/dev/null | sort | tail -n1)
-            if [ -z "$PIP" ]; then
-              echo "No pip under /opt/python; unexpected manylinux image" >&2
-              exit 1
-            fi
-            "$PIP" install --no-cache-dir cmake
-            PIPDIR=$(dirname "$PIP")
-            echo "PATH=$PIPDIR:$PATH" >> "$GITHUB_ENV"
+            docker run --rm -v "${PWD}:/work" -w /work quay.io/pypa/manylinux2014_x86_64 sh -lc '
+              set -e
+              PIP=$(ls -1d /opt/python/cp3*/bin/pip 2>/dev/null | sort | tail -n1)
+              if [ -z "$PIP" ]; then echo "No pip under /opt/python; unexpected manylinux image" >&2; exit 1; fi
+              "$PIP" install --no-cache-dir cmake
+              export PATH="$(dirname "$PIP"):$PATH"
+              NPROC=$(nproc)
+              LDFLAGS="-flto=$NPROC"
+              [ -f /work/libmediainfo.map ] && LDFLAGS="$LDFLAGS -Wl,--version-script,/work/libmediainfo.map"
+              RID=linux-x64 SOEXT=so NPROC=$NPROC LDFLAGS="$LDFLAGS" ./build.sh
+            '
             ;;
           linux-arm64)
-            export DEBIAN_FRONTEND=noninteractive
-            apt-get update
-            apt-get install -y --no-install-recommends \
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends \
               ca-certificates \
               cmake \
               clang \
@@ -245,40 +282,19 @@ jobs:
               make \
               libstdc++-dev \
               zlib1g-dev
-            update-ca-certificates || true
-            {
-              echo 'CC=clang'
-              echo 'CXX=clang++'
-              echo 'AR=llvm-ar'
-              echo 'RANLIB=llvm-ranlib'
-              echo 'LD=ld.lld'
-            } >> "$GITHUB_ENV"
+            sudo update-ca-certificates || true
+            export CC=clang CXX=clang++ AR=llvm-ar RANLIB=llvm-ranlib LD=ld.lld
+            NPROC=$(nproc)
+            LDFLAGS="-flto=$NPROC"
+            [ -f "${PWD}/libmediainfo.map" ] && LDFLAGS="$LDFLAGS -Wl,--version-script,${PWD}/libmediainfo.map"
+            RID=linux-arm64 SOEXT=so NPROC=$NPROC LDFLAGS="$LDFLAGS" ./build.sh
             ;;
         esac
 
-    - name: Build MediaInfo
-      run: |
-        # Parallelism: use all available cores inside the container
-        NPROC=$(nproc)
-        RID=${{ matrix.rid }}
-        SOEXT=so
-
-        # Common LTO flags
-        LDFLAGS="-flto=$NPROC"
-        VSCRIPT="${{ github.workspace }}/libmediainfo.map"
-        [ -f "$VSCRIPT" ] && LDFLAGS="$LDFLAGS -Wl,--version-script,$VSCRIPT"
-
-        # Diagnostics
-        echo "CC: ${CC:-$(command -v cc || true)}"
-        echo "CXX: ${CXX:-$(command -v c++ || true)}"
-        { command -v "${CC:-cc}" >/dev/null 2>&1 && "${CC:-cc}" --version || true; } | head -n1
-        { command -v "${CXX:-c++}" >/dev/null 2>&1 && "${CXX:-c++}" --version || true; } | head -n1
-
-        ./build.sh
-
     - name: Discard symbol table  # to save space
       run: |
-        strip MediaInfo-${{ matrix.rid }}.so || true
+        file="MediaInfo-${{ matrix.rid }}.so"
+        [ -f "$file" ] && strip "$file" || true
 
     - name: Upload MediaInfo binary artifact
       uses: actions/upload-artifact@v4
