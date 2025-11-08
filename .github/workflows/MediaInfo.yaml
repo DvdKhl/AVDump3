@@ -5,22 +5,24 @@ on:
   push:
     branches: [ mediainfo ]
 
+env:
+  MEDIAINFO_VERSION: '25.09'
+  MEDIAINFO_BASE_URL: https://mediaarea.net/download/source/libmediainfo
+  # Runner labels and build constants (cannot be used in runs-on via env)
+  MACOS_RUNNER: macos-15
+  UBUNTU_RUNNER_X64: ubuntu-latest
+  UBUNTU_RUNNER_ARM64: ubuntu-24.04-arm
+  DOCKER_ALPINE_X64: alpine:3.12
+  DOCKER_ALPINE_ARM64: arm64v8/alpine:3.12
+  DOCKER_MANYLINUX_X64: quay.io/pypa/manylinux2014_x86_64
+  DOCKER_UBUNTU_ARM64: arm64v8/ubuntu:22.04
+  MACOSX_MIN_X64: '10.13'
+  MACOSX_MIN_ARM64: '11.0'
+  MAC_LDFLAGS: -Wl,-x
+
 jobs:
   prepare-mediainfo:
     runs-on: ubuntu-latest
-    env:
-      MEDIAINFO_VERSION: 25.09
-      MEDIAINFO_BASE_URL: https://mediaarea.net/download/source/libmediainfo
-      MACOS_RUNNER: macos-15
-      UBUNTU_RUNNER_X64: ubuntu-latest
-      UBUNTU_RUNNER_ARM64: ubuntu-24.04-arm
-      DOCKER_ALPINE_X64: alpine:3.12
-      DOCKER_ALPINE_ARM64: arm64v8/alpine:3.12
-      DOCKER_MANYLINUX_X64: quay.io/pypa/manylinux2014_x86_64
-      DOCKER_UBUNTU_ARM64: arm64v8/ubuntu:22.04
-      MACOSX_MIN_X64: '10.13'
-      MACOSX_MIN_ARM64: '11.0'
-      MAC_LDFLAGS: -Wl,-x
 
     steps:
     - name: Check out MediaInfo
@@ -115,7 +117,7 @@ jobs:
   build-mediainfo-osx:
     needs: prepare-mediainfo
     name: build-mediainfo-${{ matrix.rid }}
-    runs-on: ${{ env.MACOS_RUNNER }}  # needed for ARM support in system headers
+    runs-on: macos-15  # needed for ARM support in system headers
     strategy:
       fail-fast: false
       matrix:
@@ -124,11 +126,11 @@ jobs:
           arch: x86_64
           # Match .NET Core's target version from:
           # https://github.com/dotnet/runtime/blob/main/eng/native/configurecompiler.cmake
-          macosx_version_min: ${{ env.MACOSX_MIN_X64 }}
+          macosx_version_min: '10.13'
 
         - rid: osx-arm64
           arch: arm64
-          macosx_version_min: ${{ env.MACOSX_MIN_ARM64 }}
+          macosx_version_min: '11.0'
 
     steps:
     - name: Download prepared MediaInfo source artifact
@@ -170,25 +172,25 @@ jobs:
         include:
         - os: ubuntu
           rid: linux-musl-x64
-          runs_on: ${{ env.UBUNTU_RUNNER_X64 }}
-          docker_image: ${{ env.DOCKER_ALPINE_X64 }}
+          runs_on: ubuntu-latest
+          docker_image: alpine:3.12
 
         - os: ubuntu
           rid: linux-musl-arm64
-          runs_on: ${{ env.UBUNTU_RUNNER_ARM64 }}
-          docker_image: ${{ env.DOCKER_ALPINE_ARM64 }}
+          runs_on: ubuntu-24.04-arm
+          docker_image: arm64v8/alpine:3.12
 
         - os: ubuntu
           rid: linux-x64
-          runs_on: ${{ env.UBUNTU_RUNNER_X64 }}
-          docker_image: ${{ env.DOCKER_MANYLINUX_X64 }}
+          runs_on: ubuntu-latest
+          docker_image: quay.io/pypa/manylinux2014_x86_64
           # manylinux2014 (CentOS 7 baseline) for wide glibc compatibility.
           # Keep GCC toolchain to preserve oldest glibc/libstdc++ ABI surface for legacy x64 systems.
 
         - os: ubuntu
           rid: linux-arm64
-          runs_on: ${{ env.UBUNTU_RUNNER_ARM64 }}
-          docker_image: ${{ env.DOCKER_UBUNTU_ARM64 }}
+          runs_on: ubuntu-24.04-arm
+          docker_image: arm64v8/ubuntu:22.04
           # Modern glibc environment on ARM64; compatibility with very old systems is not required
 
     defaults:
