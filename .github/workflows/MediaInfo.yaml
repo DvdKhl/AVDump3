@@ -73,8 +73,6 @@ jobs:
           $EXTRA_ARCH \
           ${CC:+-DCMAKE_C_COMPILER=$CC} \
           ${CXX:+-DCMAKE_CXX_COMPILER=$CXX} \
-          ${AR:+-DCMAKE_AR=$AR} \
-          ${RANLIB:+-DCMAKE_RANLIB=$RANLIB} \
           ${LD:+-DCMAKE_LINKER=$LD} \
           "$@"
         make -j$NPROC
@@ -251,7 +249,7 @@ jobs:
             docker run --rm -v "${PWD}:/work" -w /work alpine:3.12 sh -lc '
               set -e
               apk add --no-cache cmake g++ make zlib-dev clang lld coreutils findutils binutils
-              export CC=clang CXX=clang++ AR=llvm-ar RANLIB=llvm-ranlib LD=ld.lld
+              export CC=clang CXX=clang++ LD=ld.lld
               NPROC=$(nproc)
               # Disable LTO on musl for toolchain simplicity; re-enable later if needed
               LDFLAGS=""
@@ -263,7 +261,7 @@ jobs:
             docker run --rm -v "${PWD}:/work" -w /work arm64v8/alpine:3.12 sh -lc '
               set -e
               apk add --no-cache cmake g++ make zlib-dev clang lld coreutils findutils binutils
-              export CC=clang CXX=clang++ AR=llvm-ar RANLIB=llvm-ranlib LD=ld.lld
+              export CC=clang CXX=clang++ LD=ld.lld
               NPROC=$(nproc)
               # Disable LTO on musl for toolchain simplicity; re-enable later if needed
               LDFLAGS=""
