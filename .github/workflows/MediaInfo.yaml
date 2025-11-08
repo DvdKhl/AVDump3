@@ -63,12 +63,16 @@ jobs:
           -DCMAKE_CXX_VISIBILITY_PRESET=hidden \
           -DCMAKE_VISIBILITY_INLINES_HIDDEN=ON \
           -DCMAKE_CXX_FLAGS=\"-fno-rtti\" \
-          -DCMAKE_OSX_ARCHITECTURES=\"$ARCH\" \
           -DCMAKE_INSTALL_NAME_DIR=\"\" \
           -DCMAKE_SHARED_LINKER_FLAGS=\"$LDFLAGS\" \
           -DCMAKE_MODULE_LINKER_FLAGS=\"$LDFLAGS\" \
           -DCMAKE_EXE_LINKER_FLAGS=\"$LDFLAGS\"\
         "
+
+        # Only set OS X architectures if ARCH provided (avoid double quoting issues)
+        if [ -n "$ARCH" ]; then
+          CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_OSX_ARCHITECTURES=$ARCH"
+        fi
 
         # Only force toolchain programs if provided
         [ -n "$CC" ] && CMAKE_ARGS="$CMAKE_ARGS -DCMAKE_C_COMPILER=$CC"
