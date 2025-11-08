@@ -100,6 +100,9 @@ jobs:
         if [ -f "$out/MediaInfo.dll" ]; then
           mv -f "$out/MediaInfo.dll" "$out/MediaInfo-windows-x64.dll"
         fi
+        # Some linux artifacts may come as plain libmediainfo.* names; normalize defensively
+        [ -f "$out/libmediainfo.so" ] && mv -f "$out/libmediainfo.so" "$out/MediaInfo-linux-x64.so"
+        [ -f "$out/libmediainfo.dylib" ] && mv -f "$out/libmediainfo.dylib" "$out/MediaInfo-osx-x64.dylib"
         # musl naming consistency: also provide -x64-musl and -arm64-musl
         [ -f "$out/MediaInfo-linux-musl-x64.so" ] && cp -f "$out/MediaInfo-linux-musl-x64.so" "$out/MediaInfo-linux-x64-musl.so"
         [ -f "$out/MediaInfo-linux-musl-arm64.so" ] && cp -f "$out/MediaInfo-linux-musl-arm64.so" "$out/MediaInfo-linux-arm64-musl.so"
@@ -107,6 +110,44 @@ jobs:
         [ -f "$out/MediaInfo-linux-arm64.so" ] && cp -f "$out/MediaInfo-linux-arm64.so" "$out/MediaInfo-linux-arm64"
         # Remove macOS libs from the CLI release (not listed as expected)
         rm -f "$out"/AVDump3NativeLib-osx*.dylib "$out"/MediaInfo-*.dylib || true
+
+        # Normalize AVDump3Native library names if they came without RIDs
+        if [ -f "$out/AVDump3NativeLib.dll" ]; then
+          mv -f "$out/AVDump3NativeLib.dll" "$out/AVDump3NativeLib-windows-x64.dll"
+        fi
+        if [ -f "$out/AVDump3NativeLib.so" ]; then
+          # If both x64 and arm64 are present already, leave them; otherwise default to x64
+          if [ ! -f "$out/AVDump3NativeLib-linux-x64.so" ] && [ ! -f "$out/AVDump3NativeLib-linux-arm64.so" ]; then
+            mv -f "$out/AVDump3NativeLib.so" "$out/AVDump3NativeLib-linux-x64.so"
+          fi
+        fi
+
+    - name: Verify required dependency payload
+      run: |
+        set -euo pipefail
+        out="$GITHUB_WORKSPACE/AVDump3CL/bin/Release/net10.0"
+        echo "Final payload in $out:" && ls -la "$out"
+        missing=()
+        req=(
+          AVDump3NativeLib-linux-arm64.so
+          AVDump3NativeLib-linux-x64.so
+          AVDump3NativeLib-windows-x64.dll
+          MediaInfo-linux-arm64
+          MediaInfo-linux-arm64-musl.so
+          MediaInfo-linux-x64.so
+          MediaInfo-linux-x64-musl.so
+          MediaInfo-windows-x64.dll
+        )
+        for f in "${req[@]}"; do
+          [ -f "$out/$f" ] || missing+=("$f")
+        done
+        if [ ${#missing[@]} -gt 0 ]; then
+          echo "ERROR: Missing required files:" >&2
+          printf ' - %s\n' "${missing[@]}" >&2
+          echo 
+          echo "Available files:" && ls -1 "$out"
+          exit 1
+        fi
 
     - name: AVD3Main-ArtifactUpload
       uses: actions/upload-artifact@v4
@@ -142,6 +183,6 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         name: Build ${{ steps.avd3releasegettag.outputs.tag }}
-        draft: false
-        prerelease: false
+        draft: true
+        prerelease: true
         files: ${{ github.workspace }}/AVDump3CL-B${{ steps.avd3releasegettag.outputs.tag }}.zip
