@@ -8,7 +8,16 @@ on:
     branches: [ master ]
 
 jobs:
+  build-avd3native-deps:
+    name: deps/AVD3Native
+    uses: ./.github/workflows/AVD3Native.yml
+
+  build-mediainfo-deps:
+    name: deps/MediaInfo
+    uses: ./.github/workflows/MediaInfo.yaml
+
   build-avd3-main:
+    needs: [build-avd3native-deps, build-mediainfo-deps]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -25,102 +34,76 @@ jobs:
     - name: AVD3Main-Compile
       run: dotnet build AVDump3CL/AVDump3CL.csproj --configuration Release
 
-    - name: Fetch AVD3Native artifacts from latest successful run
-      env:
-        GH_TOKEN: ${{ github.token }}
+    - name: Prepare output folder
       run: |
-        set -euo pipefail
-        dest="$GITHUB_WORKSPACE/AVDump3CL/bin/Release/net10.0"
-        mkdir -p "$dest"
-        # Try current ref_name, then NET10, then master
-        for br in "${{ github.ref_name }}" NET10 master; do
-          run_id=$(gh api \
-            repos/${{ github.repository }}/actions/workflows/AVD3Native.yml/runs \
-            -f branch="$br" -f status=success \
-            --jq '.workflow_runs[0].id' || true)
-          [ -n "${run_id:-}" ] && echo "Found AVD3Native run on branch $br: $run_id" && break
-        done
-        if [ -z "${run_id:-}" ]; then
-          echo "No successful AVD3Native run found on branch ${{ github.ref_name }}."
-          exit 1
-        fi
-        echo "Using AVD3Native run_id=$run_id"
-        for name in \
-          AVDump3NativeLib.Linux.x64 \
-          AVDump3NativeLib.Linux.arm64 \
-          AVDump3NativeLib.MacOS \
-          AVDump3NativeLib.Windows; do
-          gh run download "$run_id" -n "$name" -D "$dest" || true
-        done
-        # Flatten any artifact subfolders
-        find "$dest" -type f -mindepth 1 -maxdepth 3 -print -exec mv -f {} "$dest" \;
-        find "$dest" -type d -mindepth 1 -maxdepth 3 -empty -delete || true
+        mkdir -p "$GITHUB_WORKSPACE/AVDump3CL/bin/Release/net10.0"
 
-    - name: Fetch MediaInfo artifacts from latest successful run
-      env:
-        GH_TOKEN: ${{ github.token }}
-      run: |
-        set -euo pipefail
-        dest="$GITHUB_WORKSPACE/AVDump3CL/bin/Release/net10.0"
-        mkdir -p "$dest"
-        # Try current ref_name, then NET10, then master, then mediainfo branch (for this workflow)
-        for br in "${{ github.ref_name }}" NET10 master mediainfo; do
-          run_id=$(gh api \
-            repos/${{ github.repository }}/actions/workflows/MediaInfo.yaml/runs \
-            -f branch="$br" -f status=success \
-            --jq '.workflow_runs[0].id' || true)
-          [ -n "${run_id:-}" ] && echo "Found MediaInfo run on branch $br: $run_id" && break
-        done
-        if [ -z "${run_id:-}" ]; then
-          echo "No successful MediaInfo run found on branch ${{ github.ref_name }}."
-          exit 1
-        fi
-        echo "Using MediaInfo run_id=$run_id"
-        # Download all MediaInfo.* artifacts we might publish
-        for name in \
-          MediaInfo.win-x64 \
-          MediaInfo.osx-universal \
-          MediaInfo.osx-x64 \
-          MediaInfo.osx-arm64 \
-          MediaInfo.linux-x64 \
-          MediaInfo.linux-arm64 \
-          MediaInfo.linux-musl-x64 \
-          MediaInfo.linux-musl-arm64; do
-          gh run download "$run_id" -n "$name" -D "$dest" || true
-        done
-        # Flatten any artifact subfolders
-        find "$dest" -type f -mindepth 1 -maxdepth 3 -print -exec mv -f {} "$dest" \;
-        find "$dest" -type d -mindepth 1 -maxdepth 3 -empty -delete || true
+    - name: Download native artifact (Linux x64)
+      uses: actions/download-artifact@v4
+      with:
+        name: AVDump3NativeLib.Linux.x64
+        path: ${{ github.workspace }}/AVDump3CL/bin/Release/net10.0/
+
+    - name: Download native artifact (Linux arm64)
+      uses: actions/download-artifact@v4
+      with:
+        name: AVDump3NativeLib.Linux.arm64
+        path: ${{ github.workspace }}/AVDump3CL/bin/Release/net10.0/
+
+    - name: Download native artifact (Windows x64)
+      uses: actions/download-artifact@v4
+      with:
+        name: AVDump3NativeLib.Windows
+        path: ${{ github.workspace }}/AVDump3CL/bin/Release/net10.0/
+
+    - name: Download MediaInfo (Windows x64)
+      uses: actions/download-artifact@v4
+      with:
+        name: MediaInfo.win-x64
+        path: ${{ github.workspace }}/AVDump3CL/bin/Release/net10.0/
+
+    - name: Download MediaInfo (Linux x64)
+      uses: actions/download-artifact@v4
+      with:
+        name: MediaInfo.linux-x64
+        path: ${{ github.workspace }}/AVDump3CL/bin/Release/net10.0/
+
+    - name: Download MediaInfo (Linux arm64)
+      uses: actions/download-artifact@v4
+      with:
+        name: MediaInfo.linux-arm64
+        path: ${{ github.workspace }}/AVDump3CL/bin/Release/net10.0/
+
+    - name: Download MediaInfo (Linux musl x64)
+      uses: actions/download-artifact@v4
+      with:
+        name: MediaInfo.linux-musl-x64
+        path: ${{ github.workspace }}/AVDump3CL/bin/Release/net10.0/
+
+    - name: Download MediaInfo (Linux musl arm64)
+      uses: actions/download-artifact@v4
+      with:
+        name: MediaInfo.linux-musl-arm64
+        path: ${{ github.workspace }}/AVDump3CL/bin/Release/net10.0/
 
     - name: Normalize dependency filenames and prune extras
       run: |
         set -euo pipefail
         out="$GITHUB_WORKSPACE/AVDump3CL/bin/Release/net10.0"
         # Normalize MediaInfo file names
-        if [ -f "$out/MediaInfo.dll" ]; then
-          mv -f "$out/MediaInfo.dll" "$out/MediaInfo-windows-x64.dll"
-        fi
-        # Some linux artifacts may come as plain libmediainfo.* names; normalize defensively
-        [ -f "$out/libmediainfo.so" ] && mv -f "$out/libmediainfo.so" "$out/MediaInfo-linux-x64.so"
-        [ -f "$out/libmediainfo.dylib" ] && mv -f "$out/libmediainfo.dylib" "$out/MediaInfo-osx-x64.dylib"
-        # musl naming consistency: also provide -x64-musl and -arm64-musl
-        [ -f "$out/MediaInfo-linux-musl-x64.so" ] && cp -f "$out/MediaInfo-linux-musl-x64.so" "$out/MediaInfo-linux-x64-musl.so"
-        [ -f "$out/MediaInfo-linux-musl-arm64.so" ] && cp -f "$out/MediaInfo-linux-musl-arm64.so" "$out/MediaInfo-linux-arm64-musl.so"
-        # provide extensionless arm64 variant if expected
-        [ -f "$out/MediaInfo-linux-arm64.so" ] && cp -f "$out/MediaInfo-linux-arm64.so" "$out/MediaInfo-linux-arm64"
-        # Remove macOS libs from the CLI release (not listed as expected)
-        rm -f "$out"/AVDump3NativeLib-osx*.dylib "$out"/MediaInfo-*.dylib || true
+        # Native lib artifact names already come with RIDs from dependency workflows; just rename to expected release names
+        [ -f "$out/AVDump3NativeLib-linux-x64.so" ] || [ -f "$out/AVDump3NativeLib.Linux.x64" ] && mv -f "$out"/AVDump3NativeLib.Linux.x64 "$out"/AVDump3NativeLib-linux-x64.so 2>/dev/null || true
+        [ -f "$out/AVDump3NativeLib-linux-arm64.so" ] || [ -f "$out/AVDump3NativeLib.Linux.arm64" ] && mv -f "$out"/AVDump3NativeLib.Linux.arm64 "$out"/AVDump3NativeLib-linux-arm64.so 2>/dev/null || true
+        [ -f "$out/AVDump3NativeLib-windows-x64.dll" ] || [ -f "$out/AVDump3NativeLib.dll" ] && mv -f "$out"/AVDump3NativeLib.dll "$out"/AVDump3NativeLib-windows-x64.dll 2>/dev/null || true
 
-        # Normalize AVDump3Native library names if they came without RIDs
-        if [ -f "$out/AVDump3NativeLib.dll" ]; then
-          mv -f "$out/AVDump3NativeLib.dll" "$out/AVDump3NativeLib-windows-x64.dll"
-        fi
-        if [ -f "$out/AVDump3NativeLib.so" ]; then
-          # If both x64 and arm64 are present already, leave them; otherwise default to x64
-          if [ ! -f "$out/AVDump3NativeLib-linux-x64.so" ] && [ ! -f "$out/AVDump3NativeLib-linux-arm64.so" ]; then
-            mv -f "$out/AVDump3NativeLib.so" "$out/AVDump3NativeLib-linux-x64.so"
-          fi
-        fi
+        # MediaInfo artifacts: ensure naming matches expected list
+        [ -f "$out/MediaInfo-windows-x64.dll" ] || [ -f "$out/MediaInfo.dll" ] && mv -f "$out"/MediaInfo.dll "$out"/MediaInfo-windows-x64.dll 2>/dev/null || true
+        [ -f "$out/MediaInfo-linux-x64.so" ] || [ -f "$out/MediaInfo.linux-x64.so" ] && mv -f "$out"/MediaInfo.linux-x64.so "$out"/MediaInfo-linux-x64.so 2>/dev/null || true
+        [ -f "$out/MediaInfo-linux-arm64.so" ] || [ -f "$out/MediaInfo.linux-arm64.so" ] && mv -f "$out"/MediaInfo.linux-arm64.so "$out"/MediaInfo-linux-arm64.so 2>/dev/null || true
+        [ -f "$out/MediaInfo-linux-x64-musl.so" ] || [ -f "$out/MediaInfo.linux-musl-x64.so" ] && mv -f "$out"/MediaInfo.linux-musl-x64.so "$out"/MediaInfo-linux-x64-musl.so 2>/dev/null || true
+        [ -f "$out/MediaInfo-linux-arm64-musl.so" ] || [ -f "$out/MediaInfo.linux-musl-arm64.so" ] && mv -f "$out"/MediaInfo.linux-musl-arm64.so "$out"/MediaInfo-linux-arm64-musl.so 2>/dev/null || true
+        # Provide extensionless MediaInfo-linux-arm64 if required
+        [ -f "$out/MediaInfo-linux-arm64" ] || [ -f "$out/MediaInfo-linux-arm64.so" ] && cp -f "$out/MediaInfo-linux-arm64.so" "$out/MediaInfo-linux-arm64" 2>/dev/null || true
 
     - name: Verify required dependency payload
       run: |

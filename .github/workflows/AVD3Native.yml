@@ -2,6 +2,7 @@ name: AVD3Native
 
 on:
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   build-avd3-native:

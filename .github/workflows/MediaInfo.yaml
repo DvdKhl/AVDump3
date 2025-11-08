@@ -2,6 +2,7 @@ name: MediaInfo
 
 on:
   workflow_dispatch:
+  workflow_call:
   push:
     branches: [ mediainfo ]
 
