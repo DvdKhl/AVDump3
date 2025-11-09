@@ -15,41 +15,41 @@ public static class Utils {
     private static IntPtr DllImportResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath) {
         var path = AppDomain.CurrentDomain.BaseDirectory;
 
-        var retVal = IntPtr.Zero;
+		var retVal = IntPtr.Zero;
         if(libraryName.Equals("AVDump3NativeLib")) {
             if(RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
                 if(RuntimeInformation.ProcessArchitecture == Architecture.Arm64) {
                     retVal = 
-                        NativeLibrary.TryLoad(Path.Combine(path, "AVDump3NativeLib-linux-arm64"), assembly, searchPath, out var handle) ||
-                        NativeLibrary.TryLoad(Path.Combine(path, "AVDump3NativeLib-linux-arm64-musl"), assembly, searchPath, out handle)
+                        NativeLibrary.TryLoad(Path.Combine(path, "AVDump3NativeLib-linux-arm64.so"), assembly, searchPath, out var handle) ||
+                        NativeLibrary.TryLoad(Path.Combine(path, "AVDump3NativeLib-linux-arm64-musl.so"), assembly, searchPath, out handle)
                         ? handle : IntPtr.Zero;
-                } else if(RuntimeInformation.ProcessArchitecture == Architecture.X64) {
+				} else if(RuntimeInformation.ProcessArchitecture == Architecture.X64) {
                     retVal =
-                        NativeLibrary.TryLoad(Path.Combine(path, "AVDump3NativeLib-linux-x64"), assembly, searchPath, out var handle) ||
-                        NativeLibrary.TryLoad(Path.Combine(path, "AVDump3NativeLib-linux-x64-musl"), assembly, searchPath, out handle)
+						NativeLibrary.TryLoad(Path.Combine(path, "AVDump3NativeLib-linux-x64.so"), assembly, searchPath, out var handle) ||
+						NativeLibrary.TryLoad(Path.Combine(path, "AVDump3NativeLib-linux-x64-musl.so"), assembly, searchPath, out handle)
                         ? handle : IntPtr.Zero;
-                }
-            } else if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+				}
+			} else if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                 if(RuntimeInformation.ProcessArchitecture == Architecture.X64) {
-                    retVal = NativeLibrary.TryLoad(Path.Combine(path, "AVDump3NativeLib-windows-x64"), assembly, searchPath, out var handle) ? handle : IntPtr.Zero;
+                    retVal = NativeLibrary.TryLoad(Path.Combine(path, "AVDump3NativeLib-windows-x64.dll"), assembly, searchPath, out var handle) ? handle : IntPtr.Zero;
                 }
             }
         } else if(libraryName.Equals("MediaInfo")) {
             if(RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) {
                 if(RuntimeInformation.ProcessArchitecture == Architecture.Arm64) {
                     retVal =
-                        NativeLibrary.TryLoad(Path.Combine(path, "MediaInfo-linux-arm64"), assembly, searchPath, out var handle) ||
-                        NativeLibrary.TryLoad(Path.Combine(path, "MediaInfo-linux-arm64-musl"), assembly, searchPath, out handle)
+                        NativeLibrary.TryLoad(Path.Combine(path, "MediaInfo-linux-arm64.so"), assembly, searchPath, out var handle) ||
+                        NativeLibrary.TryLoad(Path.Combine(path, "MediaInfo-linux-arm64-musl.so"), assembly, searchPath, out handle)
                         ? handle : IntPtr.Zero;
                 } else if(RuntimeInformation.ProcessArchitecture == Architecture.X64) {
                     retVal =
-                        NativeLibrary.TryLoad(Path.Combine(path, "MediaInfo-linux-x64"), assembly, searchPath, out var handle) ||
-                        NativeLibrary.TryLoad(Path.Combine(path, "MediaInfo-linux-x64-musl"), assembly, searchPath, out handle)
+                        NativeLibrary.TryLoad(Path.Combine(path, "MediaInfo-linux-x64.so"), assembly, searchPath, out var handle) ||
+                        NativeLibrary.TryLoad(Path.Combine(path, "MediaInfo-linux-x64-musl.so"), assembly, searchPath, out handle)
                         ? handle : IntPtr.Zero;
                 }
             } else if(RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                 if(RuntimeInformation.ProcessArchitecture == Architecture.X64) {
-                    retVal = NativeLibrary.TryLoad(Path.Combine(path, "MediaInfo-windows-x64"), assembly, searchPath, out var handle) ? handle : IntPtr.Zero;
+                    retVal = NativeLibrary.TryLoad(Path.Combine(path, "MediaInfo-windows-x64.dll"), assembly, searchPath, out var handle) ? handle : IntPtr.Zero;
                 }
             }
         }
