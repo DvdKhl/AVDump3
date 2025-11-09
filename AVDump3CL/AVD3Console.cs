@@ -1,5 +1,6 @@
 ﻿using AVDump3Lib.UI;
 using System.Diagnostics;
+using System.Runtime.Versioning;
 using System.Text;
 
 namespace AVDump3CL;
@@ -144,6 +145,7 @@ public class AVD3Console : IDisposable, IAVD3Console {
 		try {
 			canManipulateCursor = true;
 			CursorVisible = false;
+			CursorVisible = true;
 		} catch(IOException) {
 			canManipulateCursor = false;
 		}
@@ -160,6 +162,7 @@ public class AVD3Console : IDisposable, IAVD3Console {
 	}
 
 	public void StartProgressDisplay() {
+		CursorVisible = false;
 		lock(progressWriteLock) {
 			lock(progressWriteActiveChangeLock) {
 				ShowingProgress = true;
