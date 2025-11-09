@@ -221,7 +221,7 @@ public class ReportingSettings : SettingFacade {
 	public bool PrintHashes => (bool)GetRequiredValue();
 	public bool PrintReports => (bool)GetRequiredValue();
 	public ImmutableArray<string>? Reports => (ImmutableArray<string>?)GetValue();
-	public string ReportDirectory => (string)GetRequiredValue();
+	public string? ReportDirectory => (string?)GetValue();
 	public string ReportFileName => (string)GetRequiredValue();
 	public string ReportContentPrefix => (string)GetRequiredValue();
 	public string ExtensionDifferencePath => (string)GetRequiredValue();
@@ -242,7 +242,7 @@ public class ReportingSettings : SettingFacade {
 				return lst != null ? (lst.Value.Length == 0 ? null : string.Join(",", lst)) : "";
 			}
 		);
-		yield return From(SettingGroup, nameof(ReportDirectory), Names("RDir"), AVD3UISettings.UnspecifiedType, Environment.CurrentDirectory);
+		yield return From(SettingGroup, nameof(ReportDirectory), Names("RDir"), AVD3UISettings.UnspecifiedType, default(string));
 		yield return From(SettingGroup, nameof(ReportFileName), None, AVD3UISettings.UnspecifiedType, "${FileName}.${ReportName}.${ReportFileExtension}");
 		yield return From(SettingGroup, nameof(ReportContentPrefix), None, AVD3UISettings.UnspecifiedType, "");
 		yield return From(SettingGroup, nameof(ExtensionDifferencePath), Names("EDPath"), AVD3UISettings.UnspecifiedType, "");

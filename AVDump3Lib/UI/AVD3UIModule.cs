@@ -470,9 +470,10 @@ public abstract class AVD3UIModule : IAVD3UIModule, IFileMoveConfigure {
 
 					var reportContentPrefix = placeholderPattern.Replace(Settings.Reporting.ReportContentPrefix, m => ReplaceToken(m.Groups["Key"].Value, fileMetaInfo, tokenValues));
 
-					
-					lock(reportSaveLockObj) {
-						reportItem.Report.SaveToFile(Path.Combine(Settings.Reporting.ReportDirectory, reportFileName), reportContentPrefix, Utils.UTF8EncodingNoBOM);
+					if(Settings.Reporting.ReportDirectory != null) {
+						lock(reportSaveLockObj) {
+							reportItem.Report.SaveToFile(Path.Combine(Settings.Reporting.ReportDirectory, reportFileName), reportContentPrefix, Utils.UTF8EncodingNoBOM);
+						}
 					}
 				}
 
