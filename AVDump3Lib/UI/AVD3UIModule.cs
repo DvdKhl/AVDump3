@@ -306,8 +306,8 @@ public abstract class AVD3UIModule : IAVD3UIModule, IFileMoveConfigure {
 
 	public void Process(string[] paths) {
 		try {
-			var bytesReadProgress = CreateBytesReadProgress();
 			var sp = CreateFileStream(paths);
+			var bytesReadProgress = CreateBytesReadProgress();
 
 			var streamConsumerCollection = ProcessingModule.CreateStreamConsumerCollection(sp,
 				Settings.Processing.BufferLength,

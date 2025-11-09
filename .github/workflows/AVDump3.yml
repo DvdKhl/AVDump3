@@ -227,6 +227,6 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         name: Build ${{ steps.avd3releasegettag.outputs.tag }}
-        draft: true
+        draft: false
         prerelease: true
         files: ${{ github.workspace }}/AVDump3CL-B${{ steps.avd3releasegettag.outputs.tag }}.zip
