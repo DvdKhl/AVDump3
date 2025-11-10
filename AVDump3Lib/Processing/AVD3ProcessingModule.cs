@@ -1,3 +1,4 @@
+using AVDump3Lib.Misc;
 using AVDump3Lib.Modules;
 using AVDump3Lib.Processing.BlockBuffers;
 using AVDump3Lib.Processing.BlockConsumers;
@@ -9,8 +10,10 @@ using AVDump3Lib.Processing.StreamConsumer;
 using AVDump3Lib.Processing.StreamProvider;
 using ExtKnot.StringInvariants;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AVDump3Lib.Processing;
 
@@ -128,7 +131,16 @@ public class AVD3ProcessingModule : IAVD3ProcessingModule {
 
 	public IStreamConsumerCollection CreateStreamConsumerCollection(IStreamProvider streamProvider, int bufferLength, int minProducerReadLength, int maxProducerReadLength) {
 		var bcs = new BlockConsumerSelector(BlockConsumerFactories);
-		var bp = new MirroredBufferPool(bufferLength);
+
+
+		IMirroredBufferPool bp;
+		if(GetAvailableSIMD() != null) {
+			bp = new MirroredBufferPool(bufferLength);
+		} else {
+			bp = new MirroredBufferPoolPolyfill(bufferLength);
+		}
+
+
 		var scf = new StreamConsumerFactory(bcs, bp, minProducerReadLength, maxProducerReadLength);
 		var scc = new StreamConsumerCollection(scf, streamProvider);
 
@@ -147,3 +159,5 @@ public class AVD3ProcessingModule : IAVD3ProcessingModule {
 	public ModuleInitResult Initialized() => new(false);
 	public void Shutdown() { }
 }
+
+
