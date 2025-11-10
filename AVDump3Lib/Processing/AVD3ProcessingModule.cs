@@ -30,7 +30,13 @@ public class AVD3ProcessingModule : IAVD3ProcessingModule {
 
 
 
-	public CPUInstructions AvailableSIMD { get; } = NativeMethods.RetrieveCPUInstructions();
+	public CPUInstructions? GetAvailableSIMD() {
+		try {
+			return NativeMethods.RetrieveCPUInstructions();
+		} catch(Exception) {
+			return null;
+		}
+	}
 
 	public event EventHandler<BlockConsumerFilterEventArgs> BlockConsumerFilter = delegate { };
 	public event EventHandler<FilePathFilterEventArgs> FilePathFilter = delegate { };
@@ -75,15 +81,18 @@ public class AVD3ProcessingModule : IAVD3ProcessingModule {
 			addOrReplace(new BlockConsumerFactory("TIGER", s => new HashCalculator(s.Name, s.Reader, new TigerNativeHashAlgorithm())));
 			addOrReplace(new BlockConsumerFactory("TTH", s => new HashCalculator(s.Name, s.Reader, new TigerTreeHashAlgorithm(getArgumentAt(s, 0, Math.Min(4, Environment.ProcessorCount).ToInvString()).ToInvInt32()))));
 
-			if(AvailableSIMD.HasFlag(CPUInstructions.SSE2)) {
-				addOrReplace(new BlockConsumerFactory("CRC32", s => new HashCalculator(s.Name, s.Reader, new Crc32NativeHashAlgorithm())));
-			}
-			if(AvailableSIMD.HasFlag(CPUInstructions.SSE42)) {
-				addOrReplace(new BlockConsumerFactory("CRC32C", s => new HashCalculator(s.Name, s.Reader, new Crc32CIntelHashAlgorithm())));
-			}
-			if(AvailableSIMD.HasFlag(CPUInstructions.SHA) && false) { //Broken (Produces wrong hashes)
-				addOrReplace(new BlockConsumerFactory("SHA1", s => new HashCalculator(s.Name, s.Reader, new SHA1NativeHashAlgorithm())));
-				addOrReplace(new BlockConsumerFactory("SHA2-256", s => new HashCalculator(s.Name, s.Reader, new SHA256NativeHashAlgorithm())));
+			var availableSIMD = GetAvailableSIMD();
+			if(availableSIMD.HasValue) {
+				if(availableSIMD.Value.HasFlag(CPUInstructions.SSE2)) {
+					addOrReplace(new BlockConsumerFactory("CRC32", s => new HashCalculator(s.Name, s.Reader, new Crc32NativeHashAlgorithm())));
+				}
+				if(availableSIMD.Value.HasFlag(CPUInstructions.SSE42)) {
+					addOrReplace(new BlockConsumerFactory("CRC32C", s => new HashCalculator(s.Name, s.Reader, new Crc32CIntelHashAlgorithm())));
+				}
+				if(availableSIMD.Value.HasFlag(CPUInstructions.SHA) && false) { //Broken (Produces wrong hashes)
+					addOrReplace(new BlockConsumerFactory("SHA1", s => new HashCalculator(s.Name, s.Reader, new SHA1NativeHashAlgorithm())));
+					addOrReplace(new BlockConsumerFactory("SHA2-256", s => new HashCalculator(s.Name, s.Reader, new SHA256NativeHashAlgorithm())));
+				}
 			}
 
 		} catch(Exception) {

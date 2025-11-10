@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 namespace AVDump3Lib.Processing;
 
 public interface IAVD3ProcessingModule : IAVD3Module {
-	CPUInstructions AvailableSIMD { get; }
+	CPUInstructions? GetAvailableSIMD();
 
 	ImmutableArray<IBlockConsumerFactory> BlockConsumerFactories { get; }
 

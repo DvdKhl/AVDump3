@@ -186,8 +186,13 @@ public abstract class AVD3UIModule : IAVD3UIModule, IFileMoveConfigure {
 
 		if(Settings.Processing.PrintAvailableSIMDs) {
 			System.Console.WriteLine("Available SIMD Instructions: ");
-			foreach(var flagValue in Enum.GetValues(typeof(CPUInstructions)).OfType<CPUInstructions>().Where(x => (x & ProcessingModule.AvailableSIMD) != 0)) {
-				System.Console.WriteLine(flagValue);
+			var availableInstructions = ProcessingModule.GetAvailableSIMD();
+			if(availableInstructions != null) {
+				foreach(var flagValue in Enum.GetValues(typeof(CPUInstructions)).OfType<CPUInstructions>().Where(x => (x & availableInstructions.Value) != 0)) {
+					System.Console.WriteLine(flagValue);
+				}
+			} else {
+				System.Console.WriteLine("Couldn't fetch cpu instructions!");
 			}
 			args.Cancel();
 		}
