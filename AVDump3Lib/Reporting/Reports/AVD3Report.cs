@@ -17,7 +17,7 @@ public class AVD3Report : XmlReport {
 		xDoc.Add(rootElem);
 
 		rootElem.Add(new XElement("Path", fileMetaInfo.FileInfo.FullName));
-		rootElem.Add(new XElement("Size", fileMetaInfo.FileInfo.Length));
+		rootElem.Add(new XElement("Size", fileMetaInfo.ResolvedPathFileInfo.Length));
 
 		foreach(var provider in fileMetaInfo.CondensedProviders) {
 			rootElem.Add(BuildReportMedia(provider));

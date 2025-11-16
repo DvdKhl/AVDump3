@@ -630,7 +630,7 @@ public abstract class AVD3UIModule : IAVD3UIModule, IFileMoveConfigure {
 
 	private static string? ReplaceToken(string key, FileMetaInfo fileMetaInfo, IDictionary<string, string?>? additionalTokenValues = null) {
 		var value = key switch {
-			"FileSize" => fileMetaInfo.FileInfo.Length.ToString(),
+			"FileSize" => fileMetaInfo.ResolvedPathFileInfo.Length.ToString(),
 			"FullName" => fileMetaInfo.FileInfo.FullName,
 			"FileName" => fileMetaInfo.FileInfo.Name,
 			"FileExtension" => fileMetaInfo.FileInfo.Extension,

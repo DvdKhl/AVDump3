@@ -49,12 +49,18 @@ public sealed class StreamFromPathsProvider : IStreamProvider, IDisposable {
 			if(!accept(fileInfo)) return;
 			//if(fileInfo.Length < 1 << 30) return;
 
-			if(fileInfo.Attributes.HasFlag(FileAttributes.ReparsePoint)) {
-				using var stream = fileInfo.OpenRead();
-				TotalBytes += stream.Length;
+			FileSystemInfo? actualPath;
+			try {
+				actualPath = fileInfo.ResolveLinkTarget(true);
+			} catch(Exception) {
+				Console.WriteLine("Could not resolve link target for " + filePath);
+				return;
+			}
 
-			} else {
+			if(actualPath == null) {
 				TotalBytes += fileInfo.Length;
+			} else {
+				TotalBytes += actualPath is FileInfo fi ? fi.Length : 0;
 			}
 
 			localConcurrencyPartitions.First(ldKey => filePath.InvStartsWith(ldKey.Path)).Files.Enqueue(filePath);
