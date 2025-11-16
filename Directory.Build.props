@@ -1,0 +1,26 @@
+<Project>
+  <PropertyGroup>
+    <!-- Configure your static major/minor here -->
+    <VersionMajor>3</VersionMajor>
+    <VersionMinor>2</VersionMinor>
+    <!-- Offset to add to git commit count to reach current patch base -->
+    <GitHeightOffset>8665</GitHeightOffset>
+  </PropertyGroup>
+
+  <!-- Compute git commit count and set version properties before SDK derives assembly attributes -->
+  <Target Name="SetGitVersion" BeforeTargets="GetAssemblyVersion">
+    <Exec Command="git rev-list --count HEAD" ConsoleToMSBuild="true" ContinueOnError="WarnAndContinue">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitHeight" />
+    </Exec>
+    <PropertyGroup Condition="'$(GitHeight)'==''">
+      <GitHeight>0</GitHeight>
+    </PropertyGroup>
+    <PropertyGroup>
+      <ComputedPatch>$([MSBuild]::Add($(GitHeight), $(GitHeightOffset)))</ComputedPatch>
+      <Version>$(VersionMajor).$(VersionMinor).$(ComputedPatch)</Version>
+      <AssemblyVersion>$(Version).0</AssemblyVersion>
+      <FileVersion>$(Version).0</FileVersion>
+      <InformationalVersion>$(Version)</InformationalVersion>
+    </PropertyGroup>
+  </Target>
+</Project>

@@ -1,6 +1,18 @@
 name: AVDump3
 
 on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch or tag to build'
+        required: false
+        default: ''
+      release_kind:
+        description: 'Type of run (internal builds skip GitHub release)'
+        required: true
+        type: choice
+        options: [ internal, public ]
+        default: internal
   push:
     tags: [ 'B[0-9]+-GitHubRelease' ]
     branches: [ master ]
@@ -25,6 +37,9 @@ jobs:
     steps:
     - name: AVD3Main-Checkout
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.inputs.ref || github.ref }}
       
     - name: AVD3Main-DotNetSetup
       uses: actions/setup-dotnet@v4
@@ -200,9 +215,12 @@ jobs:
         path: ${{ github.workspace }}/AVDump3CL/publish/
 
   release-avd3-main:
-    if: contains(github.ref, 'tags/B')
+    # Only run release on manual dispatch
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.release_kind == 'public'
     runs-on: ubuntu-latest
     needs: build-avd3-main
+    permissions:
+      contents: write
 
     steps:
     - name: AVD3Release-DownloadArtifacts
@@ -211,22 +229,31 @@ jobs:
         name: AVDump3CL
         path: ${{ github.workspace }}/AVDump3CL
 
-    - name: AVD3Release-GetTag
-      id: avd3releasegettag
-      uses: olegtarasov/get-tag@v2.1.4
-      with:
-        tagRegex: "B(\\d+)"
-      
+    - name: AVD3Release-ComputeTagFromAssembly
+      id: gettag
+      shell: pwsh
+      run: |
+        $dll = Join-Path $env:GITHUB_WORKSPACE 'AVDump3CL/publish/win-x64/AVDump3CL.dll'
+        if (-not (Test-Path $dll)) { throw "Assembly not found: $dll" }
+        $ver = [System.Reflection.AssemblyName]::GetAssemblyName($dll).Version
+        $build = $ver.Build
+        Write-Host "Build height: $build"
+        # Expose outputs
+        "build=$build" >> $env:GITHUB_OUTPUT
+        "tag=B$build-GitHubRelease" >> $env:GITHUB_OUTPUT
+
     - name: AVD3Release-CompressAsset
       run: |
         cd ${{ github.workspace }}/AVDump3CL
-        zip -r ${{ github.workspace }}/AVDump3CL-B${{ steps.avd3releasegettag.outputs.tag }}.zip *
+        zip -r ${{ github.workspace }}/AVDump3CL-B${{ steps.gettag.outputs.tag }}.zip *
      
     - name: AVD3Release-Create
       id: avd3releasecreate
       uses: softprops/action-gh-release@v2
       with:
-        name: Build ${{ steps.avd3releasegettag.outputs.tag }}
+        tag_name: ${{ steps.gettag.outputs.tag }}
+        target_commitish: ${{ github.sha }}
+        name: Build ${{ steps.gettag.outputs.build }}
         draft: false
         prerelease: true
-        files: ${{ github.workspace }}/AVDump3CL-B${{ steps.avd3releasegettag.outputs.tag }}.zip
+        files: ${{ github.workspace }}/AVDump3CL-${{ steps.gettag.outputs.tag }}.zip

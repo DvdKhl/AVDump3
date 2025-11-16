@@ -4,6 +4,10 @@
       "commandName": "Project",
       "commandLineArgs": "FROMFILE DebugParams.txt",
       "nativeDebugging": false
+    },
+    "WSL": {
+      "commandName": "WSL2",
+      "distributionName": ""
     }
   }
 }
