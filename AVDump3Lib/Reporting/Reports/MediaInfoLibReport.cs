@@ -3,6 +3,8 @@ using AVDump3Lib.Reporting.Core;
 using ExtKnot.StringInvariants;
 using System.Xml.Linq;
 using static AVDump3Lib.Information.InfoProvider.MediaInfoLibNativeMethods;
+using System.Xml;
+using System.Text.RegularExpressions;
 
 namespace AVDump3Lib.Reporting.Reports;
 
@@ -40,7 +42,8 @@ public class MediaInfoLibXmlReport : XmlReport {
 					measure = mediaInfo.Get(j, streamKind, i, InfoTypes.Measure).Trim();
 
 					if(name.IndexOfAny(new char[] { ')', ':' }) < 0 && !string.IsNullOrEmpty(text)) {
-						subNode.Add(new XElement(name, text, new XAttribute("Unit", measure)));
+						var safeName = ToSafeElementName(name);
+						subNode.Add(new XElement(safeName, text, new XAttribute("Unit", measure)));
 					} else {
 						//Debug.Print(name + " " + text + " " + measure);
 					}
@@ -60,6 +63,14 @@ public class MediaInfoLibXmlReport : XmlReport {
 				}
 			}
 		}
+	}
 
+	private static string ToSafeElementName(string raw) {
+		if(string.IsNullOrWhiteSpace(raw)) return "Empty";
+		// Replace invalid XML name chars with underscore (conservative)
+		var cleaned = Regex.Replace(raw, @"[^\p{L}0-9._-]", "_");
+		if(!Regex.IsMatch(cleaned, @"^[A-Za-z_]") ) cleaned = "_" + cleaned;
+		if(cleaned.Length == 0) cleaned = "_";
+		return XmlConvert.EncodeLocalName(cleaned);
 	}
 }
